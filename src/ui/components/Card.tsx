@@ -1,3 +1,4 @@
+import type { ComponentChildren } from 'preact';
 import {
   costSymbols,
   getCardDef,
@@ -7,6 +8,7 @@ import {
   hasKeyword,
   rulesText,
   typeLine,
+  type CardDef,
   type CardId,
   type GameState,
 } from '../../engine';
@@ -37,7 +39,7 @@ function ManaSymbol({ symbol }: { symbol: string }) {
     );
   }
   return (
-    <span class="pip" style={cssVars({ '--pip': `var(--mana-${symbol})` })} aria-label={symbol}>
+    <span class="pip" style={cssVars({ '--pip': `var(--mana-${symbol})` })} data-color={symbol} aria-label={symbol}>
       {symbol}
     </span>
   );
@@ -105,7 +107,7 @@ function PowerToughness({ s, id }: { s: GameState; id: CardId }) {
   const toughness = getToughness(s, id);
   const remaining = toughness - card.damage;
   const powerClass = power > (def.power ?? 0) ? 'up' : power < (def.power ?? 0) ? 'down' : '';
-  const toughClass = card.damage > 0 ? 'down' : toughness > (def.toughness ?? 0) ? 'up' : '';
+  const toughClass = card.damage > 0 || toughness < (def.toughness ?? 0) ? 'down' : toughness > (def.toughness ?? 0) ? 'up' : '';
   return (
     <span class="pt num" data-testid={`pt-${id}`}>
       <span class={powerClass}>{power}</span>/<span class={toughClass}>{remaining}</span>
@@ -184,27 +186,11 @@ interface HandCardProps {
   onInspect: () => void;
 }
 
-export function HandCard({ s, id, flags, onTap, onInspect }: HandCardProps) {
-  const press = usePress(onTap, onInspect);
-  const card = s.cards[id];
-  if (!card) return null;
-  const def = getCardDef(card.def);
+export function MiniFace({ def }: { def: CardDef }) {
   const isLand = def.types.includes('land');
   const text = isLand ? rulesText(def).join(' ') : shortText(def.id) || rulesText(def).join(' ');
   return (
-    <button
-      type="button"
-      class={classes('card hand-card', flags, isLand ? ['land'] : [])}
-      style={cssVars({ '--card-color': cardColorVar(def) })}
-      data-testid={`card-${id}`}
-      data-card={id}
-      data-def={def.id}
-      data-zone="hand"
-      data-playable={flags.playable ? 'true' : undefined}
-      aria-label={`${def.name}${flags.playable ? ', playable' : ''}`}
-      aria-pressed={flags.selected ? 'true' : undefined}
-      {...press}
-    >
+    <>
       <span class="cost">
         <ManaCost defId={def.id} />
       </span>
@@ -218,15 +204,36 @@ export function HandCard({ s, id, flags, onTap, onInspect }: HandCardProps) {
           {def.power}/{def.toughness}
         </span>
       )}
+    </>
+  );
+}
+
+export function HandCard({ s, id, flags, onTap, onInspect }: HandCardProps) {
+  const press = usePress(onTap, onInspect);
+  const card = s.cards[id];
+  if (!card) return null;
+  const def = getCardDef(card.def);
+  const isLand = def.types.includes('land');
+  return (
+    <button
+      type="button"
+      class={classes('card mini hand-card', flags, isLand ? ['land'] : [])}
+      style={cssVars({ '--card-color': cardColorVar(def) })}
+      data-testid={`card-${id}`}
+      data-card={id}
+      data-def={def.id}
+      data-zone="hand"
+      data-playable={flags.playable ? 'true' : undefined}
+      aria-label={`${def.name}${flags.playable ? ', playable' : ''}`}
+      aria-pressed={flags.selected ? 'true' : undefined}
+      {...press}
+    >
+      <MiniFace def={def} />
     </button>
   );
 }
 
-export function DetailCard({ s, id }: { s: GameState; id: CardId }) {
-  const card = s.cards[id];
-  if (!card) return null;
-  const def = getCardDef(card.def);
-  const onBattlefield = card.zone === 'battlefield';
+export function DetailFace({ def, pt }: { def: CardDef; pt?: ComponentChildren }) {
   return (
     <div class="card detail-card" style={cssVars({ '--card-color': cardColorVar(def) })} aria-hidden="true">
       <span class="cost">
@@ -236,13 +243,17 @@ export function DetailCard({ s, id }: { s: GameState; id: CardId }) {
       <span class="type">{typeLine(def)}</span>
       <CardArt defId={def.id} />
       {def.types.includes('creature') &&
-        (onBattlefield ? (
-          <PowerToughness s={s} id={id} />
-        ) : (
+        (pt ?? (
           <span class="pt num">
             {def.power}/{def.toughness}
           </span>
         ))}
     </div>
   );
+}
+
+export function DetailCard({ s, id }: { s: GameState; id: CardId }) {
+  const card = s.cards[id];
+  if (!card) return null;
+  return <DetailFace def={getCardDef(card.def)} pt={card.zone === 'battlefield' ? <PowerToughness s={s} id={id} /> : undefined} />;
 }

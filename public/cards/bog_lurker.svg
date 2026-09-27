@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f1a28"/>
+      <stop offset="1" stop-color="#34403a"/>
+    </linearGradient>
+    <g id="tentacle">
+      <path d="M22.5 58 C19 52 17 46 17.5 40 C18 32 21 26 26 23.5 C30 21.5 35 23 36 26.5 C36.6 29 34.5 31.5 32 32 C33.5 30.6 33 28.4 30.5 28 C27.5 28 25 31.5 24.5 36 C24 42 27 50 31.5 58 Z" fill="#4a3f55"/>
+      <g fill="#8a7d9c">
+        <circle cx="25.4" cy="44" r="1"/>
+        <circle cx="24.8" cy="38.4" r="0.9"/>
+        <circle cx="26.6" cy="32.6" r="0.7"/>
+      </g>
+    </g>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="60" cy="34" r="28" fill="#9fcf6a" opacity="0.07"/>
+  <use href="#tentacle"/>
+  <use href="#tentacle" transform="translate(122 12) scale(-0.85 0.85)"/>
+  <path d="M36 54 C35 32 46 18 60 18 C74 18 85 32 84 54 Z" fill="#4a3f55"/>
+  <path d="M42 28 C46 22 52 20 58 20 C50 22 46 26 44 32 Z" fill="#6b5f7a"/>
+  <g fill="#c6f25a">
+    <circle cx="50" cy="32" r="7" opacity="0.2"/>
+    <circle cx="70" cy="32" r="7" opacity="0.2"/>
+    <ellipse cx="50" cy="32" rx="5" ry="4"/>
+    <ellipse cx="70" cy="32" rx="5" ry="4"/>
+  </g>
+  <ellipse cx="50.6" cy="32.4" rx="1" ry="3" fill="#15121a"/>
+  <ellipse cx="69.4" cy="32.4" rx="1" ry="3" fill="#15121a"/>
+  <path d="M43 26 L58 30.6 L57.6 27.2 L45 24 Z M77 26 L62 30.6 L62.4 27.2 L75 24 Z" fill="#4a3f55"/>
+  <path d="M39 42 Q60 37 81 42 L78 53 H42 Z" fill="#15121a"/>
+  <path d="M42 41.4 L44.4 47 L46.6 40.6 Z M49 40 L51.4 46 L53.6 39.4 Z M56 39.2 L58 44 L60 39 L62 44 L64 39.2 Z M66.4 39.4 L68.6 46 L71 40 Z M73.4 40.6 L75.6 47 L78 41.4 Z M46 53 L48 48 L50 53 Z M56 53 L58 49.4 L60 53 Z M64 53 L66 49 L68 53 Z M72 53 L74 48.4 L76 53 Z" fill="#d9d2c0"/>
+  <path d="M0 52 Q30 50 60 52 T120 52 V80 H0 Z" fill="#1c2322"/>
+  <path d="M28 54 Q60 58 92 54" fill="none" stroke="#5b6b5e" stroke-opacity="0.7" stroke-linecap="round"/>
+  <path d="M36 60 Q60 63 84 60" fill="none" stroke="#5b6b5e" stroke-opacity="0.4" stroke-linecap="round"/>
+  <path d="M44.6 47 C43.4 49 43.2 51 44.6 51 C46 51 45.8 49 44.6 47 Z M32 34 C30.8 36 30.6 38.6 32 38.6 C33.4 38.6 33.2 36 32 34 Z M94.8 41 C93.6 43 93.4 45 94.8 45 C96.2 45 96 43 94.8 41 Z" fill="#9fcf6a"/>
+</svg>

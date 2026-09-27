@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chooseAction, chooseAttackers, chooseBlocks } from '../../src/ai';
+import { chooseAction, chooseAttackers, chooseBlocks, rollout } from '../../src/ai';
 import {
   applyAction,
   createGame,
@@ -122,6 +122,21 @@ describe('AI instant-speed decisions', () => {
     expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'surge', targets: [{ card: 'hound' }] });
   });
 
+  it('does not waste a pump spell at the end of the opponent’s turn, even when it is in danger', () => {
+    const s = pass(
+      scenario({
+        activePlayer: 1,
+        step: 'main2',
+        players: [
+          { life: 5, hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'timberland_rhino', id: 'rhino' }] },
+          { battlefield: ['ember_hound', 'ember_hound', 'ember_hound', 'ember_hound'] },
+        ],
+      }),
+    );
+    expect(s.pending).toEqual({ kind: 'priority', player: 0 });
+    expect(chooseAction(s, 0)).toEqual({ type: 'pass', player: 0 });
+  });
+
   it('pumps its Crag Dragon when the damage gets through', () => {
     let s = scenario({
       activePlayer: 1,
@@ -131,6 +146,112 @@ describe('AI instant-speed decisions', () => {
     s = pass(pass(s));
     expect(s.step).toBe('declareBlockers');
     expect(chooseAction(s, 1)).toEqual({ type: 'activate', player: 1, card: 'dragon', ability: 0, targets: [] });
+  });
+});
+
+describe('AI with the Dawntide and Duskmire answers', () => {
+  it('counters a big creature spell', () => {
+    const s = pass(
+      cast(
+        scenario({
+          players: [
+            { hand: [{ card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest'] },
+            { hand: [{ card: 'turn_the_tide', id: 'tide' }], battlefield: ['island', 'island', 'island'] },
+          ],
+        }),
+        'rhino',
+      ),
+    );
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'tide', targets: [{ card: 'rhino' }] });
+  });
+
+  it('lets a harmless spell resolve instead of spending a counterspell on it', () => {
+    const s = pass(
+      cast(
+        scenario({
+          players: [
+            { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+            { hand: [{ card: 'turn_the_tide', id: 'tide' }], battlefield: ['island', 'island', 'island'] },
+          ],
+        }),
+        'snap',
+        [{ player: 1 }],
+      ),
+    );
+    expect(chooseAction(s, 1)).toEqual({ type: 'pass', player: 1 });
+  });
+
+  it('returns a lethal attacker to its owner’s hand', () => {
+    const s = pass(
+      attack(
+        scenario({
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { life: 4, hand: [{ card: 'undertow', id: 'undertow' }], battlefield: ['island', 'island'] },
+          ],
+        }),
+        ['rhino'],
+      ),
+    );
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'undertow', targets: [{ card: 'rhino' }] });
+  });
+
+  it("destroys a tapped attacker with Dawn's Verdict", () => {
+    const s = pass(
+      attack(
+        scenario({
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { hand: [{ card: 'dawns_verdict', id: 'verdict' }], battlefield: ['plains', 'plains', 'plains'] },
+          ],
+        }),
+        ['rhino'],
+      ),
+    );
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'verdict', targets: [{ card: 'rhino' }] });
+  });
+
+  it('kills a creature with Withering Touch and aims Grave Sentence at the biggest threat', () => {
+    const touch = scenario({
+      activePlayer: 1,
+      players: [{ battlefield: [{ card: 'ember_hound', id: 'hound' }] }, { hand: [{ card: 'withering_touch', id: 'touch' }], battlefield: ['swamp'] }],
+    });
+    expect(chooseAction(touch, 1)).toEqual({ type: 'cast', player: 1, card: 'touch', targets: [{ card: 'hound' }] });
+    const sentence = scenario({
+      activePlayer: 1,
+      players: [
+        { battlefield: [{ card: 'grove_tender', id: 'elf' }, { card: 'crag_dragon', id: 'dragon' }] },
+        { hand: [{ card: 'grave_sentence', id: 'sentence' }], battlefield: ['swamp', 'swamp', 'swamp', 'swamp'] },
+      ],
+    });
+    expect(chooseAction(sentence, 1)).toEqual({ type: 'cast', player: 1, card: 'sentence', targets: [{ card: 'dragon' }] });
+  });
+
+  it("pays life for Night's Bargain only when it can afford to", () => {
+    const bargain = (life: number) =>
+      scenario({
+        activePlayer: 1,
+        step: 'main2',
+        players: [{}, { life, hand: [{ card: 'nights_bargain', id: 'bargain' }], battlefield: ['swamp', 'swamp'] }],
+      });
+    expect(chooseAction(bargain(20), 1)).toEqual({ type: 'cast', player: 1, card: 'bargain', targets: [] });
+    expect(chooseAction(bargain(2), 1)).toEqual({ type: 'pass', player: 1 });
+  });
+});
+
+describe('AI rollouts', () => {
+  it('aim a death trigger at the most valuable target it can kill, not at its own controller', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain', { card: 'grove_tender', id: 'elf' }, { card: 'timberland_rhino', id: 'rhino' }] },
+        { battlefield: [{ card: 'test_dies_pinger', id: 'pinger' }] },
+      ],
+    });
+    s = act(pass(cast(s, 'snap', [{ card: 'pinger' }])), { type: 'pass', player: 1 });
+    expect(s.pending).toMatchObject({ kind: 'chooseTargets', player: 1 });
+    const after = rollout(s, 1);
+    expect(after.cards.elf?.zone).toBe('graveyard');
+    expect(after.players[1].life).toBe(20);
   });
 });
 
@@ -254,6 +375,19 @@ describe('AI setup decisions', () => {
     expect(chooseAction(allLands, 1)).toEqual({ type: 'mulligan', player: 1 });
   });
 
+  it('mulligans a hand whose lands cannot cast its spells', () => {
+    const deck = [...Array.from({ length: 20 }, () => 'forest'), ...Array.from({ length: 20 }, () => 'ember_snap')];
+    let checked = 0;
+    for (let seed = 1; seed <= 20; seed++) {
+      const s = createGame({ seed, startingPlayer: 1, players: [{}, { deck }] });
+      const lands = s.players[1].hand.filter((id) => s.cards[id]?.def === 'forest').length;
+      if (lands < 2 || lands > 5) continue;
+      expect(chooseAction(s, 1)).toEqual({ type: 'mulligan', player: 1 });
+      checked += 1;
+    }
+    expect(checked).toBeGreaterThan(5);
+  });
+
   it('keeps a hand with a reasonable number of lands', () => {
     const deck = [...Array.from({ length: 20 }, () => 'forest'), ...Array.from({ length: 20 }, () => 'canopy_spider')];
     for (let seed = 1; seed <= 20; seed++) {
@@ -326,14 +460,20 @@ function scrambleHiddenInformation(s: GameState, viewer: PlayerId, seed: number)
 describe('AI fairness', () => {
   it('decides the same way whatever the hidden cards are', () => {
     let checked = 0;
-    for (const seed of [1, 2, 3, 4]) {
-      let s = createGame({ seed });
+    const matchups: [string, string][] = [
+      ['emberwild', 'emberwild'],
+      ['dawntide', 'duskmire'],
+      ['duskmire', 'emberwild'],
+      ['emberwild', 'dawntide'],
+    ];
+    for (const [seed, [first, second]] of matchups.entries()) {
+      let s = createGame({ seed: seed + 1, players: [{ deck: first }, { deck: second }] });
       let step = 0;
       while (s.pending && s.pending.kind !== 'gameOver') {
         const player = s.pending.player;
         const action = chooseAction(s, player);
         if (step % 3 === 0 && s.pending.kind !== 'mulligan' && s.pending.kind !== 'bottom') {
-          const variant = scrambleHiddenInformation(s, player, seed * 1000 + step);
+          const variant = scrambleHiddenInformation(s, player, (seed + 1) * 1000 + step);
           expect(chooseAction(variant, player)).toEqual(action);
           checked += 1;
         }
@@ -346,12 +486,13 @@ describe('AI fairness', () => {
 });
 
 describe('AI strength', () => {
-  it('beats a random player nearly every game', () => {
+  it('beats a random player nearly every game, with any deck', () => {
     let wins = 0;
-    const games = 10;
+    const decks = ['emberwild', 'dawntide', 'duskmire'];
+    const games = 12;
     for (let seed = 1; seed <= games; seed++) {
       const rand = lcg(seed);
-      let s = createGame({ seed });
+      let s = createGame({ seed, players: [{ deck: decks[seed % 3] }, { deck: decks[(seed + 1) % 3] }] });
       while (s.pending && s.pending.kind !== 'gameOver') {
         const player = s.pending.player;
         let action: Action;
@@ -364,6 +505,6 @@ describe('AI strength', () => {
       }
       if (s.pending?.kind === 'gameOver' && s.pending.winner === 1) wins += 1;
     }
-    expect(wins).toBeGreaterThanOrEqual(9);
+    expect(wins).toBeGreaterThanOrEqual(11);
   });
 });

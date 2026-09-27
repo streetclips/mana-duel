@@ -2,7 +2,7 @@
   "name": "mana-duel",
   "private": true,
   "version": "0.1.0",
-  "description": "Minimalist mobile-first card game inspired by the rules of Magic: The Gathering. One deck, 1v1 against an AI.",
+  "description": "Minimalist mobile-first card game inspired by the rules of Magic: The Gathering. Three decks, 1v1 against an AI.",
   "type": "module",
   "scripts": {
     "dev": "vite",

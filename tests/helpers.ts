@@ -65,6 +65,15 @@ const TEST_CARDS: CardDef[] = [
     triggers: [{ on: 'dies', targets: [], effects: [{ kind: 'draw', amount: 1 }] }],
   },
   {
+    id: 'test_dies_pinger',
+    name: 'Test Dies Pinger',
+    types: ['creature'],
+    cost: '{R}',
+    power: 1,
+    toughness: 1,
+    triggers: [{ on: 'dies', targets: [{ kind: 'any' }], effects: [{ kind: 'damage', amount: 1, to: 0 }] }],
+  },
+  {
     id: 'test_attack_pump',
     name: 'Test Attack Pump',
     types: ['creature'],

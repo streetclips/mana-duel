@@ -1,12 +1,17 @@
 import { chooseAction } from '../ai';
 import {
+  DECK_LIST,
   applyAction,
   checkInvariants,
   createGame,
   createScenario,
+  deckSize,
   eligibleAttackers,
+  expandDeck,
+  getCardDef,
   getLegalActions,
   getPower,
+  getToughness,
   tryApplyAction,
   type Action,
   type GameState,
@@ -82,8 +87,16 @@ function zone(s: GameState, id: string): string {
   return s.cards[id]?.zone ?? 'missing';
 }
 
-function aiGame(seed: number, onState?: (s: GameState) => string | null): { state: GameState; actions: Action[]; problem: string | null } {
-  let s = createGame({ seed });
+function resolve(s: GameState): GameState {
+  return passUntil(s, (state) => state.stack.length === 0 || state.pending?.kind !== 'priority');
+}
+
+function aiGame(
+  seed: number,
+  onState?: (s: GameState) => string | null,
+  decks: [string, string] = ['emberwild', 'emberwild'],
+): { state: GameState; actions: Action[]; problem: string | null } {
+  let s = createGame({ seed, players: [{ deck: decks[0] }, { deck: decks[1] }] });
   const actions: Action[] = [];
   while (s.pending && s.pending.kind !== 'gameOver' && actions.length < 5000) {
     const problem = onState?.(s);
@@ -483,6 +496,161 @@ export const CHECKS: Check[] = [
     },
   },
   {
+    id: 'F29',
+    title: 'Decks: three 40-card decks with 16 lands each and no nonland card in common',
+    run: () => {
+      const owners = new Map<string, number>();
+      for (const deck of DECK_LIST) {
+        for (const entry of deck.cards) owners.set(entry.card, (owners.get(entry.card) ?? 0) + 1);
+      }
+      const shared = [...owners].filter(([id, count]) => count > 1 && !getCardDef(id).supertypes?.includes('Basic')).map(([id]) => id);
+      return first(
+        expectValue(DECK_LIST.map((deck) => deck.id), ['emberwild', 'dawntide', 'duskmire'], 'decks'),
+        expectValue(
+          DECK_LIST.map((deck) => [deckSize(deck), expandDeck(deck).filter((id) => getCardDef(id).types.includes('land')).length]),
+          [[40, 16], [40, 16], [40, 16]],
+          'cards and lands per deck',
+        ),
+        expectValue(shared, [], 'nonland cards in more than one deck'),
+      );
+    },
+  },
+  {
+    id: 'F30',
+    title: 'Counterspell: Turn the Tide counters a creature spell, which never enters',
+    run: () => {
+      let s = createScenario({
+        activePlayer: 1,
+        players: [
+          { hand: [{ card: 'turn_the_tide', id: 'tide' }], battlefield: ['island', 'island', 'island'] },
+          { hand: [{ card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest'] },
+        ],
+      });
+      s = play(s, [
+        { type: 'cast', player: 1, card: 'rhino', targets: [] },
+        { type: 'pass', player: 1 },
+        { type: 'cast', player: 0, card: 'tide', targets: [{ card: 'rhino' }] },
+      ]);
+      s = resolve(s);
+      return expectValue([zone(s, 'rhino'), zone(s, 'tide'), s.stack.length], ['graveyard', 'graveyard', 0], 'zones and stack');
+    },
+  },
+  {
+    id: 'F31',
+    title: 'Bounce: Undertow returns an attacker to its owner’s hand before it deals damage',
+    run: () => {
+      let s = toAttackers(
+        createScenario({
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { hand: [{ card: 'undertow', id: 'undertow' }], battlefield: ['island', 'island'] },
+          ],
+        }),
+      );
+      s = play(s, [
+        { type: 'declareAttackers', player: 0, attackers: ['rhino'] },
+        { type: 'pass', player: 0 },
+        { type: 'cast', player: 1, card: 'undertow', targets: [{ card: 'rhino' }] },
+      ]);
+      s = toMain2(resolve(s));
+      return expectValue([zone(s, 'rhino'), s.players[1].life], ['hand', 20], 'rhino zone and defender life');
+    },
+  },
+  {
+    id: 'F32',
+    title: 'Shrinking: Withering Touch kills a 2-toughness creature and shrinks others until end of turn',
+    run: () => {
+      let s = createScenario({
+        players: [
+          { hand: [{ card: 'withering_touch', id: 't1' }, { card: 'withering_touch', id: 't2' }], battlefield: ['swamp', 'swamp'] },
+          { battlefield: [{ card: 'cinder_adept', id: 'adept' }, { card: 'timberland_rhino', id: 'rhino' }] },
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 't1', targets: [{ card: 'adept' }] }]));
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 't2', targets: [{ card: 'rhino' }] }]));
+      const shrunk = [getPower(s, 'rhino'), getToughness(s, 'rhino')];
+      s = passUntil(s, (state) => state.turn === 4 && state.pending?.kind === 'priority');
+      return first(
+        expectValue(zone(s, 'adept'), 'graveyard', 'adept'),
+        expectValue([shrunk, [getPower(s, 'rhino'), getToughness(s, 'rhino')]], [[2, 2], [4, 4]], 'rhino this turn and next'),
+      );
+    },
+  },
+  {
+    id: 'F33',
+    title: "Tapped targets: Dawn's Verdict can only destroy a tapped creature",
+    run: () => {
+      const s = createScenario({
+        players: [
+          { hand: [{ card: 'dawns_verdict', id: 'verdict' }], battlefield: ['plains', 'plains', 'plains'] },
+          { battlefield: [{ card: 'timberland_rhino', id: 'tapped', tapped: true }, { card: 'crag_dragon', id: 'untapped' }] },
+        ],
+      });
+      const targets = getLegalActions(s).flatMap((action) => (action.type === 'cast' ? action.targets : []));
+      const after = resolve(play(s, [{ type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'tapped' }] }]));
+      return first(
+        expectValue(targets, [{ card: 'tapped' }], 'legal targets'),
+        refused(s, { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] }, 'target 0 (untapped) is not legal'),
+        expectValue(zone(after, 'tapped'), 'graveyard', 'tapped rhino'),
+      );
+    },
+  },
+  {
+    id: 'F34',
+    title: "Life payment: Night's Bargain draws two for 2 life, Dread Tyrant costs 2 life when it enters",
+    run: () => {
+      let bargain = createScenario({ players: [{ hand: [{ card: 'nights_bargain', id: 'bargain' }], battlefield: ['swamp', 'swamp'] }, {}] });
+      bargain = resolve(play(bargain, [{ type: 'cast', player: 0, card: 'bargain', targets: [] }]));
+      let tyrant = createScenario({ players: [{ hand: [{ card: 'dread_tyrant', id: 'tyrant' }], battlefield: ['swamp', 'swamp', 'swamp', 'swamp', 'swamp'] }, {}] });
+      tyrant = resolve(play(tyrant, [{ type: 'cast', player: 0, card: 'tyrant', targets: [] }]));
+      return first(
+        expectValue([bargain.players[0].hand.length, bargain.players[0].life], [2, 18], "Night's Bargain hand and life"),
+        expectValue([zone(tyrant, 'tyrant'), tyrant.players[0].life], ['battlefield', 18], 'Dread Tyrant zone and life'),
+      );
+    },
+  },
+  {
+    id: 'F35',
+    title: 'Death triggers: Gloom Wisp draws a card, Crypt Ghoul deals 1 damage to the opponent',
+    run: () => {
+      let wisp = createScenario({
+        players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { battlefield: [{ card: 'gloom_wisp', id: 'wisp' }] }],
+      });
+      wisp = resolve(play(wisp, [{ type: 'cast', player: 0, card: 'snap', targets: [{ card: 'wisp' }] }]));
+      let ghoul = createScenario({
+        players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { battlefield: [{ card: 'crypt_ghoul', id: 'ghoul', damage: 1 }] }],
+      });
+      ghoul = play(ghoul, [
+        { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'ghoul' }] },
+        { type: 'pass', player: 0 },
+        { type: 'pass', player: 1 },
+      ]);
+      const asked = expectValue([ghoul.pending?.kind, ghoul.pending && 'player' in ghoul.pending ? ghoul.pending.player : null], ['chooseTargets', 1], 'pending decision');
+      ghoul = resolve(play(ghoul, [{ type: 'chooseTargets', player: 1, targets: [{ player: 0 }] }]));
+      return first(
+        expectValue([zone(wisp, 'wisp'), wisp.players[1].hand.length], ['graveyard', 1], 'Gloom Wisp'),
+        asked,
+        expectValue([zone(ghoul, 'ghoul'), ghoul.players[0].life], ['graveyard', 19], 'Crypt Ghoul and its opponent'),
+      );
+    },
+  },
+  {
+    id: 'F36',
+    title: 'Every matchup plays to the end with sound invariants',
+    run: () => {
+      const ids = DECK_LIST.map((deck) => deck.id);
+      for (const [index, first] of ids.entries()) {
+        const second = ids[(index + 1) % ids.length] as string;
+        const game = aiGame(40 + index, (s) => {
+          const problems = checkInvariants(s);
+          return problems.length ? problems.join('; ') : null;
+        }, [first, second]);
+        if (game.problem) return `${first} vs ${second}: ${game.problem}`;
+      }
+      return null;
+    },
+  },
+  {
     id: 'F27',
     title: 'AI: casts burn at the opponent when it is lethal',
     run: () => {
@@ -491,6 +659,25 @@ export const CHECKS: Check[] = [
         players: [{ life: 2 }, { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }],
       });
       return expectValue(chooseAction(s, 1), { type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] }, 'AI action');
+    },
+  },
+  {
+    id: 'F37',
+    title: 'AI: counters a big creature spell with Turn the Tide',
+    run: () => {
+      const s = play(
+        createScenario({
+          players: [
+            { hand: [{ card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest'] },
+            { hand: [{ card: 'turn_the_tide', id: 'tide' }], battlefield: ['island', 'island', 'island'] },
+          ],
+        }),
+        [
+          { type: 'cast', player: 0, card: 'rhino', targets: [] },
+          { type: 'pass', player: 0 },
+        ],
+      );
+      return expectValue(chooseAction(s, 1), { type: 'cast', player: 1, card: 'tide', targets: [{ card: 'rhino' }] }, 'AI action');
     },
   },
   {

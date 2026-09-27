@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2433"/>
+      <stop offset="1" stop-color="#433c4e"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <path d="M34 66 V30 C34 12 86 12 86 30 V66 Z" fill="#4a3f55"/>
+  <path d="M42 66 V32 C42 20 78 20 78 32 V66 Z" fill="#15121a"/>
+  <ellipse cx="60" cy="46" rx="16" ry="20" fill="#9fcf6a" opacity="0.16"/>
+  <ellipse cx="60" cy="50" rx="10" ry="14" fill="#9fcf6a" opacity="0.14"/>
+  <path d="M12 66 V50 C12 44 24 44 24 50 V66 Z M96 66 V48 C96 42 108 42 108 48 V66 Z" fill="#5a5066"/>
+  <path d="M18 50 V58 M15 53 H21 M102 48 V56 M99 51 H105" stroke="#433c4e" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M0 64 Q60 60 120 64 V80 H0 Z" fill="#221c29"/>
+  <path d="M56 54 L45 46 L43 62 M64 54 L75 46 L77 62" fill="none" stroke="#7a7584" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M43 62 L39 65 M43 62 L46 65 M77 62 L81 65 M77 62 L74 65" stroke="#7a7584" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M45 36 C49 32 55 33 60 34 C65 33 71 32 75 36 C74 44 68 54 60 56 C52 54 46 44 45 36 Z" fill="#8a8594"/>
+  <path d="M54 42 Q57 44 59 42.6 M66 42 Q63 44 61 42.6 M55 46.4 Q57.6 48.2 59 47 M65 46.4 Q62.4 48.2 61 47" fill="none" stroke="#6e6978" stroke-linecap="round"/>
+  <path d="M47 36 L36 45 L33 55 M73 36 L84 45 L87 55" fill="none" stroke="#9b96a3" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 55 C30 58 28 60 25 61 M33 56 C32 59 31 62 29 64 M35 56 C35 59 35 62 34 65 M88 55 C90 58 92 60 95 61 M87 56 C88 59 89 62 91 64 M85 56 C85 59 85 62 86 65" fill="none" stroke="#d9d2c0" stroke-width="1.1" stroke-linecap="round"/>
+  <path d="M52 31 C52 23 56 20 60 20 C64 20 68 23 68 31 C68 37 64 42 60 42 C56 42 52 37 52 31 Z M53 32 L46 25 L53 29 Z M67 29 L74 25 L67 32 Z" fill="#9b96a3"/>
+  <path d="M53.6 27.6 L59 30 M66.4 27.6 L61 30" stroke="#6e6978" stroke-width="1.2" stroke-linecap="round"/>
+  <g fill="#c6f25a">
+    <circle cx="56.6" cy="31.4" r="3" opacity="0.3"/>
+    <circle cx="63.4" cy="31.4" r="3" opacity="0.3"/>
+    <circle cx="56.6" cy="31.4" r="1.3"/>
+    <circle cx="63.4" cy="31.4" r="1.3"/>
+  </g>
+  <path d="M54.6 35.6 Q60 34.4 65.4 35.6 L63.6 39.6 Q60 40.6 56.4 39.6 Z" fill="#221c29"/>
+  <path d="M55.6 35.6 L56.6 37.6 L57.6 35.2 Z M58.6 35 L59.6 37 L60.6 35 Z M61.6 35 L62.6 37.2 L63.6 35.4 Z M57 39.8 L58 38 L59 40.2 Z M61 40.2 L62 38 L63 39.8 Z" fill="#d9d2c0"/>
+</svg>

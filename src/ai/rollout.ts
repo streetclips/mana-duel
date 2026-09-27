@@ -1,13 +1,19 @@
 import {
   applyAction,
+  defOf,
+  getCard,
   getLegalActions,
+  getToughness,
+  isPlayerTarget,
   tryApplyAction,
   type Action,
+  type Effect,
   type GameState,
   type PlayerId,
   type Step,
+  type Target,
 } from '../engine';
-import { evaluate } from './evaluate';
+import { creatureValue, evaluate } from './evaluate';
 
 const MAX_ROLLOUT_ACTIONS = 80;
 const COMBAT_STEPS: ReadonlySet<Step> = new Set([
@@ -19,10 +25,9 @@ const COMBAT_STEPS: ReadonlySet<Step> = new Set([
   'endCombat',
 ]);
 
-export function rollout(start: GameState, depth = 0): GameState {
+export function rollout(start: GameState, depth = 0, from: Pick<GameState, 'turn' | 'step'> = start): GameState {
   let s = start;
-  const turn = s.turn;
-  const step = s.step;
+  const { turn, step } = from;
   for (let i = 0; i < MAX_ROLLOUT_ACTIONS; i++) {
     const pending = s.pending;
     if (!pending || pending.kind === 'gameOver') return s;
@@ -33,7 +38,7 @@ export function rollout(start: GameState, depth = 0): GameState {
       continue;
     }
     if (pending.kind === 'chooseTargets') {
-      s = applyAction(s, depth >= 1 ? firstAction(s) : bestAction(s, pending.player, getLegalActions(s), depth + 1));
+      s = applyAction(s, depth >= 1 ? quickTargets(s, pending.player) : bestAction(s, pending.player, getLegalActions(s), depth + 1));
       continue;
     }
     return s;
@@ -41,14 +46,52 @@ export function rollout(start: GameState, depth = 0): GameState {
   return s;
 }
 
-function firstAction(s: GameState): Action {
-  const action = getLegalActions(s)[0];
-  if (!action) throw new Error('no legal action available');
-  return action;
+function controllerOf(s: GameState, target: Target): PlayerId {
+  return isPlayerTarget(target) ? target.player : getCard(s, target.card).controller;
+}
+
+function targetImpact(s: GameState, player: PlayerId, effect: Effect, targets: Target[]): number {
+  const index = 'to' in effect && typeof effect.to === 'number' ? effect.to : null;
+  const target = index === null ? undefined : targets[index];
+  if (!target) return 0;
+  const side = controllerOf(s, target) === player ? -1 : 1;
+  if (isPlayerTarget(target)) return effect.kind === 'damage' ? side * effect.amount * 0.5 : 0;
+  const value = creatureValue(s, target.card);
+  const remaining = getToughness(s, target.card) - getCard(s, target.card).damage;
+  switch (effect.kind) {
+    case 'damage':
+      return side * (effect.amount >= remaining ? value : effect.amount * 0.3);
+    case 'destroy':
+    case 'bounce':
+      return side * value;
+    case 'pump':
+      if (effect.toughness < 0 && -effect.toughness >= remaining) return side * value;
+      return -side * (effect.power + effect.toughness) * 0.5;
+    default:
+      return 0;
+  }
+}
+
+function quickTargets(s: GameState, player: PlayerId): Action {
+  const pending = s.pending;
+  const trigger = pending?.kind === 'chooseTargets' ? s.triggers.find((candidate) => candidate.id === pending.trigger) : undefined;
+  const effects = trigger ? (defOf(s, trigger.source).triggers?.[trigger.ability]?.effects ?? []) : [];
+  let best: Action | undefined;
+  let bestScore = Number.NEGATIVE_INFINITY;
+  for (const action of getLegalActions(s)) {
+    const targets = action.type === 'chooseTargets' ? action.targets : [];
+    const score = effects.reduce((sum, effect) => sum + targetImpact(s, player, effect, targets), 0);
+    if (score > bestScore) {
+      best = action;
+      bestScore = score;
+    }
+  }
+  if (!best) throw new Error('no legal action available');
+  return best;
 }
 
 export function actionValue(s: GameState, action: Action, player: PlayerId, depth = 0): number {
-  return evaluate(rollout(applyAction(s, action), depth), player);
+  return evaluate(rollout(applyAction(s, action), depth, s), player);
 }
 
 export function bestAction(s: GameState, player: PlayerId, actions: Action[], depth = 0): Action {
@@ -82,7 +125,7 @@ export function repeatedActionValue(s: GameState, action: Action, player: Player
     const result = tryApplyAction(state, action);
     if (!result.ok) break;
     state = settleStack(result.state);
-    best = Math.max(best, evaluate(rollout(state), player));
+    best = Math.max(best, evaluate(rollout(state, 0, s), player));
     const pending = state.pending;
     if (pending?.kind === 'priority' && pending.player !== player && state.stack.length === 0) {
       const passed = tryApplyAction(state, { type: 'pass', player: pending.player });

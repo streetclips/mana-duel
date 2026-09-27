@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#15121a"/>
+      <stop offset="1" stop-color="#2e2638"/>
+    </linearGradient>
+    <linearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a7aa6"/>
+      <stop offset="1" stop-color="#4a3f55"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <g fill="#d8ccef">
+    <circle cx="22" cy="8" r="0.7"/>
+    <circle cx="36" cy="5" r="0.5"/>
+    <circle cx="94" cy="8" r="0.8"/>
+    <circle cx="110" cy="30" r="0.6"/>
+    <circle cx="8" cy="40" r="0.6"/>
+    <circle cx="106" cy="52" r="0.9"/>
+    <circle cx="14" cy="58" r="0.5"/>
+  </g>
+  <circle cx="60" cy="34" r="30" fill="#b9a6d6" opacity="0.1"/>
+  <circle cx="60" cy="32" r="19" fill="#b9a6d6" opacity="0.16"/>
+  <path d="M60 12 C50 13 40 18 30 20 C24 21 18 19 12 16 C16 24 18 30 16 38 L22 36 L20 48 L27 42 L27 54 L33 46 L36 58 L41 49 L46 60 L50 52 L60 56 L70 52 L74 60 L79 49 L84 58 L87 46 L93 54 L93 42 L100 48 L98 36 C102 30 104 24 108 16 C102 19 96 21 90 20 C80 18 70 13 60 12 Z" fill="url(#veil)"/>
+  <path d="M60 10 C68 10 74 17 75 26 C76 34 73 42 70 48 C67 56 63 62 57 66 C52 69 46 70 40 72 C45 68 49 63 50 56 C48 48 45 38 45 28 C45 17 52 10 60 10 Z" fill="#b9a6d6"/>
+  <path d="M68 40 C69 48 66 56 60 62 C64 56 66 48 66 40 Z" fill="#9582b8"/>
+  <path d="M47 27 C47 18 53 12 60 12 C54 14 50 19 49 27 Z" fill="#d8ccef"/>
+  <path d="M48 32 C42 34 36 38 31 45 L37 47 C40 43 44 40 49 39 Z M72 32 C78 34 84 38 89 45 L83 47 C80 43 76 40 71 39 Z" fill="#b9a6d6"/>
+  <path d="M60 17 C65 18 67 23 67 28 C67 33 64 36 60 36 C56 36 53 33 53 28 C53 23 55 18 60 17 Z" fill="#15121a"/>
+  <circle cx="57.3" cy="27.5" r="2.2" fill="#c6f25a" opacity="0.3"/>
+  <circle cx="62.7" cy="27.5" r="2.2" fill="#c6f25a" opacity="0.3"/>
+  <ellipse cx="57.3" cy="27.5" rx="1.5" ry="0.9" fill="#c6f25a"/>
+  <ellipse cx="62.7" cy="27.5" rx="1.5" ry="0.9" fill="#c6f25a"/>
+  <g fill="none" stroke="#d9d2c0" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M33 47 L28 52 L27 55 M33.5 48 L30.5 55 L30.5 58 M34.5 48 L33.5 56 L34.5 58.5 M35.5 47.5 L36.5 54 L38 56"/>
+    <path d="M87 47 L92 52 L93 55 M86.5 48 L89.5 55 L89.5 58 M85.5 48 L86.5 56 L85.5 58.5 M84.5 47.5 L83.5 54 L82 56"/>
+  </g>
+</svg>

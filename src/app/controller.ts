@@ -1,5 +1,7 @@
 import { chooseAction } from '../ai';
 import {
+  DECK_LIST,
+  DEFAULT_DECK_ID,
   createGame,
   createScenario,
   describeEvent,
@@ -30,14 +32,20 @@ export interface ControllerOptions {
   autoplay?: boolean;
   skipMulligans?: boolean;
   startingPlayer?: PlayerId;
+  decks?: Matchup;
 }
+
+export type Matchup = [string, string];
 
 export interface Replay {
   seed: number;
   startingPlayer: PlayerId;
   skipMulligans: boolean;
+  decks: Matchup;
   actions: Action[];
 }
+
+const DEFAULT_MATCHUP: Matchup = [DEFAULT_DECK_ID, DEFAULT_DECK_ID];
 
 type Listener = () => void;
 
@@ -51,6 +59,7 @@ export class GameController {
   aiDelayMs: number;
   autoPass: boolean;
   autoplay: boolean;
+  decks: Matchup | null;
   busy = false;
   private endTurnFor: number | null = null;
   private listeners = new Set<Listener>();
@@ -64,26 +73,31 @@ export class GameController {
     this.aiDelayMs = options.aiDelayMs ?? 650;
     this.autoPass = options.autoPass ?? true;
     this.autoplay = options.autoplay ?? false;
-    const setup = this.setupFrom(options);
+    this.decks = [...(options.decks ?? DEFAULT_MATCHUP)];
+    const setup = this.setupFrom(options, this.decks);
     this.state = createGame(setup);
-    this.replay = this.freshReplay(setup);
+    this.replay = this.freshReplay(setup, this.decks);
     this.appendLog(this.state);
   }
 
-  private setupFrom(options: ControllerOptions): GameOptions {
+  private setupFrom(options: ControllerOptions, decks: Matchup): GameOptions {
     return {
       seed: options.seed ?? randomSeed(),
       skipMulligans: options.skipMulligans ?? false,
       startingPlayer: options.startingPlayer,
-      players: [{ name: 'You' }, { name: 'AI' }],
+      players: [
+        { name: 'You', deck: decks[0] },
+        { name: 'AI', deck: decks[1] },
+      ],
     };
   }
 
-  private freshReplay(setup: GameOptions): Replay {
+  private freshReplay(setup: GameOptions, decks: Matchup): Replay {
     return {
       seed: this.state.seed,
       startingPlayer: this.state.startingPlayer,
       skipMulligans: setup.skipMulligans ?? false,
+      decks: [...decks],
       actions: [],
     };
   }
@@ -113,34 +127,42 @@ export class GameController {
     this.clearTimer();
     if (options.aiDelayMs !== undefined) this.aiDelayMs = options.aiDelayMs;
     if (options.autoplay !== undefined) this.autoplay = options.autoplay;
-    const setup = this.setupFrom(options);
+    const decks: Matchup = [...(options.decks ?? this.decks ?? DEFAULT_MATCHUP)];
+    const setup = this.setupFrom(options, decks);
     this.state = createGame(setup);
-    this.replay = this.freshReplay(setup);
+    this.decks = decks;
+    this.replay = this.freshReplay(setup, decks);
     this.resetSession();
   }
 
   loadScenario(spec: ScenarioSpec): void {
     this.clearTimer();
     this.state = createScenario(spec);
-    this.replay = { seed: this.state.seed, startingPlayer: this.state.startingPlayer, skipMulligans: true, actions: [] };
+    this.decks = null;
+    this.replay = {
+      seed: this.state.seed,
+      startingPlayer: this.state.startingPlayer,
+      skipMulligans: true,
+      decks: [...DEFAULT_MATCHUP],
+      actions: [],
+    };
     this.resetSession();
   }
 
   loadReplay(replay: Replay): ActionResult {
     this.clearTimer();
-    let state = createGame({
-      seed: replay.seed,
-      startingPlayer: replay.startingPlayer,
-      skipMulligans: replay.skipMulligans,
-      players: [{ name: 'You' }, { name: 'AI' }],
-    });
+    const decks: Matchup = [...(replay.decks ?? DEFAULT_MATCHUP)];
+    let state = createGame(
+      this.setupFrom({ seed: replay.seed, startingPlayer: replay.startingPlayer, skipMulligans: replay.skipMulligans }, decks),
+    );
     for (const action of replay.actions) {
       const result = tryApplyAction(state, action);
       if (!result.ok) return result;
       state = result.state;
     }
     this.state = state;
-    this.replay = { ...replay, actions: [...replay.actions] };
+    this.decks = decks;
+    this.replay = { ...replay, decks, actions: [...replay.actions] };
     this.resetSession();
     return { ok: true, state };
   }
@@ -155,7 +177,7 @@ export class GameController {
   }
 
   getReplay(): Replay {
-    return { ...this.replay, actions: [...this.replay.actions] };
+    return { ...this.replay, decks: [...this.replay.decks], actions: [...this.replay.actions] };
   }
 
   isHumanTurnToDecide(): boolean {
@@ -314,4 +336,8 @@ export class GameController {
 
 export function randomSeed(): number {
   return Math.floor(Math.random() * 2 ** 31);
+}
+
+export function randomDeckId(): string {
+  return DECK_LIST[Math.floor(Math.random() * DECK_LIST.length)]?.id ?? DEFAULT_DECK_ID;
 }

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { autoPassReason } from '../../src/app/autopass';
 import { GameController } from '../../src/app/controller';
 import { createTestApi } from '../../src/app/testApi';
-import { applyAction, createScenario } from '../../src/engine';
+import { applyAction, createScenario, expandDeck, getDeck } from '../../src/engine';
 
 function controller(options: ConstructorParameters<typeof GameController>[0] = {}): GameController {
   return new GameController({ seed: 5, aiDelayMs: 0, startingPlayer: 0, ...options });
@@ -96,6 +96,57 @@ describe('GameController', () => {
   });
 });
 
+describe('decks', () => {
+  const deckOf = (c: GameController, player: 0 | 1): string[] =>
+    Object.values(c.state.cards)
+      .filter((card) => card.owner === player)
+      .map((card) => card.def)
+      .sort();
+  const listOf = (id: string): string[] => expandDeck(getDeck(id)).sort();
+
+  it('plays Emberwild in both seats by default', () => {
+    const c = controller();
+    expect(c.decks).toEqual(['emberwild', 'emberwild']);
+    expect(deckOf(c, 0)).toEqual(listOf('emberwild'));
+    expect(deckOf(c, 1)).toEqual(listOf('emberwild'));
+  });
+
+  it('gives each seat the deck it was set up with, and keeps them for the next game', () => {
+    const c = controller({ decks: ['dawntide', 'duskmire'] });
+    expect(deckOf(c, 0)).toEqual(listOf('dawntide'));
+    expect(deckOf(c, 1)).toEqual(listOf('duskmire'));
+    c.newGame({ seed: 9 });
+    expect(c.decks).toEqual(['dawntide', 'duskmire']);
+    expect(deckOf(c, 1)).toEqual(listOf('duskmire'));
+    c.newGame({ decks: ['duskmire', 'emberwild'] });
+    expect(deckOf(c, 0)).toEqual(listOf('duskmire'));
+    expect(deckOf(c, 1)).toEqual(listOf('emberwild'));
+  });
+
+  it('records the decks in the replay and restores them', () => {
+    const c = controller({ autoplay: true, seed: 3, decks: ['duskmire', 'dawntide'] });
+    c.settle();
+    const replay = c.getReplay();
+    expect(replay.decks).toEqual(['duskmire', 'dawntide']);
+    const other = controller();
+    expect(other.loadReplay(replay)).toMatchObject({ ok: true });
+    expect(other.decks).toEqual(['duskmire', 'dawntide']);
+    expect(other.state).toEqual(c.state);
+  });
+
+  it('has no decks while a scenario is loaded', () => {
+    const c = controller({ decks: ['dawntide', 'duskmire'] });
+    c.loadScenario({ players: [{}, {}] });
+    expect(c.decks).toBeNull();
+    c.newGame();
+    expect(c.decks).toEqual(['emberwild', 'emberwild']);
+  });
+
+  it('refuses an unknown deck', () => {
+    expect(() => controller({ decks: ['emberwild', 'nope'] })).toThrow(/Unknown deck/);
+  });
+});
+
 describe('auto-pass', () => {
   it('passes when there is nothing to do', () => {
     const s = createScenario({ players: [{}, {}] });
@@ -144,8 +195,19 @@ describe('test API', () => {
     expect(api.settle()).toEqual({ kind: 'priority', player: 0 });
     expect(api.describe()).toContain('Turn 1');
     expect(api.cards().map((card) => card.id)).toContain('crag_dragon');
+    expect(api.decks().map((deck) => [deck.id, deck.size])).toEqual([
+      ['emberwild', 40],
+      ['dawntide', 40],
+      ['duskmire', 40],
+    ]);
+    expect(api.decks()[2]?.cards).toContainEqual({ id: 'swamp', name: 'Swamp', count: 16 });
+    expect(api.matchup()).toEqual(['emberwild', 'emberwild']);
+    api.newGame({ decks: ['dawntide', 'duskmire'] });
+    expect(api.matchup()).toEqual(['dawntide', 'duskmire']);
+    expect(api.replay().decks).toEqual(['dawntide', 'duskmire']);
     api.loadScenario({ players: [{ hand: ['forest'] }, {}] });
-    expect(shown).toBe(1);
+    expect(api.matchup()).toBeNull();
+    expect(shown).toBe(2);
     expect(api.state().players[0].hand).toHaveLength(1);
     expect(api.playToEnd()?.kind).toBe('gameOver');
     expect(JSON.parse(JSON.stringify(api.state()))).toEqual(api.state());

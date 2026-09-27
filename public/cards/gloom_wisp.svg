@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c1823"/>
+      <stop offset="1" stop-color="#3a3446"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <g fill="none" stroke="#15121a" stroke-width="1.4" stroke-linecap="round">
+    <path d="M15 61 Q15 52 11 46 M18 61 Q18 50 21 43 M21 61 Q22 55 25 51 M99 61 Q99 53 96 48 M102 61 Q103 50 106 44 M105 61 Q105 56 108 52"/>
+  </g>
+  <circle cx="60" cy="40" r="26" fill="#9fcf6a" opacity="0.07"/>
+  <circle cx="60" cy="42" r="17" fill="#b9a6d6" opacity="0.14"/>
+  <path d="M0 61 Q30 59 60 61 T120 61 V80 H0 Z" fill="#15121a"/>
+  <ellipse cx="60" cy="65" rx="20" ry="2.4" fill="#9fcf6a" opacity="0.14"/>
+  <path d="M52 64 H68" stroke="#c6f25a" stroke-opacity="0.45" stroke-linecap="round"/>
+  <path d="M55 67.4 H65" stroke="#c6f25a" stroke-opacity="0.3" stroke-linecap="round"/>
+  <path d="M57.4 70.8 H62.6" stroke="#c6f25a" stroke-opacity="0.2" stroke-linecap="round"/>
+  <path d="M26 69 H38 M84 71 H96 M40 75 H50" stroke="#4a3f55" stroke-linecap="round"/>
+  <path d="M49 50 C41 54 32 53 20 57 C30 57.6 40 58 51 55 Z" fill="#b9a6d6" opacity="0.26"/>
+  <path d="M52 56 C45 59 38 59 30 61.4 C38 61.6 45 61.4 54 58.6 Z" fill="#b9a6d6" opacity="0.18"/>
+  <path d="M60 58 C51 58 46 52 46 45 C46 37 52 33 54 26 C55 22 54 18 52 14 C60 17 66 24 68 30 C70 27 70 24 69 21 C74 26 75 36 74 45 C73 53 68 58 60 58 Z" fill="#b9a6d6"/>
+  <path d="M60 55 C54 55 50 51 50 46 C50 40 54 37 56 32 C57 29 57 27 56 24 C61 27 64 32 65 36 C68 40 70 42 70 46 C70 51 66 55 60 55 Z" fill="#d8ccef"/>
+  <ellipse cx="60" cy="47" rx="7" ry="6" fill="#eef6d6"/>
+  <ellipse cx="56.8" cy="45.6" rx="1.5" ry="2.2" fill="#3a3148"/>
+  <ellipse cx="63.2" cy="45.6" rx="1.5" ry="2.2" fill="#3a3148"/>
+  <g fill="#c6f25a" opacity="0.8">
+    <circle cx="40" cy="30" r="1"/>
+    <circle cx="80" cy="24" r="0.8"/>
+    <circle cx="84" cy="44" r="1.1"/>
+    <circle cx="36" cy="42" r="0.7"/>
+    <circle cx="70" cy="13" r="0.7"/>
+  </g>
+</svg>

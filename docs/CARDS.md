@@ -28,6 +28,51 @@ Red and green: fast attackers, burn, reach and big tramplers.
 | 1 | Feral Clash | `feral_clash` | {1}{G} | Sorcery | — | Target creature you control fights target creature you don't control. |
 | 1 | Read the Roots | `read_the_roots` | {2}{G} | Sorcery | — | Draw two cards. |
 
+## Dawntide (40 cards, WU)
+
+White and blue: flyers, lifelink and counterspells.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Plains | `plains` | — | Basic Land — Plains | — | {T}: Add {W}. |
+| 8 | Island | `island` | — | Basic Land — Island | — | {T}: Add {U}. |
+| 2 | Mist Sprite | `mist_sprite` | {U} | Creature — Faerie | 1/1 | Flying |
+| 2 | Dawn Acolyte | `dawn_acolyte` | {W} | Creature — Human Cleric | 1/1 | Lifelink |
+| 1 | Reefshell Crab | `reefshell_crab` | {1}{U} | Creature — Crab | 0/4 | Defender |
+| 2 | Beacon Squire | `beacon_squire` | {1}{W} | Creature — Human Soldier | 2/2 | Vigilance |
+| 2 | Reef Scholar | `reef_scholar` | {2}{U} | Creature — Merfolk Wizard | 1/3 | When this creature enters, draw a card. |
+| 2 | Galewing Falcon | `galewing_falcon` | {2}{U} | Creature — Bird | 2/2 | Flying |
+| 1 | Sunblade Paladin | `sunblade_paladin` | {1}{W}{W} | Creature — Human Knight | 2/1 | Double strike |
+| 2 | Cloudrider Knight | `cloudrider_knight` | {3}{W} | Creature — Human Knight | 2/3 | Flying, vigilance |
+| 2 | Aurora Seraph | `aurora_seraph` | {3}{W}{W} | Creature — Angel | 4/4 | Flying, lifelink |
+| 2 | Radiant Blessing | `radiant_blessing` | {W} | Instant | — | Target creature gets +2/+2 until end of turn. You gain 2 life. |
+| 2 | Undertow | `undertow` | {1}{U} | Instant | — | Return target creature to its owner's hand. |
+| 2 | Turn the Tide | `turn_the_tide` | {1}{U}{U} | Instant | — | Counter target spell. |
+| 1 | Tidal Insight | `tidal_insight` | {2}{U} | Instant | — | Draw two cards. |
+| 1 | Dawn's Verdict | `dawns_verdict` | {2}{W} | Instant | — | Destroy target tapped creature. |
+
+## Duskmire (40 cards, B)
+
+Black: deathtouch, removal and life drain; its dead bite back.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 16 | Swamp | `swamp` | — | Basic Land — Swamp | — | {T}: Add {B}. |
+| 3 | Gloom Wisp | `gloom_wisp` | {B} | Creature — Spirit | 1/1 | When this creature dies, draw a card. |
+| 2 | Duskwing Bat | `duskwing_bat` | {1}{B} | Creature — Bat | 1/1 | Flying, lifelink |
+| 3 | Mire Prowler | `mire_prowler` | {1}{B} | Creature — Zombie | 2/1 | Menace |
+| 2 | Grave Hexer | `grave_hexer` | {2}{B} | Creature — Human Warlock | 2/2 | When this creature enters, target creature you don't control gets -1/-1 until end of turn. |
+| 2 | Bog Lurker | `bog_lurker` | {2}{B} | Creature — Horror | 2/2 | Deathtouch |
+| 2 | Crypt Ghoul | `crypt_ghoul` | {2}{B} | Creature — Zombie | 3/2 | When this creature dies, it deals 1 damage to target opponent. |
+| 1 | Duskmire Shade | `duskmire_shade` | {2}{B} | Creature — Shade | 1/1 | {B}: This creature gets +1/+1 until end of turn. |
+| 2 | Blood Reaver | `blood_reaver` | {2}{B}{B} | Creature — Vampire | 3/2 | Lifelink |
+| 2 | Nightveil Wraith | `nightveil_wraith` | {3}{B} | Creature — Spirit | 3/2 | Flying · When this creature dies, it deals 2 damage to target opponent. |
+| 1 | Dread Tyrant | `dread_tyrant` | {3}{B}{B} | Creature — Demon | 5/4 | Flying · When this creature enters, you lose 2 life. |
+| 1 | Withering Touch | `withering_touch` | {B} | Instant | — | Target creature gets -2/-2 until end of turn. |
+| 1 | Night's Bargain | `nights_bargain` | {1}{B} | Sorcery | — | Draw two cards. You lose 2 life. |
+| 1 | Soul Siphon | `soul_siphon` | {2}{B} | Sorcery | — | Soul Siphon deals 2 damage to any target. You gain 2 life. |
+| 1 | Grave Sentence | `grave_sentence` | {2}{B}{B} | Instant | — | Destroy target creature. |
+
 ## Keywords
 
 | Keyword | Meaning | In a deck |
@@ -38,8 +83,8 @@ Red and green: fast attackers, burn, reach and big tramplers.
 | Vigilance | Attacking doesn't cause it to tap. | yes |
 | Trample | Combat damage beyond what is lethal to its blockers is dealt to the defending player. | yes |
 | First strike | Deals combat damage before creatures without first strike. | yes |
-| Double strike | Deals both first-strike and regular combat damage. | engine only |
+| Double strike | Deals both first-strike and regular combat damage. | yes |
 | Deathtouch | Any amount of damage it deals to a creature is enough to destroy it. | yes |
-| Lifelink | Damage dealt by it also causes its controller to gain that much life. | engine only |
+| Lifelink | Damage dealt by it also causes its controller to gain that much life. | yes |
 | Menace | Can't be blocked except by two or more creatures. | yes |
-| Defender | Can't attack. | engine only |
+| Defender | Can't attack. | yes |

@@ -75,6 +75,10 @@ function signed(value: number): string {
   return value >= 0 ? `+${value}` : String(value);
 }
 
+export function formatModifier(power: number, toughness: number): string {
+  return `${signed(power)}/${signed(toughness)}`;
+}
+
 export function typeLine(def: CardDef): string {
   const main = [...(def.supertypes ?? []), ...def.types.map(capitalize)].join(' ');
   return def.subtypes?.length ? `${main} — ${def.subtypes.join(' ')}` : main;
@@ -84,14 +88,18 @@ export function targetPhrase(spec: TargetSpec): string {
   switch (spec.kind) {
     case 'any':
       return 'any target';
-    case 'creature':
-      if (spec.controller === 'you') return 'target creature you control';
-      if (spec.controller === 'opponent') return "target creature you don't control";
-      return 'target creature';
+    case 'creature': {
+      const noun = spec.tapped ? 'tapped creature' : 'creature';
+      if (spec.controller === 'you') return `target ${noun} you control`;
+      if (spec.controller === 'opponent') return `target ${noun} you don't control`;
+      return `target ${noun}`;
+    }
     case 'player':
       if (spec.controller === 'opponent') return 'target opponent';
       if (spec.controller === 'you') return 'you';
       return 'target player';
+    case 'spell':
+      return 'target spell';
   }
 }
 
@@ -106,13 +114,19 @@ function effectSentence(effect: Effect, specs: TargetSpec[], subject: string, se
     case 'damage':
       return `${subject} deals ${effect.amount} damage to ${refPhrase(effect.to, specs, self)}.`;
     case 'pump':
-      return `${capitalize(refPhrase(effect.to, specs, self))} gets ${signed(effect.power)}/${signed(effect.toughness)} until end of turn.`;
+      return `${capitalize(refPhrase(effect.to, specs, self))} gets ${formatModifier(effect.power, effect.toughness)} until end of turn.`;
     case 'destroy':
       return `Destroy ${refPhrase(effect.to, specs, self)}.`;
+    case 'bounce':
+      return `Return ${refPhrase(effect.to, specs, self)} to its owner's hand.`;
+    case 'counter':
+      return `Counter ${refPhrase(effect.to, specs, self)}.`;
     case 'draw':
       return effect.amount === 1 ? 'Draw a card.' : `Draw ${NUMBER_WORDS[effect.amount] ?? effect.amount} cards.`;
     case 'gainLife':
       return `You gain ${effect.amount} life.`;
+    case 'loseLife':
+      return `You lose ${effect.amount} life.`;
     case 'fight':
       return `${capitalize(refPhrase(effect.a, specs, self))} fights ${refPhrase(effect.b, specs, self)}.`;
   }
@@ -221,6 +235,10 @@ export function describeEvent(s: GameState, event: GameEvent, viewer: PlayerId):
       const source = event.item.kind === 'spell' ? event.item.card : event.item.source;
       return `${cardName(s, source)} fizzles: its targets are gone.`;
     }
+    case 'counter':
+      return `${capitalize(cardRef(s, event.card, viewer))} is countered.`;
+    case 'bounce':
+      return `${cardName(s, event.card)} returns to ${event.player === viewer ? 'your' : `${s.players[event.player].name}'s`} hand.`;
     case 'attack':
       if (event.attackers.length === 0) return null;
       return `${verb(s, event.player, viewer, 'attack')} with ${event.attackers.map((id) => cardName(s, id)).join(', ')}.`;
@@ -235,8 +253,10 @@ export function describeEvent(s: GameState, event: GameEvent, viewer: PlayerId):
       return event.delta > 0
         ? `${verb(s, event.player, viewer, 'gain')} ${event.delta} life (${event.life}).`
         : null;
+    case 'loseLife':
+      return `${verb(s, event.player, viewer, 'lose')} ${event.amount} life.`;
     case 'pump':
-      return `${capitalize(cardRef(s, event.card, viewer))} gets ${signed(event.power)}/${signed(event.toughness)} until end of turn.`;
+      return `${capitalize(cardRef(s, event.card, viewer))} gets ${formatModifier(event.power, event.toughness)} until end of turn.`;
     case 'fight':
       return `${capitalize(cardRef(s, event.a, viewer))} fights ${cardRef(s, event.b, viewer)}.`;
     case 'dies':

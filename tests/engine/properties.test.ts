@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DECK_LIST,
   applyAction,
   checkInvariants,
   createGame,
@@ -8,6 +9,8 @@ import {
   type Action,
   type GameState,
 } from '../../src/engine';
+
+const MATCHUPS: [string, string][] = DECK_LIST.flatMap((a) => DECK_LIST.map((b): [string, string] => [a.id, b.id]));
 
 function lcg(seed: number): () => number {
   let r = seed >>> 0 || 1;
@@ -21,8 +24,12 @@ function pick<T>(items: T[], rand: () => number): T {
   return items[Math.floor(rand() * items.length)] as T;
 }
 
-function randomPlayout(seed: number, onState?: (s: GameState) => void): { final: GameState; actions: Action[] } {
-  let s = createGame({ seed });
+function randomPlayout(
+  seed: number,
+  onState?: (s: GameState) => void,
+  decks: [string, string] = ['emberwild', 'emberwild'],
+): { final: GameState; actions: Action[] } {
+  let s = createGame({ seed, players: [{ deck: decks[0] }, { deck: decks[1] }] });
   const rand = lcg(seed);
   const actions: Action[] = [];
   while (s.pending && s.pending.kind !== 'gameOver') {
@@ -63,9 +70,27 @@ describe('engine properties', () => {
     }
   });
 
-  it('reproduces a game exactly from its seed and action list', () => {
-    const { final, actions } = randomPlayout(777);
-    let replay = createGame({ seed: 777 });
+  it('plays every matchup to the end, accepting every action it lists', () => {
+    for (const [index, decks] of MATCHUPS.entries()) {
+      for (const seed of [index * 10 + 1, index * 10 + 2, index * 10 + 3]) {
+        const { final } = randomPlayout(
+          seed,
+          (s) => {
+            for (const action of getLegalActions(s, { limit: 16 })) {
+              const result = tryApplyAction(s, action);
+              if (!result.ok) throw new Error(`${decks.join(' vs ')}, seed ${seed}: legal action rejected (${result.error})`);
+            }
+          },
+          decks,
+        );
+        expect(final.pending?.kind, decks.join(' vs ')).toBe('gameOver');
+      }
+    }
+  });
+
+  it('reproduces a game exactly from its seed, decks and action list', () => {
+    const { final, actions } = randomPlayout(777, undefined, ['dawntide', 'duskmire']);
+    let replay = createGame({ seed: 777, players: [{ deck: 'dawntide' }, { deck: 'duskmire' }] });
     for (const action of actions) replay = applyAction(replay, action);
     expect(replay).toEqual(final);
   });

@@ -56,6 +56,9 @@ export function validateCardDef(def: CardDef): void {
       for (const ref of refs) {
         if (ref === 'self' && !isCreature) fail('"self" effects need a permanent source');
         if (typeof ref === 'number' && (ref < 0 || ref >= ability.targets.length)) fail(`effect refers to missing target ${ref}`);
+        const spec = typeof ref === 'number' ? ability.targets[ref] : undefined;
+        if (effect.kind === 'counter' && spec?.kind !== 'spell') fail('counter effects need a spell target');
+        if (effect.kind !== 'counter' && spec?.kind === 'spell') fail('only counter effects can refer to a spell target');
       }
     }
   }

@@ -1,33 +1,40 @@
 import { chooseAction } from '../src/ai';
 import {
+  DECK_LIST,
   applyAction,
   checkInvariants,
   createGame,
   describeEvent,
   describeState,
   getLegalActions,
+  hasDeck,
   type Action,
   type GameState,
   type PlayerId,
 } from '../src/engine';
 
 type BotKind = 'ai' | 'random';
+type Matchup = [string, string];
 
 interface Options {
   games: number;
   seed: number;
   bots: [BotKind, BotKind];
+  decks: [string, string];
   quiet: boolean;
   json: boolean;
   log: number | null;
   maxActions: number;
 }
 
+const ALL = 'all';
+
 function parseArgs(argv: string[]): Options {
   const options: Options = {
     games: 50,
     seed: 1,
     bots: ['ai', 'ai'],
+    decks: [ALL, ALL],
     quiet: false,
     json: false,
     log: null,
@@ -44,11 +51,14 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--seed') options.seed = Number(next());
     else if (arg === '--p0') options.bots[0] = parseBot(next());
     else if (arg === '--p1') options.bots[1] = parseBot(next());
+    else if (arg === '--decks') options.decks = parseDecks(next());
     else if (arg === '--quiet') options.quiet = true;
     else if (arg === '--json') options.json = true;
     else if (arg === '--log') options.log = Number(next());
     else if (arg === '--help') {
-      console.log('Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random] [--p1 ai|random] [--quiet] [--json] [--log SEED]');
+      console.log(
+        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random] [--p1 ai|random] [--decks all|DECK|DECK,DECK] [--quiet] [--json] [--log SEED]',
+      );
       process.exit(0);
     } else throw new Error(`Unknown option ${arg}`);
   }
@@ -58,6 +68,21 @@ function parseArgs(argv: string[]): Options {
 function parseBot(value: string): BotKind {
   if (value !== 'ai' && value !== 'random') throw new Error(`Unknown bot "${value}" (use ai or random)`);
   return value;
+}
+
+function parseDecks(value: string): [string, string] {
+  const [first = ALL, second = first] = value.split(',');
+  for (const deck of [first, second]) {
+    if (deck !== ALL && !hasDeck(deck)) {
+      throw new Error(`Unknown deck "${deck}" (use ${ALL} or one of ${DECK_LIST.map((d) => d.id).join(', ')})`);
+    }
+  }
+  return [first, second];
+}
+
+function matchups(decks: [string, string]): Matchup[] {
+  const ids = (deck: string): string[] => (deck === ALL ? DECK_LIST.map((d) => d.id) : [deck]);
+  return ids(decks[0]).flatMap((a) => ids(decks[1]).map((b): Matchup => [a, b]));
 }
 
 function lcg(seed: number): () => number {
@@ -79,6 +104,7 @@ function randomAction(s: GameState, rand: () => number): Action {
 
 interface GameResult {
   seed: number;
+  decks: Matchup;
   winner: PlayerId | null;
   reason: string;
   startingPlayer: PlayerId;
@@ -90,8 +116,8 @@ interface GameResult {
   error?: string;
 }
 
-function playGame(seed: number, options: Options, log?: string[]): GameResult {
-  let s = createGame({ seed });
+function playGame(seed: number, decks: Matchup, options: Options, log?: string[]): GameResult {
+  let s = createGame({ seed, players: [{ deck: decks[0] }, { deck: decks[1] }] });
   const rand = lcg(seed);
   let actions = 0;
   let maxDecisionMs = 0;
@@ -127,6 +153,7 @@ function playGame(seed: number, options: Options, log?: string[]): GameResult {
   } catch (error) {
     return {
       seed,
+      decks,
       winner: null,
       reason: 'error',
       startingPlayer: s.startingPlayer,
@@ -141,6 +168,7 @@ function playGame(seed: number, options: Options, log?: string[]): GameResult {
   const pending = s.pending;
   return {
     seed,
+    decks,
     winner: pending?.kind === 'gameOver' ? pending.winner : null,
     reason: pending?.kind === 'gameOver' ? pending.reason : 'unknown',
     startingPlayer: s.startingPlayer,
@@ -152,11 +180,39 @@ function playGame(seed: number, options: Options, log?: string[]): GameResult {
   };
 }
 
+function deckStats(results: GameResult[]): Record<string, { games: number; wins: number; winRate: number }> {
+  const stats: Record<string, { games: number; wins: number; winRate: number }> = {};
+  for (const deck of DECK_LIST) {
+    const games = results.filter((r) => r.decks[0] !== r.decks[1] && r.decks.includes(deck.id));
+    if (games.length === 0) continue;
+    const wins = games.filter((r) => r.winner !== null && r.decks[r.winner] === deck.id).length;
+    stats[deck.id] = { games: games.length, wins, winRate: +(wins / games.length).toFixed(2) };
+  }
+  return stats;
+}
+
+function matchupStats(results: GameResult[]): Record<string, string> {
+  const stats: Record<string, string> = {};
+  const pairs = new Map<string, Matchup>();
+  for (const result of results) {
+    const pair = [...result.decks].sort() as Matchup;
+    pairs.set(pair.join(' vs '), pair);
+  }
+  for (const [label, [a, b]] of pairs) {
+    const games = results.filter((r) => [...r.decks].sort().join(' vs ') === label);
+    const winsOf = (deck: string): number => games.filter((r) => r.winner !== null && r.decks[r.winner] === deck).length;
+    const draws = games.filter((r) => r.winner === null).length;
+    stats[label] = a === b ? `${games.length} games` : `${winsOf(a)}-${winsOf(b)}${draws ? ` (${draws} draws)` : ''}`;
+  }
+  return stats;
+}
+
 function main(): void {
   const options = parseArgs(process.argv.slice(2));
+  const pairs = matchups(options.decks);
   if (options.log !== null) {
     const lines: string[] = [];
-    const result = playGame(options.log, options, lines);
+    const result = playGame(options.log, pairs[0] as Matchup, options, lines);
     console.log(lines.join('\n'));
     console.log(`\nResult: ${JSON.stringify({ ...result, error: undefined })}`);
     if (result.error) {
@@ -169,11 +225,11 @@ function main(): void {
   const results: GameResult[] = [];
   const started = Date.now();
   for (let i = 0; i < options.games; i++) {
-    const result = playGame(options.seed + i, options);
+    const result = playGame(options.seed + i, pairs[i % pairs.length] as Matchup, options);
     results.push(result);
     if (!options.quiet && !options.json) {
       const outcome = result.error ? 'ERROR' : result.winner === null ? 'draw' : `p${result.winner} (${result.reason})`;
-      console.log(`seed ${result.seed}: ${outcome} in ${result.turns} turns`);
+      console.log(`seed ${result.seed} (${result.decks.join(' vs ')}): ${outcome} in ${result.turns} turns`);
     }
   }
 
@@ -186,6 +242,8 @@ function main(): void {
     bots: { p0: options.bots[0], p1: options.bots[1] },
     wins: { p0: count((r) => r.winner === 0), p1: count((r) => r.winner === 1), draws: count((r) => r.winner === null) },
     startingPlayerWins: count((r) => r.winner === r.startingPlayer),
+    decks: deckStats(finished),
+    matchups: matchupStats(finished),
     reasons: Object.fromEntries(
       [...new Set(finished.map((r) => r.reason))].map((reason) => [reason, count((r) => r.reason === reason)]),
     ),

@@ -58,12 +58,23 @@ export function chooseLand(s: GameState, player: PlayerId, landActions: Action[]
   return best;
 }
 
+function colorCastableSpells(s: GameState, hand: CardId[]): number {
+  const colors = new Set<Color>(hand.filter((id) => isLandCard(s, id)).flatMap((id) => getCardDef(defId(s, id)).mana ?? []));
+  return hand.filter((id) => {
+    if (isLandCard(s, id)) return false;
+    const cost = getCost(defId(s, id));
+    return COLORS.every((color) => cost[color] === 0 || colors.has(color));
+  }).length;
+}
+
 export function shouldKeep(s: GameState, player: PlayerId): boolean {
   const ps = s.players[player];
   const lands = ps.hand.filter((id) => isLand(s, id)).length;
+  const spells = ps.hand.length - lands;
+  const castable = colorCastableSpells(s, ps.hand);
   if (ps.mulligans >= 2) return true;
-  if (ps.mulligans === 1) return lands >= 1 && lands <= 5;
-  return lands >= 2 && lands <= 5;
+  if (ps.mulligans === 1) return lands >= 1 && lands <= 5 && castable >= Math.min(1, spells);
+  return lands >= 2 && lands <= 5 && castable >= Math.min(2, spells);
 }
 
 export function rankCardsToKeep(s: GameState, player: PlayerId, cards: CardId[], keepCount: number): CardId[] {

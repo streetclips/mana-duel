@@ -27,7 +27,7 @@ export function renderCardsMarkdown(): string {
   ];
   for (const deck of Object.values(DECKS)) {
     const total = deck.cards.reduce((sum, entry) => sum + entry.count, 0);
-    lines.push(`## ${deck.name} (${total} cards, ${deck.colors})`, '', deck.description, '');
+    lines.push(`## ${deck.name} (${total} cards, ${deck.colors.join('')})`, '', deck.description, '');
     lines.push('| Qty | Card | Id | Cost | Type | P/T | Rules text |', '| --- | --- | --- | --- | --- | --- | --- |');
     for (const entry of deck.cards) {
       const def = getCardDef(entry.card);

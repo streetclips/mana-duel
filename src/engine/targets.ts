@@ -1,5 +1,5 @@
 import { allCreatures, getCard, isCreature } from './state';
-import type { GameState, PlayerId, Target, TargetSpec } from './types';
+import type { CardId, GameState, PlayerId, Target, TargetSpec } from './types';
 
 export function isPlayerTarget(target: Target): target is { player: PlayerId } {
   return 'player' in target;
@@ -13,20 +13,26 @@ export function sameTarget(a: Target, b: Target): boolean {
   return targetKey(a) === targetKey(b);
 }
 
+export function isSpellOnStack(s: GameState, id: CardId): boolean {
+  return s.cards[id]?.zone === 'stack' && s.stack.some((item) => item.kind === 'spell' && item.card === id);
+}
+
 export function isLegalTarget(s: GameState, controller: PlayerId, spec: TargetSpec, target: Target): boolean {
   if (isPlayerTarget(target)) {
     if (target.player !== 0 && target.player !== 1) return false;
-    if (spec.kind === 'creature') return false;
+    if (spec.kind === 'creature' || spec.kind === 'spell') return false;
     if (spec.kind === 'player' && spec.controller === 'you') return target.player === controller;
     if (spec.kind === 'player' && spec.controller === 'opponent') return target.player !== controller;
     return true;
   }
+  if (spec.kind === 'spell') return isSpellOnStack(s, target.card);
   const card = s.cards[target.card];
   if (!card || card.zone !== 'battlefield' || !isCreature(s, target.card)) return false;
   if (spec.kind === 'player') return false;
   if (spec.kind === 'creature') {
     if (spec.controller === 'you' && card.controller !== controller) return false;
     if (spec.controller === 'opponent' && card.controller === controller) return false;
+    if (spec.tapped && !card.tapped) return false;
   }
   return true;
 }
@@ -34,6 +40,7 @@ export function isLegalTarget(s: GameState, controller: PlayerId, spec: TargetSp
 export function legalTargets(s: GameState, controller: PlayerId, spec: TargetSpec): Target[] {
   const candidates: Target[] = [{ player: controller }, { player: controller === 0 ? 1 : 0 }];
   for (const id of allCreatures(s)) candidates.push({ card: id });
+  for (const item of [...s.stack].reverse()) if (item.kind === 'spell') candidates.push({ card: item.card });
   return candidates.filter((target) => isLegalTarget(s, controller, spec, target));
 }
 

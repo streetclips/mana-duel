@@ -5,6 +5,7 @@ import {
   isLand,
   stackItemSource,
   targetRef,
+  type CardId,
   type GameState,
   type PlayerId,
   type Step,
@@ -16,12 +17,13 @@ interface PlayerBarProps {
   s: GameState;
   player: PlayerId;
   human: PlayerId;
+  deckName?: string;
   targetable: boolean;
   lifeFx?: { key: number; text: string; kind: 'minus' | 'plus' };
   onTap: () => void;
 }
 
-export function PlayerBar({ s, player, human, targetable, lifeFx, onTap }: PlayerBarProps) {
+export function PlayerBar({ s, player, human, deckName, targetable, lifeFx, onTap }: PlayerBarProps) {
   const ps = s.players[player];
   const hasPriority = s.pending?.kind === 'priority' && s.pending.player === player;
   const label = `${ps.name}: ${ps.life} life, ${ps.hand.length} cards in hand, ${ps.library.length} in library, ${ps.graveyard.length} in graveyard`;
@@ -47,7 +49,15 @@ export function PlayerBar({ s, player, human, targetable, lifeFx, onTap }: Playe
           )}
         </span>
         <span class="player-meta">
-          <b>{ps.name}</b>
+          <b>
+            {ps.name}
+            {deckName && (
+              <span class="deck-name" data-testid={`deck-name-${player}`}>
+                {' '}
+                · {deckName}
+              </span>
+            )}
+          </b>
           <span class="num" data-testid={`counts-${player}`}>
             Hand {ps.hand.length} · Deck {ps.library.length} · Grave {ps.graveyard.length}
           </span>
@@ -72,6 +82,7 @@ export function Lands({ s, player }: { s: GameState; player: PlayerId }) {
             key={id}
             class={`land-pip${s.cards[id]?.tapped ? ' tapped' : ''}`}
             style={cssVars({ '--pip': cardColorVar(def) })}
+            data-color={(def.mana ?? []).join('')}
             title={`${def.name}${s.cards[id]?.tapped ? ' (tapped)' : ''}`}
             data-testid={`card-${id}`}
             data-card={id}
@@ -95,7 +106,15 @@ const PHASES: { label: string; steps: Step[] }[] = [
   { label: 'End', steps: ['end', 'cleanup'] },
 ];
 
-export function CenterStrip({ s, human, bar }: { s: GameState; human: PlayerId; bar: BarModel }) {
+interface CenterStripProps {
+  s: GameState;
+  human: PlayerId;
+  bar: BarModel;
+  targets: Set<string> | null;
+  onStackTap: (card: CardId) => void;
+}
+
+export function CenterStrip({ s, human, bar, targets, onStackTap }: CenterStripProps) {
   const whose = s.turn === 0 ? 'Opening hand' : s.activePlayer === human ? 'Your turn' : `${s.players[s.activePlayer].name}'s turn`;
   return (
     <section class="center" aria-live="polite">
@@ -128,20 +147,28 @@ export function CenterStrip({ s, human, bar }: { s: GameState; human: PlayerId; 
           {[...s.stack].reverse().map((item) => {
             const source = stackItemSource(item);
             const def = getCardDef(s.cards[source]?.def ?? '');
-            const targets = item.targets.map((target) => targetRef(s, target, human)).join(', ');
+            const aimedAt = item.targets.map((target) => targetRef(s, target, human)).join(', ');
+            const targetable = item.kind === 'spell' && !!targets?.has(source);
+            const who = item.controller === human ? 'You' : s.players[item.controller].name;
+            const what = item.kind === 'spell' ? cardName(s, source) : `${cardName(s, source)} ability`;
             return (
-              <div
+              <button
                 key={item.id}
-                class="stack-item"
+                type="button"
+                class={`stack-item${targetable ? ' targetable' : ''}${targets && !targetable ? ' dim' : ''}`}
                 style={cssVars({ '--card-color': cardColorVar(def) })}
                 data-testid={`stack-${item.id}`}
+                data-card={source}
+                data-targetable={targetable ? 'true' : undefined}
+                aria-label={targetable ? `Target ${what}` : `${who}: ${what}${aimedAt ? ` → ${aimedAt}` : ''}`}
+                onClick={() => onStackTap(source)}
               >
-                <span class="who">{item.controller === human ? 'You' : s.players[item.controller].name}</span>
+                <span class="who">{who}</span>
                 <span>
-                  {item.kind === 'spell' ? cardName(s, source) : `${cardName(s, source)} ability`}
-                  {targets ? ` → ${targets}` : ''}
+                  {what}
+                  {aimedAt ? ` → ${aimedAt}` : ''}
                 </span>
-              </div>
+              </button>
             );
           })}
         </div>

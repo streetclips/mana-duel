@@ -1,14 +1,17 @@
 import { useEffect, useRef } from 'preact/hooks';
+import type { ComponentChildren } from 'preact';
 import {
   KEYWORD_NAMES,
   KEYWORD_REMINDERS,
   castBlocker,
+  formatModifier,
   getCardDef,
   hasKeyword,
   landPlayError,
   rulesText,
   typeLine,
   type Action,
+  type CardDef,
   type CardId,
   type GameState,
   type PlayerId,
@@ -16,6 +19,60 @@ import {
 import type { LogEntry } from '../../app/controller';
 import { effectHint } from '../cardInfo';
 import { DetailCard, RulesLine } from './Card';
+
+interface SheetProps {
+  label: string;
+  onClose: () => void;
+  children: ComponentChildren;
+}
+
+export function Sheet({ label, onClose, children }: SheetProps) {
+  return (
+    <div class="scrim" onClick={onClose} data-testid="card-sheet">
+      <div class="sheet" onClick={(event) => event.stopPropagation()} role="dialog" aria-label={label}>
+        <div class="sheet-grip" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export interface Status {
+  text: string;
+  tone?: 'good' | 'bad';
+}
+
+export function CardDetail({ def, face, statuses = [] }: { def: CardDef; face: ComponentChildren; statuses?: Status[] }) {
+  return (
+    <div class="detail">
+      {face}
+      <div class="detail-info">
+        <h3>{def.name}</h3>
+        <div class="type-line">{typeLine(def)}</div>
+        {rulesText(def).map((line) => (
+          <p key={line}>
+            <RulesLine text={line} />
+          </p>
+        ))}
+        {(def.keywords ?? []).map((keyword) => (
+          <p key={keyword} class="reminder">
+            <b>{KEYWORD_NAMES[keyword]}:</b> {KEYWORD_REMINDERS[keyword]}
+          </p>
+        ))}
+        {def.flavor && <p class="flavor">{def.flavor}</p>}
+        {statuses.length > 0 && (
+          <div class="status">
+            {statuses.map((status) => (
+              <span key={status.text} class={`tag${status.tone ? ` ${status.tone}` : ''}`}>
+                {status.text}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface CardSheetProps {
   s: GameState;
@@ -64,7 +121,8 @@ export function CardSheet({ s, id, human, actions, onAction, onClose }: CardShee
   const def = getCardDef(card.def);
   const buttons = distinctActions(actions);
   const hidden = card.zone === 'hand' && card.owner !== human;
-  const statuses: { text: string; tone?: 'good' | 'bad' }[] = [];
+  const statuses: Status[] = [];
+  if (card.zone === 'stack') statuses.push({ text: 'On the stack' });
   if (card.zone === 'battlefield') {
     if (card.tapped) statuses.push({ text: 'Tapped' });
     if (card.summoningSick && def.types.includes('creature') && !hasKeyword(s, id, 'haste')) {
@@ -72,59 +130,33 @@ export function CardSheet({ s, id, human, actions, onAction, onClose }: CardShee
     }
     if (card.damage > 0) statuses.push({ text: `${card.damage} damage`, tone: 'bad' });
     const pumps = s.effects.filter((effect) => effect.card === id);
-    for (const pump of pumps) statuses.push({ text: `+${pump.power}/+${pump.toughness} this turn`, tone: 'good' });
+    for (const pump of pumps) {
+      const tone = pump.power < 0 || pump.toughness < 0 ? 'bad' : 'good';
+      statuses.push({ text: `${formatModifier(pump.power, pump.toughness)} this turn`, tone });
+    }
     if (card.controller !== human) statuses.push({ text: `${s.players[card.controller].name}'s` });
   }
   const note = buttons.length === 0 ? whyNot(s, id, human) : null;
   return (
-    <div class="scrim" onClick={onClose} data-testid="card-sheet">
-      <div class="sheet" onClick={(event) => event.stopPropagation()} role="dialog" aria-label={hidden ? 'Hidden card' : def.name}>
-        <div class="sheet-grip" />
-        <div class="detail">
-          <DetailCard s={s} id={id} />
-          <div class="detail-info">
-            <h3>{def.name}</h3>
-            <div class="type-line">{typeLine(def)}</div>
-            {rulesText(def).map((line) => (
-              <p key={line}>
-                <RulesLine text={line} />
-              </p>
-            ))}
-            {(def.keywords ?? []).map((keyword) => (
-              <p key={keyword} class="reminder">
-                <b>{KEYWORD_NAMES[keyword]}:</b> {KEYWORD_REMINDERS[keyword]}
-              </p>
-            ))}
-            {def.flavor && <p class="flavor">{def.flavor}</p>}
-            {statuses.length > 0 && (
-              <div class="status">
-                {statuses.map((status) => (
-                  <span key={status.text} class={`tag${status.tone ? ` ${status.tone}` : ''}`}>
-                    {status.text}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+    <Sheet label={hidden ? 'Hidden card' : def.name} onClose={onClose}>
+      <CardDetail def={def} face={<DetailCard s={s} id={id} />} statuses={statuses} />
+      {buttons.length > 0 && (
+        <div class="sheet-actions">
+          {buttons.map((action) => (
+            <button
+              key={action.type === 'activate' ? `a${action.ability}` : action.type}
+              type="button"
+              class="btn"
+              data-testid={`sheet-${action.type}`}
+              onClick={() => onAction(action)}
+            >
+              <RulesLine text={actionLabel(s, action)} />
+            </button>
+          ))}
         </div>
-        {buttons.length > 0 && (
-          <div class="sheet-actions">
-            {buttons.map((action) => (
-              <button
-                key={action.type === 'activate' ? `a${action.ability}` : action.type}
-                type="button"
-                class="btn"
-                data-testid={`sheet-${action.type}`}
-                onClick={() => onAction(action)}
-              >
-                <RulesLine text={actionLabel(s, action)} />
-              </button>
-            ))}
-          </div>
-        )}
-        {note && <div class="sheet-note">{note}</div>}
-      </div>
-    </div>
+      )}
+      {note && <div class="sheet-note">{note}</div>}
+    </Sheet>
   );
 }
 
@@ -161,12 +193,13 @@ interface MenuProps {
   onNewGame: () => void;
   onConcede: () => void;
   onLog: () => void;
+  onDecks?: () => void;
   onToggleSpeed: () => void;
   onHome: () => void;
   onClose: () => void;
 }
 
-export function Menu({ gameOver, fast, onNewGame, onConcede, onLog, onToggleSpeed, onHome, onClose }: MenuProps) {
+export function Menu({ gameOver, fast, onNewGame, onConcede, onLog, onDecks, onToggleSpeed, onHome, onClose }: MenuProps) {
   return (
     <>
       <div class="scrim clear" onClick={onClose} />
@@ -174,6 +207,11 @@ export function Menu({ gameOver, fast, onNewGame, onConcede, onLog, onToggleSpee
         <button type="button" role="menuitem" data-testid="menu-log" onClick={onLog}>
           Game log
         </button>
+        {onDecks && (
+          <button type="button" role="menuitem" data-testid="menu-decks" onClick={onDecks}>
+            Decks
+          </button>
+        )}
         <button type="button" role="menuitem" data-testid="menu-speed" onClick={onToggleSpeed}>
           AI speed: {fast ? 'fast' : 'normal'}
         </button>

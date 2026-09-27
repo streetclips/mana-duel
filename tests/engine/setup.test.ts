@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyAction, createGame, getLegalActions, tryApplyAction, type GameState } from '../../src/engine';
+import { applyAction, createGame, expandDeck, getDeck, getLegalActions, tryApplyAction, type GameState } from '../../src/engine';
 import { act, expectSound, passToStep, pendingOf } from '../helpers';
 
 function keepBoth(s: GameState): GameState {
@@ -53,6 +53,19 @@ describe('game setup', () => {
     const s = passToStep(keepBoth(createGame({ seed: 11, startingPlayer: 0 })), 'main1', 2);
     expect(s.activePlayer).toBe(1);
     expect(s.players[1].hand).toHaveLength(8);
+  });
+
+  it('gives each player the deck they bring', () => {
+    const s = createGame({ seed: 8, players: [{ deck: 'dawntide' }, { deck: 'duskmire' }] });
+    expectSound(s);
+    const defsOf = (player: 0 | 1) =>
+      Object.values(s.cards)
+        .filter((card) => card.owner === player)
+        .map((card) => card.def)
+        .sort();
+    expect(defsOf(0)).toEqual(expandDeck(getDeck('dawntide')).sort());
+    expect(defsOf(1)).toEqual(expandDeck(getDeck('duskmire')).sort());
+    expect(() => createGame({ players: [{ deck: 'nope' }, {}] })).toThrow(/Unknown deck/);
   });
 
   it('can skip mulligans for tests and simulations', () => {

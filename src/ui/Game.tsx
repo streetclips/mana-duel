@@ -5,6 +5,8 @@ import {
   blockOptions,
   canAttack,
   creaturesOf,
+  formatModifier,
+  getDeck,
   targetKey,
   type Action,
   type CardId,
@@ -16,6 +18,7 @@ import {
 import { fitCardScale, type CardSlot } from './layout';
 import { HandCard, PermanentCard, type CardFlags, type CardFx } from './components/Card';
 import { ActionBar, CenterStrip, Lands, PlayerBar } from './components/Board';
+import { DeckViewer } from './components/DeckViewer';
 import { CardSheet, GameOverModal, LogIcon, LogPanel, Menu, MenuIcon } from './components/Overlays';
 import {
   actionsForCard,
@@ -47,23 +50,30 @@ interface Effects {
 function effectsFrom(events: GameEvent[], key: number): Effects {
   const cards = new Map<CardId, CardFx>();
   const players = new Map<PlayerId, { key: number; text: string; kind: 'minus' | 'plus' }>();
-  const damage = new Map<string, number>();
+  const damage = new Map<CardId, number>();
+  const life = new Map<PlayerId, number>();
   for (const event of events) {
     if (event.t === 'damage') {
-      const id = 'player' in event.target ? `p${event.target.player}` : event.target.card;
-      damage.set(id, (damage.get(id) ?? 0) + event.amount);
-    } else if (event.t === 'life' && event.delta > 0) {
-      players.set(event.player, { key, text: `+${event.delta}`, kind: 'plus' });
+      if ('card' in event.target) damage.set(event.target.card, (damage.get(event.target.card) ?? 0) + event.amount);
+    } else if (event.t === 'life') {
+      life.set(event.player, (life.get(event.player) ?? 0) + event.delta);
     } else if (event.t === 'pump') {
-      cards.set(event.card, { key, flash: 'cast', float: `+${event.power}/+${event.toughness}`, floatKind: 'plus' });
+      const shrink = event.power < 0 || event.toughness < 0;
+      cards.set(event.card, {
+        key,
+        flash: shrink ? 'damage' : 'cast',
+        float: formatModifier(event.power, event.toughness),
+        floatKind: shrink ? 'minus' : 'plus',
+      });
     } else if (event.t === 'activate' || event.t === 'trigger') {
       if (!cards.has(event.card)) cards.set(event.card, { key, flash: 'cast' });
     }
   }
-  for (const [id, amount] of damage) {
-    if (id === 'p0' || id === 'p1') players.set(id === 'p0' ? 0 : 1, { key, text: `−${amount}`, kind: 'minus' });
-    else cards.set(id, { key, flash: 'damage', float: `−${amount}`, floatKind: 'minus' });
+  for (const [player, delta] of life) {
+    if (delta > 0) players.set(player, { key, text: `+${delta}`, kind: 'plus' });
+    else if (delta < 0) players.set(player, { key, text: `−${-delta}`, kind: 'minus' });
   }
+  for (const [id, amount] of damage) cards.set(id, { key, flash: 'damage', float: `−${amount}`, floatKind: 'minus' });
   return { cards, players };
 }
 
@@ -142,6 +152,7 @@ export function Game({ controller, onHome }: GameProps) {
   const [inspected, setInspected] = useState<CardId | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
+  const [decksOpen, setDecksOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [gameOverHidden, setGameOverHidden] = useState(false);
 
@@ -256,6 +267,17 @@ export function Game({ controller, onHome }: GameProps) {
     if (targeting) pickTarget({ player });
   };
 
+  const onStackTap = (card: CardId): void => {
+    if (targeting) {
+      if (!pickTarget({ card })) setInspected(card);
+      return;
+    }
+    setInspected(card);
+  };
+
+  const decks = controller.decks;
+  const deckName = (player: PlayerId): string | undefined => (decks ? getDeck(decks[player]).name : undefined);
+
   const attackNumbers = combatNumbers(s, current.kind === 'block' ? current.blocks : (s.combat?.blocks ?? []));
   const blockChoices = current.kind === 'block' ? blockOptions(s) : {};
   const selectedBlocker = current.kind === 'block' ? current.blocker : null;
@@ -342,6 +364,7 @@ export function Game({ controller, onHome }: GameProps) {
           s={s}
           player={opponent}
           human={human}
+          deckName={deckName(opponent)}
           targetable={targeting && targets.has(targetKey({ player: opponent }))}
           lifeFx={effects.players.get(opponent)}
           onTap={() => onPlayerTap(opponent)}
@@ -350,7 +373,7 @@ export function Game({ controller, onHome }: GameProps) {
         {renderSide(opponent)}
       </section>
 
-      <CenterStrip s={s} human={human} bar={bar} />
+      <CenterStrip s={s} human={human} bar={bar} targets={targeting ? targets : null} onStackTap={onStackTap} />
 
       <section class="side me" aria-label="Your side">
         {renderSide(human)}
@@ -359,6 +382,7 @@ export function Game({ controller, onHome }: GameProps) {
           s={s}
           player={human}
           human={human}
+          deckName={deckName(human)}
           targetable={targeting && targets.has(targetKey({ player: human }))}
           lifeFx={effects.players.get(human)}
           onTap={() => onPlayerTap(human)}
@@ -384,7 +408,7 @@ export function Game({ controller, onHome }: GameProps) {
         />
       )}
 
-      {gameOver && !gameOverHidden && !logOpen && (
+      {gameOver && !gameOverHidden && !logOpen && !decksOpen && (
         <GameOverModal
           s={s}
           human={human}
@@ -404,6 +428,14 @@ export function Game({ controller, onHome }: GameProps) {
             setMenuOpen(false);
             setLogOpen(true);
           }}
+          onDecks={
+            decks
+              ? () => {
+                  setMenuOpen(false);
+                  setDecksOpen(true);
+                }
+              : undefined
+          }
           onToggleSpeed={() => {
             controller.setAiDelay(controller.aiDelayMs < 300 ? 650 : 150);
             setMenuOpen(false);
@@ -425,6 +457,17 @@ export function Game({ controller, onHome }: GameProps) {
       )}
 
       {logOpen && <LogPanel entries={controller.log} onClose={() => setLogOpen(false)} />}
+
+      {decksOpen && decks && (
+        <DeckViewer
+          tabs={([human, opponent] as PlayerId[]).map((player) => ({
+            key: String(player),
+            label: `${player === human ? 'You' : s.players[player].name} · ${getDeck(decks[player]).name}`,
+            deck: getDeck(decks[player]),
+          }))}
+          onClose={() => setDecksOpen(false)}
+        />
+      )}
 
       {toast && (
         <div class="toast" role="status" data-testid="toast">

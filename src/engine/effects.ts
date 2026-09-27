@@ -109,11 +109,33 @@ export function executeEffects(s: GameState, effects: Effect[], ctx: EffectConte
         if (card) moveCard(s, card, 'graveyard');
         break;
       }
+      case 'bounce': {
+        const card = resolveCreatureTarget(s, ctx, effect.to);
+        if (!card) break;
+        moveCard(s, card, 'hand');
+        s.events.push({ t: 'bounce', card, player: getCard(s, card).owner });
+        break;
+      }
+      case 'counter': {
+        const target = resolveEffectTarget(s, ctx, effect.to);
+        if (!target || isPlayerTarget(target)) break;
+        const index = s.stack.findIndex((item) => item.kind === 'spell' && item.card === target.card);
+        const item = s.stack[index];
+        if (!item) break;
+        s.stack.splice(index, 1);
+        moveCard(s, target.card, 'graveyard');
+        s.events.push({ t: 'counter', card: target.card, player: item.controller });
+        break;
+      }
       case 'draw':
         drawCards(s, ctx.controller, effect.amount);
         break;
       case 'gainLife':
         changeLife(s, ctx.controller, effect.amount);
+        break;
+      case 'loseLife':
+        s.events.push({ t: 'loseLife', player: ctx.controller, amount: effect.amount });
+        changeLife(s, ctx.controller, -effect.amount);
         break;
       case 'fight': {
         const a = resolveCreatureTarget(s, ctx, effect.a);

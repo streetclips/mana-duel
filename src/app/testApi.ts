@@ -1,11 +1,14 @@
 import { chooseAction } from '../ai';
 import {
+  DECK_LIST,
   allCardDefs,
   applyAction,
   checkInvariants,
   createGame,
   createScenario,
+  deckSize,
   describeState,
+  getCardDef,
   getLegalActions,
   rulesText,
   tryApplyAction,
@@ -16,7 +19,7 @@ import {
   type ScenarioSpec,
 } from '../engine';
 import { CHECKS, runChecks, type CheckResult } from './checks';
-import type { ControllerOptions, GameController, Replay } from './controller';
+import type { ControllerOptions, GameController, Matchup, Replay } from './controller';
 
 export interface EngineApi {
   createGame: typeof createGame;
@@ -30,7 +33,16 @@ export interface EngineApi {
   play(state: GameState, actions: Action[]): GameState;
 }
 
-export const API_VERSION = '1.0';
+export const API_VERSION = '1.1';
+
+export interface DeckSummary {
+  id: string;
+  name: string;
+  colors: string[];
+  description: string;
+  size: number;
+  cards: { id: string; name: string; count: number }[];
+}
 
 export type ApiResult = { ok: true; pending: PendingDecision | null } | { ok: false; error: string };
 
@@ -55,6 +67,8 @@ export interface ManaDuelApi {
   setAutoplay(on: boolean): void;
   log(): string[];
   cards(): { id: string; name: string; type: string; cost: string | null; text: string[] }[];
+  decks(): DeckSummary[];
+  matchup(): Matchup | null;
   checks(): { id: string; title: string }[];
   runChecks(ids?: string[]): CheckResult[];
   engine: EngineApi;
@@ -73,7 +87,10 @@ const HELP = `window.manaDuel — automation API
   pass(), endTurn(), concede()
   settle()              run the AI now instead of waiting for its animations
   playToEnd()           let the AI finish the game for both seats
-  newGame({seed, skipMulligans, startingPlayer, aiDelayMs})
+  newGame({seed, skipMulligans, startingPlayer, aiDelayMs, decks: ['dawntide', 'duskmire']})
+                        decks are [yours, AI's]; omitted, the current decks are kept
+  decks()               the decks you can pick: id, name, colors, card list
+  matchup()             deck ids in play, [yours, AI's] (null for a loaded scenario)
   loadScenario(spec)    build a position: {activePlayer, step, players:[{hand, battlefield, library, life}, {...}]}
   replay() / loadReplay(replay)
   setAiDelay(ms), setAutoplay(on), log(), cards()
@@ -128,6 +145,16 @@ export function createTestApi(controller: GameController, showGame: () => void):
       allCardDefs()
         .filter((def) => !def.id.startsWith('test_'))
         .map((def) => ({ id: def.id, name: def.name, type: typeLine(def), cost: def.cost ?? null, text: rulesText(def) })),
+    decks: () =>
+      DECK_LIST.map((deck) => ({
+        id: deck.id,
+        name: deck.name,
+        colors: [...deck.colors],
+        description: deck.description,
+        size: deckSize(deck),
+        cards: deck.cards.map((entry) => ({ id: entry.card, name: getCardDef(entry.card).name, count: entry.count })),
+      })),
+    matchup: () => (controller.decks ? [...controller.decks] : null),
     checks: () => CHECKS.map((check) => ({ id: check.id, title: check.title })),
     runChecks: (ids) => runChecks(ids),
     engine: {

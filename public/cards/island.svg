@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bcdaee"/>
+      <stop offset="1" stop-color="#eef6f4"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="93" cy="18" r="12" fill="#ffffff" opacity="0.5"/>
+  <circle cx="93" cy="18" r="7" fill="#fdfcf3"/>
+  <path d="M16 27 q3 -3 6 0 q3 -3 6 0 M28 18 q2 -2 4 0 q2 -2 4 0" fill="none" stroke="#35597a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect y="52" width="120" height="28" fill="#8fc3de"/>
+  <path d="M4 53 L9 49 L14 50 L18 53 Z" fill="#a9c7d6"/>
+  <path d="M27.7 60 L32.2 49.6 L34.5 39.3 L41.5 33.5 L55.2 31.3 L71.3 31.3 L82.8 34.7 L87.5 43.9 L89.8 52 L94.3 60 Z" fill="#b8a78f"/>
+  <path d="M27.7 60 L32.2 49.6 L34.5 39.3 L41.5 33.5 L56.4 31.3 L58.7 39.3 L55.2 47.4 L58.7 60 Z" fill="#8c7d6a"/>
+  <path d="M56.4 31.3 L58.7 39.3 L55.2 47.4 L58.7 60 L64.5 60 L61 48.5 L64.5 39.3 Z" fill="#a3937c"/>
+  <path d="M34.5 39.3 C36.9 32.4 46 29 57.5 29 C69 29 80.5 30.1 85.2 38.2 C78.2 35.9 71.3 38.2 64.5 35.9 C55.2 38.2 46 35.9 34.5 39.3 Z" fill="#62b26c"/>
+  <path d="M34.5 39.3 C36.9 32.4 46 29 57.5 29 L59.9 36.4 C53 37 44.9 35.9 34.5 39.3 Z" fill="#3f8a52"/>
+  <path d="M50.6 9.4 L43.8 20.9 L47.2 20.9 L41.5 31.3 L50.6 31.3 Z" fill="#2c6441"/>
+  <path d="M50.6 9.4 L57.5 20.9 L54.1 20.9 L59.9 31.3 L50.6 31.3 Z" fill="#3b8356"/>
+  <path d="M66.8 16.3 L61 25.5 L63.9 25.5 L59.3 33.5 L66.8 33.5 Z" fill="#2c6441"/>
+  <path d="M66.8 16.3 L72.5 25.5 L69.6 25.5 L74.2 33.5 L66.8 33.5 Z" fill="#3b8356"/>
+  <path d="M0 63 Q30 59 60 62 T120 61 V80 H0 Z" fill="#5d9dcb"/>
+  <path d="M20.8 60 Q39.2 56.5 59.9 60 T101.2 58.9 Q82.8 63.5 59.9 62.3 T20.8 60 Z" fill="#f2f9fc"/>
+  <path d="M0 72 Q30 68 60 71 T120 70 V80 H0 Z" fill="#3f78b4"/>
+  <g fill="none" stroke="#e8f4fa" stroke-width="1.2" stroke-linecap="round">
+    <path d="M8 57 q4 -2 8 0 M103 56 q4 -2 8 0 M32 67 q4 -2 8 0 M78 66 q4 -2 8 0"/>
+  </g>
+</svg>

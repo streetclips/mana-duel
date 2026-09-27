@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'preact';
 import {
   costColors,
+  formatModifier,
   getCardDef,
   getCost,
   type CardDef,
@@ -31,7 +32,7 @@ export function cardColors(def: CardDef): Color[] {
 export function cardColorVar(def: CardDef): string {
   const colors = cardColors(def);
   if (colors.length === 1) return `var(--mana-${colors[0]})`;
-  if (colors.length > 1) return 'var(--mana-W)';
+  if (colors.length > 1) return 'var(--mana-M)';
   return 'var(--mana-C)';
 }
 
@@ -40,13 +41,19 @@ export function effectHint(effect: Effect): string {
     case 'damage':
       return `${effect.amount} dmg`;
     case 'pump':
-      return `+${effect.power}/+${effect.toughness}`;
+      return formatModifier(effect.power, effect.toughness);
     case 'destroy':
       return 'destroy';
+    case 'bounce':
+      return 'bounce';
+    case 'counter':
+      return 'counter';
     case 'draw':
       return `draw ${effect.amount}`;
     case 'gainLife':
       return `+${effect.amount} life`;
+    case 'loseLife':
+      return `-${effect.amount} life`;
     case 'fight':
       return 'fight';
   }

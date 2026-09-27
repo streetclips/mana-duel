@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#10263d"/>
+      <stop offset="1" stop-color="#1f4f7a"/>
+    </linearGradient>
+    <linearGradient id="wv" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fb3d9"/>
+      <stop offset="0.4" stop-color="#3f77c3"/>
+      <stop offset="1" stop-color="#15314f"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="88" cy="62" r="9" fill="none" stroke="#ffd166" stroke-width="0.8" opacity="0.5"/>
+  <circle cx="88" cy="62" r="6" fill="#ffd166" opacity="0.3"/>
+  <circle cx="88" cy="62" r="4.4" fill="none" stroke="#ffd166" stroke-width="1"/>
+  <path d="M88 55.5 L89.3 60.7 L94.5 62 L89.3 63.3 L88 68.5 L86.7 63.3 L81.5 62 L86.7 60.7 Z" fill="#ffe08a"/>
+  <circle cx="88" cy="62" r="1.4" fill="#fffbe8"/>
+  <path d="M66 74 Q92 68 120 72 V80 H66 Z" fill="#15314f"/>
+  <path d="M0 80 V58 C6 30 28 10 56 9 C80 8 98 22 98 40 C98 50 91 55 84 52 C79 50 78 43 83 41 C78 39 73 42 72 48 C71 58 76 70 90 80 Z" fill="url(#wv)"/>
+  <path d="M20 26 C32 14 46 10 58 10 C78 10 92 21 96 33" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M8 52 C13 36 26 24 42 19" fill="none" stroke="#cfe3f1" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+  <path d="M92 34 C95 42 92 48 87 48 C84 48 83 45 84.5 43" fill="none" stroke="#cfe3f1" stroke-width="1.6" stroke-linecap="round"/>
+  <g fill="#ffffff">
+    <path d="M98 40 C100 46 99 51 96 54 C96 50 96 47 94 45 Z"/>
+    <path d="M92 51 C94 55 93 58 90 60 C90 57 90 55 88 53 Z"/>
+    <path d="M85 52 C86 55 85 57 83 58 C83 56 83 55 82 53 Z"/>
+  </g>
+  <g fill="#cfe3f1">
+    <circle cx="104" cy="24" r="1.4"/>
+    <circle cx="108" cy="34" r="1"/>
+    <circle cx="101" cy="14" r="1.1"/>
+    <circle cx="110" cy="46" r="0.8"/>
+    <circle cx="94" cy="58" r="0.7"/>
+  </g>
+</svg>

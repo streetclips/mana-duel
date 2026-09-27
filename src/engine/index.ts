@@ -1,6 +1,6 @@
 export * from './types';
 export { allCardDefs, getCardDef, getCost, hasCardDef, registerCard } from './registry';
-export { DECKS, DEFAULT_DECK_ID, EMBERWILD, deckSize, expandDeck, getDeck } from './decks';
+export { DAWNTIDE, DECKS, DECK_LIST, DEFAULT_DECK_ID, DUSKMIRE, EMBERWILD, deckSize, expandDeck, getDeck, hasDeck } from './decks';
 export type { DeckDef, DeckEntry } from './decks';
 export { costColors, costSymbols, formatCost, manaValue, parseCost } from './mana';
 export {
@@ -54,7 +54,7 @@ export {
   onBattlefield,
   opponent,
 } from './state';
-export { isLegalTarget, isPlayerTarget, legalTargets, sameTarget, targetCombos, targetKey } from './targets';
+export { isLegalTarget, isPlayerTarget, isSpellOnStack, legalTargets, sameTarget, targetCombos, targetKey } from './targets';
 export {
   KEYWORD_NAMES,
   KEYWORD_REMINDERS,
@@ -64,6 +64,7 @@ export {
   cardSummary,
   describeEvent,
   describeState,
+  formatModifier,
   rulesText,
   targetPhrase,
   targetRef,

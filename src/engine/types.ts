@@ -44,8 +44,9 @@ export const KEYWORDS: readonly Keyword[] = [
 
 export type TargetSpec =
   | { kind: 'any' }
-  | { kind: 'creature'; controller?: 'you' | 'opponent' }
-  | { kind: 'player'; controller?: 'you' | 'opponent' };
+  | { kind: 'creature'; controller?: 'you' | 'opponent'; tapped?: boolean }
+  | { kind: 'player'; controller?: 'you' | 'opponent' }
+  | { kind: 'spell' };
 
 export type Target = { player: PlayerId } | { card: CardId };
 
@@ -55,8 +56,11 @@ export type Effect =
   | { kind: 'damage'; amount: number; to: EffectTarget }
   | { kind: 'pump'; power: number; toughness: number; to: EffectTarget }
   | { kind: 'destroy'; to: EffectTarget }
+  | { kind: 'bounce'; to: EffectTarget }
+  | { kind: 'counter'; to: number }
   | { kind: 'draw'; amount: number }
   | { kind: 'gainLife'; amount: number }
+  | { kind: 'loseLife'; amount: number }
   | { kind: 'fight'; a: EffectTarget; b: EffectTarget };
 
 export type TriggerEvent = 'enters' | 'dies' | 'attacks';
@@ -217,11 +221,14 @@ export type GameEvent =
   | { t: 'trigger'; player: PlayerId; card: CardId; ability: number; targets: Target[] }
   | { t: 'resolve'; item: StackItem }
   | { t: 'fizzle'; item: StackItem }
+  | { t: 'counter'; card: CardId; player: PlayerId }
+  | { t: 'bounce'; card: CardId; player: PlayerId }
   | { t: 'enter'; player: PlayerId; card: CardId }
   | { t: 'attack'; player: PlayerId; attackers: CardId[] }
   | { t: 'block'; player: PlayerId; blocks: Block[] }
   | { t: 'damage'; source: CardId; target: Target; amount: number; combat: boolean }
   | { t: 'life'; player: PlayerId; delta: number; life: number }
+  | { t: 'loseLife'; player: PlayerId; amount: number }
   | { t: 'pump'; card: CardId; power: number; toughness: number }
   | { t: 'fight'; a: CardId; b: CardId }
   | { t: 'dies'; card: CardId; player: PlayerId }
