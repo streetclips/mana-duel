@@ -1,4 +1,4 @@
-import { getCardDef } from './cards';
+import { getCardDef } from './registry';
 
 export interface DeckEntry {
   card: string;

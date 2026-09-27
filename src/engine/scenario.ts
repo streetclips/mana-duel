@@ -1,5 +1,5 @@
-import { hasCardDef } from './cards';
 import { advance, emptyState } from './game';
+import { hasCardDef } from './registry';
 import type { CardId, GameState, PlayerId, Zone } from './types';
 
 export interface ScenarioCard {

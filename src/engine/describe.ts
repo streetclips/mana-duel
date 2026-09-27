@@ -1,5 +1,5 @@
-import { getCardDef, getCost } from './cards';
 import { formatCost } from './mana';
+import { getCardDef, getCost } from './registry';
 import { getCard, getPower, getToughness, isCreatureDef } from './state';
 import { isPlayerTarget } from './targets';
 import type {

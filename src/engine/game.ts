@@ -1,4 +1,3 @@
-import { getCost, hasCardDef } from './cards';
 import {
   attackersError,
   blockOptions,
@@ -13,6 +12,7 @@ import {
 import { DEFAULT_DECK_ID, expandDeck, getDeck } from './decks';
 import { resolveTopOfStack } from './effects';
 import { parseCost } from './mana';
+import { getCost, hasCardDef } from './registry';
 import { normalizeSeed, random, shuffleInPlace } from './rng';
 import { activateError, castError, landPlayError } from './rules';
 import {

@@ -8,7 +8,9 @@ import {
   registerCard,
   rulesText,
   typeLine,
+  type CardDef,
 } from '../../src/engine';
+import { CORE_CARDS } from '../../src/engine/cards';
 
 describe('Emberwild deck', () => {
   it('has 40 cards, 16 of them lands', () => {
@@ -83,5 +85,24 @@ describe('card validation', () => {
       }),
     ).toThrow(/missing target/);
     expect(() => registerCard({ id: 'bad4', name: 'Bad', types: ['land'], cost: '{1}' })).toThrow(/no mana cost/);
+  });
+});
+
+describe('card files', () => {
+  const files = Object.entries(
+    import.meta.glob<Record<string, CardDef>>('../../src/engine/cards/*.ts', { eager: true }),
+  ).filter(([path]) => !path.endsWith('/index.ts'));
+
+  it('each export one card named after the file', () => {
+    for (const [path, exports] of files) {
+      const defs = Object.values(exports);
+      expect(defs, path).toHaveLength(1);
+      expect(path).toBe(`../../src/engine/cards/${defs[0]?.id}.ts`);
+    }
+  });
+
+  it('are all listed in the index', () => {
+    const ids = (defs: readonly CardDef[]) => defs.map((def) => def.id).sort();
+    expect(ids(CORE_CARDS)).toEqual(ids(files.flatMap(([, exports]) => Object.values(exports))));
   });
 });

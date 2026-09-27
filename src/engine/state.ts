@@ -1,5 +1,5 @@
-import { getCardDef, getCost } from './cards';
 import { choosePayment, type ManaSource } from './mana';
+import { getCardDef, getCost } from './registry';
 import type {
   CardDef,
   CardId,

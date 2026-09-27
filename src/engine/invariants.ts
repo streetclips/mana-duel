@@ -1,4 +1,4 @@
-import { hasCardDef } from './cards';
+import { hasCardDef } from './registry';
 import { isCreature } from './state';
 import type { CardId, GameState, PlayerId } from './types';
 

@@ -1,5 +1,5 @@
 export * from './types';
-export { allCardDefs, getCardDef, getCost, hasCardDef, registerCard } from './cards';
+export { allCardDefs, getCardDef, getCost, hasCardDef, registerCard } from './registry';
 export { DECKS, DEFAULT_DECK_ID, EMBERWILD, deckSize, expandDeck, getDeck } from './decks';
 export type { DeckDef, DeckEntry } from './decks';
 export { costColors, costSymbols, formatCost, manaValue, parseCost } from './mana';

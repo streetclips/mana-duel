@@ -1,5 +1,5 @@
-import { getCardDef, getCost } from './cards';
 import { parseCost } from './mana';
+import { getCardDef, getCost } from './registry';
 import { defOf, findPayment, getCard, isInstantDef, isLandDef, isReadyToTap } from './state';
 import { targetsError } from './targets';
 import type { CardId, GameState, PlayerId, Target } from './types';

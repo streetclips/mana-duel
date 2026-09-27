@@ -51,8 +51,8 @@ the automation API. [`AGENTS.md`](AGENTS.md) is the guide for coding agents.
 ```
 index.html · src/main.tsx
 src/
-├── engine/   types, cards, decks, mana, state, targets, combat, effects, rules, game, actions,
-│             scenario, describe, invariants
+├── engine/   types, cards/ (one file per card), registry, decks, mana, state, targets, combat,
+│             effects, rules, game, actions, scenario, describe, invariants
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
 ├── app/      controller, autopass, testApi, checks
 └── ui/       App, Game, model (interaction logic), components/, styles.css
