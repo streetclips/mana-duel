@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e4ecd0"/>
+      <stop offset="1" stop-color="#b9cf98"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <path d="M0 66 Q60 60 120 66 V80 H0 Z" fill="#9dbb7c"/>
+  <g>
+    <path d="M0 80 V52 C10 46 22 44 32 48 L42 62 L34 80 Z" fill="#7a5b40"/>
+    <path d="M34 48 C28 50 24 54 22 58 C28 57 32 54 35 51 Z" fill="#6a4e37"/>
+    <path d="M30 40 C32 30 44 26 52 30 C58 33 60 40 58 48 C57 54 54 60 50 62 C46 64 42 62 40 58 L34 50 Z" fill="#86664a"/>
+    <path d="M48 31 C38 26 28 32 28 42 C28 50 36 54 42 50 C47 47 45 40 40 40" fill="none" stroke="#eadbb6" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M48 31 C38 26 28 32 28 42 C28 50 36 54 42 50 C47 47 45 40 40 40" fill="none" stroke="#cdb98e" stroke-width="5.5" stroke-dasharray="1 2.4"/>
+    <ellipse cx="51" cy="43" rx="1.4" ry="1.1" fill="#1d1c1a"/>
+    <ellipse cx="51.5" cy="58" rx="0.9" ry="0.6" fill="#3a2a1e"/>
+  </g>
+  <g transform="translate(120 0) scale(-1 1)">
+    <path d="M0 80 V52 C10 46 22 44 32 48 L42 62 L34 80 Z" fill="#4b5a4a"/>
+    <path d="M34 48 C28 50 24 54 22 58 C28 57 32 54 35 51 Z" fill="#3f4c3f"/>
+    <path d="M30 40 C32 30 44 26 52 30 C58 33 60 40 58 48 C57 54 54 60 50 62 C46 64 42 62 40 58 L34 50 Z" fill="#56665a"/>
+    <path d="M48 31 C38 26 28 32 28 42 C28 50 36 54 42 50 C47 47 45 40 40 40" fill="none" stroke="#d9ccab" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M48 31 C38 26 28 32 28 42 C28 50 36 54 42 50 C47 47 45 40 40 40" fill="none" stroke="#bcae8a" stroke-width="5.5" stroke-dasharray="1 2.4"/>
+    <ellipse cx="51" cy="43" rx="1.4" ry="1.1" fill="#1d1c1a"/>
+    <ellipse cx="51.5" cy="58" rx="0.9" ry="0.6" fill="#232b23"/>
+  </g>
+  <polygon points="60,27 61.9,35.4 69.2,30.8 64.6,38.1 73,40 64.6,41.9 69.2,49.2 61.9,44.6 60,53 58.1,44.6 50.8,49.2 55.4,41.9 47,40 55.4,38.1 50.8,30.8 58.1,35.4" fill="#fff1a8" stroke="#f28a3b" stroke-width="1.2" stroke-linejoin="round"/>
+  <g fill="none" stroke="#7a8f5c" stroke-width="1.4" stroke-linecap="round">
+    <path d="M44 18 L48 12 M60 14 V7 M76 18 L72 12"/>
+  </g>
+</svg>

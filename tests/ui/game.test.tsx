@@ -115,6 +115,19 @@ describe('main phase', () => {
   });
 });
 
+describe('card art', () => {
+  it('shows each card art in hand, on the battlefield and in the card sheet', () => {
+    setup({
+      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, {}],
+    });
+    const artOf = (element: HTMLElement): string | null | undefined => element.querySelector('.art img')?.getAttribute('src');
+    expect(artOf(byTestId('card-snap'))).toMatch(/cards\/ember_snap\.svg$/);
+    expect(artOf(byTestId('card-rhino'))).toMatch(/cards\/timberland_rhino\.svg$/);
+    click(byTestId('card-rhino'));
+    expect(artOf(byTestId('card-sheet'))).toMatch(/cards\/timberland_rhino\.svg$/);
+  });
+});
+
 describe('combat', () => {
   it('declares attackers by tapping creatures', () => {
     const { settle } = setup({ players: [{ battlefield: [{ card: 'ember_hound', id: 'hound' }] }, {}] });

@@ -67,6 +67,25 @@ test('spells, targets and combat work from the UI', async ({ page }) => {
   await expectNoHorizontalOverflow(page);
 });
 
+test('every card shows art that loads in the browser build', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=1&aiDelay=0');
+  const ids = await page.evaluate(() => {
+    const cards = window.manaDuel.cards().map((card) => card.id);
+    window.manaDuel.loadScenario({ players: [{ hand: cards }, {}] });
+    return cards;
+  });
+  const art = page.getByTestId('hand').locator('.art img');
+  await expect(art).toHaveCount(ids.length);
+  await expect
+    .poll(() =>
+      art.evaluateAll((images) => images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0).length),
+    )
+    .toBe(ids.length);
+  await expectNoHorizontalOverflow(page);
+  expect(errors).toEqual([]);
+});
+
 test('the AI can finish a whole game and the result is shown', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=21&aiDelay=0&skipMulligan=1');

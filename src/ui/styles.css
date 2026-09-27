@@ -518,24 +518,6 @@ button {
   padding: calc(7px * var(--s, 1)) calc(6px * var(--s, 1)) calc(5px * var(--s, 1));
 }
 
-.permanent .name {
-  font-size: calc(10.5px * var(--s, 1));
-}
-
-.permanent .name.long {
-  font-size: calc(9px * var(--s, 1));
-}
-
-.permanent .kw {
-  font-size: calc(9px * var(--s, 1));
-  margin-top: calc(4px * var(--s, 1));
-}
-
-.permanent .pt {
-  font-size: calc(15px * var(--s, 1));
-  right: calc(6px * var(--s, 1));
-}
-
 .slot.tapped .permanent {
   transform: translate(calc((var(--card-h) - var(--card-w)) / 2), calc((var(--card-w) - var(--card-h)) / 2)) rotate(90deg);
 }
@@ -568,12 +550,39 @@ button {
   overflow: hidden;
 }
 
+.card .art {
+  display: block;
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  margin: 5px -6px -5px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--card-color, var(--mana-C)) 16%, var(--surface));
+}
+
+.card .art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
 .card .pt {
   position: absolute;
-  right: 6px;
-  bottom: 4px;
+  right: 0;
+  bottom: 0;
+  padding: 0 5px 0 6px;
+  background: var(--surface);
+  border-top-left-radius: 7px;
   font-size: 15px;
   font-weight: 750;
+  line-height: 1.12;
   letter-spacing: -0.02em;
 }
 
@@ -585,14 +594,38 @@ button {
   color: var(--bad);
 }
 
+.permanent .name {
+  font-size: calc(10.5px * var(--s, 1));
+}
+
+.permanent .name.long {
+  font-size: calc(9px * var(--s, 1));
+}
+
+.permanent .kw {
+  font-size: calc(9px * var(--s, 1));
+  margin-top: calc(4px * var(--s, 1));
+}
+
+.permanent .art {
+  margin: calc(5px * var(--s, 1)) calc(-6px * var(--s, 1)) calc(-5px * var(--s, 1));
+}
+
+.permanent .pt {
+  font-size: calc(15px * var(--s, 1));
+  padding: 0 calc(5px * var(--s, 1)) 0 calc(6px * var(--s, 1));
+  border-top-left-radius: calc(7px * var(--s, 1));
+}
+
 .card .sick {
   position: absolute;
-  left: 6px;
-  bottom: 6px;
-  width: 6px;
-  height: 6px;
+  left: calc(5px * var(--s, 1));
+  bottom: calc(5px * var(--s, 1));
+  width: calc(9px * var(--s, 1));
+  height: calc(9px * var(--s, 1));
   border-radius: 50%;
-  border: 1.5px solid var(--muted);
+  border: calc(2px * var(--s, 1)) solid var(--muted);
+  background: var(--surface);
 }
 
 .card.playable {
@@ -802,31 +835,28 @@ p .pip,
 
 .hand-card .pt {
   right: auto;
-  left: 7px;
+  left: 0;
+  padding: 0 6px;
+  border-radius: 0 7px 0 0;
 }
 
 .hand-card .name {
   font-size: 11.5px;
 }
 
-.hand-card .type {
-  font-size: 9px;
-  color: var(--muted);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .hand-card .text {
   font-size: 8.5px;
   line-height: 1.2;
   color: var(--ink-2);
-  margin-top: 4px;
+  margin-top: 3px;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.hand-card .art {
+  margin: 5px -7px -6px;
 }
 
 .hand-card.playable {
@@ -1106,8 +1136,12 @@ p .pip,
 
 .detail-card .pt {
   font-size: 22px;
-  right: 9px;
-  bottom: 6px;
+  padding: 1px 8px 0 9px;
+  border-top-left-radius: 11px;
+}
+
+.detail-card .art {
+  margin: 8px -9px -8px;
 }
 
 .detail-card .cost {

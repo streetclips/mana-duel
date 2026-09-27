@@ -31,7 +31,8 @@ npm run build      # static site in dist/, served by `npm run preview`
   hidden cards never change its decisions.
 - **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, light and dark themes, a game log,
   and an automation API on `window.manaDuel`.
-- **Cards**: 18 cards, listed in [`docs/CARDS.md`](docs/CARDS.md) (generated from the definitions).
+- **Cards**: 18 cards, each with its own SVG illustration in `public/cards/`, listed in
+  [`docs/CARDS.md`](docs/CARDS.md) (generated from the definitions).
 
 ## Testing and verification
 
@@ -56,6 +57,7 @@ src/
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
 ├── app/      controller, autopass, testApi, checks
 └── ui/       App, Game, model (interaction logic), components/, styles.css
+public/cards/ one SVG illustration per card, named <id>.svg
 tests/        engine/ ai/ app/ ui/ + helpers.ts
 e2e/          Playwright specs
 scripts/      sim.ts, cards.ts

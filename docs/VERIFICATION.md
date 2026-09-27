@@ -62,6 +62,7 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | Mobile layout without horizontal overflow at 360×640 and on a Pixel 7; no console errors | `e2e/game.spec.ts` (projects `mobile`, `small-phone`) |
 | Automation surface: `window.manaDuel`, URL parameters, `data-testid` hooks | `tests/app/controller.test.ts` › test API · `e2e/game.spec.ts` |
 | `docs/CARDS.md` matches the card definitions | `tests/docs.test.ts` · `npm run cards -- --check` |
+| Card art: every card has `public/cards/<id>.svg`, shown in hand, on the battlefield and in the card sheet | `tests/ui/art.test.ts` · `tests/ui/game.test.tsx` › card art · `e2e/game.spec.ts` › every card shows art |
 
 ## Manual pass in a browser
 

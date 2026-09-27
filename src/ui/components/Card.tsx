@@ -10,8 +10,16 @@ import {
   type CardId,
   type GameState,
 } from '../../engine';
-import { cardColorVar, cssVars, hasLongWord, shortText } from '../cardInfo';
+import { cardArtUrl, cardColorVar, cssVars, hasLongWord, shortText } from '../cardInfo';
 import { usePress } from '../useController';
+
+export function CardArt({ defId }: { defId: string }) {
+  return (
+    <span class="art" aria-hidden="true">
+      <img src={cardArtUrl(defId)} alt="" draggable={false} />
+    </span>
+  );
+}
 
 function ManaSymbol({ symbol }: { symbol: string }) {
   if (symbol === 'T') {
@@ -153,6 +161,7 @@ export function PermanentCard({ s, id, flags, fx, onTap, onInspect }: PermanentP
       >
         <span class={`name${hasLongWord(def.name) ? ' long' : ''}`}>{def.name}</span>
         <span class="kw">{shortText(def.id)}</span>
+        <CardArt defId={def.id} />
         {def.types.includes('creature') && <PowerToughness s={s} id={id} />}
         {sick && <span class="sick" title="Summoning sick" />}
         {flags.badge && <span class={`badge ${flags.badge.kind}`}>{flags.badge.value}</span>}
@@ -200,10 +209,10 @@ export function HandCard({ s, id, flags, onTap, onInspect }: HandCardProps) {
         <ManaCost defId={def.id} />
       </span>
       <span class="name">{def.name}</span>
-      <span class="type">{typeLine(def)}</span>
       <span class="text">
         <RulesLine text={text} />
       </span>
+      <CardArt defId={def.id} />
       {def.types.includes('creature') && (
         <span class="pt num">
           {def.power}/{def.toughness}
@@ -225,6 +234,7 @@ export function DetailCard({ s, id }: { s: GameState; id: CardId }) {
       </span>
       <span class="name">{def.name}</span>
       <span class="type">{typeLine(def)}</span>
+      <CardArt defId={def.id} />
       {def.types.includes('creature') &&
         (onBattlefield ? (
           <PowerToughness s={s} id={id} />

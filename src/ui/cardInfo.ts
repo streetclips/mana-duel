@@ -65,6 +65,10 @@ export function shortText(defId: string): string {
   return parts.join(' · ');
 }
 
+export function cardArtUrl(defId: string): string {
+  return `${import.meta.env.BASE_URL}cards/${defId}.svg`;
+}
+
 export function cssVars(vars: Record<`--${string}`, string>): CSSProperties {
   return vars as CSSProperties;
 }
