@@ -1,0 +1,181 @@
+import { getCardDef } from './cards';
+import {
+  changeLife,
+  defOf,
+  drawCards,
+  getCard,
+  getKeywords,
+  getPower,
+  isCreatureDef,
+  isPermanentDef,
+  moveCard,
+  newId,
+  onBattlefield,
+} from './state';
+import { isLegalTarget, isPlayerTarget } from './targets';
+import type {
+  CardId,
+  Effect,
+  EffectTarget,
+  GameState,
+  Keyword,
+  PlayerId,
+  StackItem,
+  Target,
+  TargetSpec,
+} from './types';
+
+export interface DamageAssignment {
+  source: CardId;
+  target: Target;
+  amount: number;
+}
+
+export function sourceHasKeyword(s: GameState, source: CardId, keyword: Keyword): boolean {
+  const card = s.cards[source];
+  if (!card) return false;
+  const def = getCardDef(card.def);
+  if (!isCreatureDef(def)) return false;
+  const keywords = card.zone === 'battlefield' ? getKeywords(s, source) : (def.keywords ?? []);
+  return keywords.includes(keyword);
+}
+
+export function applyDamage(s: GameState, assignments: DamageAssignment[], combat: boolean): void {
+  const lifelinkGains = new Map<PlayerId, number>();
+  for (const assignment of assignments) {
+    const { source, target, amount } = assignment;
+    if (amount <= 0) continue;
+    if (isPlayerTarget(target)) {
+      s.events.push({ t: 'damage', source, target, amount, combat });
+      changeLife(s, target.player, -amount);
+    } else {
+      const card = s.cards[target.card];
+      if (!card || card.zone !== 'battlefield') continue;
+      card.damage += amount;
+      if (sourceHasKeyword(s, source, 'deathtouch')) card.deathtouchDamage = true;
+      s.events.push({ t: 'damage', source, target, amount, combat });
+    }
+    if (sourceHasKeyword(s, source, 'lifelink')) {
+      const controller = getCard(s, source).controller;
+      lifelinkGains.set(controller, (lifelinkGains.get(controller) ?? 0) + amount);
+    }
+  }
+  for (const [player, amount] of lifelinkGains) changeLife(s, player, amount);
+}
+
+export interface EffectContext {
+  controller: PlayerId;
+  source: CardId;
+  targets: Target[];
+  targetLegal: boolean[];
+}
+
+function resolveEffectTarget(s: GameState, ctx: EffectContext, ref: EffectTarget): Target | null {
+  if (ref === 'self') return onBattlefield(s, ctx.source) ? { card: ctx.source } : null;
+  const target = ctx.targets[ref];
+  if (!target || !ctx.targetLegal[ref]) return null;
+  return target;
+}
+
+function resolveCreatureTarget(s: GameState, ctx: EffectContext, ref: EffectTarget): CardId | null {
+  const target = resolveEffectTarget(s, ctx, ref);
+  if (!target || isPlayerTarget(target) || !onBattlefield(s, target.card)) return null;
+  return target.card;
+}
+
+export function executeEffects(s: GameState, effects: Effect[], ctx: EffectContext): void {
+  for (const effect of effects) {
+    switch (effect.kind) {
+      case 'damage': {
+        const target = resolveEffectTarget(s, ctx, effect.to);
+        if (target) applyDamage(s, [{ source: ctx.source, target, amount: effect.amount }], false);
+        break;
+      }
+      case 'pump': {
+        const card = resolveCreatureTarget(s, ctx, effect.to);
+        if (!card) break;
+        s.effects.push({
+          id: newId(s, 'e'),
+          card,
+          power: effect.power,
+          toughness: effect.toughness,
+          until: 'endOfTurn',
+        });
+        s.events.push({ t: 'pump', card, power: effect.power, toughness: effect.toughness });
+        break;
+      }
+      case 'destroy': {
+        const card = resolveCreatureTarget(s, ctx, effect.to);
+        if (card) moveCard(s, card, 'graveyard');
+        break;
+      }
+      case 'draw':
+        drawCards(s, ctx.controller, effect.amount);
+        break;
+      case 'gainLife':
+        changeLife(s, ctx.controller, effect.amount);
+        break;
+      case 'fight': {
+        const a = resolveCreatureTarget(s, ctx, effect.a);
+        const b = resolveCreatureTarget(s, ctx, effect.b);
+        if (!a || !b) break;
+        s.events.push({ t: 'fight', a, b });
+        applyDamage(
+          s,
+          [
+            { source: a, target: { card: b }, amount: getPower(s, a) },
+            { source: b, target: { card: a }, amount: getPower(s, b) },
+          ],
+          false,
+        );
+        break;
+      }
+    }
+  }
+}
+
+export function stackItemSource(item: StackItem): CardId {
+  return item.kind === 'spell' ? item.card : item.source;
+}
+
+export function stackItemAbility(s: GameState, item: StackItem): { targets: TargetSpec[]; effects: Effect[] } | null {
+  const def = defOf(s, stackItemSource(item));
+  if (item.kind === 'spell') return def.spell ?? { targets: [], effects: [] };
+  if (item.kind === 'trigger') return def.triggers?.[item.ability] ?? null;
+  return def.activated?.[item.ability] ?? null;
+}
+
+export function targetLegality(s: GameState, item: StackItem, specs: TargetSpec[]): boolean[] {
+  return item.targets.map((target, i) => {
+    const spec = specs[i];
+    return spec ? isLegalTarget(s, item.controller, spec, target) : false;
+  });
+}
+
+export function resolveTopOfStack(s: GameState): void {
+  const item = s.stack.pop();
+  if (!item) return;
+  const source = stackItemSource(item);
+
+  if (item.kind === 'spell' && isPermanentDef(defOf(s, source))) {
+    s.events.push({ t: 'resolve', item });
+    moveCard(s, source, 'battlefield', { controller: item.controller });
+    return;
+  }
+
+  const ability = stackItemAbility(s, item);
+  if (!ability) return;
+  const legal = targetLegality(s, item, ability.targets);
+  if (ability.targets.length > 0 && !legal.some(Boolean)) {
+    s.events.push({ t: 'fizzle', item });
+  } else {
+    s.events.push({ t: 'resolve', item });
+    executeEffects(s, ability.effects, {
+      controller: item.controller,
+      source,
+      targets: item.targets,
+      targetLegal: legal,
+    });
+  }
+  if (item.kind === 'spell') moveCard(s, source, 'graveyard');
+}

@@ -1,0 +1,32 @@
+{
+  "name": "mana-duel",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Minimalist mobile-first card game inspired by the rules of Magic: The Gathering. One deck, 1v1 against an AI.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "sim": "tsx scripts/sim.ts",
+    "cards": "tsx scripts/cards.ts",
+    "verify": "npm run typecheck && npm run test && npm run sim -- --games 60 --quiet && npm run build"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@testing-library/preact": "^3.2.4",
+    "@types/node": "^22.20.4",
+    "happy-dom": "^20.14.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}
