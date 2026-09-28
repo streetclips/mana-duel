@@ -10,6 +10,7 @@ never looks at your hand: the built-in AI, or a language model of your choice th
 npm install
 npm run dev        # http://localhost:5173 — open it on your phone through your LAN address too
 npm run build      # static site in dist/, served by `npm run preview`
+docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same site served by nginx, as deployed
 ```
 
 - Pick your deck and the AI's on the start screen (or let chance pick the AI's); **View** opens a deck with every
