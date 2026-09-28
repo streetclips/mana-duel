@@ -388,6 +388,7 @@ button {
 }
 
 .game {
+  --fx-time: 1;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -419,6 +420,7 @@ button {
 
 .player-chip {
   appearance: none;
+  position: relative;
   border: 1px solid transparent;
   background: transparent;
   display: flex;
@@ -428,6 +430,11 @@ button {
   border-radius: 999px;
   cursor: default;
   min-width: 0;
+}
+
+.player-chip.aimed {
+  border-color: var(--target);
+  border-style: dashed;
 }
 
 .player-chip.targetable {
@@ -460,12 +467,41 @@ button {
   border: 1px solid var(--line-strong);
 }
 
+.life-box {
+  position: relative;
+  min-width: 30px;
+}
+
 .life {
+  display: inline-block;
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  position: relative;
-  min-width: 30px;
+}
+
+.life-box .float {
+  --float-x: 0;
+  left: calc(100% - 4px);
+  top: -9px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 14px;
+  line-height: 1.25;
+  text-shadow: none;
+  box-shadow: var(--shadow);
+}
+
+.life-box .float.minus,
+.life-box .float.plus {
+  color: #fff;
+}
+
+.life-box .float.minus {
+  background: var(--bad);
+}
+
+.life-box .float.plus {
+  background: var(--good);
 }
 
 .life.low {
@@ -489,6 +525,10 @@ button {
 .player-meta .deck-name {
   color: var(--muted);
   font-weight: 500;
+}
+
+.player-meta .counts {
+  display: inline-block;
 }
 
 .player-bar .spacer {
@@ -556,6 +596,9 @@ button {
   gap: calc(8px * var(--s, 1));
   padding: 10px 10px;
   min-height: 72px;
+}
+
+.battlefield.crowded {
   overflow-y: auto;
 }
 
@@ -812,28 +855,34 @@ button {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  animation: flash 0.9s ease-out forwards;
+  animation: fx-flash calc(0.9s * var(--fx-time)) ease-out calc(var(--fx-delay, 0ms) * var(--fx-time)) both;
 }
 
 .flash.damage {
-  background: color-mix(in srgb, var(--bad) 35%, transparent);
+  background: color-mix(in srgb, var(--bad) 42%, transparent);
 }
 
-.flash.cast {
-  background: color-mix(in srgb, var(--target) 30%, transparent);
+.flash.good {
+  background: color-mix(in srgb, var(--good) 34%, transparent);
+}
+
+.flash.gold {
+  background: color-mix(in srgb, var(--target) 34%, transparent);
 }
 
 .float {
+  --float-x: -50%;
   position: absolute;
   left: 50%;
   top: 30%;
-  transform: translateX(-50%);
+  translate: var(--float-x) 0;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 17px;
+  white-space: nowrap;
   pointer-events: none;
-  animation: float 1.1s ease-out forwards;
-  text-shadow: 0 1px 0 var(--surface);
-  z-index: 3;
+  animation: fx-float calc(1.1s * var(--fx-time)) ease-out calc(var(--fx-delay, 0ms) * var(--fx-time)) both;
+  text-shadow: 0 1px 0 var(--surface), 0 0 6px var(--surface);
+  z-index: 4;
 }
 
 .float.minus {
@@ -844,23 +893,361 @@ button {
   color: var(--good);
 }
 
-@keyframes flash {
-  from {
+@keyframes fx-flash {
+  0% {
+    opacity: 0;
+  }
+  8% {
     opacity: 1;
   }
-  to {
+  100% {
     opacity: 0;
   }
 }
 
-@keyframes float {
-  from {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-  to {
+@keyframes fx-float {
+  0% {
     opacity: 0;
-    transform: translate(-50%, -18px);
+    translate: var(--float-x) 6px;
+    scale: 0.6;
+  }
+  12% {
+    opacity: 1;
+    translate: var(--float-x) 0;
+    scale: 1.2;
+  }
+  28% {
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--float-x) -22px;
+    scale: 1;
+  }
+}
+
+.slot[data-fx~='strike'],
+.slot[data-fx~='strike'] .permanent {
+  transition-delay: calc(0.42s * var(--fx-time));
+}
+
+.slot[data-fx~='enter'] {
+  animation: fx-enter calc(0.5s * var(--fx-time)) cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+@keyframes fx-enter {
+  0% {
+    opacity: 0;
+    scale: 1.35;
+  }
+  55% {
+    opacity: 1;
+    scale: 0.95;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.land-pip[data-fx~='enter'] {
+  animation: fx-pip calc(0.45s * var(--fx-time)) cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+@keyframes fx-pip {
+  0% {
+    scale: 0;
+  }
+  70% {
+    scale: 1.4;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+.fx-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  pointer-events: none;
+  z-index: 3;
+  animation: fx-ring calc(0.7s * var(--fx-time)) ease-out both;
+}
+
+.fx-ring.attack {
+  --ring: var(--attack);
+}
+
+.fx-ring.block {
+  --ring: var(--block);
+}
+
+.fx-ring.enter {
+  --ring: var(--target);
+  animation-delay: calc(0.18s * var(--fx-time));
+}
+
+@keyframes fx-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ring) 75%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 14px color-mix(in srgb, var(--ring) 0%, transparent);
+  }
+}
+
+.fx-burst {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 76px;
+  height: 76px;
+  margin: -38px 0 0 -38px;
+  pointer-events: none;
+  z-index: 3;
+  background: radial-gradient(circle, #fff 0 14%, #ffd66b 22%, var(--bad) 46%, color-mix(in srgb, var(--bad) 0%, transparent) 64%);
+  clip-path: polygon(
+    50% 0%,
+    56% 35%,
+    85% 15%,
+    65% 44%,
+    100% 50%,
+    65% 56%,
+    85% 85%,
+    56% 65%,
+    50% 100%,
+    44% 65%,
+    15% 85%,
+    35% 56%,
+    0% 50%,
+    35% 44%,
+    15% 15%,
+    44% 35%
+  );
+  animation: fx-burst calc(0.5s * var(--fx-time)) ease-out calc(var(--fx-delay, 0ms) * var(--fx-time)) both;
+}
+
+@keyframes fx-burst {
+  0% {
+    opacity: 0;
+    scale: 0.2;
+    rotate: 0deg;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.5;
+    rotate: 30deg;
+  }
+}
+
+.slot.ghost {
+  pointer-events: none;
+  z-index: 1;
+  animation: fx-collapse calc(0.24s * var(--fx-time)) ease-in calc((var(--fx-delay, 0ms) + 720ms) * var(--fx-time)) forwards;
+}
+
+.slot.ghost .permanent {
+  cursor: default;
+}
+
+.slot.ghost.dies .permanent {
+  animation: fx-dies calc(0.62s * var(--fx-time)) ease-in calc((var(--fx-delay, 0ms) + 90ms) * var(--fx-time)) both;
+}
+
+.slot.ghost.bounce.rise .permanent {
+  --lift: -46px;
+  animation: fx-lift calc(0.6s * var(--fx-time)) ease-in calc(var(--fx-delay, 0ms) * var(--fx-time)) both;
+}
+
+.slot.ghost.bounce.sink .permanent {
+  --lift: 46px;
+  animation: fx-lift calc(0.6s * var(--fx-time)) ease-in calc(var(--fx-delay, 0ms) * var(--fx-time)) both;
+}
+
+@keyframes fx-dies {
+  0% {
+    opacity: 1;
+    filter: none;
+    scale: 1;
+  }
+  22% {
+    opacity: 1;
+    filter: grayscale(1) brightness(1.15);
+    scale: 1.05;
+  }
+  100% {
+    opacity: 0;
+    filter: grayscale(1) brightness(0.55);
+    scale: 0.72;
+    rotate: -9deg;
+    translate: 0 12px;
+  }
+}
+
+@keyframes fx-lift {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 var(--lift);
+    scale: 0.6;
+  }
+}
+
+@keyframes fx-collapse {
+  to {
+    width: 0;
+    margin-right: calc(-8px * var(--s, 1));
+  }
+}
+
+.aim {
+  position: absolute;
+  inset: -5px;
+  border: 2px dashed var(--target);
+  border-radius: calc(var(--radius) + 4px);
+  pointer-events: none;
+  z-index: 2;
+  animation: aim 1.2s ease-in-out infinite;
+}
+
+.game[data-fx-speed='0'] .aim {
+  animation: none;
+}
+
+@keyframes aim {
+  0%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+  50% {
+    opacity: 0.55;
+    scale: 1.04;
+  }
+}
+
+.fx-chip {
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  pointer-events: none;
+  animation: fx-chip calc(0.9s * var(--fx-time)) ease-out calc(var(--fx-delay, 0ms) * var(--fx-time)) both;
+}
+
+.fx-chip.minus {
+  --chip: var(--bad);
+}
+
+.fx-chip.plus {
+  --chip: var(--good);
+}
+
+@keyframes fx-chip {
+  0% {
+    opacity: 0;
+    background: color-mix(in srgb, var(--chip) 24%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--chip) 60%, transparent);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background: color-mix(in srgb, var(--chip) 0%, transparent);
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--chip) 0%, transparent);
+  }
+}
+
+.fx-drawn {
+  position: absolute;
+  left: 25px;
+  top: -5px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 5px 2px 3px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+  animation: fx-drawn calc(1s * var(--fx-time)) ease-out both;
+}
+
+.fx-drawn i {
+  width: 9px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1.5px var(--ink-2);
+}
+
+@keyframes fx-drawn {
+  0% {
+    opacity: 0;
+    translate: 0 8px;
+    scale: 0.6;
+  }
+  18% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1.1;
+  }
+  30% {
+    scale: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+}
+
+.hand-card[data-fx~='draw'] {
+  animation: fx-draw calc(0.45s * var(--fx-time)) cubic-bezier(0.2, 0.8, 0.3, 1) calc(var(--fx-i, 0) * 70ms * var(--fx-time)) both;
+}
+
+.hand-card[data-fx~='bounce'] {
+  animation: fx-return calc(0.45s * var(--fx-time)) cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes fx-draw {
+  0% {
+    opacity: 0;
+    translate: 36px 80px;
+    rotate: 12deg;
+    scale: 0.85;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+@keyframes fx-return {
+  0% {
+    opacity: 0;
+    translate: 0 -70px;
+    scale: 0.8;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
   }
 }
 
@@ -995,6 +1382,7 @@ p .pip,
 }
 
 .center {
+  position: relative;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   background: var(--surface-2);
@@ -1003,6 +1391,51 @@ p .pip,
   flex-direction: column;
   gap: 6px;
   min-height: 70px;
+}
+
+.fx-turn {
+  position: absolute;
+  inset: -1px 0;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-align: center;
+  pointer-events: none;
+  z-index: 2;
+  animation: fx-turn calc(1.4s * var(--fx-time)) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.fx-turn small {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+@keyframes fx-turn {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  16% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  78% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 100%);
+  }
 }
 
 .phase-row {
@@ -1088,6 +1521,28 @@ p .pip,
 
 .stack-item.dim {
   opacity: 0.45;
+}
+
+.stack-item.aimed {
+  border-style: dashed;
+  border-color: var(--target);
+  border-left-style: solid;
+  border-left-color: var(--card-color, var(--mana-C));
+}
+
+.stack-item[data-fx] {
+  animation: fx-pop calc(0.35s * var(--fx-time)) cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+
+@keyframes fx-pop {
+  0% {
+    opacity: 0;
+    scale: 0.6;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
 }
 
 .stack-item .who {
@@ -1628,6 +2083,125 @@ p .pip,
   padding: 12px;
 }
 
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.fx-hurt {
+  position: absolute;
+  inset: 0;
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--bad) 70%, transparent),
+    inset 0 0 70px 12px color-mix(in srgb, var(--bad) 42%, transparent);
+  animation: fx-hurt calc(0.85s * var(--fx-time)) ease-out calc(var(--fx-delay, 0ms) * var(--fx-time)) both;
+}
+
+@keyframes fx-hurt {
+  0% {
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.fx-reveal {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 32px);
+  translate: -50% 0;
+  animation: fx-reveal calc(1.6s * var(--fx-time)) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.fx-reveal.top {
+  top: 9%;
+}
+
+.fx-reveal.bottom {
+  bottom: 30%;
+}
+
+.fx-reveal-caption,
+.fx-reveal-target {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.fx-reveal-caption {
+  padding: 3px 10px;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.fx-reveal-target {
+  padding: 2px 9px;
+  background: var(--surface);
+  color: var(--ink-2);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow);
+}
+
+.fx-reveal-card {
+  width: 92px;
+  height: 128px;
+  padding: 7px 7px 6px;
+  cursor: default;
+  box-shadow: var(--shadow-lift);
+}
+
+.fx-reveal.counter .fx-reveal-card,
+.fx-reveal.fizzle .fx-reveal-card {
+  filter: grayscale(1);
+}
+
+.fx-reveal.counter .fx-reveal-caption {
+  background: var(--bad);
+  color: #fff;
+}
+
+.fx-reveal.fizzle .fx-reveal-caption {
+  background: var(--muted);
+  color: #fff;
+}
+
+@keyframes fx-reveal {
+  0% {
+    opacity: 0;
+    scale: 0.55;
+  }
+  14% {
+    opacity: 1;
+    scale: 1.06;
+  }
+  22% {
+    scale: 1;
+  }
+  82% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 0.92;
+  }
+}
+
 .toast {
   position: absolute;
   left: 50%;
@@ -1662,6 +2236,13 @@ p .pip,
   }
   .center {
     min-height: 60px;
+  }
+  .fx-reveal.top {
+    top: 5%;
+  }
+  .fx-reveal-card {
+    width: 74px;
+    height: 104px;
   }
 }
 

@@ -62,6 +62,20 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | — | Fairness: hidden cards never change a decision, in mirror and mixed matchups | `tests/ai/ai.test.ts` › AI fairness |
 | — | Strength: beats a random player nearly always with any deck; AI vs AI balanced and crash-free | `tests/ai/ai.test.ts` › AI strength · `npm run sim -- --games 270 --quiet` (`"errors": 0`, per-deck `winRate` near 0.5) · `npm run sim -- --p0 random --games 50 --quiet` |
 
+## Animations
+
+Every animation starts from an fx cue: `src/app/fx.ts` turns the engine events of each action into cues, the
+controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion.ts` draw them.
+
+| Id | Feature | Tests |
+| --- | --- | --- |
+| F38 | Combat: an attacker and its blocker strike each other; the damage, the trample to the player and the death show, and the dead creature fades out in its own place | `tests/app/fx.test.ts` › combat · `tests/ui/animations.test.tsx` › animations of combat · `e2e/animations.spec.ts` › in combat |
+| F39 | The opponent's spell is revealed with its target; burn shows the life lost; a new turn is announced and deals the drawn card | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` › animations of plays, of draws and turns · `e2e/animations.spec.ts` |
+| — | Lands and permanents entering, abilities, pumps and shrinks, lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
+| — | Timing: hits land after the strikes, draws deal one after another, hooks stay until a newer action animates something, slow motion, a new game starts over | `tests/ui/fxTracker.test.ts` |
+| — | Pacing: with an AI delay the AI and automatic passing wait for the opponent's plays and for combat to be seen; not with `aiDelay=0` or `fx=off` | `tests/app/controller.test.ts` › animation cues |
+| — | Browser: CSS and Web Animations run and end, `freezeFx` holds them, `fx=off` and `fx=slow`, reduced motion, no overflow mid-animation, no console errors | `e2e/animations.spec.ts` |
+
 ## App and UI
 
 | Feature | Tests |
@@ -72,9 +86,9 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | Counterspells target a spell by tapping it in the center strip; stack items open their card | `tests/ui/game.test.tsx` › counterspells · `e2e/game.spec.ts` › URL parameters pick the decks |
 | Controller decks: per-seat decks, kept by "New game", recorded in replays, none for scenarios | `tests/app/controller.test.ts` › decks |
 | Automatic passing and End turn (behaviour described in `docs/RULES.md`) | `tests/app/controller.test.ts` › auto-pass, ends the turn on request |
-| AI runs on timers the player can follow; controller replays and concessions | `tests/app/controller.test.ts` › GameController |
+| AI runs on timers the player can follow, and waits for the animations it should see; controller replays and concessions | `tests/app/controller.test.ts` › GameController, animation cues |
 | Mobile layout without horizontal overflow at 360×640 and on a Pixel 7; no console errors | `e2e/game.spec.ts` (projects `mobile`, `small-phone`) |
-| Automation surface: `window.manaDuel` (including `decks()` and `matchup()`), URL parameters (`deck`, `aiDeck`), `data-testid` hooks | `tests/app/controller.test.ts` › test API · `e2e/game.spec.ts` |
+| Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`), URL parameters (`deck`, `aiDeck`, `fx`), `data-testid` and `data-fx` hooks | `tests/app/controller.test.ts` › test API, animation cues · `e2e/game.spec.ts` · `e2e/animations.spec.ts` |
 | `docs/CARDS.md` matches the card definitions | `tests/docs.test.ts` · `npm run cards -- --check` |
 | Card art: every card has `public/cards/<id>.svg`, shown in hand, on the battlefield and in the card sheet | `tests/ui/art.test.ts` · `tests/ui/game.test.tsx` › card art · `e2e/game.spec.ts` › every card shows art |
 
@@ -94,3 +108,10 @@ For a human-eyes check on a phone-sized viewport (for example Playwright at 390�
    'forest'] }] })`, then `manaDuel.settle()`. Cast Turn the Tide and tap the Rhino in the center strip.
 5. Open `/?seed=3&autoplay=1&aiDelay=60&deck=duskmire&aiDeck=dawntide` to watch a whole AI vs AI game end on the
    result screen.
+6. See a combat animation frame by frame: open `/?seed=1&aiDelay=0` and run `manaDuel.loadScenario({ players: [{
+   hand: ['forest'], battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, { life: 4, battlefield: [{ card:
+   'grove_tender', id: 'elf' }] }] })`, then in one `evaluate`: `manaDuel.pass(); manaDuel.settle();
+   manaDuel.dispatch({ type: 'declareAttackers', player: 0, attackers: ['rhino'] }); manaDuel.settle(); return
+   manaDuel.freezeFx(0.4)`. The screenshot shows the Rhino and the Grove Tender that chump-blocks it meeting over the
+   center strip, a spark on each and −3 beside the AI's life; after `manaDuel.freezeFx(null)` the Grove Tender fades
+   out in its place.

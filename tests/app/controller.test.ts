@@ -213,3 +213,116 @@ describe('test API', () => {
     expect(JSON.parse(JSON.stringify(api.state()))).toEqual(api.state());
   });
 });
+
+describe('animation cues', () => {
+  const lethalSnap = {
+    activePlayer: 1 as const,
+    players: [{ life: 2 }, { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }] as [
+      { life: number },
+      { hand: { card: string; id: string }[]; battlefield: string[] },
+    ],
+  };
+
+  it('records the cues of every action that has any, numbered in order', () => {
+    const c = controller({ skipMulligans: true });
+    expect(c.fx).toHaveLength(1);
+    expect(c.fx[0]?.cues.filter((cue) => cue.kind === 'draw')).toHaveLength(14);
+    c.loadScenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }] }, {}] });
+    const seq = c.fxSeq;
+    c.dispatch({ type: 'playLand', player: 0, card: 'f1' });
+    expect(c.fx.at(-1)).toEqual({
+      seq: seq + 1,
+      cues: [
+        { kind: 'enter', player: 0, card: 'f1' },
+        { kind: 'play', player: 0, card: 'f1', via: 'land', targets: [] },
+      ],
+    });
+  });
+
+  it('starts a new session for a new game, a scenario or a replay, and keeps only recent batches', () => {
+    const c = controller({ autoplay: true, seed: 12 });
+    const first = c.session;
+    c.settle();
+    expect(c.fx.length).toBeLessThanOrEqual(60);
+    const replay = c.getReplay();
+    c.newGame({ seed: 3 });
+    expect(c.session).toBe(first + 1);
+    expect(c.fx).toHaveLength(1);
+    c.loadReplay(replay);
+    expect(c.session).toBe(first + 2);
+    expect(c.fx).toEqual([]);
+  });
+
+  it('waits for the opponent’s spell to be seen before going on', () => {
+    vi.useFakeTimers();
+    const c = controller({ aiDelayMs: 650 });
+    c.loadScenario(lethalSnap);
+    vi.advanceTimersByTime(700);
+    expect(c.state.stack).toHaveLength(1);
+    vi.advanceTimersByTime(800);
+    expect(c.state.pending).toEqual({ kind: 'priority', player: 1 });
+    vi.advanceTimersByTime(200);
+    expect(c.state.pending).toEqual({ kind: 'priority', player: 0 });
+    c.dispose();
+  });
+
+  it('goes on at the AI’s own pace with animations off or no AI delay', () => {
+    vi.useFakeTimers();
+    const off = controller({ aiDelayMs: 650, fxSpeed: 0 });
+    off.loadScenario(lethalSnap);
+    vi.advanceTimersByTime(1100);
+    expect(off.state.pending).toEqual({ kind: 'priority', player: 0 });
+    off.dispose();
+    const instant = controller({ aiDelayMs: 0 });
+    instant.loadScenario(lethalSnap);
+    vi.advanceTimersByTime(10);
+    expect(instant.state.pending?.kind).toBe('gameOver');
+    instant.dispose();
+  });
+
+  it('waits longer in slow motion', () => {
+    vi.useFakeTimers();
+    const c = controller({ aiDelayMs: 650, fxSpeed: 0.5 });
+    c.loadScenario(lethalSnap);
+    vi.advanceTimersByTime(650 + 1700);
+    expect(c.state.pending).toEqual({ kind: 'priority', player: 1 });
+    vi.advanceTimersByTime(200);
+    expect(c.state.pending).toEqual({ kind: 'priority', player: 0 });
+    c.dispose();
+  });
+
+  it('sets the animation speed within bounds and tells the view', () => {
+    const c = controller();
+    const listener = vi.fn();
+    c.subscribe(listener);
+    c.setFxSpeed(0.25);
+    expect(c.fxSpeed).toBe(0.25);
+    expect(listener).toHaveBeenCalled();
+    c.setFxSpeed(-1);
+    expect(c.fxSpeed).toBe(0);
+    c.setFxSpeed(Number.NaN);
+    expect(c.fxSpeed).toBe(0);
+    c.setFxSpeed(100);
+    expect(c.fxSpeed).toBe(8);
+  });
+
+  it('are exposed to agents through the test API', async () => {
+    const c = controller();
+    const api = createTestApi(c, () => undefined, { freezeFx: async (progress) => (progress === null ? [] : ['fx-lunge']) });
+    expect(api.help()).toContain('freezeFx');
+    api.loadScenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }, { card: 'ember_snap', id: 'snap' }] }, {}] });
+    const seen = api.fxSeq();
+    expect(api.fx(seen)).toEqual([]);
+    api.dispatch({ type: 'playLand', player: 0, card: 'f1' });
+    expect(api.fx(seen)).toEqual([
+      { seq: seen + 1, kind: 'enter', player: 0, card: 'f1' },
+      { seq: seen + 1, kind: 'play', player: 0, card: 'f1', via: 'land', targets: [] },
+    ]);
+    expect(api.fxSeq()).toBe(seen + 1);
+    expect(JSON.parse(JSON.stringify(api.fx()))).toEqual(api.fx());
+    api.setFxSpeed(0);
+    expect(c.fxSpeed).toBe(0);
+    expect(await api.freezeFx()).toEqual(['fx-lunge']);
+    expect(await api.freezeFx(null)).toEqual([]);
+  });
+});

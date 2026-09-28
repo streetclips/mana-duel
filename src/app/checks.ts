@@ -17,6 +17,7 @@ import {
   type GameState,
   type PlayerId,
 } from '../engine';
+import { fxCues, type FxCue } from './fx';
 
 export interface CheckResult {
   id: string;
@@ -89,6 +90,19 @@ function zone(s: GameState, id: string): string {
 
 function resolve(s: GameState): GameState {
   return passUntil(s, (state) => state.stack.length === 0 || state.pending?.kind !== 'priority');
+}
+
+function animateUntil(state: GameState, done: (s: GameState) => boolean): { state: GameState; cues: FxCue[] } {
+  const cues: FxCue[] = [];
+  let before = state;
+  const s = passUntil(state, (current) => {
+    if (current !== before) {
+      cues.push(...fxCues(before, current));
+      before = current;
+    }
+    return done(current);
+  });
+  return { state: s, cues };
 }
 
 function aiGame(
@@ -648,6 +662,54 @@ export const CHECKS: Check[] = [
         if (game.problem) return `${first} vs ${second}: ${game.problem}`;
       }
       return null;
+    },
+  },
+  {
+    id: 'F38',
+    title: 'Animations: an attacker and its blocker strike each other, and the blocker that dies keeps its place as it fades',
+    run: () => {
+      let s = toAttackers(
+        createScenario({
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { battlefield: [{ card: 'canopy_spider', id: 'spider' }, { card: 'grove_tender', id: 'elf' }] },
+          ],
+        }),
+      );
+      s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['rhino'] }]));
+      s = play(s, [{ type: 'declareBlockers', player: 1, blocks: [{ blocker: 'spider', attacker: 'rhino' }] }]);
+      const combat = animateUntil(s, (state) => state.step === 'main2');
+      return expectValue(
+        combat.cues,
+        [
+          { kind: 'strike', card: 'rhino', target: { card: 'spider' } },
+          { kind: 'damage', card: 'spider', amount: 3 },
+          { kind: 'strike', card: 'rhino', target: { player: 1 } },
+          { kind: 'life', player: 1, delta: -1 },
+          { kind: 'strike', card: 'spider', target: { card: 'rhino' } },
+          { kind: 'damage', card: 'rhino', amount: 1 },
+          { kind: 'dies', player: 1, card: 'spider', next: 'elf' },
+        ],
+        'combat animation cues',
+      );
+    },
+  },
+  {
+    id: 'F39',
+    title: "Animations: the opponent's spell is revealed with its target, burn shows the life lost, a new turn shows the card drawn",
+    run: () => {
+      const s = createScenario({
+        activePlayer: 1,
+        players: [{ library: [{ card: 'forest', id: 'top' }] }, { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }],
+      });
+      const cast = play(s, [{ type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] }]);
+      const resolved = animateUntil(cast, (state) => state.stack.length === 0);
+      const turn = animateUntil(resolved.state, (state) => state.activePlayer === 0 && state.step === 'main1');
+      return first(
+        expectValue(fxCues(s, cast), [{ kind: 'play', player: 1, card: 'snap', via: 'cast', targets: [{ player: 0 }] }], 'cast cues'),
+        expectValue(resolved.cues, [{ kind: 'life', player: 0, delta: -2 }], 'resolution cues'),
+        expectValue(turn.cues, [{ kind: 'turn', player: 0, turn: 4 }, { kind: 'draw', player: 0, card: 'top' }], 'new turn cues'),
+      );
     },
   },
   {

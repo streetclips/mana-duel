@@ -1,24 +1,26 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren, CSSProperties } from 'preact';
-import type { GameController } from '../app/controller';
+import { DEFAULT_AI_DELAY_MS, type GameController } from '../app/controller';
 import {
   blockOptions,
   canAttack,
   creaturesOf,
-  formatModifier,
   getDeck,
   targetKey,
   type Action,
   type CardId,
-  type GameEvent,
   type GameState,
   type PlayerId,
   type Target,
 } from '../engine';
-import { fitCardScale, type CardSlot } from './layout';
-import { HandCard, PermanentCard, type CardFlags, type CardFx } from './components/Card';
+import { cssVars } from './cardInfo';
+import { FxTracker, fxNow, fxTime, fxView, withGhosts, type BattlefieldItem } from './fx';
+import { MIN_CARD_SCALE, fitCardScale, type CardSlot } from './layout';
+import { playMotions } from './motion';
+import { GhostCard, HandCard, PermanentCard, type CardFlags } from './components/Card';
 import { ActionBar, CenterStrip, Lands, PlayerBar } from './components/Board';
 import { DeckViewer } from './components/DeckViewer';
+import { FxLayer } from './components/Fx';
 import { CardSheet, GameOverModal, LogIcon, LogPanel, Menu, MenuIcon } from './components/Overlays';
 import {
   actionsForCard,
@@ -40,41 +42,6 @@ import { useControllerVersion } from './useController';
 interface GameProps {
   controller: GameController;
   onHome: () => void;
-}
-
-interface Effects {
-  cards: Map<CardId, CardFx>;
-  players: Map<PlayerId, { key: number; text: string; kind: 'minus' | 'plus' }>;
-}
-
-function effectsFrom(events: GameEvent[], key: number): Effects {
-  const cards = new Map<CardId, CardFx>();
-  const players = new Map<PlayerId, { key: number; text: string; kind: 'minus' | 'plus' }>();
-  const damage = new Map<CardId, number>();
-  const life = new Map<PlayerId, number>();
-  for (const event of events) {
-    if (event.t === 'damage') {
-      if ('card' in event.target) damage.set(event.target.card, (damage.get(event.target.card) ?? 0) + event.amount);
-    } else if (event.t === 'life') {
-      life.set(event.player, (life.get(event.player) ?? 0) + event.delta);
-    } else if (event.t === 'pump') {
-      const shrink = event.power < 0 || event.toughness < 0;
-      cards.set(event.card, {
-        key,
-        flash: shrink ? 'damage' : 'cast',
-        float: formatModifier(event.power, event.toughness),
-        floatKind: shrink ? 'minus' : 'plus',
-      });
-    } else if (event.t === 'activate' || event.t === 'trigger') {
-      if (!cards.has(event.card)) cards.set(event.card, { key, flash: 'cast' });
-    }
-  }
-  for (const [player, delta] of life) {
-    if (delta > 0) players.set(player, { key, text: `+${delta}`, kind: 'plus' });
-    else if (delta < 0) players.set(player, { key, text: `−${-delta}`, kind: 'minus' });
-  }
-  for (const [id, amount] of damage) cards.set(id, { key, flash: 'damage', float: `−${amount}`, floatKind: 'minus' });
-  return { cards, players };
 }
 
 function capitalize(text: string): string {
@@ -103,7 +70,14 @@ function useHandOverlap(count: number): { ref: { current: HTMLDivElement | null 
 
 const ATTACK_OFFSET = 16;
 
-function Battlefield({ s, player, children }: { s: GameState; player: PlayerId; children: ComponentChildren }) {
+interface BattlefieldProps {
+  s: GameState;
+  player: PlayerId;
+  items: BattlefieldItem[];
+  children: ComponentChildren;
+}
+
+function Battlefield({ s, player, items, children }: BattlefieldProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ width: 0, height: 0 });
   useLayoutEffect(() => {
@@ -121,7 +95,9 @@ function Battlefield({ s, player, children }: { s: GameState; player: PlayerId; 
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const slots: CardSlot[] = creaturesOf(s, player).map((id) => {
+  const slots: CardSlot[] = items.map((item) => {
+    if ('ghost' in item) return { sideways: false };
+    const id = item.id;
     const inCombat = s.combat?.attackers.includes(id) || s.combat?.blocks.some((block) => block.blocker === id);
     return { sideways: Boolean(s.cards[id]?.tapped) && !inCombat };
   });
@@ -134,7 +110,13 @@ function Battlefield({ s, player, children }: { s: GameState; player: PlayerId; 
       ? ({ '--card-w': `${cardWidth * scale}px`, '--card-h': `${cardHeight * scale}px`, '--s': String(scale) } as CSSProperties)
       : undefined;
   return (
-    <div class="battlefield" data-testid={`battlefield-${player}`} data-scale={scale} ref={ref} style={style}>
+    <div
+      class={`battlefield${scale <= MIN_CARD_SCALE ? ' crowded' : ''}`}
+      data-testid={`battlefield-${player}`}
+      data-scale={scale}
+      ref={ref}
+      style={style}
+    >
       {children}
     </div>
   );
@@ -155,6 +137,10 @@ export function Game({ controller, onHome }: GameProps) {
   const [decksOpen, setDecksOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [gameOverHidden, setGameOverHidden] = useState(false);
+  const [tracker] = useState(() => new FxTracker());
+  const [, setFxTick] = useState(0);
+  const root = useRef<HTMLDivElement>(null);
+  const played = useRef(new Set<string>());
 
   useEffect(() => {
     setInteraction(interactionFor(controller.state, human));
@@ -179,9 +165,27 @@ export function Game({ controller, onHome }: GameProps) {
   const actions = useMemo(() => controller.legalActions(), [s, controller.autoplay]);
   const targets = useMemo(() => selectableTargets(actions, current), [actions, current]);
   const bar = barModel(s, human, current, controller.busy, controller.log.at(-1)?.text);
-  const effects = useMemo(() => effectsFrom(controller.lastEvents, s.actionCount), [s.actionCount, s.seed]);
   const hand = s.players[human].hand;
   const overlap = useHandOverlap(hand.length);
+
+  const entries = tracker.update(controller.session, controller.fx, fxNow(), controller.fxSpeed);
+  const fx = fxView(entries, s, human, controller.autoplay, tracker.lastSeq);
+  const fxExpiry = tracker.nextExpiry(controller.fxSpeed);
+  const aimed = useMemo(() => new Set(s.stack.flatMap((item) => item.targets.map(targetKey))), [s]);
+
+  useEffect(() => {
+    if (fxExpiry === null) return;
+    const timer = setTimeout(() => setFxTick((tick) => tick + 1), Math.max(0, fxExpiry - fxNow()) + 30);
+    return () => clearTimeout(timer);
+  }, [fxExpiry]);
+
+  useLayoutEffect(() => {
+    const element = root.current;
+    if (!element) return;
+    const fresh = entries.filter((entry) => !played.current.has(entry.key));
+    played.current = new Set(entries.map((entry) => entry.key));
+    if (fresh.length > 0) playMotions(element, fresh, human, fxTime(controller.fxSpeed));
+  });
 
   const playable = useMemo(() => {
     const ids = new Set<CardId>();
@@ -290,6 +294,7 @@ export function Game({ controller, onHome }: GameProps) {
     const blocking = blocks.some((block) => block.blocker === id);
     if (attacking) flags.attacking = true;
     if (blocking) flags.blocking = true;
+    if (aimed.has(id)) flags.aimed = true;
     const number = attackNumbers.get(id);
     if (number !== undefined && (attacking || blocking) && (s.combat?.attackers.length ?? 0) > 0) {
       flags.badge = { kind: attacking ? 'attack' : 'block', value: number };
@@ -320,21 +325,28 @@ export function Game({ controller, onHome }: GameProps) {
     return { playable: playable.has(id) };
   };
 
-  const renderSide = (player: PlayerId) => (
-    <Battlefield s={s} player={player}>
-      {creaturesOf(s, player).map((id) => (
-        <PermanentCard
-          key={id}
-          s={s}
-          id={id}
-          flags={permanentFlags(id)}
-          fx={effects.cards.get(id)}
-          onTap={() => onPermanentTap(id)}
-          onInspect={() => setInspected(id)}
-        />
-      ))}
-    </Battlefield>
-  );
+  const renderSide = (player: PlayerId) => {
+    const items = withGhosts(creaturesOf(s, player), fx.ghosts.get(player));
+    return (
+      <Battlefield s={s} player={player} items={items}>
+        {items.map((item) =>
+          'ghost' in item ? (
+            <GhostCard key={`ghost-${item.ghost.key}`} ghost={item.ghost} fx={fx.cards.get(item.ghost.card)} rise={player !== human} />
+          ) : (
+            <PermanentCard
+              key={item.id}
+              s={s}
+              id={item.id}
+              flags={permanentFlags(item.id)}
+              fx={fx.cards.get(item.id)}
+              onTap={() => onPermanentTap(item.id)}
+              onInspect={() => setInspected(item.id)}
+            />
+          ),
+        )}
+      </Battlefield>
+    );
+  };
 
   const decider = pending && pending.kind !== 'gameOver' ? pending.player : null;
   const thinking = controller.busy && decider !== null && (decider !== human || controller.autoplay);
@@ -343,12 +355,16 @@ export function Game({ controller, onHome }: GameProps) {
   return (
     <div
       class="game"
+      ref={root}
       data-testid="game"
       data-step={s.step}
       data-turn={s.turn}
       data-pending={pending?.kind}
       data-decider={decider ?? undefined}
       data-interaction={current.kind}
+      data-fx-speed={controller.fxSpeed}
+      data-fx-seq={fx.seq}
+      style={cssVars({ '--fx-time': String(fxTime(controller.fxSpeed)) })}
     >
       <div class="top-actions">
         <button type="button" class="icon-btn" aria-label="Game log" data-testid="btn-log" onClick={() => setLogOpen(true)}>
@@ -366,25 +382,35 @@ export function Game({ controller, onHome }: GameProps) {
           human={human}
           deckName={deckName(opponent)}
           targetable={targeting && targets.has(targetKey({ player: opponent }))}
-          lifeFx={effects.players.get(opponent)}
+          aimed={aimed.has(targetKey({ player: opponent }))}
+          fx={fx.players.get(opponent)}
           onTap={() => onPlayerTap(opponent)}
         />
-        <Lands s={s} player={opponent} />
+        <Lands s={s} player={opponent} cardFx={fx.cards} />
         {renderSide(opponent)}
       </section>
 
-      <CenterStrip s={s} human={human} bar={bar} targets={targeting ? targets : null} onStackTap={onStackTap} />
+      <CenterStrip
+        s={s}
+        human={human}
+        bar={bar}
+        targets={targeting ? targets : null}
+        aimed={aimed}
+        fx={fx}
+        onStackTap={onStackTap}
+      />
 
       <section class="side me" aria-label="Your side">
         {renderSide(human)}
-        <Lands s={s} player={human} />
+        <Lands s={s} player={human} cardFx={fx.cards} />
         <PlayerBar
           s={s}
           player={human}
           human={human}
           deckName={deckName(human)}
           targetable={targeting && targets.has(targetKey({ player: human }))}
-          lifeFx={effects.players.get(human)}
+          aimed={aimed.has(targetKey({ player: human }))}
+          fx={fx.players.get(human)}
           onTap={() => onPlayerTap(human)}
         />
       </section>
@@ -393,9 +419,19 @@ export function Game({ controller, onHome }: GameProps) {
 
       <div class="hand" data-testid="hand" ref={overlap.ref} style={overlap.style}>
         {hand.map((id) => (
-          <HandCard key={id} s={s} id={id} flags={handFlags(id)} onTap={() => onHandTap(id)} onInspect={() => setInspected(id)} />
+          <HandCard
+            key={id}
+            s={s}
+            id={id}
+            flags={handFlags(id)}
+            fx={fx.cards.get(id)}
+            onTap={() => onHandTap(id)}
+            onInspect={() => setInspected(id)}
+          />
         ))}
       </div>
+
+      <FxLayer s={s} human={human} fx={fx} />
 
       {inspected && s.cards[inspected] && (
         <CardSheet
@@ -437,7 +473,7 @@ export function Game({ controller, onHome }: GameProps) {
               : undefined
           }
           onToggleSpeed={() => {
-            controller.setAiDelay(controller.aiDelayMs < 300 ? 650 : 150);
+            controller.setAiDelay(controller.aiDelayMs < 300 ? DEFAULT_AI_DELAY_MS : 150);
             setMenuOpen(false);
           }}
           onNewGame={() => {

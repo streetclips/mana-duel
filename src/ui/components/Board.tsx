@@ -11,7 +11,9 @@ import {
   type Step,
 } from '../../engine';
 import { cardColorVar, cssVars } from '../cardInfo';
+import type { CardFx, FxView, PlayerFx } from '../fx';
 import type { BarModel, UiButton, UiCommand } from '../model';
+import { fxDelay } from './Card';
 
 interface PlayerBarProps {
   s: GameState;
@@ -19,11 +21,12 @@ interface PlayerBarProps {
   human: PlayerId;
   deckName?: string;
   targetable: boolean;
-  lifeFx?: { key: number; text: string; kind: 'minus' | 'plus' };
+  aimed: boolean;
+  fx?: PlayerFx;
   onTap: () => void;
 }
 
-export function PlayerBar({ s, player, human, deckName, targetable, lifeFx, onTap }: PlayerBarProps) {
+export function PlayerBar({ s, player, human, deckName, targetable, aimed, fx, onTap }: PlayerBarProps) {
   const ps = s.players[player];
   const hasPriority = s.pending?.kind === 'priority' && s.pending.player === player;
   const label = `${ps.name}: ${ps.life} life, ${ps.hand.length} cards in hand, ${ps.library.length} in library, ${ps.graveyard.length} in graveyard`;
@@ -31,23 +34,43 @@ export function PlayerBar({ s, player, human, deckName, targetable, lifeFx, onTa
     <div class="player-bar">
       <button
         type="button"
-        class={`player-chip${targetable ? ' targetable' : ''}`}
+        class={`player-chip${targetable ? ' targetable' : ''}${aimed ? ' aimed' : ''}`}
         data-testid={`player-${player}`}
         data-targetable={targetable ? 'true' : undefined}
+        data-aimed={aimed ? 'true' : undefined}
+        data-fx={fx?.kinds.join(' ')}
+        data-fx-seq={fx?.seq}
         aria-label={targetable ? `Target ${ps.name}` : label}
         onClick={onTap}
       >
         <span class="avatar" aria-hidden="true">
           {player === human ? 'You' : ps.name.slice(0, 2)}
         </span>
-        <span class={`life num${ps.life <= 5 ? ' low' : ''}`} data-testid={`life-${player}`}>
-          {ps.life}
-          {lifeFx && (
-            <span key={lifeFx.key} class={`float ${lifeFx.kind}`}>
-              {lifeFx.text}
+        {fx?.drawn && (
+          <span key={fx.drawn.key} class="fx-drawn" data-testid={`fx-drawn-${player}`} data-fx="draw" aria-hidden="true">
+            <i />
+            <span>+{fx.drawn.count}</span>
+          </span>
+        )}
+        <span class="life-box">
+          <span class={`life num${ps.life <= 5 ? ' low' : ''}`} data-testid={`life-${player}`}>
+            {ps.life}
+          </span>
+          {fx?.life && (
+            <span
+              key={fx.life.key}
+              class={`float ${fx.life.tone}`}
+              data-testid={`fx-life-${player}`}
+              style={fxDelay(fx.life.delay)}
+              aria-hidden="true"
+            >
+              {fx.life.text}
             </span>
           )}
         </span>
+        {fx?.life && (
+          <span key={`chip-${fx.life.key}`} class={`fx-chip ${fx.life.tone}`} style={fxDelay(fx.life.delay)} aria-hidden="true" />
+        )}
         <span class="player-meta">
           <b>
             {ps.name}
@@ -58,7 +81,7 @@ export function PlayerBar({ s, player, human, deckName, targetable, lifeFx, onTa
               </span>
             )}
           </b>
-          <span class="num" data-testid={`counts-${player}`}>
+          <span class="num counts" data-testid={`counts-${player}`}>
             Hand {ps.hand.length} · Deck {ps.library.length} · Grave {ps.graveyard.length}
           </span>
         </span>
@@ -69,7 +92,7 @@ export function PlayerBar({ s, player, human, deckName, targetable, lifeFx, onTa
   );
 }
 
-export function Lands({ s, player }: { s: GameState; player: PlayerId }) {
+export function Lands({ s, player, cardFx }: { s: GameState; player: PlayerId; cardFx?: Map<CardId, CardFx> }) {
   const lands = s.players[player].battlefield.filter((id) => isLand(s, id));
   const untapped = lands.filter((id) => !s.cards[id]?.tapped).length;
   return (
@@ -89,6 +112,7 @@ export function Lands({ s, player }: { s: GameState; player: PlayerId }) {
             data-def={def.id}
             data-zone="battlefield"
             data-tapped={s.cards[id]?.tapped ? 'true' : 'false'}
+            data-fx={cardFx?.get(id)?.kinds.join(' ')}
           >
             {(def.mana ?? []).join('')}
           </span>
@@ -111,13 +135,27 @@ interface CenterStripProps {
   human: PlayerId;
   bar: BarModel;
   targets: Set<string> | null;
+  aimed: Set<string>;
+  fx: FxView;
   onStackTap: (card: CardId) => void;
 }
 
-export function CenterStrip({ s, human, bar, targets, onStackTap }: CenterStripProps) {
-  const whose = s.turn === 0 ? 'Opening hand' : s.activePlayer === human ? 'Your turn' : `${s.players[s.activePlayer].name}'s turn`;
+function turnOwner(s: GameState, player: PlayerId, human: PlayerId): string {
+  return player === human ? 'Your turn' : `${s.players[player].name}'s turn`;
+}
+
+export function CenterStrip({ s, human, bar, targets, aimed, fx, onStackTap }: CenterStripProps) {
+  const whose = s.turn === 0 ? 'Opening hand' : turnOwner(s, s.activePlayer, human);
   return (
     <section class="center" aria-live="polite">
+      {fx.turn && (
+        <div key={fx.turn.key} class="fx-turn" data-testid="fx-turn" data-fx="turn" data-player={fx.turn.player} aria-hidden="true">
+          <span>
+            {turnOwner(s, fx.turn.player, human)}
+            <small>Turn {fx.turn.turn}</small>
+          </span>
+        </div>
+      )}
       <div class="phase-row">
         <span class="phase-label" data-testid="phase">
           {s.turn > 0 ? `Turn ${s.turn} · ` : ''}
@@ -149,17 +187,20 @@ export function CenterStrip({ s, human, bar, targets, onStackTap }: CenterStripP
             const def = getCardDef(s.cards[source]?.def ?? '');
             const aimedAt = item.targets.map((target) => targetRef(s, target, human)).join(', ');
             const targetable = item.kind === 'spell' && !!targets?.has(source);
+            const isAimed = item.kind === 'spell' && aimed.has(source);
             const who = item.controller === human ? 'You' : s.players[item.controller].name;
             const what = item.kind === 'spell' ? cardName(s, source) : `${cardName(s, source)} ability`;
             return (
               <button
                 key={item.id}
                 type="button"
-                class={`stack-item${targetable ? ' targetable' : ''}${targets && !targetable ? ' dim' : ''}`}
+                class={`stack-item${targetable ? ' targetable' : ''}${targets && !targetable ? ' dim' : ''}${isAimed ? ' aimed' : ''}`}
                 style={cssVars({ '--card-color': cardColorVar(def) })}
                 data-testid={`stack-${item.id}`}
                 data-card={source}
                 data-targetable={targetable ? 'true' : undefined}
+                data-aimed={isAimed ? 'true' : undefined}
+                data-fx={fx.stack.get(source)}
                 aria-label={targetable ? `Target ${what}` : `${who}: ${what}${aimedAt ? ` → ${aimedAt}` : ''}`}
                 onClick={() => onStackTap(source)}
               >

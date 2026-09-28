@@ -8,9 +8,10 @@ white/blue, Duskmire black), a human against an AI. TypeScript, Preact, Vite; Vi
 ```
 src/engine/  rules: pure functions over a serializable GameState ◄──┐
 src/ai/      chooseAction(state, player) via engine rollouts ───────┤ both read the engine
-src/app/     GameController (decks per seat, AI timers, auto-pass, log, replay), window.manaDuel, feature checks
+src/app/     GameController (decks per seat, AI timers, auto-pass, log, fx cues, replay), window.manaDuel,
+             feature checks
 src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with the deck
-             selector, deck viewer; card art from public/cards/
+             selector, deck viewer; card art from public/cards/; animations of the fx cues (fx.ts, motion.ts)
 tests/       Vitest: engine, ai, app, ui (happy-dom)      e2e/  Playwright on the production build
 scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts (writes docs/CARDS.md)
 ```
@@ -39,20 +40,29 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 `npm run dev` serves http://localhost:5173.
 
 - URL parameters: `seed`, `first=you|ai`, `aiDelay` (ms), `skipMulligan=1`, `autoplay=1` (AI plays both seats),
-  `deck=<id>` (yours), `aiDeck=<id>|random`, `theme=dark|light`. Decks default to Emberwild. Any of `seed`, `first`,
-  `skipMulligan`, `autoplay`, `deck`, `aiDeck` skips the start screen.
+  `deck=<id>` (yours), `aiDeck=<id>|random`, `theme=dark|light`, `fx=off|slow|<speed>` (animations). Decks default
+  to Emberwild. Any of `seed`, `first`, `skipMulligan`, `autoplay`, `deck`, `aiDeck` skips the start screen.
 - `window.manaDuel` (`manaDuel.help()` prints it): read with `state()`, `describe()`, `pending()`,
   `legalActions()`, `decks()`, `matchup()`; act for player 0 with `dispatch(action)`, `pass()`, `endTurn()`;
   `settle()` runs the AI immediately; `newGame({ decks: ['dawntide', 'duskmire'] })`, `loadScenario(spec)`,
-  `replay()`, `runChecks()`, and `engine.*` for pure engine calls.
+  `replay()`, `runChecks()`, `fx(since)` for the animation cues of recent actions, and `engine.*` for pure engine
+  calls.
 - DOM hooks (`data-testid`): `card-<cardId>` (plus `data-zone`, `data-def`, `data-tapped`), `player-<0|1>`,
   `life-<0|1>`, `deck-name-<p>`, `prompt`, `phase`, `stack`, `stack-<itemId>` (plus `data-card`, `data-targetable`),
   `hand`, `lands-<p>`, `battlefield-<p>`, `btn-<id>` for bar buttons and `sheet-<actionType>` for card-sheet actions.
   Start screen: `deck-<deckId>` (a radio with `aria-checked`), `deck-view-<deckId>`, `opponent-<deckId|random>`,
   `btn-play`, `btn-watch`. Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),
   `deck-tab-<p>` in game, `mana-curve`, `btn-deck-choose`, `btn-deck-close`; `menu-decks` opens it in game.
+- Animations (fx): every animated element carries `data-fx` with the cue kinds it plays (`[data-slot="<cardId>"]` on
+  battlefield cards, `player-<p>`, hand cards, land pips, stack items), and `fx-ghost-<cardId>` (a creature fading
+  out where it died or bounced), `fx-reveal` (the card the opponent plays), `fx-turn`, `fx-hurt`, `fx-life-<p>`,
+  `fx-float-<cardId>` and `fx-drawn-<p>` show one each; `data-aimed` marks what the stack targets. Hooks stay until
+  a newer action animates something; `game[data-fx-seq]` is the latest cue batch drawn, and `settle()` draws the
+  last dozen batches at once. For a screenshot, `await manaDuel.freezeFx(0.4)` in the same `evaluate` as the action
+  holds everything still moving at 40% (`freezeFx(null)` resumes); `manaDuel.fxSeq()` before acting scopes `fx(since)`.
 - Browsers stall timers in background windows, the Playwright MCP window included: pass `aiDelay=0` and call
-  `manaDuel.settle()` rather than waiting for the AI.
+  `manaDuel.settle()` rather than waiting for the AI. With `aiDelay` above 0 the AI also waits for the animations of
+  the opponent's plays and of combat.
 
 ## References
 
@@ -69,6 +79,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 - A new effect, trigger or keyword touches `src/engine/types.ts`, its behaviour in `effects.ts` or `combat.ts`, its
   text in `describe.ts`, its short label in `src/ui/cardInfo.ts`, and `src/ai/evaluate.ts` when it changes what a
   creature is worth. Cover it with a scenario test in `tests/engine` and a check in `src/app/checks.ts`.
+- A new `GameEvent` animates once `src/app/fx.ts` turns it into a cue (`tests/app/fx.test.ts`) and `src/ui/fx.ts`
+  gives the cue its hooks and overlays (`tests/ui/animations.test.tsx`, `e2e/animations.spec.ts`).
 - Decks live in `src/engine/decks.ts`: 40 cards, 16 lands, only the deck's colors, and no nonland card shared with
   another deck (basic lands may be). `featured` names the card whose art stands for the deck on the start
   screen. A new deck appears in the selector, the viewer, the simulator and `docs/CARDS.md` on its own.

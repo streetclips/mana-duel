@@ -20,6 +20,7 @@ import {
 } from '../engine';
 import { CHECKS, runChecks, type CheckResult } from './checks';
 import type { ControllerOptions, GameController, Matchup, Replay } from './controller';
+import type { FxCue } from './fx';
 
 export interface EngineApi {
   createGame: typeof createGame;
@@ -33,7 +34,7 @@ export interface EngineApi {
   play(state: GameState, actions: Action[]): GameState;
 }
 
-export const API_VERSION = '1.1';
+export const API_VERSION = '1.2';
 
 export interface DeckSummary {
   id: string;
@@ -45,6 +46,14 @@ export interface DeckSummary {
 }
 
 export type ApiResult = { ok: true; pending: PendingDecision | null } | { ok: false; error: string };
+
+export type FxRecord = FxCue & { seq: number };
+
+export interface UiHooks {
+  freezeFx(progress: number | null): Promise<string[]>;
+}
+
+const NO_UI: UiHooks = { freezeFx: async () => [] };
 
 export interface ManaDuelApi {
   version: string;
@@ -65,6 +74,10 @@ export interface ManaDuelApi {
   playToEnd(): PendingDecision | null;
   setAiDelay(ms: number): void;
   setAutoplay(on: boolean): void;
+  fx(since?: number): FxRecord[];
+  fxSeq(): number;
+  setFxSpeed(speed: number): void;
+  freezeFx(progress?: number | null): Promise<string[]>;
   log(): string[];
   cards(): { id: string; name: string; type: string; cost: string | null; text: string[] }[];
   decks(): DeckSummary[];
@@ -94,6 +107,11 @@ const HELP = `window.manaDuel — automation API
   loadScenario(spec)    build a position: {activePlayer, step, players:[{hand, battlefield, library, life}, {...}]}
   replay() / loadReplay(replay)
   setAiDelay(ms), setAutoplay(on), log(), cards()
+  fx(since?)            animation cues of recent actions, oldest first: {seq, kind, card | player, ...}
+  fxSeq()               seq of the latest action: read it before acting, then fx(seq) lists only newer cues
+  setFxSpeed(speed)     animation speed: 1 normal, 0.25 slow motion, 0 off (also ?fx=off|slow|<speed>)
+  freezeFx(progress?)   for a screenshot: call it with the action, holds the running animations and
+                        transitions at 0..1 of their length (default 0.5), lists the fx ones; null resumes
   checks() / runChecks(ids?)   built-in feature checks (docs/VERIFICATION.md), [] of failures = healthy
   engine.*              pure engine: createScenario, applyAction, play(state, actions), chooseAction...`;
 
@@ -101,7 +119,7 @@ function toApiResult(result: { ok: true; state: GameState } | { ok: false; error
   return result.ok ? { ok: true, pending: result.state.pending } : result;
 }
 
-export function createTestApi(controller: GameController, showGame: () => void): ManaDuelApi {
+export function createTestApi(controller: GameController, showGame: () => void, ui: UiHooks = NO_UI): ManaDuelApi {
   return {
     version: API_VERSION,
     help: () => HELP,
@@ -140,6 +158,13 @@ export function createTestApi(controller: GameController, showGame: () => void):
     },
     setAiDelay: (ms) => controller.setAiDelay(ms),
     setAutoplay: (on) => controller.setAutoplay(on),
+    fx: (since = 0) =>
+      controller.fx
+        .filter((batch) => batch.seq > since)
+        .flatMap((batch) => batch.cues.map((cue) => ({ seq: batch.seq, ...structuredClone(cue) }))),
+    fxSeq: () => controller.fxSeq,
+    setFxSpeed: (speed) => controller.setFxSpeed(speed),
+    freezeFx: (progress = 0.5) => ui.freezeFx(progress),
     log: () => controller.log.map((entry) => entry.text),
     cards: () =>
       allCardDefs()

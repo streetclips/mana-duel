@@ -1,4 +1,4 @@
-import type { ComponentChildren } from 'preact';
+import type { ComponentChildren, CSSProperties } from 'preact';
 import {
   costSymbols,
   getCardDef,
@@ -13,6 +13,7 @@ import {
   type GameState,
 } from '../../engine';
 import { cardArtUrl, cardColorVar, cssVars, hasLongWord, shortText } from '../cardInfo';
+import type { CardFx, GhostFx } from '../fx';
 import { usePress } from '../useController';
 
 export function CardArt({ defId }: { defId: string }) {
@@ -77,14 +78,12 @@ export interface CardFlags {
   attacking?: boolean;
   blocking?: boolean;
   dim?: boolean;
+  aimed?: boolean;
   badge?: { kind: 'attack' | 'block'; value: number };
 }
 
-export interface CardFx {
-  key: number;
-  flash?: 'damage' | 'cast';
-  float?: string;
-  floatKind?: 'minus' | 'plus';
+export function fxDelay(delay: number): CSSProperties | undefined {
+  return delay > 0 ? cssVars({ '--fx-delay': `${delay}ms` }) : undefined;
 }
 
 function classes(base: string, flags: CardFlags, extra: string[] = []): string {
@@ -96,7 +95,34 @@ function classes(base: string, flags: CardFlags, extra: string[] = []): string {
   if (flags.attacking) names.push('attacking');
   if (flags.blocking) names.push('blocking');
   if (flags.dim) names.push('dim');
+  if (flags.aimed) names.push('aimed');
   return names.join(' ');
+}
+
+function FxFlash({ fx }: { fx?: CardFx }) {
+  if (!fx?.flash) return null;
+  return <span key={fx.flash.key} class={`flash ${fx.flash.tone}`} style={fxDelay(fx.flash.delay)} />;
+}
+
+function FxOverlays({ id, fx }: { id: CardId; fx?: CardFx }) {
+  if (!fx) return null;
+  return (
+    <>
+      {fx.ring && <span key={`ring-${fx.ring.key}`} class={`fx-ring ${fx.ring.tone}`} aria-hidden="true" />}
+      {fx.burst && <span key={`burst-${fx.burst.key}`} class="fx-burst" style={fxDelay(fx.burst.delay)} aria-hidden="true" />}
+      {fx.float && (
+        <span
+          key={`float-${fx.float.key}`}
+          class={`float ${fx.float.tone}`}
+          data-testid={`fx-float-${id}`}
+          style={fxDelay(fx.float.delay)}
+          aria-hidden="true"
+        >
+          {fx.float.text}
+        </span>
+      )}
+    </>
+  );
 }
 
 function PowerToughness({ s, id }: { s: GameState; id: CardId }) {
@@ -145,7 +171,12 @@ export function PermanentCard({ s, id, flags, fx, onTap, onInspect }: PermanentP
   const sick = card.summoningSick && !hasKeyword(s, id, 'haste');
   const inCombat = Boolean(flags.attacking || flags.blocking);
   return (
-    <div class={`slot${card.tapped ? ' tapped' : ''}${inCombat ? ' in-combat' : ''}`}>
+    <div
+      class={`slot${card.tapped ? ' tapped' : ''}${inCombat ? ' in-combat' : ''}`}
+      data-slot={id}
+      data-fx={fx?.kinds.join(' ')}
+      data-fx-seq={fx?.seq}
+    >
       <button
         type="button"
         class={classes('card permanent', flags)}
@@ -157,6 +188,7 @@ export function PermanentCard({ s, id, flags, fx, onTap, onInspect }: PermanentP
         data-tapped={card.tapped ? 'true' : 'false'}
         data-attacking={flags.attacking ? 'true' : undefined}
         data-targetable={flags.targetable ? 'true' : undefined}
+        data-aimed={flags.aimed ? 'true' : undefined}
         aria-label={permanentLabel(s, id)}
         aria-pressed={flags.selected ? 'true' : undefined}
         {...press}
@@ -167,13 +199,45 @@ export function PermanentCard({ s, id, flags, fx, onTap, onInspect }: PermanentP
         {def.types.includes('creature') && <PowerToughness s={s} id={id} />}
         {sick && <span class="sick" title="Summoning sick" />}
         {flags.badge && <span class={`badge ${flags.badge.kind}`}>{flags.badge.value}</span>}
-        {fx?.flash && <span key={fx.key} class={`flash ${fx.flash}`} />}
+        <FxFlash fx={fx} />
       </button>
-      {fx?.float && (
-        <span key={`f${fx.key}`} class={`float ${fx.floatKind ?? 'minus'}`}>
-          {fx.float}
-        </span>
-      )}
+      {flags.aimed && <span class="aim" aria-hidden="true" />}
+      <FxOverlays id={id} fx={fx} />
+    </div>
+  );
+}
+
+interface GhostProps {
+  ghost: GhostFx;
+  fx?: CardFx;
+  rise: boolean;
+}
+
+export function GhostCard({ ghost, fx, rise }: GhostProps) {
+  const def = getCardDef(ghost.def);
+  return (
+    <div
+      class={`slot ghost ${ghost.kind} ${rise ? 'rise' : 'sink'}`}
+      data-slot={ghost.card}
+      data-testid={`fx-ghost-${ghost.card}`}
+      data-def={def.id}
+      data-fx={fx?.kinds.join(' ') ?? ghost.kind}
+      data-fx-seq={fx?.seq}
+      style={fxDelay(ghost.delay)}
+      aria-hidden="true"
+    >
+      <div class="card permanent" style={cssVars({ '--card-color': cardColorVar(def) })}>
+        <span class={`name${hasLongWord(def.name) ? ' long' : ''}`}>{def.name}</span>
+        <span class="kw">{shortText(def.id)}</span>
+        <CardArt defId={def.id} />
+        {def.types.includes('creature') && (
+          <span class="pt num">
+            {def.power}/{def.toughness}
+          </span>
+        )}
+        <FxFlash fx={fx} />
+      </div>
+      <FxOverlays id={ghost.card} fx={fx} />
     </div>
   );
 }
@@ -182,6 +246,7 @@ interface HandCardProps {
   s: GameState;
   id: CardId;
   flags: CardFlags;
+  fx?: CardFx;
   onTap: () => void;
   onInspect: () => void;
 }
@@ -208,7 +273,7 @@ export function MiniFace({ def }: { def: CardDef }) {
   );
 }
 
-export function HandCard({ s, id, flags, onTap, onInspect }: HandCardProps) {
+export function HandCard({ s, id, flags, fx, onTap, onInspect }: HandCardProps) {
   const press = usePress(onTap, onInspect);
   const card = s.cards[id];
   if (!card) return null;
@@ -218,11 +283,13 @@ export function HandCard({ s, id, flags, onTap, onInspect }: HandCardProps) {
     <button
       type="button"
       class={classes('card mini hand-card', flags, isLand ? ['land'] : [])}
-      style={cssVars({ '--card-color': cardColorVar(def) })}
+      style={cssVars({ '--card-color': cardColorVar(def), '--fx-i': String(fx?.order ?? 0) })}
       data-testid={`card-${id}`}
       data-card={id}
       data-def={def.id}
       data-zone="hand"
+      data-fx={fx?.kinds.join(' ')}
+      data-fx-seq={fx?.seq}
       data-playable={flags.playable ? 'true' : undefined}
       aria-label={`${def.name}${flags.playable ? ', playable' : ''}`}
       aria-pressed={flags.selected ? 'true' : undefined}

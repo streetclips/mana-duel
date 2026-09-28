@@ -16,6 +16,7 @@ import {
   type ScenarioSpec,
 } from '../engine';
 import { autoPassReason } from './autopass';
+import { fxCues, fxHoldMs, type FxBatch, type FxCue } from './fx';
 
 export interface LogEntry {
   id: number;
@@ -28,6 +29,7 @@ export interface ControllerOptions {
   seed?: number;
   human?: PlayerId;
   aiDelayMs?: number;
+  fxSpeed?: number;
   autoPass?: boolean;
   autoplay?: boolean;
   skipMulligans?: boolean;
@@ -47,14 +49,25 @@ export interface Replay {
 
 const DEFAULT_MATCHUP: Matchup = [DEFAULT_DECK_ID, DEFAULT_DECK_ID];
 
+export const DEFAULT_AI_DELAY_MS = 650;
+
 type Listener = () => void;
 
 const MAX_LOG = 400;
+const MAX_FX = 60;
+const MAX_FX_SPEED = 8;
+
+function fxSpeedFrom(speed: number): number {
+  return Number.isFinite(speed) && speed > 0 ? Math.min(speed, MAX_FX_SPEED) : 0;
+}
 
 export class GameController {
   state: GameState;
   log: LogEntry[] = [];
-  lastEvents: GameEvent[] = [];
+  fx: FxBatch[] = [];
+  fxSeq = 0;
+  fxSpeed: number;
+  session = 0;
   readonly human: PlayerId;
   aiDelayMs: number;
   autoPass: boolean;
@@ -67,10 +80,12 @@ export class GameController {
   private logId = 0;
   private replay: Replay;
   private disposed = false;
+  private lastCues: FxCue[] = [];
 
   constructor(options: ControllerOptions = {}) {
     this.human = options.human ?? 0;
-    this.aiDelayMs = options.aiDelayMs ?? 650;
+    this.aiDelayMs = options.aiDelayMs ?? DEFAULT_AI_DELAY_MS;
+    this.fxSpeed = fxSpeedFrom(options.fxSpeed ?? 1);
     this.autoPass = options.autoPass ?? true;
     this.autoplay = options.autoplay ?? false;
     this.decks = [...(options.decks ?? DEFAULT_MATCHUP)];
@@ -78,6 +93,7 @@ export class GameController {
     this.state = createGame(setup);
     this.replay = this.freshReplay(setup, this.decks);
     this.appendLog(this.state);
+    this.recordFx(fxCues(null, this.state));
   }
 
   private setupFrom(options: ControllerOptions, decks: Matchup): GameOptions {
@@ -126,13 +142,14 @@ export class GameController {
   newGame(options: ControllerOptions = {}): void {
     this.clearTimer();
     if (options.aiDelayMs !== undefined) this.aiDelayMs = options.aiDelayMs;
+    if (options.fxSpeed !== undefined) this.fxSpeed = fxSpeedFrom(options.fxSpeed);
     if (options.autoplay !== undefined) this.autoplay = options.autoplay;
     const decks: Matchup = [...(options.decks ?? this.decks ?? DEFAULT_MATCHUP)];
     const setup = this.setupFrom(options, decks);
     this.state = createGame(setup);
     this.decks = decks;
     this.replay = this.freshReplay(setup, decks);
-    this.resetSession();
+    this.resetSession(true);
   }
 
   loadScenario(spec: ScenarioSpec): void {
@@ -146,7 +163,7 @@ export class GameController {
       decks: [...DEFAULT_MATCHUP],
       actions: [],
     };
-    this.resetSession();
+    this.resetSession(true);
   }
 
   loadReplay(replay: Replay): ActionResult {
@@ -163,14 +180,16 @@ export class GameController {
     this.state = state;
     this.decks = decks;
     this.replay = { ...replay, decks, actions: [...replay.actions] };
-    this.resetSession();
+    this.resetSession(false);
     return { ok: true, state };
   }
 
-  private resetSession(): void {
+  private resetSession(animateStart: boolean): void {
     this.log = [];
-    this.lastEvents = [];
     this.endTurnFor = null;
+    this.session += 1;
+    this.fx = [];
+    this.recordFx(animateStart ? fxCues(null, this.state) : []);
     this.appendLog(this.state);
     this.notify();
     this.schedule();
@@ -230,18 +249,38 @@ export class GameController {
     this.schedule();
   }
 
+  setFxSpeed(speed: number): void {
+    this.fxSpeed = fxSpeedFrom(speed);
+    this.notify();
+    this.schedule();
+  }
+
   private apply(action: Action, reschedule = true): ActionResult {
     const result = tryApplyAction(this.state, action);
     if (!result.ok) return result;
-    const previousTurn = this.state.turn;
+    const before = this.state;
     this.state = result.state;
     this.replay.actions.push(action);
-    this.lastEvents = result.state.events;
     this.appendLog(result.state);
-    if (this.state.turn !== previousTurn) this.endTurnFor = null;
+    this.recordFx(fxCues(before, result.state));
+    if (this.state.turn !== before.turn) this.endTurnFor = null;
     this.notify();
     if (reschedule) this.schedule();
     return result;
+  }
+
+  private recordFx(cues: FxCue[]): void {
+    this.fxSeq += 1;
+    this.lastCues = cues;
+    if (cues.length === 0) return;
+    this.fx.push({ seq: this.fxSeq, cues });
+    if (this.fx.length > MAX_FX) this.fx.shift();
+  }
+
+  private holdMs(): number {
+    if (this.fxSpeed === 0 || this.aiDelayMs === 0) return 0;
+    const pace = Math.min(1, this.aiDelayMs / DEFAULT_AI_DELAY_MS);
+    return (fxHoldMs(this.lastCues, this.human, this.autoplay) * pace) / this.fxSpeed;
   }
 
   private appendLog(state: GameState): void {
@@ -266,19 +305,20 @@ export class GameController {
     }
     const endTurnRequested = this.endTurnFor === s.turn && s.activePlayer === this.human;
     if (pending.kind === 'declareAttackers' && endTurnRequested) {
-      return { action: { type: 'declareAttackers', player: this.human, attackers: [] }, delay: 0 };
+      return { action: { type: 'declareAttackers', player: this.human, attackers: [] }, delay: this.holdMs() };
     }
     if (pending.kind === 'priority' && this.autoPass && autoPassReason(s, this.human, { endTurnRequested })) {
       const opponentsSpell = s.stack.length > 0 && s.stack.at(-1)?.controller !== this.human;
-      return { action: { type: 'pass', player: this.human }, delay: opponentsSpell ? this.aiDelayMs * 1.4 : 0 };
+      return { action: { type: 'pass', player: this.human }, delay: Math.max(opponentsSpell ? this.aiDelayMs * 1.4 : 0, this.holdMs()) };
     }
     return null;
   }
 
   private delayFor(action: Action): number {
     if (this.aiDelayMs === 0) return 0;
-    if (action.type === 'pass') return this.state.stack.length > 0 ? this.aiDelayMs * 0.6 : this.aiDelayMs * 0.25;
-    return this.aiDelayMs;
+    const thinking =
+      action.type === 'pass' ? (this.state.stack.length > 0 ? this.aiDelayMs * 0.6 : this.aiDelayMs * 0.25) : this.aiDelayMs;
+    return Math.max(thinking, this.holdMs());
   }
 
   private schedule(): void {

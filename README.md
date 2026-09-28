@@ -22,6 +22,9 @@ npm run build      # static site in dist/, served by `npm run preview`
   stop. Numbered badges pair attackers with their blockers.
 - Priority passes by itself while there is nothing to decide; **End turn** skips straight to the opponent.
 - **Watch AI vs AI** on the start screen lets the AI play both seats.
+- Every change is animated: the card the opponent plays is shown with its target, creatures strike each other in
+  combat, damage and life changes pop, the dead fade out in their place, drawn cards slide into your hand and each
+  turn is announced. `?fx=slow` plays them in slow motion and `?fx=off` turns them off.
 
 ## What is inside
 
@@ -36,7 +39,8 @@ npm run build      # static site in dist/, served by `npm run preview`
   chump-blocks to survive. A test proves hidden cards never change its decisions. It plays all three decks, and
   simulated games between them stay close to even.
 - **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, a deck selector and deck viewer, light
-  and dark themes, a game log, and an automation API on `window.manaDuel`.
+  and dark themes, a game log, animations driven by cues that tests and agents can read, and an automation API on
+  `window.manaDuel`.
 - **Cards**: 49 cards — 44 that belong to a single deck (16 in Emberwild, 14 each in Dawntide and Duskmire) and
   the five basic lands, which any deck may use — each with its own SVG illustration in `public/cards/`, listed in
   [`docs/CARDS.md`](docs/CARDS.md) (generated from the definitions).
@@ -45,7 +49,7 @@ npm run build      # static site in dist/, served by `npm run preview`
 
 | Command | What it proves |
 | --- | --- |
-| `npm test` | Engine, AI, controller and UI tests (Vitest, happy-dom), including 36 feature checks |
+| `npm test` | Engine, AI, controller and UI tests (Vitest, happy-dom), including 38 feature checks |
 | `npm run sim -- --games 270` | Headless AI games in all nine deck matchups, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup) |
 | `npm run test:e2e` | Playwright on the production build, two phone viewports |
 | `npm run verify` | Typecheck, tests, 60 simulated games and the build, in one go |
@@ -62,9 +66,9 @@ src/
 ├── engine/   types, cards/ (one file per card), registry, decks, mana, state, targets, combat,
 │             effects, rules, game, actions, scenario, describe, invariants
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
-├── app/      controller, autopass, testApi, checks
-└── ui/       App, StartScreen (deck selector), Game, model (interaction logic), deckChoice,
-              components/ (Board, Card, DeckViewer, Overlays), styles.css
+├── app/      controller, autopass, fx (animation cues), testApi, checks
+└── ui/       App, StartScreen (deck selector), Game, model (interaction logic), deckChoice, fx and motion
+              (animations), components/ (Board, Card, DeckViewer, Fx, Overlays), styles.css
 public/cards/ one SVG illustration per card, named <id>.svg
 tests/        engine/ ai/ app/ ui/ + helpers.ts
 e2e/          Playwright specs

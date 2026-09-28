@@ -2,6 +2,8 @@ export interface CardSlot {
   sideways: boolean;
 }
 
+export const MIN_CARD_SCALE = 0.5;
+
 export function fitCardScale(
   width: number,
   height: number,
@@ -9,7 +11,7 @@ export function fitCardScale(
   cardWidth: number,
   cardHeight: number,
   gap = 8,
-  minScale = 0.5,
+  minScale = MIN_CARD_SCALE,
 ): number {
   if (slots.length === 0 || width <= 0 || height <= 0) return 1;
   for (let step = 0; ; step++) {

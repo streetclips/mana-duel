@@ -4,6 +4,7 @@ import { createTestApi, type ManaDuelApi } from './app/testApi';
 import { DEFAULT_DECK_ID, hasDeck } from './engine';
 import { App, type Screen } from './ui/App';
 import { RANDOM_DECK } from './ui/deckChoice';
+import { freezeFx } from './ui/motion';
 import './ui/styles.css';
 
 declare global {
@@ -27,10 +28,14 @@ const deckParam = (name: string): string => {
   return value && hasDeck(value) ? value : DEFAULT_DECK_ID;
 };
 
+const fxParam = params.get('fx');
+const fxSpeed = fxParam === 'off' ? 0 : fxParam === 'slow' ? 0.25 : numberParam('fx');
+
 const startingPlayer = params.get('first');
 const controller = new GameController({
   seed: numberParam('seed'),
   aiDelayMs: numberParam('aiDelay'),
+  fxSpeed,
   autoplay: params.get('autoplay') === '1',
   skipMulligans: params.get('skipMulligan') === '1',
   startingPlayer: startingPlayer === 'you' ? 0 : startingPlayer === 'ai' ? 1 : undefined,
@@ -41,7 +46,7 @@ const direct = ['seed', 'autoplay', 'skipMulligan', 'first', 'deck', 'aiDeck'].s
 const initialScreen: Screen = direct ? 'game' : 'start';
 
 let showGame = (): void => undefined;
-window.manaDuel = createTestApi(controller, () => showGame());
+window.manaDuel = createTestApi(controller, () => showGame(), { freezeFx });
 
 const root = document.getElementById('app');
 if (!root) throw new Error('Missing #app element');
