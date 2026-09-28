@@ -41,6 +41,7 @@ export interface CreatureView extends CardRefView {
   power: number;
   toughness: number;
   keywords?: string[];
+  plusOneCounters?: number;
   untilEndOfTurn?: string;
   damage?: number;
   tapped?: true;
@@ -113,6 +114,7 @@ function creatureView(s: GameState, id: CardId): CreatureView {
   const view: CreatureView = { id, name: getCardDef(card.def).name, power: getPower(s, id), toughness: getToughness(s, id) };
   const keywords = getKeywords(s, id);
   if (keywords.length > 0) view.keywords = keywords.map((keyword) => KEYWORD_NAMES[keyword]);
+  if (card.counters > 0) view.plusOneCounters = card.counters;
   const pumps = s.effects.filter((effect) => effect.card === id);
   if (pumps.length > 0) {
     const power = pumps.reduce((sum, effect) => sum + effect.power, 0);

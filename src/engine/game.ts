@@ -28,9 +28,11 @@ import {
   findPayment,
   getCard,
   getToughness,
+  isInstantOrSorceryDef,
   moveCard,
   newId,
   opponent,
+  queueTriggers,
   tapCards,
 } from './state';
 import { targetCombos, targetsError } from './targets';
@@ -141,6 +143,7 @@ export function createGame(options: GameOptions = {}): GameState {
         summoningSick: false,
         damage: 0,
         deathtouchDamage: false,
+        counters: 0,
       };
       s.players[player].library.push(id);
     }
@@ -299,6 +302,9 @@ function performAction(s: GameState, action: Action): void {
       moveCard(s, action.card, 'stack');
       s.stack.push({ id: newId(s, 's'), kind: 'spell', controller: player, card: action.card, targets: [...targets] });
       s.events.push({ t: 'cast', player, card: action.card, targets: [...targets] });
+      if (isInstantOrSorceryDef(defOf(s, action.card))) {
+        for (const id of [...ps.battlefield]) queueTriggers(s, id, 'spell', player);
+      }
       s.pending = null;
       s.passes = 0;
       s.priority = player;

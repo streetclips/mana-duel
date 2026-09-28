@@ -166,7 +166,7 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm }: 
         <h2 id="ai-deck-label" class="section-label">
           AI's deck
         </h2>
-        <div class="segmented" role="radiogroup" aria-labelledby="ai-deck-label">
+        <div class="segmented wrap" role="radiogroup" aria-labelledby="ai-deck-label">
           {opponents.map((id) => (
             <button
               key={id}
@@ -225,7 +225,7 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm }: 
           <li>Bring the AI to 0 life to win. Play one land per turn; lands pay for spells automatically.</li>
           <li>Creatures can't attack the turn they arrive, unless they have haste.</li>
           <li>Attack with your creatures; the defender picks blockers. Damage happens all at once.</li>
-          <li>Instants can be cast whenever you have priority, even in response to a spell.</li>
+          <li>Instants, and creatures with flash, can be cast whenever you have priority, even in response to a spell.</li>
           <li>A counterspell targets a spell on the stack: tap it in the strip between the two sides.</li>
           <li>Tap a card to see what it does. Long-press or right-click to inspect any card.</li>
         </ul>

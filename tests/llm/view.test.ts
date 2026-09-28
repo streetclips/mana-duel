@@ -72,6 +72,19 @@ describe('the view of one seat', () => {
     expect(view.you.creatures).toEqual([{ id: 'spider', name: 'Canopy Spider', power: 1, toughness: 3, keywords: ['Reach'], blocking: 'rhino' }]);
   });
 
+  it('counts +1/+1 counters apart from pumps until end of turn', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'rally_the_meadow', id: 'rally' }], battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear', counters: 2 }] },
+        {},
+      ],
+    });
+    s = pass(pass(cast(s, 'rally')));
+    expect(playerView(s, 1).opponent.creatures).toEqual([
+      { id: 'bear', name: 'Test Bear', power: 5, toughness: 5, plusOneCounters: 2, untilEndOfTurn: '+1/+1' },
+    ]);
+  });
+
   it('lists the stack from the top, with each item’s text and targets from the viewer’s seat', () => {
     const s = cast(
       scenario({

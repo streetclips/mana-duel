@@ -73,6 +73,51 @@ Black: deathtouch, removal and life drain; its dead bite back.
 | 1 | Soul Siphon | `soul_siphon` | {2}{B} | Sorcery | — | Soul Siphon deals 2 damage to any target. You gain 2 life. |
 | 1 | Grave Sentence | `grave_sentence` | {2}{B}{B} | Instant | — | Destroy target creature. |
 
+## Stormglass (40 cards, UR)
+
+Blue and red: flash, burn and card draw; every instant and sorcery powers up its creatures.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Island | `island` | — | Basic Land — Island | — | {T}: Add {U}. |
+| 8 | Mountain | `mountain` | — | Basic Land — Mountain | — | {T}: Add {R}. |
+| 2 | Kiln Sprite | `kiln_sprite` | {R} | Creature — Elemental | 1/1 | Haste · Whenever you cast an instant or sorcery spell, it gets +1/+1 until end of turn. |
+| 2 | Squall Skimmer | `squall_skimmer` | {1}{U} | Creature — Bird | 2/1 | Flash, flying |
+| 2 | Arc Initiate | `arc_initiate` | {1}{R} | Creature — Human Monk | 2/2 | Whenever you cast an instant or sorcery spell, it gets +1/+1 until end of turn. |
+| 2 | Glassreef Sentinel | `glassreef_sentinel` | {2}{U} | Creature — Merfolk Soldier | 1/4 | Flash |
+| 2 | Galvanic Channeler | `galvanic_channeler` | {2}{R} | Creature — Human Shaman | 2/2 | Whenever you cast an instant or sorcery spell, it deals 1 damage to target opponent. |
+| 2 | Wavecrest Mystic | `wavecrest_mystic` | {3}{U} | Creature — Merfolk Wizard | 2/3 | Flash · When this creature enters, return target creature you don't control to its owner's hand. |
+| 2 | Stormglass Drake | `stormglass_drake` | {2}{U}{R} | Creature — Drake | 2/3 | Flying · Whenever you cast an instant or sorcery spell, put a +1/+1 counter on it. |
+| 1 | Thunderhead Djinn | `thunderhead_djinn` | {3}{U}{R} | Creature — Djinn | 4/4 | Flying · When this creature enters, it deals 2 damage to any target. |
+| 2 | Static Jolt | `static_jolt` | {R} | Instant | — | Static Jolt deals 1 damage to any target. Draw a card. |
+| 2 | Stormflare | `stormflare` | {1}{R} | Sorcery | — | Stormflare deals 3 damage to any target. |
+| 2 | Brine Rebuke | `brine_rebuke` | {2}{U} | Instant | — | Return target creature to its owner's hand. Draw a card. |
+| 2 | Refracted Insight | `refracted_insight` | {2}{U}{R} | Instant | — | Draw two cards. Refracted Insight deals 1 damage to any target. |
+| 1 | Shattered Intent | `shattered_intent` | {1}{U}{R} | Instant | — | Counter target spell. |
+
+## Sunmeadow (40 cards, GW)
+
+Green and white: an army that grows with +1/+1 counters, team-wide pumps and life gain.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Forest | `forest` | — | Basic Land — Forest | — | {T}: Add {G}. |
+| 8 | Plains | `plains` | — | Basic Land — Plains | — | {T}: Add {W}. |
+| 2 | Hopeful Squire | `hopeful_squire` | {1}{W} | Creature — Human Soldier | 1/1 | Whenever this creature attacks, put a +1/+1 counter on it. |
+| 2 | Warren Hare | `warren_hare` | {G} | Creature — Rabbit | 1/1 | When this creature dies, put a +1/+1 counter on target creature you control. |
+| 2 | Bloomcaller Druid | `bloomcaller_druid` | {1}{G} | Creature — Elf Druid | 1/1 | When this creature enters, put a +1/+1 counter on target creature you control. |
+| 2 | Bristleback Boar | `bristleback_boar` | {1}{G} | Creature — Boar | 3/2 | Trample |
+| 2 | Sunmeadow Herald | `sunmeadow_herald` | {2}{W} | Creature — Human Soldier | 2/2 | Whenever this creature attacks, creatures you control get +1/+0 until end of turn. |
+| 1 | Hearthfield Cleric | `hearthfield_cleric` | {2}{W} | Creature — Human Cleric | 2/3 | When this creature enters, you gain 3 life. |
+| 1 | Thornglade Archer | `thornglade_archer` | {2}{G} | Creature — Elf Archer | 2/3 | Reach |
+| 2 | Mossbark Bear | `mossbark_bear` | {3}{G} | Creature — Bear | 3/3 | When this creature enters, put a +1/+1 counter on target creature you control. |
+| 1 | Skyguard Griffin | `skyguard_griffin` | {3}{W} | Creature — Griffin | 2/3 | Flying · When this creature enters, put a +1/+1 counter on target creature you control. |
+| 1 | Sunantler Monarch | `sunantler_monarch` | {3}{G}{W} | Creature — Elk | 4/4 | Vigilance · When this creature enters, put a +1/+1 counter on each creature you control. |
+| 2 | Rally the Meadow | `rally_the_meadow` | {1}{W} | Instant | — | Creatures you control get +1/+1 until end of turn. |
+| 2 | Wild Blossom | `wild_blossom` | {1}{G} | Instant | — | Put two +1/+1 counters on target creature. |
+| 2 | Pack Pounce | `pack_pounce` | {1}{G} | Sorcery | — | Put a +1/+1 counter on target creature you control. It fights target creature you don't control. |
+| 2 | Harvest Hymn | `harvest_hymn` | {2}{G}{W} | Sorcery | — | Put a +1/+1 counter on each creature you control. You gain 2 life. |
+
 ## Keywords
 
 | Keyword | Meaning | In a deck |
@@ -88,3 +133,4 @@ Black: deathtouch, removal and life drain; its dead bite back.
 | Lifelink | Damage dealt by it also causes its controller to gain that much life. | yes |
 | Menace | Can't be blocked except by two or more creatures. | yes |
 | Defender | Can't attack. | yes |
+| Flash | You may cast it any time you could cast an instant. | yes |

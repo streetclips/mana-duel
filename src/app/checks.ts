@@ -511,7 +511,7 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F29',
-    title: 'Decks: three 40-card decks with 16 lands each and no nonland card in common',
+    title: 'Decks: five 40-card decks with 16 lands each and no nonland card in common',
     run: () => {
       const owners = new Map<string, number>();
       for (const deck of DECK_LIST) {
@@ -519,10 +519,10 @@ export const CHECKS: Check[] = [
       }
       const shared = [...owners].filter(([id, count]) => count > 1 && !getCardDef(id).supertypes?.includes('Basic')).map(([id]) => id);
       return first(
-        expectValue(DECK_LIST.map((deck) => deck.id), ['emberwild', 'dawntide', 'duskmire'], 'decks'),
+        expectValue(DECK_LIST.map((deck) => deck.id), ['emberwild', 'dawntide', 'duskmire', 'stormglass', 'sunmeadow'], 'decks'),
         expectValue(
           DECK_LIST.map((deck) => [deckSize(deck), expandDeck(deck).filter((id) => getCardDef(id).types.includes('land')).length]),
-          [[40, 16], [40, 16], [40, 16]],
+          [[40, 16], [40, 16], [40, 16], [40, 16], [40, 16]],
           'cards and lands per deck',
         ),
         expectValue(shared, [], 'nonland cards in more than one deck'),
@@ -662,6 +662,109 @@ export const CHECKS: Check[] = [
         if (game.problem) return `${first} vs ${second}: ${game.problem}`;
       }
       return null;
+    },
+  },
+  {
+    id: 'F40',
+    title: "Flash: Squall Skimmer is cast in the opponent's turn, in response to a spell; a creature without flash is not",
+    run: () => {
+      let s = createScenario({
+        activePlayer: 1,
+        players: [
+          { hand: [{ card: 'squall_skimmer', id: 'skimmer' }, { card: 'galewing_falcon', id: 'falcon' }], battlefield: ['island', 'island', 'island'] },
+          { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+        ],
+      });
+      s = play(s, [
+        { type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] },
+        { type: 'pass', player: 1 },
+      ]);
+      const falcon = refused(s, { type: 'cast', player: 0, card: 'falcon', targets: [] }, 'this can only be cast during your main phase with an empty stack');
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'skimmer', targets: [] }]));
+      return first(
+        falcon,
+        expectValue([zone(s, 'skimmer'), zone(s, 'snap'), s.players[0].life], ['battlefield', 'graveyard', 18], 'Squall Skimmer, Ember Snap and life'),
+      );
+    },
+  },
+  {
+    id: 'F41',
+    title: '"Whenever you cast an instant or sorcery spell": Arc Initiate grows before the spell resolves; a creature spell does not trigger it',
+    run: () => {
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'static_jolt', id: 'jolt' }, { card: 'kiln_sprite', id: 'sprite' }],
+            battlefield: ['mountain', 'mountain', { card: 'arc_initiate', id: 'initiate' }],
+          },
+          {},
+        ],
+      });
+      s = play(s, [{ type: 'cast', player: 0, card: 'jolt', targets: [{ player: 1 }] }]);
+      const stacked = s.stack.map((item) => item.kind);
+      s = play(s, [
+        { type: 'pass', player: 0 },
+        { type: 'pass', player: 1 },
+      ]);
+      const pumped = [getPower(s, 'initiate'), getToughness(s, 'initiate'), s.stack.length];
+      s = resolve(s);
+      const life = s.players[1].life;
+      s = play(s, [{ type: 'cast', player: 0, card: 'sprite', targets: [] }]);
+      return first(
+        expectValue(stacked, ['spell', 'trigger'], 'stack after casting an instant'),
+        expectValue(pumped, [3, 3, 1], 'Arc Initiate and the stack before the instant resolves'),
+        expectValue(life, 19, 'opponent life'),
+        expectValue(s.stack.map((item) => item.kind), ['spell'], 'stack after casting a creature'),
+      );
+    },
+  },
+  {
+    id: 'F42',
+    title: "+1/+1 counters: Wild Blossom's counters outlast the turn and are gone when the creature returns to hand",
+    run: () => {
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'wild_blossom', id: 'blossom' }, { card: 'undertow', id: 'undertow' }],
+            battlefield: ['forest', 'forest', 'island', 'island', { card: 'beacon_squire', id: 'squire' }],
+          },
+          {},
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'blossom', targets: [{ card: 'squire' }] }]));
+      s = passUntil(s, (state) => state.turn === 5 && state.step === 'main1' && state.pending?.kind === 'priority');
+      const grown = [s.cards.squire?.counters, getPower(s, 'squire'), getToughness(s, 'squire')];
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'undertow', targets: [{ card: 'squire' }] }]));
+      return first(
+        expectValue(grown, [2, 4, 4], 'counters, power and toughness two turns later'),
+        expectValue([zone(s, 'squire'), s.cards.squire?.counters], ['hand', 0], 'Beacon Squire after Undertow'),
+      );
+    },
+  },
+  {
+    id: 'F43',
+    title: 'Team pumps: Rally the Meadow gives each creature you control +1/+1, Sunmeadow Herald +1/+0 when it attacks, until end of turn',
+    run: () => {
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'rally_the_meadow', id: 'rally' }],
+            battlefield: ['plains', 'plains', { card: 'sunmeadow_herald', id: 'herald' }, { card: 'beacon_squire', id: 'squire' }],
+          },
+          { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
+        ],
+      });
+      const stats = (ids: string[]): number[][] => ids.map((id) => [getPower(s, id), getToughness(s, id)]);
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'rally', targets: [] }]));
+      const rallied = stats(['herald', 'squire', 'hound']);
+      s = resolve(play(toAttackers(s), [{ type: 'declareAttackers', player: 0, attackers: ['herald'] }]));
+      const attacking = stats(['herald', 'squire']);
+      s = passUntil(s, (state) => state.turn === 4 && state.pending?.kind === 'priority');
+      return first(
+        expectValue(rallied, [[3, 3], [3, 3], [2, 1]], 'after Rally the Meadow'),
+        expectValue(attacking, [[4, 3], [4, 3]], 'after Sunmeadow Herald attacks'),
+        expectValue(stats(['herald', 'squire']), [[2, 2], [2, 2]], 'on the next turn'),
+      );
     },
   },
   {

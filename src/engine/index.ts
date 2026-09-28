@@ -1,6 +1,19 @@
 export * from './types';
 export { allCardDefs, getCardDef, getCost, hasCardDef, registerCard } from './registry';
-export { DAWNTIDE, DECKS, DECK_LIST, DEFAULT_DECK_ID, DUSKMIRE, EMBERWILD, deckSize, expandDeck, getDeck, hasDeck } from './decks';
+export {
+  DAWNTIDE,
+  DECKS,
+  DECK_LIST,
+  DEFAULT_DECK_ID,
+  DUSKMIRE,
+  EMBERWILD,
+  STORMGLASS,
+  SUNMEADOW,
+  deckSize,
+  expandDeck,
+  getDeck,
+  hasDeck,
+} from './decks';
 export type { DeckDef, DeckEntry } from './decks';
 export { costColors, costSymbols, formatCost, manaValue, parseCost } from './mana';
 export {
@@ -63,6 +76,7 @@ export {
   cardName,
   cardRef,
   cardSummary,
+  countersLabel,
   describeEvent,
   describeState,
   formatModifier,

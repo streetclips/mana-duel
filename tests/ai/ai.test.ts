@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { chooseAction, chooseAttackers, chooseBlocks, rollout } from '../../src/ai';
-import { applyAction, createGame, getLegalActions, type Action } from '../../src/engine';
+import { DECK_LIST, applyAction, createGame, getLegalActions, type Action } from '../../src/engine';
 import { act, attack, cast, lcg, pass, passTo, scenario, scrambleHiddenInformation } from '../helpers';
 
 describe('AI main-phase decisions', () => {
@@ -232,6 +232,93 @@ describe('AI with the Dawntide and Duskmire answers', () => {
   });
 });
 
+describe('AI with the Stormglass and Sunmeadow cards', () => {
+  it('flashes in a blocker when the opponent attacks', () => {
+    const s = pass(
+      attack(
+        scenario({
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { life: 3, hand: [{ card: 'glassreef_sentinel', id: 'sentinel' }], battlefield: ['island', 'island', 'island'] },
+          ],
+        }),
+        ['rhino'],
+      ),
+    );
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'sentinel', targets: [] });
+  });
+
+  it('finds lethal damage through Galvanic Channeler’s trigger', () => {
+    const s = scenario({
+      activePlayer: 1,
+      players: [
+        { life: 2, battlefield: [{ card: 'test_bear', id: 'bear' }] },
+        { hand: [{ card: 'static_jolt', id: 'jolt' }], battlefield: ['mountain', { card: 'galvanic_channeler', id: 'channeler' }] },
+      ],
+    });
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'jolt', targets: [{ player: 0 }] });
+  });
+
+  it('puts a +1/+1 counter where it is worth the most', () => {
+    const s = pass(
+      pass(
+        cast(
+          scenario({
+            activePlayer: 1,
+            step: 'main2',
+            players: [
+              {},
+              {
+                hand: [{ card: 'bloomcaller_druid', id: 'druid' }],
+                battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }, { card: 'skyguard_griffin', id: 'griffin' }],
+              },
+            ],
+          }),
+          'druid',
+        ),
+      ),
+    );
+    expect(chooseAction(s, 1)).toEqual({ type: 'chooseTargets', player: 1, targets: [{ card: 'griffin' }] });
+  });
+
+  it('casts Rally the Meadow after blockers to win every combat', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [
+        { battlefield: [{ card: 'test_bear', id: 'b0' }, { card: 'test_bear', id: 'b1' }] },
+        { hand: [{ card: 'rally_the_meadow', id: 'rally' }], battlefield: ['plains', 'plains', { card: 'test_bear', id: 'a0' }, { card: 'test_bear', id: 'a1' }] },
+      ],
+    });
+    s = passTo(attack(s, ['a0', 'a1']), 'declareBlockers');
+    s = act(s, { type: 'declareBlockers', player: 0, blocks: [{ blocker: 'b0', attacker: 'a0' }, { blocker: 'b1', attacker: 'a1' }] });
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'rally', targets: [] });
+  });
+
+  it('answers burn with Wild Blossom, and grows its creature before a fight with Pack Pounce', () => {
+    const burn = pass(
+      cast(
+        scenario({
+          players: [
+            { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+            { hand: [{ card: 'wild_blossom', id: 'blossom' }], battlefield: ['forest', 'forest', { card: 'skyguard_griffin', id: 'griffin' }] },
+          ],
+        }),
+        'snap',
+        [{ card: 'griffin' }],
+      ),
+    );
+    expect(chooseAction(burn, 1)).toEqual({ type: 'cast', player: 1, card: 'blossom', targets: [{ card: 'griffin' }] });
+    const fight = scenario({
+      activePlayer: 1,
+      players: [
+        { battlefield: [{ card: 'cinder_adept', id: 'adept' }, { card: 'grove_tender', id: 'elf' }] },
+        { hand: [{ card: 'pack_pounce', id: 'pounce' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] },
+      ],
+    });
+    expect(chooseAction(fight, 1)).toEqual({ type: 'cast', player: 1, card: 'pounce', targets: [{ card: 'bear' }, { card: 'adept' }] });
+  });
+});
+
 describe('AI rollouts', () => {
   it('aim a death trigger at the most valuable target it can kill, not at its own controller', () => {
     let s = scenario({
@@ -428,6 +515,9 @@ describe('AI fairness', () => {
       ['dawntide', 'duskmire'],
       ['duskmire', 'emberwild'],
       ['emberwild', 'dawntide'],
+      ['stormglass', 'sunmeadow'],
+      ['sunmeadow', 'duskmire'],
+      ['dawntide', 'stormglass'],
     ];
     for (const [seed, [first, second]] of matchups.entries()) {
       let s = createGame({ seed: seed + 1, players: [{ deck: first }, { deck: second }] });
@@ -451,11 +541,11 @@ describe('AI fairness', () => {
 describe('AI strength', () => {
   it('beats a random player nearly every game, with any deck', () => {
     let wins = 0;
-    const decks = ['emberwild', 'dawntide', 'duskmire'];
-    const games = 12;
+    const decks = DECK_LIST.map((deck) => deck.id);
+    const games = 15;
     for (let seed = 1; seed <= games; seed++) {
       const rand = lcg(seed);
-      let s = createGame({ seed, players: [{ deck: decks[seed % 3] }, { deck: decks[(seed + 1) % 3] }] });
+      let s = createGame({ seed, players: [{ deck: decks[seed % decks.length] }, { deck: decks[(seed + 1) % decks.length] }] });
       while (s.pending && s.pending.kind !== 'gameOver') {
         const player = s.pending.player;
         let action: Action;
@@ -468,6 +558,6 @@ describe('AI strength', () => {
       }
       if (s.pending?.kind === 'gameOver' && s.pending.winner === 1) wins += 1;
     }
-    expect(wins).toBeGreaterThanOrEqual(11);
+    expect(wins).toBeGreaterThanOrEqual(14);
   });
 });

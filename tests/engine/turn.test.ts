@@ -83,6 +83,30 @@ describe('timing', () => {
     expect(s.players[1].life).toBe(18);
   });
 
+  it('lets creatures with flash be cast whenever you could cast an instant', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [
+        {
+          hand: [{ card: 'squall_skimmer', id: 'skimmer' }, { card: 'glassreef_sentinel', id: 'sentinel' }, { card: 'galewing_falcon', id: 'falcon' }],
+          battlefield: ['island', 'island', 'island', 'island', 'island'],
+        },
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+      ],
+    });
+    s = pass(cast(s, 'snap', [{ player: 0 }]));
+    expect(s.pending).toEqual({ kind: 'priority', player: 0 });
+    expect(castBlocker(s, 0, 'falcon')).toMatch(/main phase/);
+    expect(castBlocker(s, 0, 'skimmer')).toBeNull();
+    s = resolveStack(cast(s, 'skimmer'));
+    expect([zoneOf(s, 'skimmer'), zoneOf(s, 'snap'), s.players[0].life]).toEqual(['battlefield', 'graveyard', 18]);
+    s = pass(s);
+    expect(s.pending).toEqual({ kind: 'priority', player: 0 });
+    s = resolveStack(cast(s, 'sentinel'));
+    expect(zoneOf(s, 'sentinel')).toBe('battlefield');
+    expect(s.cards.sentinel?.summoningSick).toBe(true);
+  });
+
   it('requires an empty stack for sorcery-speed spells', () => {
     let s = scenario({
       players: [

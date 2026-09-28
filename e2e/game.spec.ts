@@ -29,7 +29,7 @@ test('the start screen leads into a game', async ({ page }) => {
 test('the deck selector sets up the chosen matchup', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
-  for (const name of ['Emberwild', 'Dawntide', 'Duskmire']) await expect(page.getByTestId('start-screen')).toContainText(name);
+  for (const name of ['Emberwild', 'Dawntide', 'Duskmire', 'Stormglass', 'Sunmeadow']) await expect(page.getByTestId('start-screen')).toContainText(name);
   await page.getByTestId('deck-dawntide').click();
   await expect(page.getByTestId('deck-dawntide')).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByTestId('deck-emberwild')).toHaveAttribute('aria-checked', 'false');
@@ -163,6 +163,40 @@ test('spells, targets and combat work from the UI', async ({ page }) => {
   await page.getByTestId('btn-confirm-attack').click();
   await expect(page.getByTestId('life-1')).toContainText('16');
   await expectNoHorizontalOverflow(page);
+});
+
+test('Stormglass and Sunmeadow: a flash creature in the opponent’s turn, +1/+1 counters on a card', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=5&first=you&deck=stormglass&aiDeck=sunmeadow&aiDelay=0&autoPass=off');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Stormglass');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Sunmeadow');
+  await page.evaluate(() => {
+    window.manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: [{ card: 'squall_skimmer', id: 'skimmer' }], battlefield: ['island', 'island'] }, {}] });
+    window.manaDuel.settle();
+  });
+  await expect(page.getByTestId('prompt')).toHaveText("AI's main phase");
+  await page.getByTestId('card-skimmer').click();
+  await page.getByTestId('sheet-cast').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('battlefield-0').locator('[data-card="skimmer"]')).toBeVisible();
+  expect(await page.evaluate(() => window.manaDuel.log())).toContain('You cast Squall Skimmer.');
+
+  await page.evaluate(() => {
+    window.manaDuel.setAutoPass(true);
+    window.manaDuel.loadScenario({
+      players: [{ hand: [{ card: 'wild_blossom', id: 'blossom' }], battlefield: ['forest', 'forest', { card: 'bristleback_boar', id: 'boar' }] }, {}],
+    });
+  });
+  await page.getByTestId('card-blossom').click();
+  await page.getByTestId('sheet-cast').click();
+  await expect(page.getByTestId('prompt')).toHaveText('Choose target creature');
+  await page.getByTestId('card-boar').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('pt-boar')).toHaveText('5/4');
+  await page.getByTestId('card-boar').click({ button: 'right' });
+  await expect(page.getByTestId('card-sheet')).toContainText('2 +1/+1 counters');
+  await expectNoHorizontalOverflow(page);
+  expect(errors).toEqual([]);
 });
 
 test('every card shows art that loads in the browser build', async ({ page }) => {

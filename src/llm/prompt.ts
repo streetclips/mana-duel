@@ -23,8 +23,8 @@ export const SYSTEM_PROMPT = `You are an expert player of Mana Duel, a two-playe
 Rules:
 - Both players start at 20 life with a 40-card deck and a 7-card hand. You may play one land per turn, in your main phase, while the stack is empty.
 - Lands and some creatures tap for mana. Paying is automatic: the game taps your untapped sources for you. "availableMana" lists the untapped sources, one mana each ("R/G" means either color).
-- Creatures, lands and sorceries: only in your own main phases with an empty stack. Instants and activated abilities: whenever you have priority, even in response to a spell.
-- A turn goes untap, upkeep, draw, main phase, combat (declare attackers, declare blockers, damage), second main phase, end step, cleanup. At cleanup you discard down to 7 cards, and damage and "until end of turn" effects wear off.
+- Creatures, lands and sorceries: only in your own main phases with an empty stack. Instants, creatures with Flash and activated abilities: whenever you have priority, even in response to a spell.
+- A turn goes untap, upkeep, draw, main phase, combat (declare attackers, declare blockers, damage), second main phase, end step, cleanup. At cleanup you discard down to 7 cards, and damage and "until end of turn" effects wear off. +1/+1 counters ("plusOneCounters") stay on a creature until it leaves the battlefield.
 - A creature can't attack or pay {T} costs until it has been under its controller's control since the start of their turn ("summoningSick"), unless it has Haste; it can still block. Attacking taps a creature unless it has Vigilance. Tapped creatures can't block.
 - Each blocker blocks one attacker; several creatures may block the same attacker. Combat damage is dealt at the same time; an attacker's damage is split automatically among its blockers. Unblocked attackers damage the defending player.
 - A creature dies once the damage marked on it reaches its toughness.

@@ -17,7 +17,7 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | Id | Feature | Tests |
 | --- | --- | --- |
 | F01 | Setup: 40-card decks, seven-card hands, 20 life; the same seed gives the same game | `tests/engine/setup.test.ts` › game setup |
-| F29 | Decks: Emberwild, Dawntide and Duskmire, 40 cards and 16 lands each, in their own colors; no nonland card in two decks; every card is in a deck | `tests/engine/cards.test.ts` › decks |
+| F29 | Decks: Emberwild, Dawntide, Duskmire, Stormglass and Sunmeadow, 40 cards and 16 lands each, in their own colors; no nonland card in two decks; every card is in a deck | `tests/engine/cards.test.ts` › decks |
 | F02 | London mulligan: new seven, one card to the bottom per mulligan, at most six | `tests/engine/setup.test.ts` › London mulligan · `tests/ui/game.test.tsx` › opening hand |
 | F03 | Turn order; the starting player skips the first draw | `tests/engine/setup.test.ts` · `tests/engine/turn.test.ts` › turn structure, passing through a whole turn |
 | F04 | One land per turn, main phase, empty stack | `tests/engine/turn.test.ts` › lands |
@@ -43,13 +43,17 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F33 | "Target tapped creature": attackers without vigilance are legal targets | `tests/engine/spells.test.ts` › Dawn's Verdict |
 | F34 | Losing life as a cost of a spell or trigger, which can end the game | `tests/engine/spells.test.ts` › life drain and life payment, Dawntide and Duskmire creature abilities |
 | F35 | Death triggers of Duskmire: draw a card, deal damage to the opponent | `tests/engine/spells.test.ts` › Dawntide and Duskmire creature abilities |
+| F40 | Flash: a creature with flash is cast whenever you could cast an instant, and blocks the turn it enters | `tests/engine/turn.test.ts` › timing · `tests/engine/spells.test.ts` › Stormglass |
+| F41 | "Whenever you cast an instant or sorcery spell": only its controller's instants and sorceries trigger it, above the spell, so it resolves first; pumps, damage and +1/+1 counters (Arc Initiate, Galvanic Channeler, Stormglass Drake) | `tests/engine/spells.test.ts` › Stormglass |
+| F42 | +1/+1 counters: added to power and toughness, damage and `-N/-N` included; they outlast cleanup and leave with the creature; one creature or each creature you control; on enters, dies and attacks triggers | `tests/engine/spells.test.ts` › Sunmeadow |
+| F43 | Pumps for every creature you control until end of turn (Rally the Meadow, Sunmeadow Herald's attack) | `tests/engine/spells.test.ts` › Sunmeadow |
 | F21 | Activated abilities, repeatable, `{T}` costs | `tests/engine/turn.test.ts` › activated abilities |
 | F22 | Cleanup: discard to seven, damage and pumps wear off | `tests/engine/turn.test.ts` › turn structure |
 | F23 | Game over: 0 life, empty library, concession, turn limit | `tests/engine/gameover.test.ts` |
 | F24 | Every listed action is legal; bad input is refused with a reason and changes nothing | `tests/engine/properties.test.ts` |
 | F25 | Replays: seed plus actions reproduces a game exactly | `tests/engine/properties.test.ts` · `tests/app/controller.test.ts` |
 | F26 | Invariants after every action (one zone per card, clean state off the battlefield) | `tests/engine/properties.test.ts` · `npm run sim` |
-| F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all nine matchups by default) |
+| F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all 25 matchups by default) |
 
 ## AI
 
@@ -58,9 +62,10 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F27 | Sensible play: lands by color, creatures after combat, lethal or valuable burn, tricks in combat and never wasted at the end of the opponent's turn, answers to burn, repeated pumps, good attacks and blocks | `tests/ai/ai.test.ts` |
 | F28 | Chump-blocks only when the damage would be lethal | `tests/ai/ai.test.ts` › AI combat |
 | F37 | Counters threats but lets harmless spells resolve; returns lethal attackers; removal on the biggest threat or a tapped attacker; pays life only when it can afford it | `tests/ai/ai.test.ts` › AI with the Dawntide and Duskmire answers |
+| — | Flashes in blockers when attacked; finds lethal through Galvanic Channeler; puts +1/+1 counters where they are worth most; Rally the Meadow after blockers; Wild Blossom against burn; Pack Pounce before a fight | `tests/ai/ai.test.ts` › AI with the Stormglass and Sunmeadow cards |
 | — | Mulligans hands whose lands cannot cast their spells | `tests/ai/ai.test.ts` › AI setup decisions |
 | — | Fairness: hidden cards never change a decision, in mirror and mixed matchups | `tests/ai/ai.test.ts` › AI fairness |
-| — | Strength: beats a random player nearly always with any deck; AI vs AI balanced and crash-free | `tests/ai/ai.test.ts` › AI strength · `npm run sim -- --games 270 --quiet` (`"errors": 0`, per-deck `winRate` near 0.5) · `npm run sim -- --p0 random --games 50 --quiet` |
+| — | Strength: beats a random player nearly always with any deck; AI vs AI balanced and crash-free | `tests/ai/ai.test.ts` › AI strength · `npm run sim -- --games 1000 --quiet` (`"errors": 0`, per-deck `winRate` near 0.5) · `npm run sim -- --p0 random --games 50 --quiet` |
 
 ## LLM opponent
 
@@ -68,7 +73,7 @@ How it works is in `docs/LLM.md`. Everything here runs offline, against mocked m
 
 | Feature | Tests |
 | --- | --- |
-| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat and pumps, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
+| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat, pumps and +1/+1 counters, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
 | Fairness: the prompt is the same whatever the hidden cards are, over real games in three matchups; the latest events and thoughts, in order | `tests/llm/player.test.ts` › the LLM prompt |
 | Every legal action is an option for mulligans, priority and targets; attackers, blockers and cards to bottom or discard are constrained fields; a refused answer names the rule | `tests/llm/decision.test.ts` |
 | One call per real decision, none for a forced one; retries with the reason; the classic AI when every attempt fails or time runs out; unavailable after 401, 402 or 404; cancellation; lazy loading | `tests/llm/player.test.ts` |
@@ -88,7 +93,7 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | --- | --- | --- |
 | F38 | Combat: an attacker and its blocker strike each other; the damage, the trample to the player and the death show, and the dead creature fades out in its own place | `tests/app/fx.test.ts` › combat · `tests/ui/animations.test.tsx` › animations of combat · `e2e/animations.spec.ts` › in combat |
 | F39 | The opponent's spell is revealed with its target; burn shows the life lost; a new turn is announced and deals the drawn card | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` › animations of plays, of draws and turns · `e2e/animations.spec.ts` |
-| — | Lands and permanents entering, abilities, pumps and shrinks, lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
+| — | Lands and permanents entering, abilities, pumps and shrinks, +1/+1 counters and pumps for every creature you control (shown as pumps), lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
 | — | Timing: hits land after the strikes, draws deal one after another, hooks stay until a newer action animates something, slow motion, a new game starts over | `tests/ui/fxTracker.test.ts` |
 | — | Pacing: with an AI delay the AI and automatic passing wait for the opponent's plays and for combat to be seen; not with `aiDelay=0` or `fx=off` | `tests/app/controller.test.ts` › animation cues |
 | — | Browser: CSS and Web Animations run and end, `freezeFx` holds them, `fx=off` and `fx=slow`, reduced motion, no overflow mid-animation, no console errors | `e2e/animations.spec.ts` |
@@ -101,6 +106,7 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | Deck selector: your deck and the AI's (or a random one), remembered for the next visit; the game plays that matchup | `tests/ui/game.test.tsx` › deck selection · `e2e/game.spec.ts` › the deck selector |
 | Deck viewer: every card with its count and art, mana curve, card details, "Choose"; both decks from the in-game menu | `tests/ui/game.test.tsx` › deck viewer · `tests/ui/deckViewer.test.ts` · `e2e/game.spec.ts` › the deck viewer |
 | Counterspells target a spell by tapping it in the center strip; stack items open their card | `tests/ui/game.test.tsx` › counterspells · `e2e/game.spec.ts` › URL parameters pick the decks |
+| Flash creatures cast from the card sheet in the opponent's turn; +1/+1 counters raise the P/T tag and show in the card sheet | `e2e/game.spec.ts` › Stormglass and Sunmeadow |
 | Controller decks: per-seat decks, kept by "New game", recorded in replays, none for scenarios | `tests/app/controller.test.ts` › decks |
 | Automatic passing and End turn (behaviour described in `docs/RULES.md`) | `tests/app/controller.test.ts` › auto-pass, ends the turn on request |
 | Auto-pass off: stops wherever you could act, End turn still works; the menu toggle, remembered, `?autoPass=on\|off`, `setAutoPass()`; prompts that name whose step it is | `tests/app/controller.test.ts` › auto-pass · `tests/ui/game.test.tsx` › auto-pass · `e2e/game.spec.ts` › auto-pass |

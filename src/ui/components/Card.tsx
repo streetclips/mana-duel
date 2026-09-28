@@ -1,6 +1,7 @@
 import type { ComponentChildren, CSSProperties } from 'preact';
 import {
   costSymbols,
+  countersLabel,
   getCardDef,
   getCost,
   getPower,
@@ -147,6 +148,7 @@ export function permanentLabel(s: GameState, id: CardId): string {
   const def = getCardDef(card.def);
   const parts = [def.name];
   if (def.types.includes('creature')) parts.push(`${getPower(s, id)}/${getToughness(s, id) - card.damage}`);
+  if (card.counters > 0) parts.push(countersLabel(card.counters));
   if (card.tapped) parts.push('tapped');
   if (card.summoningSick && def.types.includes('creature') && !hasKeyword(s, id, 'haste')) parts.push('summoning sick');
   if (s.combat?.attackers.includes(id)) parts.push('attacking');

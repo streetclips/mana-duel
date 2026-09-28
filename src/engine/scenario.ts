@@ -8,6 +8,7 @@ export interface ScenarioCard {
   tapped?: boolean;
   sick?: boolean;
   damage?: number;
+  counters?: number;
 }
 
 export type ScenarioEntry = string | ScenarioCard;
@@ -81,6 +82,7 @@ export function createScenario(spec: ScenarioSpec): GameState {
       summoningSick: zone === 'battlefield' ? Boolean(card.sick) : false,
       damage: zone === 'battlefield' ? (card.damage ?? 0) : 0,
       deathtouchDamage: false,
+      counters: zone === 'battlefield' ? (card.counters ?? 0) : 0,
     };
     s.players[player][zone].push(id);
   };

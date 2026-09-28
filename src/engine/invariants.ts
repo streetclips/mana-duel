@@ -39,7 +39,8 @@ export function checkInvariants(s: GameState): string[] {
     if (!seen.has(id)) problems.push(`${id} is in no zone`);
     if (!hasCardDef(card.def)) problems.push(`${id} has an unknown definition ${card.def}`);
     if (card.damage < 0 || !Number.isInteger(card.damage)) problems.push(`${id} has invalid damage ${card.damage}`);
-    if (card.zone !== 'battlefield' && (card.tapped || card.damage > 0 || card.summoningSick)) {
+    if (card.counters < 0 || !Number.isInteger(card.counters)) problems.push(`${id} has invalid counters ${card.counters}`);
+    if (card.zone !== 'battlefield' && (card.tapped || card.damage > 0 || card.summoningSick || card.counters > 0)) {
       problems.push(`${id} keeps battlefield state outside the battlefield`);
     }
   }

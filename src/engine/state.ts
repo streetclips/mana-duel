@@ -83,6 +83,14 @@ export function isInstantDef(def: CardDef): boolean {
   return def.types.includes('instant');
 }
 
+export function isInstantOrSorceryDef(def: CardDef): boolean {
+  return def.types.includes('instant') || def.types.includes('sorcery');
+}
+
+export function hasFlashDef(def: CardDef): boolean {
+  return (def.keywords ?? []).includes('flash');
+}
+
 export function isPermanentDef(def: CardDef): boolean {
   return def.types.includes('creature') || def.types.includes('land');
 }
@@ -112,13 +120,13 @@ export function allCreatures(s: GameState): CardId[] {
 }
 
 export function getPower(s: GameState, id: CardId): number {
-  let power = defOf(s, id).power ?? 0;
+  let power = (defOf(s, id).power ?? 0) + getCard(s, id).counters;
   for (const effect of s.effects) if (effect.card === id) power += effect.power;
   return power;
 }
 
 export function getToughness(s: GameState, id: CardId): number {
-  let toughness = defOf(s, id).toughness ?? 0;
+  let toughness = (defOf(s, id).toughness ?? 0) + getCard(s, id).counters;
   for (const effect of s.effects) if (effect.card === id) toughness += effect.toughness;
   return toughness;
 }
@@ -172,6 +180,7 @@ export function moveCard(s: GameState, id: CardId, to: Zone, options: MoveOption
     card.summoningSick = false;
     card.damage = 0;
     card.deathtouchDamage = false;
+    card.counters = 0;
     s.effects = s.effects.filter((effect) => effect.card !== id);
     removeFromCombat(s, id);
   }

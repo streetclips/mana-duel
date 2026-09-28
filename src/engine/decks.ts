@@ -94,7 +94,58 @@ export const DUSKMIRE: DeckDef = {
   ],
 };
 
-export const DECK_LIST: readonly DeckDef[] = [EMBERWILD, DAWNTIDE, DUSKMIRE];
+export const STORMGLASS: DeckDef = {
+  id: 'stormglass',
+  name: 'Stormglass',
+  description: 'Blue and red: flash, burn and card draw; every instant and sorcery powers up its creatures.',
+  colors: ['U', 'R'],
+  featured: 'stormglass_drake',
+  cards: [
+    { card: 'island', count: 8 },
+    { card: 'mountain', count: 8 },
+    { card: 'kiln_sprite', count: 2 },
+    { card: 'squall_skimmer', count: 2 },
+    { card: 'arc_initiate', count: 2 },
+    { card: 'glassreef_sentinel', count: 2 },
+    { card: 'galvanic_channeler', count: 2 },
+    { card: 'wavecrest_mystic', count: 2 },
+    { card: 'stormglass_drake', count: 2 },
+    { card: 'thunderhead_djinn', count: 1 },
+    { card: 'static_jolt', count: 2 },
+    { card: 'stormflare', count: 2 },
+    { card: 'brine_rebuke', count: 2 },
+    { card: 'refracted_insight', count: 2 },
+    { card: 'shattered_intent', count: 1 },
+  ],
+};
+
+export const SUNMEADOW: DeckDef = {
+  id: 'sunmeadow',
+  name: 'Sunmeadow',
+  description: 'Green and white: an army that grows with +1/+1 counters, team-wide pumps and life gain.',
+  colors: ['G', 'W'],
+  featured: 'sunantler_monarch',
+  cards: [
+    { card: 'forest', count: 8 },
+    { card: 'plains', count: 8 },
+    { card: 'hopeful_squire', count: 2 },
+    { card: 'warren_hare', count: 2 },
+    { card: 'bloomcaller_druid', count: 2 },
+    { card: 'bristleback_boar', count: 2 },
+    { card: 'sunmeadow_herald', count: 2 },
+    { card: 'hearthfield_cleric', count: 1 },
+    { card: 'thornglade_archer', count: 1 },
+    { card: 'mossbark_bear', count: 2 },
+    { card: 'skyguard_griffin', count: 1 },
+    { card: 'sunantler_monarch', count: 1 },
+    { card: 'rally_the_meadow', count: 2 },
+    { card: 'wild_blossom', count: 2 },
+    { card: 'pack_pounce', count: 2 },
+    { card: 'harvest_hymn', count: 2 },
+  ],
+};
+
+export const DECK_LIST: readonly DeckDef[] = [EMBERWILD, DAWNTIDE, DUSKMIRE, STORMGLASS, SUNMEADOW];
 
 export const DECKS: Record<string, DeckDef> = Object.fromEntries(DECK_LIST.map((deck) => [deck.id, deck]));
 

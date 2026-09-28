@@ -37,7 +37,7 @@ sections, the constant ones first so providers can cache the prefix:
 4. **Your recent thoughts**: the `reason` of its last 10 decisions that were played, each with its turn and step
    (`thoughtLine`), so it can keep to a plan. Fallbacks and forced moves add none.
 5. **Game state from your seat**: `playerView` as compact JSON. Its hand, both battlefields (tapped, sick, damage,
-   combat, pumps), graveyards, untapped mana, life, the stack from the top.
+   combat, pumps, `plusOneCounters`), graveyards, untapped mana, life, the stack from the top.
 6. **Decision**: the question, the options and how to answer.
 
 Hidden from the model: the opponent's hand (`handSize` only), both libraries (`libraryCards` only), the seed and

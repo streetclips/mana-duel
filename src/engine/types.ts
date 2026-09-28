@@ -26,7 +26,8 @@ export type Keyword =
   | 'deathtouch'
   | 'lifelink'
   | 'menace'
-  | 'defender';
+  | 'defender'
+  | 'flash';
 
 export const KEYWORDS: readonly Keyword[] = [
   'flying',
@@ -40,6 +41,7 @@ export const KEYWORDS: readonly Keyword[] = [
   'lifelink',
   'menace',
   'defender',
+  'flash',
 ];
 
 export type TargetSpec =
@@ -61,9 +63,12 @@ export type Effect =
   | { kind: 'draw'; amount: number }
   | { kind: 'gainLife'; amount: number }
   | { kind: 'loseLife'; amount: number }
-  | { kind: 'fight'; a: EffectTarget; b: EffectTarget };
+  | { kind: 'fight'; a: EffectTarget; b: EffectTarget }
+  | { kind: 'pumpTeam'; power: number; toughness: number }
+  | { kind: 'addCounters'; amount: number; to: EffectTarget }
+  | { kind: 'addCountersTeam'; amount: number };
 
-export type TriggerEvent = 'enters' | 'dies' | 'attacks';
+export type TriggerEvent = 'enters' | 'dies' | 'attacks' | 'spell';
 
 export interface TriggeredAbility {
   on: TriggerEvent;
@@ -112,6 +117,7 @@ export interface CardInstance {
   summoningSick: boolean;
   damage: number;
   deathtouchDamage: boolean;
+  counters: number;
 }
 
 export interface PlayerState {
@@ -230,6 +236,7 @@ export type GameEvent =
   | { t: 'life'; player: PlayerId; delta: number; life: number }
   | { t: 'loseLife'; player: PlayerId; amount: number }
   | { t: 'pump'; card: CardId; power: number; toughness: number }
+  | { t: 'addCounters'; card: CardId; amount: number }
   | { t: 'fight'; a: CardId; b: CardId }
   | { t: 'dies'; card: CardId; player: PlayerId }
   | { t: 'discard'; player: PlayerId; card: CardId }

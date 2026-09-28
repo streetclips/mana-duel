@@ -4,6 +4,7 @@ import {
   KEYWORD_NAMES,
   KEYWORD_REMINDERS,
   castBlocker,
+  countersLabel,
   formatModifier,
   getCardDef,
   hasKeyword,
@@ -129,6 +130,7 @@ export function CardSheet({ s, id, human, actions, onAction, onClose }: CardShee
       statuses.push({ text: 'Summoning sick' });
     }
     if (card.damage > 0) statuses.push({ text: `${card.damage} damage`, tone: 'bad' });
+    if (card.counters > 0) statuses.push({ text: countersLabel(card.counters), tone: 'good' });
     const pumps = s.effects.filter((effect) => effect.card === id);
     for (const pump of pumps) {
       const tone = pump.power < 0 || pump.toughness < 0 ? 'bad' : 'good';

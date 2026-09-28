@@ -32,6 +32,8 @@ describe('an LLM that answers anything its schema allows', () => {
       ['emberwild', 'dawntide'],
       ['duskmire', 'emberwild'],
       ['dawntide', 'duskmire'],
+      ['sunmeadow', 'stormglass'],
+      ['stormglass', 'sunmeadow'],
     ];
     for (const [index, decks] of matchups.entries()) {
       const rand = lcg(index + 3);

@@ -67,6 +67,8 @@ function targetImpact(s: GameState, player: PlayerId, effect: Effect, targets: T
     case 'pump':
       if (effect.toughness < 0 && -effect.toughness >= remaining) return side * value;
       return -side * (effect.power + effect.toughness) * 0.5;
+    case 'addCounters':
+      return -side * effect.amount * 2.5;
     default:
       return 0;
   }

@@ -234,6 +234,41 @@ describe('fx cues: spells and abilities', () => {
     ]);
   });
 
+  it('shows +1/+1 counters as a pump, and a team pump on every creature it reaches', () => {
+    const blossom = scenario({
+      players: [{ hand: [{ card: 'wild_blossom', id: 'blossom' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] }, {}],
+    });
+    expect(passCollecting(cast(blossom, 'blossom', [{ card: 'bear' }]), stackEmpty).cues).toEqual([
+      { kind: 'pump', card: 'bear', power: 2, toughness: 2 },
+    ]);
+    const rally = scenario({
+      players: [
+        { hand: [{ card: 'rally_the_meadow', id: 'rally' }], battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear' }, { card: 'warren_hare', id: 'hare' }] },
+        { battlefield: ['ember_hound'] },
+      ],
+    });
+    expect(passCollecting(cast(rally, 'rally'), stackEmpty).cues).toEqual([
+      { kind: 'pump', card: 'bear', power: 1, toughness: 1 },
+      { kind: 'pump', card: 'hare', power: 1, toughness: 1 },
+    ]);
+  });
+
+  it('shows a "whenever you cast" trigger as an ability before the spell resolves', () => {
+    const s = scenario({
+      players: [{ hand: [{ card: 'static_jolt', id: 'jolt' }], battlefield: ['mountain', { card: 'stormglass_drake', id: 'drake' }] }, {}],
+    });
+    const played = step(s, { type: 'cast', player: 0, card: 'jolt', targets: [{ player: 1 }] });
+    expect(played.cues).toEqual([
+      { kind: 'play', player: 0, card: 'jolt', via: 'cast', targets: [{ player: 1 }] },
+      { kind: 'ability', player: 0, card: 'drake' },
+    ]);
+    expect(passCollecting(played.state, stackEmpty).cues).toEqual([
+      { kind: 'pump', card: 'drake', power: 1, toughness: 1 },
+      { kind: 'life', player: 1, delta: -1 },
+      { kind: 'draw', player: 0, card: s.players[0].library[0] },
+    ]);
+  });
+
   it('shows a shrink that kills as a pump followed by a death', () => {
     const s = scenario({
       players: [{ hand: [{ card: 'withering_touch', id: 'touch' }], battlefield: ['swamp'] }, { battlefield: [{ card: 'cinder_adept', id: 'adept' }] }],

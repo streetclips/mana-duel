@@ -1,11 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { castBlocker, getLegalActions, getPower, getToughness, tryApplyAction, type GameEvent } from '../../src/engine';
+import {
+  castBlocker,
+  checkInvariants,
+  describeEvent,
+  describeState,
+  getLegalActions,
+  getPower,
+  getToughness,
+  tryApplyAction,
+  type CardInstance,
+  type GameEvent,
+} from '../../src/engine';
 import {
   act,
   activate,
   attack,
+  block,
   cast,
   chooseTargets,
+  finishCombat,
   life,
   pass,
   passTo,
@@ -546,5 +559,221 @@ describe('Dawntide and Duskmire creature abilities', () => {
   it('Reefshell Crab has defender and cannot attack', () => {
     const s = passTo(scenario({ players: [{ battlefield: [{ card: 'reefshell_crab', id: 'crab' }, { card: 'beacon_squire', id: 'squire' }] }, {}] }), 'declareAttackers');
     expect(getLegalActions(s).map((action) => (action.type === 'declareAttackers' ? action.attackers : null))).toEqual([[], ['squire']]);
+  });
+});
+
+describe('Stormglass: flash and "whenever you cast an instant or sorcery spell"', () => {
+  it('puts the trigger above the spell, so it resolves first', () => {
+    let s = scenario({
+      players: [{ hand: [{ card: 'static_jolt', id: 'jolt' }], battlefield: ['mountain', { card: 'arc_initiate', id: 'initiate' }] }, {}],
+    });
+    s = cast(s, 'jolt', [{ player: 1 }]);
+    expect(s.stack.map((item) => item.kind)).toEqual(['spell', 'trigger']);
+    s = pass(pass(s));
+    expect([getPower(s, 'initiate'), getToughness(s, 'initiate'), s.stack.length]).toEqual([3, 3, 1]);
+    s = resolveStack(s);
+    expect([life(s, 1), s.players[0].hand.length]).toEqual([19, 1]);
+    s = passToStep(s, 'main1', s.turn + 1);
+    expect([getPower(s, 'initiate'), getToughness(s, 'initiate')]).toEqual([2, 2]);
+  });
+
+  it('ignores creature spells and the opponent’s spells', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'kiln_sprite', id: 'sprite' }], battlefield: ['mountain', { card: 'arc_initiate', id: 'initiate' }] },
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+      ],
+    });
+    s = cast(pass(cast(s, 'sprite')), 'snap', [{ player: 0 }]);
+    expect(s.stack.map((item) => item.kind)).toEqual(['spell', 'spell']);
+  });
+
+  it('Galvanic Channeler deals 1 damage to the opponent for each instant or sorcery', () => {
+    let s = scenario({
+      players: [{ hand: [{ card: 'stormflare', id: 'flare' }], battlefield: ['mountain', 'mountain', { card: 'galvanic_channeler', id: 'channeler' }] }, {}],
+    });
+    s = cast(s, 'flare', [{ player: 1 }]);
+    expect(getLegalActions(s)).toEqual([{ type: 'chooseTargets', player: 0, targets: [{ player: 1 }] }]);
+    s = resolveStack(chooseTargets(s, [{ player: 1 }]));
+    expect(life(s, 1)).toBe(16);
+  });
+
+  it('Stormglass Drake keeps a +1/+1 counter for each instant or sorcery', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'static_jolt', id: 'j1' }, { card: 'static_jolt', id: 'j2' }],
+          battlefield: ['mountain', 'mountain', { card: 'stormglass_drake', id: 'drake' }],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'j1', [{ player: 1 }]));
+    s = resolveStack(cast(s, 'j2', [{ player: 1 }]));
+    expect([s.cards.drake?.counters, getPower(s, 'drake'), getToughness(s, 'drake')]).toEqual([2, 4, 5]);
+    s = passToStep(s, 'main1', s.turn + 2);
+    expect([getPower(s, 'drake'), getToughness(s, 'drake')]).toEqual([4, 5]);
+  });
+
+  it('a creature with flash cast after attackers are declared can block', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [
+        { hand: [{ card: 'glassreef_sentinel', id: 'sentinel' }], battlefield: ['island', 'island', 'island'] },
+        { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
+      ],
+    });
+    s = pass(attack(s, ['hound']));
+    expect(s.pending).toEqual({ kind: 'priority', player: 0 });
+    s = resolveStack(cast(s, 'sentinel'));
+    s = finishCombat(block(s, [{ blocker: 'sentinel', attacker: 'hound' }]));
+    expect([zoneOf(s, 'hound'), zoneOf(s, 'sentinel'), life(s, 0)]).toEqual(['graveyard', 'battlefield', 20]);
+  });
+
+  it('Wavecrest Mystic flashes in and returns an attacker to its owner’s hand', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [
+        { hand: [{ card: 'wavecrest_mystic', id: 'mystic' }], battlefield: ['island', 'island', 'island', 'island'] },
+        { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'ember_hound', id: 'hound' }] },
+      ],
+    });
+    s = pass(attack(s, ['rhino', 'hound']));
+    s = pass(pass(cast(s, 'mystic')));
+    expect(getLegalActions(s)).toEqual([
+      { type: 'chooseTargets', player: 0, targets: [{ card: 'rhino' }] },
+      { type: 'chooseTargets', player: 0, targets: [{ card: 'hound' }] },
+    ]);
+    s = resolveStack(chooseTargets(s, [{ card: 'rhino' }]));
+    expect([zoneOf(s, 'rhino'), s.combat?.attackers]).toEqual(['hand', ['hound']]);
+  });
+});
+
+describe('Sunmeadow: +1/+1 counters and team pumps', () => {
+  it('Wild Blossom puts two +1/+1 counters that last until the creature leaves the battlefield', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'wild_blossom', id: 'blossom' }, { card: 'undertow', id: 'undertow' }],
+          battlefield: ['forest', 'forest', 'island', 'island', { card: 'test_bear', id: 'bear' }],
+        },
+        {},
+      ],
+    });
+    s = pass(cast(s, 'blossom', [{ card: 'bear' }]));
+    s = act(s, { type: 'pass', player: 1 });
+    expect(s.events).toContainEqual({ t: 'addCounters', card: 'bear', amount: 2 });
+    expect(describeEvent(s, { t: 'addCounters', card: 'bear', amount: 2 }, 0)).toBe('Your Test Bear gets 2 +1/+1 counters.');
+    expect(describeState(s)).toContain('Test Bear(bear) 4/4 [2 +1/+1 counters]');
+    s = passToStep(s, 'main1', s.turn + 2);
+    expect([s.cards.bear?.counters, getPower(s, 'bear'), getToughness(s, 'bear')]).toEqual([2, 4, 4]);
+    s = resolveStack(cast(s, 'undertow', [{ card: 'bear' }]));
+    expect([zoneOf(s, 'bear'), s.cards.bear?.counters]).toEqual(['hand', 0]);
+  });
+
+  it('counts counters against damage and -N/-N like printed power and toughness', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'withering_touch', id: 'touch' }, { card: 'ember_snap', id: 'snap' }], battlefield: ['swamp', 'mountain'] },
+        { battlefield: [{ card: 'test_bear', id: 'bear', counters: 2 }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'touch', [{ card: 'bear' }]));
+    expect([getPower(s, 'bear'), getToughness(s, 'bear')]).toEqual([2, 2]);
+    s = resolveStack(cast(s, 'snap', [{ card: 'bear' }]));
+    expect([zoneOf(s, 'bear'), s.cards.bear?.counters]).toEqual(['graveyard', 0]);
+  });
+
+  it('reports counters left on a card off the battlefield', () => {
+    const s = scenario({ players: [{ hand: [{ card: 'test_bear', id: 'bear' }] }, {}] });
+    const broken = structuredClone(s);
+    (broken.cards.bear as CardInstance).counters = 1;
+    expect(checkInvariants(broken)).toContain('bear keeps battlefield state outside the battlefield');
+  });
+
+  it('Bloomcaller Druid grows itself or another creature you control, never the opponent’s', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'bloomcaller_druid', id: 'druid' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] },
+        { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
+      ],
+    });
+    s = pass(pass(cast(s, 'druid')));
+    expect(getLegalActions(s)).toEqual([
+      { type: 'chooseTargets', player: 0, targets: [{ card: 'bear' }] },
+      { type: 'chooseTargets', player: 0, targets: [{ card: 'druid' }] },
+    ]);
+    s = resolveStack(chooseTargets(s, [{ card: 'bear' }]));
+    expect([getPower(s, 'bear'), getToughness(s, 'bear'), getPower(s, 'druid')]).toEqual([3, 3, 1]);
+  });
+
+  it('Hopeful Squire gets its counter when it attacks, before blockers are declared', () => {
+    let s = scenario({ players: [{ battlefield: [{ card: 'hopeful_squire', id: 'squire' }] }, { battlefield: [{ card: 'test_bear', id: 'bear' }] }] });
+    s = passTo(attack(s, ['squire']), 'declareBlockers');
+    expect([getPower(s, 'squire'), getToughness(s, 'squire')]).toEqual([2, 2]);
+    s = finishCombat(block(s, [{ blocker: 'bear', attacker: 'squire' }]));
+    expect([zoneOf(s, 'squire'), zoneOf(s, 'bear')]).toEqual(['graveyard', 'graveyard']);
+  });
+
+  it('Warren Hare passes a counter on when it dies, and its trigger is skipped with no creature left', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }], battlefield: ['mountain', 'mountain'] },
+        { battlefield: [{ card: 'warren_hare', id: 'hare' }, { card: 'warren_hare', id: 'last' }] },
+      ],
+    });
+    s = pass(pass(cast(s, 's1', [{ card: 'hare' }])));
+    expect(getLegalActions(s)).toEqual([{ type: 'chooseTargets', player: 1, targets: [{ card: 'last' }] }]);
+    s = resolveStack(chooseTargets(s, [{ card: 'last' }]));
+    expect([getPower(s, 'last'), getToughness(s, 'last')]).toEqual([2, 2]);
+    s = resolveStack(cast(s, 's2', [{ card: 'last' }]));
+    expect([zoneOf(s, 'last'), s.pending]).toEqual(['graveyard', { kind: 'priority', player: 0 }]);
+  });
+
+  it('Sunantler Monarch and Harvest Hymn put a counter on each creature you control', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'sunantler_monarch', id: 'monarch' }, { card: 'harvest_hymn', id: 'hymn' }],
+          battlefield: [...Array(5).fill('forest'), ...Array(5).fill('plains'), { card: 'test_bear', id: 'bear' }],
+        },
+        { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'monarch'));
+    expect(['bear', 'monarch', 'hound'].map((id) => s.cards[id]?.counters)).toEqual([1, 1, 0]);
+    s = resolveStack(cast(s, 'hymn'));
+    expect(['bear', 'monarch', 'hound'].map((id) => s.cards[id]?.counters)).toEqual([2, 2, 0]);
+    expect([getPower(s, 'monarch'), life(s, 0)]).toEqual([6, 22]);
+  });
+
+  it('Pack Pounce grows your creature before it fights, so it survives', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'pack_pounce', id: 'pounce' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] },
+        { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'pounce', [{ card: 'bear' }, { card: 'adept' }]));
+    expect([zoneOf(s, 'bear'), zoneOf(s, 'adept'), s.cards.bear?.damage, getToughness(s, 'bear')]).toEqual(['battlefield', 'graveyard', 2, 3]);
+  });
+
+  it('Rally the Meadow pumps only your creatures, until end of turn', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'rally_the_meadow', id: 'rally' }], battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear' }, { card: 'warren_hare', id: 'hare' }] },
+        { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'rally'));
+    expect(['bear', 'hare', 'hound'].map((id) => [getPower(s, id), getToughness(s, id)])).toEqual([[3, 3], [2, 2], [2, 1]]);
+    s = passToStep(s, 'main1', s.turn + 1);
+    expect(['bear', 'hare'].map((id) => [getPower(s, id), getToughness(s, id)])).toEqual([[2, 2], [1, 1]]);
+  });
+
+  it('Sunmeadow Herald gives every creature you control +1/+0 when it attacks', () => {
+    let s = scenario({ players: [{ battlefield: [{ card: 'sunmeadow_herald', id: 'herald' }, { card: 'test_bear', id: 'bear' }] }, {}] });
+    s = finishCombat(attack(s, ['herald']));
+    expect([getPower(s, 'herald'), getPower(s, 'bear'), getToughness(s, 'bear'), life(s, 1)]).toEqual([3, 3, 2, 17]);
   });
 });

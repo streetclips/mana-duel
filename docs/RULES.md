@@ -1,12 +1,13 @@
 # Rules
 
-Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its three decks need. This page is the
+Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its five decks need. This page is the
 contract of `src/engine`: what is implemented, and where it deliberately differs from Magic.
 
 ## Game
 
-- Two players, 20 life each, seven-card opening hands. Each player brings one of three 40-card decks, chosen
-  before the game: Emberwild (red/green), Dawntide (white/blue) or Duskmire (black). Both may bring the same deck.
+- Two players, 20 life each, seven-card opening hands. Each player brings one of five 40-card decks, chosen
+  before the game: Emberwild (red/green), Dawntide (white/blue), Duskmire (black), Stormglass (blue/red) or
+  Sunmeadow (green/white). Both may bring the same deck.
   No nonland card appears in two decks; basic lands may.
 - The starting player comes from a seeded coin flip (or `startingPlayer`). They skip their first draw.
 - London mulligan: shuffle the hand away, draw seven, and once you keep, put one card on the bottom per mulligan.
@@ -34,8 +35,9 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 - The active player receives priority first. Casting or activating keeps priority with you. When both players pass
   in succession, the top of the stack resolves and the active player receives priority again; with an empty stack
   the step ends instead.
-- Lands, creatures and sorceries need your main phase and an empty stack. Instants and activated abilities work
-  whenever you have priority.
+- Lands, creatures and sorceries need your main phase and an empty stack. Instants, creatures with flash and
+  activated abilities work whenever you have priority. A creature cast with flash still has summoning sickness, but
+  it can block as soon as it enters.
 - A spell or ability whose targets are all illegal on resolution fizzles. A fight does nothing if either creature is
   gone. One spell cannot pick the same target twice.
 - A counterspell targets a spell on the stack, never an ability. The countered spell leaves the stack for its
@@ -63,9 +65,12 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 
 ## Abilities
 
-- Triggers: "when this creature enters", "when this creature dies", "whenever this creature attacks". They go on the
-  stack the next time a player would receive priority, the active player's first; targets are chosen then. A trigger
-  with no legal target is skipped.
+- Triggers: "when this creature enters", "when this creature dies", "whenever this creature attacks" and "whenever
+  you cast an instant or sorcery spell". They go on the stack the next time a player would receive priority, the
+  active player's first; targets are chosen then. A trigger with no legal target is skipped.
+- "Whenever you cast an instant or sorcery spell" triggers for each permanent of the caster that has it, and only
+  for that player's instants and sorceries, not for creature spells. The trigger goes on the stack above the spell,
+  so it resolves first (Arc Initiate is already 3/3 when the Static Jolt that triggered it resolves).
 - Activated abilities use the stack and can be activated as often as you can pay (Crag Dragon: `{R}: +1/+0`,
   Duskmire Shade: `{B}: +1/+1`).
 - Damage from a creature's ability or a fight uses that creature's deathtouch and lifelink. Death triggers work
@@ -75,7 +80,11 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 
 - **Damage** to a creature is marked on it until cleanup; to a player it costs that much life.
 - **Pump** (`+N/+N` or `-N/-N`) lasts until end of turn. A creature whose toughness drops to 0 or below dies, and
-  damage already marked counts against the lowered toughness.
+  damage already marked counts against the lowered toughness. "Creatures you control get +N/+N" pumps each creature
+  its controller has when it resolves, and only those.
+- **+1/+1 counters** add to power and toughness like printed stats, damage and `-N/-N` included, and stay until the
+  creature leaves the battlefield: cleanup keeps them; dying or returning to hand removes them. "Each creature you
+  control" counts the creatures on the battlefield when it resolves, the source itself included.
 - **Destroy** puts a creature into its owner's graveyard, which triggers "when this creature dies".
 - **Return to hand** puts a creature back in its owner's hand: it leaves combat and loses its damage, pumps and
   tapped state. Cast again, it is a new creature with summoning sickness.
@@ -113,4 +122,4 @@ auto-pass skips for you; with auto-pass off, both seats get the same ones.
 | Mana pool and manual tapping | Automatic payment |
 | The same object may be targeted by two "target" words | Targets are always distinct |
 | Counterspells can counter abilities or specific kinds of spell | Only "counter target spell", any spell |
-| Tokens, counters, exile, auras, equipment, replacement effects, layers | Not in the engine yet |
+| Tokens, counters other than +1/+1, exile, auras, equipment, replacement effects, layers | Not in the engine yet |

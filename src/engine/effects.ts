@@ -1,6 +1,7 @@
 import { getCardDef } from './registry';
 import {
   changeLife,
+  creaturesOf,
   defOf,
   drawCards,
   getCard,
@@ -83,6 +84,17 @@ function resolveCreatureTarget(s: GameState, ctx: EffectContext, ref: EffectTarg
   return target.card;
 }
 
+function pumpUntilEndOfTurn(s: GameState, card: CardId, power: number, toughness: number): void {
+  s.effects.push({ id: newId(s, 'e'), card, power, toughness, until: 'endOfTurn' });
+  s.events.push({ t: 'pump', card, power, toughness });
+}
+
+function addCounters(s: GameState, card: CardId, amount: number): void {
+  if (amount <= 0) return;
+  getCard(s, card).counters += amount;
+  s.events.push({ t: 'addCounters', card, amount });
+}
+
 export function executeEffects(s: GameState, effects: Effect[], ctx: EffectContext): void {
   for (const effect of effects) {
     switch (effect.kind) {
@@ -93,17 +105,20 @@ export function executeEffects(s: GameState, effects: Effect[], ctx: EffectConte
       }
       case 'pump': {
         const card = resolveCreatureTarget(s, ctx, effect.to);
-        if (!card) break;
-        s.effects.push({
-          id: newId(s, 'e'),
-          card,
-          power: effect.power,
-          toughness: effect.toughness,
-          until: 'endOfTurn',
-        });
-        s.events.push({ t: 'pump', card, power: effect.power, toughness: effect.toughness });
+        if (card) pumpUntilEndOfTurn(s, card, effect.power, effect.toughness);
         break;
       }
+      case 'pumpTeam':
+        for (const card of creaturesOf(s, ctx.controller)) pumpUntilEndOfTurn(s, card, effect.power, effect.toughness);
+        break;
+      case 'addCounters': {
+        const card = resolveCreatureTarget(s, ctx, effect.to);
+        if (card) addCounters(s, card, effect.amount);
+        break;
+      }
+      case 'addCountersTeam':
+        for (const card of creaturesOf(s, ctx.controller)) addCounters(s, card, effect.amount);
+        break;
       case 'destroy': {
         const card = resolveCreatureTarget(s, ctx, effect.to);
         if (card) moveCard(s, card, 'graveyard');

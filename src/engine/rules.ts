@@ -1,6 +1,6 @@
 import { parseCost } from './mana';
 import { getCardDef, getCost } from './registry';
-import { defOf, findPayment, getCard, isInstantDef, isLandDef, isReadyToTap } from './state';
+import { defOf, findPayment, getCard, hasFlashDef, isInstantDef, isLandDef, isReadyToTap } from './state';
 import { targetsError } from './targets';
 import type { CardId, GameState, PlayerId, Target } from './types';
 
@@ -31,7 +31,7 @@ export function castBlocker(s: GameState, player: PlayerId, cardId: CardId): str
   const def = getCardDef(card.def);
   if (isLandDef(def)) return 'lands are played, not cast';
   if (!hasPriority(s, player)) return 'you do not have priority';
-  if (!isInstantDef(def) && !canActAtSorcerySpeed(s, player)) {
+  if (!isInstantDef(def) && !hasFlashDef(def) && !canActAtSorcerySpeed(s, player)) {
     return 'this can only be cast during your main phase with an empty stack';
   }
   if (!findPayment(s, player, getCost(card.def), { excludeFromDemand: cardId })) return 'not enough mana';

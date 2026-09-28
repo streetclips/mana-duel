@@ -28,6 +28,7 @@ export const KEYWORD_NAMES: Record<Keyword, string> = {
   lifelink: 'Lifelink',
   menace: 'Menace',
   defender: 'Defender',
+  flash: 'Flash',
 };
 
 export const KEYWORD_REMINDERS: Record<Keyword, string> = {
@@ -42,6 +43,7 @@ export const KEYWORD_REMINDERS: Record<Keyword, string> = {
   lifelink: 'Damage dealt by it also causes its controller to gain that much life.',
   menace: "Can't be blocked except by two or more creatures.",
   defender: "Can't attack.",
+  flash: 'You may cast it any time you could cast an instant.',
 };
 
 export const STEP_NAMES: Record<Step, string> = {
@@ -103,43 +105,64 @@ export function targetPhrase(spec: TargetSpec): string {
   }
 }
 
-function refPhrase(ref: EffectTarget, specs: TargetSpec[], self: string): string {
-  if (ref === 'self') return self;
-  const spec = specs[ref];
-  return spec ? targetPhrase(spec) : 'it';
+function countWord(amount: number): string {
+  return NUMBER_WORDS[amount] ?? String(amount);
 }
 
-function effectSentence(effect: Effect, specs: TargetSpec[], subject: string, self: string): string {
+function plusCounters(amount: number): string {
+  return amount === 1 ? 'a +1/+1 counter' : `${countWord(amount)} +1/+1 counters`;
+}
+
+export function countersLabel(count: number): string {
+  return count === 1 ? '+1/+1 counter' : `${count} +1/+1 counters`;
+}
+
+function effectSentence(effect: Effect, ref: (target: EffectTarget) => string, subject: string): string {
   switch (effect.kind) {
     case 'damage':
-      return `${subject} deals ${effect.amount} damage to ${refPhrase(effect.to, specs, self)}.`;
+      return `${subject} deals ${effect.amount} damage to ${ref(effect.to)}.`;
     case 'pump':
-      return `${capitalize(refPhrase(effect.to, specs, self))} gets ${formatModifier(effect.power, effect.toughness)} until end of turn.`;
+      return `${capitalize(ref(effect.to))} gets ${formatModifier(effect.power, effect.toughness)} until end of turn.`;
     case 'destroy':
-      return `Destroy ${refPhrase(effect.to, specs, self)}.`;
+      return `Destroy ${ref(effect.to)}.`;
     case 'bounce':
-      return `Return ${refPhrase(effect.to, specs, self)} to its owner's hand.`;
+      return `Return ${ref(effect.to)} to its owner's hand.`;
     case 'counter':
-      return `Counter ${refPhrase(effect.to, specs, self)}.`;
+      return `Counter ${ref(effect.to)}.`;
     case 'draw':
-      return effect.amount === 1 ? 'Draw a card.' : `Draw ${NUMBER_WORDS[effect.amount] ?? effect.amount} cards.`;
+      return effect.amount === 1 ? 'Draw a card.' : `Draw ${countWord(effect.amount)} cards.`;
     case 'gainLife':
       return `You gain ${effect.amount} life.`;
     case 'loseLife':
       return `You lose ${effect.amount} life.`;
     case 'fight':
-      return `${capitalize(refPhrase(effect.a, specs, self))} fights ${refPhrase(effect.b, specs, self)}.`;
+      return `${capitalize(ref(effect.a))} fights ${ref(effect.b)}.`;
+    case 'pumpTeam':
+      return `Creatures you control get ${formatModifier(effect.power, effect.toughness)} until end of turn.`;
+    case 'addCounters':
+      return `Put ${plusCounters(effect.amount)} on ${ref(effect.to)}.`;
+    case 'addCountersTeam':
+      return `Put ${plusCounters(effect.amount)} on each creature you control.`;
   }
 }
 
 function sentences(effects: Effect[], specs: TargetSpec[], subject: string, self: string): string {
-  return effects.map((effect) => effectSentence(effect, specs, subject, self)).join(' ');
+  const named = new Set<number>();
+  const ref = (target: EffectTarget): string => {
+    if (target === 'self') return self;
+    const spec = specs[target];
+    if (!spec || named.has(target)) return 'it';
+    named.add(target);
+    return targetPhrase(spec);
+  };
+  return effects.map((effect) => effectSentence(effect, ref, subject)).join(' ');
 }
 
 const TRIGGER_OPENERS = {
   enters: 'When this creature enters',
   dies: 'When this creature dies',
   attacks: 'Whenever this creature attacks',
+  spell: 'Whenever you cast an instant or sorcery spell',
 } as const;
 
 export function rulesText(def: CardDef): string[] {
@@ -264,6 +287,8 @@ export function describeEvent(s: GameState, event: GameEvent, viewer: PlayerId):
       return `${verb(s, event.player, viewer, 'lose')} ${event.amount} life.`;
     case 'pump':
       return `${capitalize(cardRef(s, event.card, viewer))} gets ${formatModifier(event.power, event.toughness)} until end of turn.`;
+    case 'addCounters':
+      return `${capitalize(cardRef(s, event.card, viewer))} gets ${event.amount === 1 ? 'a +1/+1 counter' : `${event.amount} +1/+1 counters`}.`;
     case 'fight':
       return `${capitalize(cardRef(s, event.a, viewer))} fights ${cardRef(s, event.b, viewer)}.`;
     case 'dies':
@@ -288,6 +313,7 @@ function permanentLabel(s: GameState, id: CardId): string {
   if (card.tapped) flags.push('tapped');
   if (card.summoningSick && isCreatureDef(def)) flags.push('sick');
   if (card.damage > 0) flags.push(`${card.damage} dmg`);
+  if (card.counters > 0) flags.push(countersLabel(card.counters));
   if (s.combat?.attackers.includes(id)) flags.push('attacking');
   const block = s.combat?.blocks.find((candidate) => candidate.blocker === id);
   if (block) flags.push(`blocking ${block.attacker}`);

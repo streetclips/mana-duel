@@ -22,6 +22,7 @@ export const SHORT_KEYWORDS: Record<Keyword, string> = {
   lifelink: 'Lifelink',
   menace: 'Menace',
   defender: 'Defender',
+  flash: 'Flash',
 };
 
 export function cardColors(def: CardDef): Color[] {
@@ -56,6 +57,12 @@ export function effectHint(effect: Effect): string {
       return `-${effect.amount} life`;
     case 'fight':
       return 'fight';
+    case 'pumpTeam':
+      return `team ${formatModifier(effect.power, effect.toughness)}`;
+    case 'addCounters':
+      return `+${effect.amount} counter${effect.amount === 1 ? '' : 's'}`;
+    case 'addCountersTeam':
+      return `team +${effect.amount} counter${effect.amount === 1 ? '' : 's'}`;
   }
 }
 
@@ -63,7 +70,7 @@ export function shortText(defId: string): string {
   const def = getCardDef(defId);
   const parts: string[] = (def.keywords ?? []).map((keyword) => SHORT_KEYWORDS[keyword]);
   if (def.mana?.length && def.types.includes('creature')) parts.push(`T: +${def.mana.join('/')}`);
-  const openers = { enters: 'Enters', dies: 'Dies', attacks: 'Attacks' } as const;
+  const openers = { enters: 'Enters', dies: 'Dies', attacks: 'Attacks', spell: 'Spell' } as const;
   for (const trigger of def.triggers ?? []) parts.push(`${openers[trigger.on]}: ${trigger.effects.map(effectHint).join(', ')}`);
   for (const ability of def.activated ?? []) {
     const cost = ability.cost.replace(/[{}]/g, '');

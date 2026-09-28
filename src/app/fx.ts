@@ -114,13 +114,16 @@ export function fxCues(before: GameState | null, after: GameState): FxCue[] {
         }
         break;
       }
-      case 'pump': {
+      case 'pump':
+      case 'addCounters': {
+        const power = event.t === 'pump' ? event.power : event.amount;
+        const toughness = event.t === 'pump' ? event.toughness : event.amount;
         const existing = pumps.get(event.card);
         if (existing) {
-          existing.power += event.power;
-          existing.toughness += event.toughness;
+          existing.power += power;
+          existing.toughness += toughness;
         } else {
-          const cue: CueOf<'pump'> = { kind: 'pump', card: event.card, power: event.power, toughness: event.toughness };
+          const cue: CueOf<'pump'> = { kind: 'pump', card: event.card, power, toughness };
           pumps.set(event.card, cue);
           cues.push(cue);
         }

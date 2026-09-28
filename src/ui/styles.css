@@ -351,6 +351,15 @@ button {
   color: var(--bg);
 }
 
+.segmented.wrap {
+  flex-wrap: wrap;
+  border-radius: 18px;
+}
+
+.segmented.wrap button {
+  flex: 1 0 30%;
+}
+
 .llm-fields {
   display: grid;
   gap: 10px;

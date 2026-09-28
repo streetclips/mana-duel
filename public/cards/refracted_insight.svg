@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1f3a"/>
+      <stop offset="1" stop-color="#3b2f5c"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="58" cy="38" r="28" fill="#8fe0ee" opacity="0.06"/>
+  <circle cx="58" cy="38" r="17" fill="#8fe0ee" opacity="0.08"/>
+  <path d="M0 48 L48 36.2" stroke="#ffffff" stroke-width="5" opacity="0.08"/>
+  <polygon points="0,46.8 48,35 48,37.4 0,49.2" fill="#ffffff"/>
+  <polygon points="69,36.5 120,51 120,55 69,37.5" fill="#e2f2fb" opacity="0.9"/>
+  <polygon points="69,37.2 120,58 120,62.5 69,38.2" fill="#8fe0ee" opacity="0.9"/>
+  <polygon points="69,37.8 120,65 120,70 69,38.8" fill="#5cc3dc" opacity="0.9"/>
+  <polygon points="69,35.8 87,39.4 87,41.8 69,37" fill="#f28a3b"/>
+  <polygon points="58,15 38,53 78,53" fill="#8fe0ee" opacity="0.3"/>
+  <polygon points="58,15 38,53 58,40.3" fill="#e2f2fb" opacity="0.35"/>
+  <polygon points="58,15 78,53 58,40.3" fill="#8fe0ee" opacity="0.3"/>
+  <polygon points="38,53 78,53 58,40.3" fill="#5cc3dc" opacity="0.3"/>
+  <path d="M48 36.2 L69 36.8" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>
+  <path d="M58 15 L58 40.3 L38 53 M58 40.3 L78 53" fill="none" stroke="#e2f2fb" stroke-width="0.7" opacity="0.5"/>
+  <polygon points="58,15 38,53 78,53" fill="none" stroke="#e2f2fb" stroke-width="1.2" stroke-linejoin="round"/>
+  <polygon points="55,24 57,20.5 47,40 45,43" fill="#ffffff" opacity="0.5"/>
+  <circle cx="88" cy="40.6" r="4.5" fill="#f28a3b" opacity="0.3"/>
+  <path d="M88 35.6 L89 39.6 L93 40.6 L89 41.6 L88 45.6 L87 41.6 L83 40.6 L87 39.6 Z" fill="#fff3c4"/>
+  <g fill="#8fe0ee">
+    <circle cx="26" cy="20" r="0.9"/>
+    <circle cx="36" cy="64" r="0.8"/>
+    <circle cx="96" cy="18" r="1"/>
+    <circle cx="18" cy="62" r="0.7"/>
+  </g>
+  <g fill="#fbd46a">
+    <circle cx="95" cy="35" r="0.7"/>
+    <circle cx="92" cy="46.5" r="0.6"/>
+    <circle cx="80" cy="16" r="0.8"/>
+  </g>
+</svg>

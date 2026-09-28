@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   DECK_LIST,
   EMBERWILD,
+  STORMGLASS,
+  SUNMEADOW,
   cardSummary,
   costColors,
   deckSize,
@@ -20,9 +22,11 @@ import { CORE_CARDS } from '../../src/engine/cards';
 const isLandId = (id: string): boolean => getCardDef(id).types.includes('land');
 
 describe('decks', () => {
-  it('are Emberwild, Dawntide and Duskmire', () => {
-    expect(DECK_LIST.map((deck) => deck.id)).toEqual(['emberwild', 'dawntide', 'duskmire']);
+  it('are Emberwild, Dawntide, Duskmire, Stormglass and Sunmeadow', () => {
+    expect(DECK_LIST.map((deck) => deck.id)).toEqual(['emberwild', 'dawntide', 'duskmire', 'stormglass', 'sunmeadow']);
     expect(getDeck('emberwild')).toBe(EMBERWILD);
+    expect(getDeck('stormglass')).toBe(STORMGLASS);
+    expect(getDeck('sunmeadow')).toBe(SUNMEADOW);
   });
 
   for (const deck of DECK_LIST) {
@@ -132,6 +136,69 @@ describe('rules text', () => {
     nights_bargain: { type: 'Sorcery', text: ['Draw two cards. You lose 2 life.'] },
     soul_siphon: { type: 'Sorcery', text: ['Soul Siphon deals 2 damage to any target. You gain 2 life.'] },
     grave_sentence: { type: 'Instant', text: ['Destroy target creature.'] },
+    kiln_sprite: {
+      type: 'Creature — Elemental',
+      text: ['Haste', 'Whenever you cast an instant or sorcery spell, it gets +1/+1 until end of turn.'],
+    },
+    squall_skimmer: { type: 'Creature — Bird', text: ['Flash, flying'] },
+    arc_initiate: {
+      type: 'Creature — Human Monk',
+      text: ['Whenever you cast an instant or sorcery spell, it gets +1/+1 until end of turn.'],
+    },
+    glassreef_sentinel: { type: 'Creature — Merfolk Soldier', text: ['Flash'] },
+    galvanic_channeler: {
+      type: 'Creature — Human Shaman',
+      text: ['Whenever you cast an instant or sorcery spell, it deals 1 damage to target opponent.'],
+    },
+    wavecrest_mystic: {
+      type: 'Creature — Merfolk Wizard',
+      text: ['Flash', "When this creature enters, return target creature you don't control to its owner's hand."],
+    },
+    stormglass_drake: {
+      type: 'Creature — Drake',
+      text: ['Flying', 'Whenever you cast an instant or sorcery spell, put a +1/+1 counter on it.'],
+    },
+    thunderhead_djinn: { type: 'Creature — Djinn', text: ['Flying', 'When this creature enters, it deals 2 damage to any target.'] },
+    static_jolt: { type: 'Instant', text: ['Static Jolt deals 1 damage to any target. Draw a card.'] },
+    stormflare: { type: 'Sorcery', text: ['Stormflare deals 3 damage to any target.'] },
+    brine_rebuke: { type: 'Instant', text: ["Return target creature to its owner's hand. Draw a card."] },
+    refracted_insight: { type: 'Instant', text: ['Draw two cards. Refracted Insight deals 1 damage to any target.'] },
+    shattered_intent: { type: 'Instant', text: ['Counter target spell.'] },
+    hopeful_squire: { type: 'Creature — Human Soldier', text: ['Whenever this creature attacks, put a +1/+1 counter on it.'] },
+    warren_hare: {
+      type: 'Creature — Rabbit',
+      text: ['When this creature dies, put a +1/+1 counter on target creature you control.'],
+    },
+    bloomcaller_druid: {
+      type: 'Creature — Elf Druid',
+      text: ['When this creature enters, put a +1/+1 counter on target creature you control.'],
+    },
+    bristleback_boar: { type: 'Creature — Boar', text: ['Trample'] },
+    sunmeadow_herald: {
+      type: 'Creature — Human Soldier',
+      text: ['Whenever this creature attacks, creatures you control get +1/+0 until end of turn.'],
+    },
+    hearthfield_cleric: { type: 'Creature — Human Cleric', text: ['When this creature enters, you gain 3 life.'] },
+    thornglade_archer: { type: 'Creature — Elf Archer', text: ['Reach'] },
+    mossbark_bear: {
+      type: 'Creature — Bear',
+      text: ['When this creature enters, put a +1/+1 counter on target creature you control.'],
+    },
+    skyguard_griffin: {
+      type: 'Creature — Griffin',
+      text: ['Flying', 'When this creature enters, put a +1/+1 counter on target creature you control.'],
+    },
+    sunantler_monarch: {
+      type: 'Creature — Elk',
+      text: ['Vigilance', 'When this creature enters, put a +1/+1 counter on each creature you control.'],
+    },
+    rally_the_meadow: { type: 'Instant', text: ['Creatures you control get +1/+1 until end of turn.'] },
+    wild_blossom: { type: 'Instant', text: ['Put two +1/+1 counters on target creature.'] },
+    pack_pounce: {
+      type: 'Sorcery',
+      text: ["Put a +1/+1 counter on target creature you control. It fights target creature you don't control."],
+    },
+    harvest_hymn: { type: 'Sorcery', text: ['Put a +1/+1 counter on each creature you control. You gain 2 life.'] },
   };
 
   for (const [id, { type, text }] of Object.entries(expected)) {
@@ -149,6 +216,14 @@ describe('rules text', () => {
   it('builds one-line summaries', () => {
     expect(cardSummary('timberland_rhino')).toBe('Timberland Rhino · {2}{G}{G} · Creature — Rhino · 4/4 · Trample');
     expect(cardSummary('turn_the_tide')).toBe('Turn the Tide · {1}{U}{U} · Instant · Counter target spell.');
+    expect(cardSummary('squall_skimmer')).toBe('Squall Skimmer · {1}{U} · Creature — Bird · 2/1 · Flash, flying');
+  });
+
+  it('calls a target named earlier in the same ability "it"', () => {
+    expect(rulesText(getCardDef('pack_pounce'))).toEqual([
+      "Put a +1/+1 counter on target creature you control. It fights target creature you don't control.",
+    ]);
+    expect(rulesText(getCardDef('feral_clash'))).toEqual(["Target creature you control fights target creature you don't control."]);
   });
 });
 

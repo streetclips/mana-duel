@@ -23,10 +23,14 @@ export function lifeScore(life: number): number {
   return score;
 }
 
+function counters(s: GameState, id: CardId): number {
+  return s.cards[id]?.counters ?? 0;
+}
+
 export function creatureValue(s: GameState, id: CardId): number {
   const def = getCardDef(s.cards[id]?.def ?? '');
-  const power = def.power ?? 0;
-  const toughness = def.toughness ?? 0;
+  const power = (def.power ?? 0) + counters(s, id);
+  const toughness = (def.toughness ?? 0) + counters(s, id);
   let value = 1 + power * 1.5 + toughness;
   for (const keyword of getKeywords(s, id)) {
     switch (keyword) {
@@ -61,11 +65,13 @@ export function creatureValue(s: GameState, id: CardId): number {
         value -= power * 1.2;
         break;
       case 'haste':
+      case 'flash':
         break;
     }
   }
   if (def.mana?.length) value += 1.2;
   if (def.activated?.length) value += 1;
+  for (const trigger of def.triggers ?? []) if (trigger.on === 'attacks' || trigger.on === 'spell') value += 1;
   return value;
 }
 
@@ -92,7 +98,7 @@ function exposurePenalty(s: GameState, player: PlayerId): number {
   const opp = opponent(player);
   const attackers = s.players[opp].battlefield
     .filter((id) => isCreature(s, id) && !getKeywords(s, id).includes('defender'))
-    .map((id) => ({ power: getCardDef(s.cards[id]?.def ?? '').power ?? 0, flying: getKeywords(s, id).includes('flying') }))
+    .map((id) => ({ power: (getCardDef(s.cards[id]?.def ?? '').power ?? 0) + counters(s, id), flying: getKeywords(s, id).includes('flying') }))
     .sort((a, b) => b.power - a.power);
   const blockers = s.players[player].battlefield.filter((id) => isCreature(s, id) && !s.cards[id]?.tapped);
   let flyingBlockers = blockers.filter((id) => {
