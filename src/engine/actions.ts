@@ -52,6 +52,11 @@ export function getLegalActions(s: GameState, options: EnumerationOptions = {}):
   }
 }
 
+export function forcedAction(s: GameState): Action | null {
+  const legal = getLegalActions(s, { limit: 2 });
+  return legal.length === 1 ? (legal[0] as Action) : null;
+}
+
 export function priorityActions(s: GameState, player: PlayerId): Action[] {
   const actions: Action[] = [{ type: 'pass', player }];
   for (const id of s.players[player].hand) {

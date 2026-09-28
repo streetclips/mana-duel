@@ -5,16 +5,24 @@ import {
   createGame,
   createScenario,
   describeEvent,
+  forcedAction,
   getLegalActions,
+  opponent,
   tryApplyAction,
   type Action,
   type ActionResult,
   type GameEvent,
   type GameOptions,
   type GameState,
+  type PendingDecision,
   type PlayerId,
   type ScenarioSpec,
+  type Step,
 } from '../engine';
+import type { ReasoningEffort } from '../llm/models';
+import type { LlmDecision, LlmPlayer } from '../llm/player';
+import type { Prompt, PromptContext } from '../llm/prompt';
+import { eventLines, thoughtLine } from '../llm/view';
 import { autoPassReason } from './autopass';
 import { fxCues, fxHoldMs, type FxBatch, type FxCue } from './fx';
 
@@ -22,8 +30,12 @@ export interface LogEntry {
   id: number;
   turn: number;
   text: string;
-  event: GameEvent;
+  event: GameEvent | null;
 }
+
+export type LlmSetup = { kind: 'llm'; model: string; effort?: ReasoningEffort };
+export type OpponentSetup = { kind: 'classic' } | LlmSetup;
+export type LlmFactory = (setup: LlmSetup) => LlmPlayer;
 
 export interface ControllerOptions {
   seed?: number;
@@ -35,6 +47,8 @@ export interface ControllerOptions {
   skipMulligans?: boolean;
   startingPlayer?: PlayerId;
   decks?: Matchup;
+  opponent?: OpponentSetup;
+  llmFactory?: LlmFactory;
 }
 
 export type Matchup = [string, string];
@@ -47,7 +61,27 @@ export interface Replay {
   actions: Action[];
 }
 
+export interface LlmRecord extends LlmDecision {
+  turn: number;
+  step: Step;
+  decision: Exclude<PendingDecision['kind'], 'gameOver'>;
+}
+
+interface LlmTurn {
+  state: GameState;
+  started: number;
+  abort: AbortController;
+  decision: LlmDecision | null;
+}
+
+interface AutomaticAction {
+  action: Action;
+  delay: number;
+  decision?: LlmDecision;
+}
+
 const DEFAULT_MATCHUP: Matchup = [DEFAULT_DECK_ID, DEFAULT_DECK_ID];
+const CLASSIC_OPPONENT: OpponentSetup = { kind: 'classic' };
 
 export const DEFAULT_AI_DELAY_MS = 650;
 
@@ -56,6 +90,9 @@ type Listener = () => void;
 const MAX_LOG = 400;
 const MAX_FX = 60;
 const MAX_FX_SPEED = 8;
+const MAX_LLM_RECORDS = 100;
+const MAX_OPPONENT_LOG = 60;
+const MAX_LLM_THOUGHTS = 20;
 
 function fxSpeedFrom(speed: number): number {
   return Number.isFinite(speed) && speed > 0 ? Math.min(speed, MAX_FX_SPEED) : 0;
@@ -74,6 +111,9 @@ export class GameController {
   autoplay: boolean;
   decks: Matchup | null;
   busy = false;
+  opponent: OpponentSetup;
+  llm: LlmPlayer | null;
+  llmRecords: LlmRecord[] = [];
   private endTurnFor: number | null = null;
   private listeners = new Set<Listener>();
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -81,6 +121,10 @@ export class GameController {
   private replay: Replay;
   private disposed = false;
   private lastCues: FxCue[] = [];
+  private readonly llmFactory: LlmFactory | null;
+  private llmTurn: LlmTurn | null = null;
+  private opponentLog: string[] = [];
+  private llmThoughts: string[] = [];
 
   constructor(options: ControllerOptions = {}) {
     this.human = options.human ?? 0;
@@ -88,12 +132,33 @@ export class GameController {
     this.fxSpeed = fxSpeedFrom(options.fxSpeed ?? 1);
     this.autoPass = options.autoPass ?? true;
     this.autoplay = options.autoplay ?? false;
+    this.llmFactory = options.llmFactory ?? null;
+    this.opponent = options.opponent ?? CLASSIC_OPPONENT;
+    this.llm = this.createLlm(this.opponent);
     this.decks = [...(options.decks ?? DEFAULT_MATCHUP)];
     const setup = this.setupFrom(options, this.decks);
     this.state = createGame(setup);
     this.replay = this.freshReplay(setup, this.decks);
     this.appendLog(this.state);
     this.recordFx(fxCues(null, this.state));
+  }
+
+  get aiSeat(): PlayerId {
+    return opponent(this.human);
+  }
+
+  get llmThinking(): boolean {
+    return this.llmTurn !== null && this.llmTurn.decision === null && this.llmTurn.state === this.state;
+  }
+
+  get llmUnavailable(): string | null {
+    return this.llm?.unavailable ?? null;
+  }
+
+  private createLlm(setup: OpponentSetup): LlmPlayer | null {
+    if (setup.kind === 'classic') return null;
+    if (!this.llmFactory) throw new Error('this controller has no LLM factory, so it cannot seat an LLM opponent');
+    return this.llmFactory(setup);
   }
 
   private setupFrom(options: ControllerOptions, decks: Matchup): GameOptions {
@@ -125,6 +190,7 @@ export class GameController {
 
   pause(): void {
     this.clearTimer();
+    this.cancelLlm();
     this.setBusy(false);
   }
 
@@ -136,14 +202,31 @@ export class GameController {
   dispose(): void {
     this.disposed = true;
     this.clearTimer();
+    this.cancelLlm();
     this.listeners.clear();
+  }
+
+  whenIdle(): Promise<void> {
+    if (!this.busy || this.disposed) return Promise.resolve();
+    return new Promise((resolve) => {
+      const stop = this.subscribe(() => {
+        if (this.busy && !this.disposed) return;
+        stop();
+        resolve();
+      });
+    });
   }
 
   newGame(options: ControllerOptions = {}): void {
     this.clearTimer();
+    this.cancelLlm();
     if (options.aiDelayMs !== undefined) this.aiDelayMs = options.aiDelayMs;
     if (options.fxSpeed !== undefined) this.fxSpeed = fxSpeedFrom(options.fxSpeed);
     if (options.autoplay !== undefined) this.autoplay = options.autoplay;
+    if (options.autoPass !== undefined) this.autoPass = options.autoPass;
+    const setupOpponent = options.opponent ?? this.opponent;
+    this.llm = this.createLlm(setupOpponent);
+    this.opponent = setupOpponent;
     const decks: Matchup = [...(options.decks ?? this.decks ?? DEFAULT_MATCHUP)];
     const setup = this.setupFrom(options, decks);
     this.state = createGame(setup);
@@ -154,6 +237,7 @@ export class GameController {
 
   loadScenario(spec: ScenarioSpec): void {
     this.clearTimer();
+    this.cancelLlm();
     this.state = createScenario(spec);
     this.decks = null;
     this.replay = {
@@ -177,6 +261,7 @@ export class GameController {
       if (!result.ok) return result;
       state = result.state;
     }
+    this.cancelLlm();
     this.state = state;
     this.decks = decks;
     this.replay = { ...replay, decks, actions: [...replay.actions] };
@@ -186,6 +271,9 @@ export class GameController {
 
   private resetSession(animateStart: boolean): void {
     this.log = [];
+    this.opponentLog = [];
+    this.llmThoughts = [];
+    this.llmRecords = [];
     this.endTurnFor = null;
     this.session += 1;
     this.fx = [];
@@ -206,6 +294,27 @@ export class GameController {
 
   legalActions(): Action[] {
     return this.isHumanTurnToDecide() ? getLegalActions(this.state) : [];
+  }
+
+  async llmPrompt(): Promise<Prompt | null> {
+    const s = this.state;
+    const pending = s.pending;
+    if (!pending || pending.kind === 'gameOver' || pending.player !== this.aiSeat) return null;
+    const context = this.llmContext();
+    const [{ buildPrompt }, { decisionFor }] = await Promise.all([import('../llm/prompt'), import('../llm/decision')]);
+    return buildPrompt(s, this.aiSeat, decisionFor(s, this.aiSeat), context);
+  }
+
+  private llmContext(): PromptContext {
+    return { decks: this.decks, recentEvents: [...this.opponentLog], recentThoughts: [...this.llmThoughts] };
+  }
+
+  lastEventText(): string | undefined {
+    for (let i = this.log.length - 1; i >= 0; i--) {
+      const entry = this.log[i];
+      if (entry?.event) return entry.text;
+    }
+    return undefined;
   }
 
   dispatch(action: Action): ActionResult {
@@ -231,9 +340,9 @@ export class GameController {
   settle(maxActions = 5000): void {
     this.clearTimer();
     for (let i = 0; i < maxActions; i++) {
-      const action = this.automaticAction();
-      if (!action) break;
-      const result = this.apply(action.action, false);
+      const next = this.automaticAction();
+      if (!next) break;
+      const result = this.applyAutomatic(next, false);
       if (!result.ok) throw new Error(`automatic action rejected: ${result.error}`);
     }
     this.schedule();
@@ -249,24 +358,52 @@ export class GameController {
     this.schedule();
   }
 
+  setAutoPass(on: boolean): void {
+    this.autoPass = on;
+    this.notify();
+    this.schedule();
+  }
+
   setFxSpeed(speed: number): void {
     this.fxSpeed = fxSpeedFrom(speed);
     this.notify();
     this.schedule();
   }
 
-  private apply(action: Action, reschedule = true): ActionResult {
+  private apply(action: Action, reschedule = true, decision?: LlmDecision): ActionResult {
     const result = tryApplyAction(this.state, action);
     if (!result.ok) return result;
     const before = this.state;
     this.state = result.state;
     this.replay.actions.push(action);
+    if (decision) this.noteDecision(before, decision);
     this.appendLog(result.state);
     this.recordFx(fxCues(before, result.state));
     if (this.state.turn !== before.turn) this.endTurnFor = null;
     this.notify();
     if (reschedule) this.schedule();
     return result;
+  }
+
+  private applyAutomatic(next: AutomaticAction, reschedule: boolean): ActionResult {
+    return this.apply(next.action, reschedule, next.decision);
+  }
+
+  private noteDecision(s: GameState, decision: LlmDecision): void {
+    const note = this.noteFor(decision);
+    if (note) this.appendNote(note);
+    if (decision.source !== 'model' || !decision.reason) return;
+    this.llmThoughts.push(thoughtLine(s, this.aiSeat, decision.reason));
+    if (this.llmThoughts.length > MAX_LLM_THOUGHTS) this.llmThoughts.shift();
+  }
+
+  private noteFor(decision: LlmDecision): string | undefined {
+    const name = this.state.players[this.aiSeat].name;
+    if (decision.source === 'model') return decision.reason ? `${name} thinks: ${decision.reason}` : undefined;
+    if (decision.source !== 'fallback') return undefined;
+    return this.llmUnavailable
+      ? `The LLM is unavailable (${this.llmUnavailable}): the classic AI plays the rest of this game.`
+      : `The LLM could not decide (${decision.error ?? 'unknown error'}): the classic AI made this move.`;
   }
 
   private recordFx(cues: FxCue[]): void {
@@ -283,6 +420,11 @@ export class GameController {
     return (fxHoldMs(this.lastCues, this.human, this.autoplay) * pace) / this.fxSpeed;
   }
 
+  private appendNote(text: string): void {
+    this.logId += 1;
+    this.log.push({ id: this.logId, turn: this.state.turn, text, event: null });
+  }
+
   private appendLog(state: GameState): void {
     for (const event of state.events) {
       if (event.t === 'draw' && state.turn === 0) continue;
@@ -292,14 +434,26 @@ export class GameController {
       this.log.push({ id: this.logId, turn: state.turn, text, event });
     }
     if (this.log.length > MAX_LOG) this.log = this.log.slice(-MAX_LOG);
+    this.opponentLog.push(...eventLines(state, this.aiSeat));
+    if (this.opponentLog.length > MAX_OPPONENT_LOG) this.opponentLog = this.opponentLog.slice(-MAX_OPPONENT_LOG);
   }
 
-  private automaticAction(): { action: Action; delay: number } | null {
+  private isLlmSeat(player: PlayerId): boolean {
+    return this.llm !== null && !this.llm.unavailable && player === this.aiSeat;
+  }
+
+  private automaticAction(): AutomaticAction | null {
     const s = this.state;
     const pending = s.pending;
     if (!pending || pending.kind === 'gameOver') return null;
     const humanDecides = pending.player === this.human && !this.autoplay;
     if (!humanDecides) {
+      const answered = this.llmAnswer();
+      if (answered) return answered;
+      if (this.isLlmSeat(pending.player)) {
+        const forced = forcedAction(s);
+        return forced ? { action: forced, delay: this.delayFor(forced) } : null;
+      }
       const action = chooseAction(s, pending.player);
       return { action, delay: this.delayFor(action) };
     }
@@ -307,11 +461,60 @@ export class GameController {
     if (pending.kind === 'declareAttackers' && endTurnRequested) {
       return { action: { type: 'declareAttackers', player: this.human, attackers: [] }, delay: this.holdMs() };
     }
-    if (pending.kind === 'priority' && this.autoPass && autoPassReason(s, this.human, { endTurnRequested })) {
+    if (pending.kind === 'priority' && autoPassReason(s, this.human, { endTurnRequested, autoPass: this.autoPass })) {
       const opponentsSpell = s.stack.length > 0 && s.stack.at(-1)?.controller !== this.human;
       return { action: { type: 'pass', player: this.human }, delay: Math.max(opponentsSpell ? this.aiDelayMs * 1.4 : 0, this.holdMs()) };
     }
     return null;
+  }
+
+  private llmAnswer(): AutomaticAction | null {
+    const turn = this.llmTurn;
+    if (!turn || turn.state !== this.state || !turn.decision) return null;
+    const thought = Date.now() - turn.started;
+    return { action: turn.decision.action, delay: Math.max(0, this.delayFor(turn.decision.action) - thought), decision: turn.decision };
+  }
+
+  private askLlm(): void {
+    const s = this.state;
+    const pending = s.pending;
+    const llm = this.llm;
+    if (!llm || !pending || pending.kind === 'gameOver' || this.llmTurn?.state === s) return;
+    this.cancelLlm();
+    const turn: LlmTurn = { state: s, started: Date.now(), abort: new AbortController(), decision: null };
+    this.llmTurn = turn;
+    const player = pending.player;
+    this.notify();
+    llm
+      .decide(s, player, { signal: turn.abort.signal, ...this.llmContext() })
+      .catch((error: unknown): LlmDecision | null => {
+        if (turn.abort.signal.aborted) return null;
+        return {
+          action: chooseAction(s, player),
+          source: 'fallback',
+          model: llm.model,
+          attempts: 0,
+          ms: Date.now() - turn.started,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      })
+      .then((decision) => {
+        if (!decision || this.llmTurn !== turn || this.disposed) return;
+        turn.decision = decision;
+        this.recordLlm(s, pending.kind, decision);
+        this.schedule();
+      });
+  }
+
+  private recordLlm(s: GameState, kind: LlmRecord['decision'], decision: LlmDecision): void {
+    this.llmRecords.push({ ...decision, turn: s.turn, step: s.step, decision: kind });
+    if (this.llmRecords.length > MAX_LLM_RECORDS) this.llmRecords.shift();
+  }
+
+  private cancelLlm(): void {
+    const turn = this.llmTurn;
+    this.llmTurn = null;
+    if (turn && !turn.decision) turn.abort.abort();
   }
 
   private delayFor(action: Action): number {
@@ -324,6 +527,7 @@ export class GameController {
   private schedule(): void {
     this.clearTimer();
     if (this.disposed) return;
+    if (this.llmTurn && this.llmTurn.state !== this.state) this.cancelLlm();
     const pending = this.state.pending;
     if (!pending || pending.kind === 'gameOver') {
       this.setBusy(false);
@@ -337,23 +541,23 @@ export class GameController {
         return;
       }
       this.setBusy(true);
-      this.timer = setTimeout(() => this.runScheduled(next.action), next.delay);
+      this.timer = setTimeout(() => this.runScheduled(next), next.delay);
       return;
     }
     this.setBusy(true);
     this.timer = setTimeout(() => {
       this.timer = null;
       const next = this.automaticAction();
-      if (!next) return this.schedule();
-      this.timer = setTimeout(() => this.runScheduled(next.action), next.delay);
+      if (next) this.timer = setTimeout(() => this.runScheduled(next), next.delay);
+      else this.askLlm();
     }, 0);
   }
 
-  private runScheduled(action: Action): void {
+  private runScheduled(next: AutomaticAction): void {
     this.timer = null;
-    const result = this.apply(action);
+    const result = this.applyAutomatic(next, true);
     if (!result.ok) {
-      console.error('Automatic action rejected', result.error, action);
+      console.error('Automatic action rejected', result.error, next.action);
       this.setBusy(false);
     }
   }

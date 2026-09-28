@@ -8,12 +8,23 @@ import {
   describeState,
   getLegalActions,
   hasDeck,
+  forcedAction,
   type Action,
   type GameState,
   type PlayerId,
 } from '../src/engine';
+import {
+  DEFAULT_MODEL,
+  createLlmPlayer,
+  eventLines,
+  isReasoningEffort,
+  openRouterModel,
+  thoughtLine,
+  type LlmPlayer,
+  type ReasoningEffort,
+} from '../src/llm';
 
-type BotKind = 'ai' | 'random';
+type BotKind = 'ai' | 'random' | 'llm';
 type Matchup = [string, string];
 
 interface Options {
@@ -25,6 +36,8 @@ interface Options {
   json: boolean;
   log: number | null;
   maxActions: number;
+  model: string;
+  effort?: ReasoningEffort;
 }
 
 const ALL = 'all';
@@ -39,6 +52,7 @@ function parseArgs(argv: string[]): Options {
     json: false,
     log: null,
     maxActions: 20_000,
+    model: process.env.OPENROUTER_MODEL || DEFAULT_MODEL,
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -55,9 +69,12 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--quiet') options.quiet = true;
     else if (arg === '--json') options.json = true;
     else if (arg === '--log') options.log = Number(next());
+    else if (arg === '--model') options.model = next();
+    else if (arg === '--effort') options.effort = parseEffort(next());
     else if (arg === '--help') {
       console.log(
-        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random] [--p1 ai|random] [--decks all|DECK|DECK,DECK] [--quiet] [--json] [--log SEED]',
+        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--quiet] [--json] [--log SEED]\n' +
+          'An llm bot asks an OpenRouter model (default ' + DEFAULT_MODEL + ') for every real decision; it needs OPENROUTER_API_KEY.',
       );
       process.exit(0);
     } else throw new Error(`Unknown option ${arg}`);
@@ -65,8 +82,13 @@ function parseArgs(argv: string[]): Options {
   return options;
 }
 
+function parseEffort(value: string): ReasoningEffort {
+  if (!isReasoningEffort(value)) throw new Error(`Unknown effort "${value}" (use minimal, low, medium or high)`);
+  return value;
+}
+
 function parseBot(value: string): BotKind {
-  if (value !== 'ai' && value !== 'random') throw new Error(`Unknown bot "${value}" (use ai or random)`);
+  if (value !== 'ai' && value !== 'random' && value !== 'llm') throw new Error(`Unknown bot "${value}" (use ai, random or llm)`);
   return value;
 }
 
@@ -102,6 +124,14 @@ function randomAction(s: GameState, rand: () => number): Action {
   return action;
 }
 
+interface LlmStats {
+  decisions: number;
+  fallbacks: number;
+  ms: number;
+  cost: number;
+  errors: string[];
+}
+
 interface GameResult {
   seed: number;
   decks: Matchup;
@@ -113,17 +143,30 @@ interface GameResult {
   maxDecisionMs: number;
   decisionMs: number;
   decisions: number;
+  llm: LlmStats;
   error?: string;
 }
 
-function playGame(seed: number, decks: Matchup, options: Options, log?: string[]): GameResult {
+function llmPlayer(options: Options): LlmPlayer {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error('An llm bot needs OPENROUTER_API_KEY in the environment.');
+  return createLlmPlayer({ model: openRouterModel({ model: options.model, apiKey, reasoningEffort: options.effort }) });
+}
+
+async function playGame(seed: number, decks: Matchup, options: Options, log?: string[]): Promise<GameResult> {
   let s = createGame({ seed, players: [{ deck: decks[0] }, { deck: decks[1] }] });
   const rand = lcg(seed);
+  const llms = options.bots.map((bot) => (bot === 'llm' ? llmPlayer(options) : null));
+  const seen: [string[], string[]] = [[], []];
+  const thoughts: [string[], string[]] = [[], []];
+  const llm: LlmStats = { decisions: 0, fallbacks: 0, ms: 0, cost: 0, errors: [] };
   let actions = 0;
   let maxDecisionMs = 0;
   let decisionMs = 0;
   let decisions = 0;
   const record = (state: GameState): void => {
+    seen[0].push(...eventLines(state, 0));
+    seen[1].push(...eventLines(state, 1));
     if (!log) return;
     for (const event of state.events) {
       if (event.t === 'draw' && state.turn === 0) continue;
@@ -131,13 +174,30 @@ function playGame(seed: number, decks: Matchup, options: Options, log?: string[]
       if (line) log.push(line);
     }
   };
+  const decide = async (player: PlayerId): Promise<Action> => {
+    const bot = llms[player];
+    if (!bot) return options.bots[player] === 'ai' ? chooseAction(s, player) : randomAction(s, rand);
+    const forced = forcedAction(s);
+    if (forced) return forced;
+    const decision = await bot.decide(s, player, { decks, recentEvents: seen[player], recentThoughts: thoughts[player] });
+    llm.decisions += 1;
+    llm.ms += decision.ms;
+    llm.cost += decision.usage?.cost ?? 0;
+    if (decision.source === 'fallback') {
+      llm.fallbacks += 1;
+      if (decision.error && !llm.errors.includes(decision.error)) llm.errors.push(decision.error);
+    }
+    if (decision.source === 'model' && decision.reason) thoughts[player].push(thoughtLine(s, player, decision.reason));
+    if (log && decision.reason) log.push(`  (p${player} ${bot.model}: ${decision.reason})`);
+    return decision.action;
+  };
   record(s);
   try {
     while (s.pending && s.pending.kind !== 'gameOver') {
       if (actions >= options.maxActions) throw new Error('game did not finish');
       const player = s.pending.player;
       const started = performance.now();
-      const action = options.bots[player] === 'ai' ? chooseAction(s, player) : randomAction(s, rand);
+      const action = await decide(player);
       if (options.bots[player] === 'ai') {
         const elapsed = performance.now() - started;
         decisionMs += elapsed;
@@ -162,6 +222,7 @@ function playGame(seed: number, decks: Matchup, options: Options, log?: string[]
       maxDecisionMs,
       decisionMs,
       decisions,
+      llm,
       error: `${(error as Error).message}\n${describeState(s, 0, true)}`,
     };
   }
@@ -177,6 +238,7 @@ function playGame(seed: number, decks: Matchup, options: Options, log?: string[]
     maxDecisionMs,
     decisionMs,
     decisions,
+    llm,
   };
 }
 
@@ -207,14 +269,28 @@ function matchupStats(results: GameResult[]): Record<string, string> {
   return stats;
 }
 
-function main(): void {
+function llmSummary(options: Options, results: GameResult[]): Record<string, unknown> | undefined {
+  if (!options.bots.includes('llm')) return undefined;
+  const total = results.reduce((sum, result) => sum + result.llm.decisions, 0);
+  return {
+    model: options.model,
+    effort: options.effort ?? 'default',
+    decisions: total,
+    fallbacks: results.reduce((sum, result) => sum + result.llm.fallbacks, 0),
+    avgMs: total ? Math.round(results.reduce((sum, result) => sum + result.llm.ms, 0) / total) : 0,
+    cost: +results.reduce((sum, result) => sum + result.llm.cost, 0).toFixed(5),
+    errors: [...new Set(results.flatMap((result) => result.llm.errors))],
+  };
+}
+
+async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const pairs = matchups(options.decks);
   if (options.log !== null) {
     const lines: string[] = [];
-    const result = playGame(options.log, pairs[0] as Matchup, options, lines);
+    const result = await playGame(options.log, pairs[0] as Matchup, options, lines);
     console.log(lines.join('\n'));
-    console.log(`\nResult: ${JSON.stringify({ ...result, error: undefined })}`);
+    console.log(`\nResult: ${JSON.stringify({ ...result, llm: llmSummary(options, [result]), error: undefined })}`);
     if (result.error) {
       console.error(result.error);
       process.exit(1);
@@ -225,7 +301,7 @@ function main(): void {
   const results: GameResult[] = [];
   const started = Date.now();
   for (let i = 0; i < options.games; i++) {
-    const result = playGame(options.seed + i, pairs[i % pairs.length] as Matchup, options);
+    const result = await playGame(options.seed + i, pairs[i % pairs.length] as Matchup, options);
     results.push(result);
     if (!options.quiet && !options.json) {
       const outcome = result.error ? 'ERROR' : result.winner === null ? 'draw' : `p${result.winner} (${result.reason})`;
@@ -250,6 +326,7 @@ function main(): void {
     avgTurns: finished.length ? +(finished.reduce((sum, r) => sum + r.turns, 0) / finished.length).toFixed(1) : 0,
     avgDecisionMs: decisions ? +(results.reduce((sum, r) => sum + r.decisionMs, 0) / decisions).toFixed(2) : 0,
     maxDecisionMs: +Math.max(0, ...results.map((r) => r.maxDecisionMs)).toFixed(1),
+    llm: llmSummary(options, results),
     errors: errors.length,
     seconds: (Date.now() - started) / 1000,
   };
@@ -262,4 +339,7 @@ function main(): void {
   if (errors.length > 0) process.exit(1);
 }
 
-main();
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+});

@@ -15,21 +15,27 @@ import type { CardFx, FxView, PlayerFx } from '../fx';
 import type { BarModel, UiButton, UiCommand } from '../model';
 import { fxDelay } from './Card';
 
+export interface PlayerTag {
+  text: string;
+  title: string;
+}
+
 interface PlayerBarProps {
   s: GameState;
   player: PlayerId;
   human: PlayerId;
   deckName?: string;
+  tag?: PlayerTag;
   targetable: boolean;
   aimed: boolean;
   fx?: PlayerFx;
   onTap: () => void;
 }
 
-export function PlayerBar({ s, player, human, deckName, targetable, aimed, fx, onTap }: PlayerBarProps) {
+export function PlayerBar({ s, player, human, deckName, tag, targetable, aimed, fx, onTap }: PlayerBarProps) {
   const ps = s.players[player];
   const hasPriority = s.pending?.kind === 'priority' && s.pending.player === player;
-  const label = `${ps.name}: ${ps.life} life, ${ps.hand.length} cards in hand, ${ps.library.length} in library, ${ps.graveyard.length} in graveyard`;
+  const label = `${ps.name}${tag ? ` (${tag.title})` : ''}: ${ps.life} life, ${ps.hand.length} cards in hand, ${ps.library.length} in library, ${ps.graveyard.length} in graveyard`;
   return (
     <div class="player-bar">
       <button
@@ -78,6 +84,11 @@ export function PlayerBar({ s, player, human, deckName, targetable, aimed, fx, o
               <span class="deck-name" data-testid={`deck-name-${player}`}>
                 {' '}
                 · {deckName}
+              </span>
+            )}
+            {tag && (
+              <span class="player-tag" data-testid={`player-tag-${player}`} title={tag.title}>
+                {tag.text}
               </span>
             )}
           </b>
@@ -230,7 +241,7 @@ export function ActionBar({ bar, thinking, opponentName, onCommand }: ActionBarP
     <div class="action-bar">
       {thinking && (
         <span class="thinking" data-testid="thinking">
-          {opponentName}
+          <span class="thinker">{opponentName}</span>
           <i />
           <i />
           <i />

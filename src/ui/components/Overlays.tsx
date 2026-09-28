@@ -177,7 +177,7 @@ export function LogPanel({ entries, onClose }: { entries: LogEntry[]; onClose: (
         </header>
         <ol class="log-list" ref={list}>
           {entries.map((entry) => (
-            <li key={entry.id} class={entry.event.t === 'turn' ? 'turn' : ''}>
+            <li key={entry.id} class={entry.event ? (entry.event.t === 'turn' ? 'turn' : '') : 'note'}>
               {entry.text}
             </li>
           ))}
@@ -190,16 +190,18 @@ export function LogPanel({ entries, onClose }: { entries: LogEntry[]; onClose: (
 interface MenuProps {
   gameOver: boolean;
   fast: boolean;
+  autoPass: boolean;
   onNewGame: () => void;
   onConcede: () => void;
   onLog: () => void;
   onDecks?: () => void;
   onToggleSpeed: () => void;
+  onToggleAutoPass: () => void;
   onHome: () => void;
   onClose: () => void;
 }
 
-export function Menu({ gameOver, fast, onNewGame, onConcede, onLog, onDecks, onToggleSpeed, onHome, onClose }: MenuProps) {
+export function Menu({ gameOver, fast, autoPass, onNewGame, onConcede, onLog, onDecks, onToggleSpeed, onToggleAutoPass, onHome, onClose }: MenuProps) {
   return (
     <>
       <div class="scrim clear" onClick={onClose} />
@@ -214,6 +216,9 @@ export function Menu({ gameOver, fast, onNewGame, onConcede, onLog, onDecks, onT
         )}
         <button type="button" role="menuitem" data-testid="menu-speed" onClick={onToggleSpeed}>
           AI speed: {fast ? 'fast' : 'normal'}
+        </button>
+        <button type="button" role="menuitemcheckbox" aria-checked={autoPass} data-testid="menu-autopass" onClick={onToggleAutoPass}>
+          Auto-pass: {autoPass ? 'on' : 'off'}
         </button>
         <button type="button" role="menuitem" data-testid="menu-new-game" onClick={onNewGame}>
           New game

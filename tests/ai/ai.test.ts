@@ -1,14 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { chooseAction, chooseAttackers, chooseBlocks, rollout } from '../../src/ai';
-import {
-  applyAction,
-  createGame,
-  getLegalActions,
-  type Action,
-  type GameState,
-  type PlayerId,
-} from '../../src/engine';
-import { act, attack, cast, pass, passTo, scenario } from '../helpers';
+import { applyAction, createGame, getLegalActions, type Action } from '../../src/engine';
+import { act, attack, cast, lcg, pass, passTo, scenario, scrambleHiddenInformation } from '../helpers';
 
 describe('AI main-phase decisions', () => {
   it('plays a land first', () => {
@@ -426,36 +419,6 @@ describe('AI setup decisions', () => {
     }
   });
 });
-
-function lcg(seed: number): () => number {
-  let r = seed >>> 0 || 1;
-  return () => {
-    r = (Math.imul(r, 1664525) + 1013904223) >>> 0;
-    return r / 4294967296;
-  };
-}
-
-function scrambleHiddenInformation(s: GameState, viewer: PlayerId, seed: number): GameState {
-  const copy = structuredClone(s);
-  const rand = lcg(seed);
-  const other = viewer === 0 ? 1 : 0;
-  const groups = [
-    [...copy.players[other].hand, ...copy.players[other].library],
-    [...copy.players[viewer].library],
-  ];
-  for (const ids of groups) {
-    const defs = ids.map((id) => copy.cards[id]?.def as string);
-    for (let i = defs.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [defs[i], defs[j]] = [defs[j] as string, defs[i] as string];
-    }
-    ids.forEach((id, index) => {
-      const card = copy.cards[id];
-      if (card) card.def = defs[index] as string;
-    });
-  }
-  return copy;
-}
 
 describe('AI fairness', () => {
   it('decides the same way whatever the hidden cards are', () => {

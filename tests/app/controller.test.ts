@@ -147,16 +147,21 @@ describe('decks', () => {
   });
 });
 
+const AUTO = { endTurnRequested: false, autoPass: true };
+const MANUAL = { endTurnRequested: false, autoPass: false };
+
 describe('auto-pass', () => {
   it('passes when there is nothing to do', () => {
     const s = createScenario({ players: [{}, {}] });
-    expect(autoPassReason(s, 0, { endTurnRequested: false })).toBe('nothing to do');
+    expect(autoPassReason(s, 0, AUTO)).toBe('nothing to do');
+    expect(autoPassReason(s, 0, MANUAL)).toBe('nothing to do');
   });
 
   it('stops for the human’s own main phase when something can be played', () => {
     const s = createScenario({ players: [{ hand: ['forest'] }, {}] });
-    expect(autoPassReason(s, 0, { endTurnRequested: false })).toBeNull();
-    expect(autoPassReason(s, 0, { endTurnRequested: true })).toBe('ending the turn');
+    expect(autoPassReason(s, 0, AUTO)).toBeNull();
+    expect(autoPassReason(s, 0, { ...AUTO, endTurnRequested: true })).toBe('ending the turn');
+    expect(autoPassReason(s, 0, { ...MANUAL, endTurnRequested: true })).toBe('ending the turn');
   });
 
   it('stops to let the human respond to an opponent’s spell', () => {
@@ -170,14 +175,41 @@ describe('auto-pass', () => {
     s = applyAction(s, { type: 'cast', player: 1, card: 'snap', targets: [{ card: 'spider' }] });
     s = applyAction(s, { type: 'pass', player: 1 });
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
-    expect(autoPassReason(s, 0, { endTurnRequested: false })).toBeNull();
+    expect(autoPassReason(s, 0, AUTO)).toBeNull();
   });
 
   it('skips the opponent’s main phase and end step', () => {
     let s = createScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
     s = applyAction(s, { type: 'pass', player: 1 });
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
-    expect(autoPassReason(s, 0, { endTurnRequested: false })).toBe("opponent's main phase");
+    expect(autoPassReason(s, 0, AUTO)).toBe("opponent's main phase");
+    expect(autoPassReason(s, 0, MANUAL)).toBeNull();
+  });
+
+  it('lets the human’s own spell resolve, unless turned off', () => {
+    let s = createScenario({
+      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }, 'verdant_surge'], battlefield: ['mountain', 'forest', 'canopy_spider'] }, {}],
+    });
+    s = applyAction(s, { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] });
+    expect(s.pending).toEqual({ kind: 'priority', player: 0 });
+    expect(autoPassReason(s, 0, AUTO)).toBe('let your own spell resolve');
+    expect(autoPassReason(s, 0, MANUAL)).toBeNull();
+  });
+
+  it('turned off, stops the human wherever they could act, and End turn still ends the turn', () => {
+    const c = controller({ autoPass: false });
+    c.loadScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
+    c.settle();
+    expect(c.state).toMatchObject({ turn: 3, activePlayer: 1, step: 'main1', pending: { kind: 'priority', player: 0 } });
+    c.setAutoPass(true);
+    c.settle();
+    expect(c.state).toMatchObject({ turn: 4, activePlayer: 0, step: 'main1', pending: { kind: 'priority', player: 0 } });
+    c.setAutoPass(false);
+    c.endTurn();
+    c.settle();
+    expect(c.state).toMatchObject({ turn: 5, activePlayer: 1, step: 'main1', pending: { kind: 'priority', player: 0 } });
+    c.newGame({ autoPass: true });
+    expect(c.autoPass).toBe(true);
   });
 });
 

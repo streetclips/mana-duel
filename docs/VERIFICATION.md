@@ -62,6 +62,23 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | — | Fairness: hidden cards never change a decision, in mirror and mixed matchups | `tests/ai/ai.test.ts` › AI fairness |
 | — | Strength: beats a random player nearly always with any deck; AI vs AI balanced and crash-free | `tests/ai/ai.test.ts` › AI strength · `npm run sim -- --games 270 --quiet` (`"errors": 0`, per-deck `winRate` near 0.5) · `npm run sim -- --p0 random --games 50 --quiet` |
 
+## LLM opponent
+
+How it works is in `docs/LLM.md`. Everything here runs offline, against mocked models, except the last row.
+
+| Feature | Tests |
+| --- | --- |
+| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat and pumps, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
+| Fairness: the prompt is the same whatever the hidden cards are, over real games in three matchups; the latest events and thoughts, in order | `tests/llm/player.test.ts` › the LLM prompt |
+| Every legal action is an option for mulligans, priority and targets; attackers, blockers and cards to bottom or discard are constrained fields; a refused answer names the rule | `tests/llm/decision.test.ts` |
+| One call per real decision, none for a forced one; retries with the reason; the classic AI when every attempt fails or time runs out; unavailable after 401, 402 or 404; cancellation; lazy loading | `tests/llm/player.test.ts` |
+| The OpenRouter request: strict `json_schema`, `provider.require_parameters`, the key, a proxy base URL; the catalog of models with structured outputs | `tests/llm/openrouter.test.ts` |
+| Whole games where the model answers anything its schema allows: never an illegal action, sound invariants | `tests/llm/games.test.ts` |
+| Controller: the AI seat decides asynchronously, `settle` stops for it, stale answers are dropped, it is asked wherever it could act but never for a single choice, its reasoning goes to the log and back into its next prompts (fallbacks add none), the classic AI takes over when it is unavailable, replays reproduce its games | `tests/app/llm.test.ts` |
+| Start screen: Classic or LLM, model, thinking effort and key, remembered, catalog suggestions; in game: the LLM tag, the model while it thinks, the unavailable notice and hiding it | `tests/ui/llm.test.tsx` · `e2e/llm.spec.ts` (OpenRouter mocked with `page.route`) |
+| Dev server proxy: adds the server's key, answers only the game's own origin; the factory sends a typed key to OpenRouter, or goes through the proxy | `tests/proxy.test.ts` · `tests/app/llmFactory.test.ts` |
+| Live: one real decision of each kind, a whole game | `npm run test:live` · `npm run sim -- --p1 llm --model <id> --log 1` (both need `OPENROUTER_API_KEY` and spend credits) |
+
 ## Animations
 
 Every animation starts from an fx cue: `src/app/fx.ts` turns the engine events of each action into cues, the
@@ -86,9 +103,10 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | Counterspells target a spell by tapping it in the center strip; stack items open their card | `tests/ui/game.test.tsx` › counterspells · `e2e/game.spec.ts` › URL parameters pick the decks |
 | Controller decks: per-seat decks, kept by "New game", recorded in replays, none for scenarios | `tests/app/controller.test.ts` › decks |
 | Automatic passing and End turn (behaviour described in `docs/RULES.md`) | `tests/app/controller.test.ts` › auto-pass, ends the turn on request |
+| Auto-pass off: stops wherever you could act, End turn still works; the menu toggle, remembered, `?autoPass=on\|off`, `setAutoPass()`; prompts that name whose step it is | `tests/app/controller.test.ts` › auto-pass · `tests/ui/game.test.tsx` › auto-pass · `e2e/game.spec.ts` › auto-pass |
 | AI runs on timers the player can follow, and waits for the animations it should see; controller replays and concessions | `tests/app/controller.test.ts` › GameController, animation cues |
 | Mobile layout without horizontal overflow at 360×640 and on a Pixel 7; no console errors | `e2e/game.spec.ts` (projects `mobile`, `small-phone`) |
-| Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`), URL parameters (`deck`, `aiDeck`, `fx`), `data-testid` and `data-fx` hooks | `tests/app/controller.test.ts` › test API, animation cues · `e2e/game.spec.ts` · `e2e/animations.spec.ts` |
+| Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`, `opponent()`, `llmDecisions()`, `llmPrompt()`, `idle()`, `setAutoPass()`), URL parameters (`deck`, `aiDeck`, `fx`, `ai`, `model`, `autoPass`), `data-testid`, `data-fx` and `data-llm` hooks | `tests/app/controller.test.ts` › test API, animation cues · `tests/app/llm.test.ts` · `e2e/game.spec.ts` · `e2e/animations.spec.ts` · `e2e/llm.spec.ts` |
 | `docs/CARDS.md` matches the card definitions | `tests/docs.test.ts` · `npm run cards -- --check` |
 | Card art: every card has `public/cards/<id>.svg`, shown in hand, on the battlefield and in the card sheet | `tests/ui/art.test.ts` · `tests/ui/game.test.tsx` › card art · `e2e/game.spec.ts` › every card shows art |
 

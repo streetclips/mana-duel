@@ -1,10 +1,14 @@
 import { render } from 'preact';
-import { GameController, randomDeckId } from './app/controller';
+import { GameController, randomDeckId, type LlmFactory, type OpponentSetup } from './app/controller';
 import { createTestApi, type ManaDuelApi } from './app/testApi';
 import { DEFAULT_DECK_ID, hasDeck } from './engine';
+import { lazyLlmPlayer } from './llm/lazy';
+import { DEFAULT_MODEL, fetchModels, isModelId, isReasoningEffort } from './llm/models';
 import { App, type Screen } from './ui/App';
+import { loadAutoPass } from './ui/autoPassChoice';
 import { RANDOM_DECK } from './ui/deckChoice';
 import { freezeFx } from './ui/motion';
+import { loadApiKey, loadOpponentChoice } from './ui/opponentChoice';
 import './ui/styles.css';
 
 declare global {
@@ -31,18 +35,43 @@ const deckParam = (name: string): string => {
 const fxParam = params.get('fx');
 const fxSpeed = fxParam === 'off' ? 0 : fxParam === 'slow' ? 0.25 : numberParam('fx');
 
+const proxyPath: unknown = import.meta.env.VITE_OPENROUTER_PROXY;
+const proxyUrl = typeof proxyPath === 'string' && proxyPath ? new URL(proxyPath, window.location.href).href : null;
+
+const storedOpponent = loadOpponentChoice();
+const modelParam = (params.get('model') ?? storedOpponent.model).trim();
+const effortParam = params.get('effort') ?? storedOpponent.effort;
+const opponent: OpponentSetup =
+  params.get('ai') === 'llm'
+    ? {
+        kind: 'llm',
+        model: isModelId(modelParam) ? modelParam : DEFAULT_MODEL,
+        ...(isReasoningEffort(effortParam) ? { effort: effortParam } : {}),
+      }
+    : { kind: 'classic' };
+
+const llmFactory: LlmFactory = (setup) =>
+  lazyLlmPlayer(setup.model, async () => {
+    const { openRouterFactory } = await import('./app/llmFactory');
+    return openRouterFactory({ apiKey: loadApiKey, proxyUrl })(setup);
+  });
+
 const startingPlayer = params.get('first');
+const autoPass = params.get('autoPass');
 const controller = new GameController({
   seed: numberParam('seed'),
   aiDelayMs: numberParam('aiDelay'),
   fxSpeed,
+  autoPass: autoPass === 'on' ? true : autoPass === 'off' ? false : loadAutoPass(),
   autoplay: params.get('autoplay') === '1',
   skipMulligans: params.get('skipMulligan') === '1',
   startingPlayer: startingPlayer === 'you' ? 0 : startingPlayer === 'ai' ? 1 : undefined,
   decks: [deckParam('deck'), deckParam('aiDeck')],
+  opponent,
+  llmFactory,
 });
 
-const direct = ['seed', 'autoplay', 'skipMulligan', 'first', 'deck', 'aiDeck'].some((name) => params.has(name));
+const direct = ['seed', 'autoplay', 'skipMulligan', 'first', 'deck', 'aiDeck', 'ai', 'model', 'effort'].some((name) => params.has(name));
 const initialScreen: Screen = direct ? 'game' : 'start';
 
 let showGame = (): void => undefined;
@@ -57,6 +86,8 @@ render(
     onReady={(show) => {
       showGame = show;
     }}
+    llmProxy={proxyUrl !== null}
+    loadModels={fetchModels}
   />,
   root,
 );

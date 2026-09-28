@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { GameController, type Matchup } from '../../src/app/controller';
 import { DECK_LIST, type ScenarioSpec } from '../../src/engine';
 import { App } from '../../src/ui/App';
+import { loadAutoPass } from '../../src/ui/autoPassChoice';
 
 afterEach(() => {
   cleanup();
@@ -139,6 +140,42 @@ describe('deck viewer', () => {
     click(byTestId('btn-menu'));
     expect(screen.queryByTestId('menu-decks')).toBeNull();
     expect(screen.queryByTestId('deck-name-0')).toBeNull();
+  });
+});
+
+describe('auto-pass', () => {
+  it('turns off from the menu, and the game then stops in the AI’s turn wherever you could act', () => {
+    const { controller, settle } = setup({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
+    click(byTestId('btn-menu'));
+    expect(checked('menu-autopass')).toBe('true');
+    expect(byTestId('menu-autopass').textContent).toBe('Auto-pass: on');
+    click(byTestId('menu-autopass'));
+    expect(screen.queryByTestId('menu')).toBeNull();
+    expect(controller.autoPass).toBe(false);
+    expect(loadAutoPass()).toBe(false);
+    settle();
+    expect(byTestId('prompt').textContent).toBe("AI's main phase");
+    expect(byTestId('prompt-detail').textContent).toBe('You can cast instants now');
+    click(byTestId('btn-continue'));
+    settle();
+    expect(byTestId('prompt').textContent).toBe("AI's second main phase");
+    click(byTestId('btn-menu'));
+    expect(checked('menu-autopass')).toBe('false');
+    click(byTestId('menu-autopass'));
+    settle();
+    expect(byTestId('prompt').textContent).toBe('Your main phase');
+    expect(loadAutoPass()).toBe(true);
+  });
+
+  it('names your own attack when it stops after it', () => {
+    const { controller, settle } = setup({ players: [{ hand: ['ember_snap'], battlefield: ['mountain', { card: 'ember_hound', id: 'hound' }] }, {}] });
+    act(() => controller.setAutoPass(false));
+    click(byTestId('btn-to-combat'));
+    settle();
+    click(byTestId('card-hound'));
+    click(byTestId('btn-confirm-attack'));
+    settle();
+    expect(byTestId('prompt').textContent).toBe('You attack with Ember Hound');
   });
 });
 

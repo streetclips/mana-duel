@@ -1,19 +1,22 @@
 # Mana Duel
 
 Minimalist, mobile-first card duel on the rules of Magic: The Gathering: three decks (Emberwild red/green, Dawntide
-white/blue, Duskmire black), a human against an AI. TypeScript, Preact, Vite; Vitest and Playwright.
+white/blue, Duskmire black), a human against an AI: the classic one, or an OpenRouter model through the AI SDK.
+TypeScript, Preact, Vite; Vitest and Playwright.
 
 ## Layout
 
 ```
 src/engine/  rules: pure functions over a serializable GameState ◄──┐
-src/ai/      chooseAction(state, player) via engine rollouts ───────┤ both read the engine
-src/app/     GameController (decks per seat, AI timers, auto-pass, log, fx cues, replay), window.manaDuel,
-             feature checks
+src/ai/      chooseAction(state, player) via engine rollouts ───────┤ all read the engine
+src/llm/     LLM player: seat view, legal moves as a zod schema ────┘
+src/app/     GameController (decks per seat, AI timers, async LLM seat, auto-pass, log, fx cues, replay),
+             window.manaDuel, feature checks
 src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with the deck
              selector, deck viewer; card art from public/cards/; animations of the fx cues (fx.ts, motion.ts)
-tests/       Vitest: engine, ai, app, ui (happy-dom)      e2e/  Playwright on the production build
-scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts (writes docs/CARDS.md)
+tests/       Vitest: engine, ai, llm, app, ui (happy-dom) e2e/  Playwright on the production build
+scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts (writes docs/CARDS.md),
+             openrouterProxy.ts (dev server proxy that adds OPENROUTER_API_KEY)
 ```
 
 ## Engine model
@@ -34,25 +37,32 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 3. After changing cards, decks or the AI, check the balance with `npm run sim -- --games 270 --quiet`: every
    `decks.*.winRate` should stay between about 0.42 and 0.58.
 4. For UI changes, also run `npm run test:e2e` (two phone viewports). Done when every test passes.
+5. Steps 1–4 never reach OpenRouter. `npm run test:live` makes real calls and spends credits: run it only when asked.
 
 ## Driving the running game
 
 `npm run dev` serves http://localhost:5173.
 
 - URL parameters: `seed`, `first=you|ai`, `aiDelay` (ms), `skipMulligan=1`, `autoplay=1` (AI plays both seats),
-  `deck=<id>` (yours), `aiDeck=<id>|random`, `theme=dark|light`, `fx=off|slow|<speed>` (animations). Decks default
-  to Emberwild. Any of `seed`, `first`, `skipMulligan`, `autoplay`, `deck`, `aiDeck` skips the start screen.
+  `deck=<id>` (yours), `aiDeck=<id>|random`, `ai=llm` with `model=<openrouter id>` and `effort=minimal|low|medium|high`
+  (the LLM plays the AI seat), `autoPass=off|on` (off: you pass by hand wherever you could act; the menu toggle is
+  remembered), `theme=dark|light`, `fx=off|slow|<speed>` (animations). Decks default to Emberwild.
+  Any of `seed`, `first`, `skipMulligan`, `autoplay`, `deck`, `aiDeck`, `ai`, `model`, `effort` skips the start screen.
 - `window.manaDuel` (`manaDuel.help()` prints it): read with `state()`, `describe()`, `pending()`,
-  `legalActions()`, `decks()`, `matchup()`; act for player 0 with `dispatch(action)`, `pass()`, `endTurn()`;
-  `settle()` runs the AI immediately; `newGame({ decks: ['dawntide', 'duskmire'] })`, `loadScenario(spec)`,
-  `replay()`, `runChecks()`, `fx(since)` for the animation cues of recent actions, and `engine.*` for pure engine
-  calls.
+  `legalActions()`, `decks()`, `matchup()`; act for player 0 with `dispatch(action)`, `pass()`, `endTurn()`,
+  `setAutoPass(on)`;
+  `settle()` runs the AI immediately and stops where the LLM must answer; `await idle()` waits until you decide or the
+  game ends; `newGame({ decks: ['dawntide', 'duskmire'], opponent: { kind: 'llm', model } })`, `loadScenario(spec)`,
+  `replay()`, `runChecks()`, `fx(since)` for the animation cues of recent actions, `opponent()`, `llmDecisions()`,
+  `await llmPrompt()` (what the LLM gets now), and `engine.*` for pure engine calls.
 - DOM hooks (`data-testid`): `card-<cardId>` (plus `data-zone`, `data-def`, `data-tapped`), `player-<0|1>`,
   `life-<0|1>`, `deck-name-<p>`, `prompt`, `phase`, `stack`, `stack-<itemId>` (plus `data-card`, `data-targetable`),
   `hand`, `lands-<p>`, `battlefield-<p>`, `btn-<id>` for bar buttons and `sheet-<actionType>` for card-sheet actions.
   Start screen: `deck-<deckId>` (a radio with `aria-checked`), `deck-view-<deckId>`, `opponent-<deckId|random>`,
-  `btn-play`, `btn-watch`. Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),
+  `ai-classic`, `ai-llm`, `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
+  `llm-notice` (unavailable, `llm-notice-hide` closes it), `game[data-llm]` (`thinking`, `ready`, `unavailable`). Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),
   `deck-tab-<p>` in game, `mana-curve`, `btn-deck-choose`, `btn-deck-close`; `menu-decks` opens it in game.
+  `menu-autopass` (`aria-checked`) toggles auto-pass.
 - Animations (fx): every animated element carries `data-fx` with the cue kinds it plays (`[data-slot="<cardId>"]` on
   battlefield cards, `player-<p>`, hand cards, land pips, stack items), and `fx-ghost-<cardId>` (a creature fading
   out where it died or bounced), `fx-reveal` (the card the opponent plays), `fx-turn`, `fx-hurt`, `fx-life-<p>`,
@@ -70,6 +80,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
   a feature.
 - `docs/RULES.md` — implemented rules, automatic passing, differences from Magic; read it for any rules question.
 - `docs/CARDS.md` — generated card and keyword list.
+- `docs/LLM.md` — LLM opponent: prompt, answer schemas, fallbacks, keys and dev proxy, live tests; read it before
+  touching `src/llm` or the controller's AI seat.
 
 ## Extending
 
@@ -89,4 +101,5 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 
 - Code, docs, tests and messages in English. Code carries no comments: names and tests explain it.
 - Tests build positions with `scenario(...)` and explicit card ids (`tests/helpers.ts`); seeds are for whole games.
-- The AI reads only public state, its own hand and card counts; `tests/ai/ai.test.ts` › AI fairness guards this.
+- The AI and the LLM read only public state, their own hand and card counts; `tests/ai/ai.test.ts` › AI fairness and
+  `tests/llm/player.test.ts` › the LLM prompt guard this.

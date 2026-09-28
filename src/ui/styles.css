@@ -351,6 +351,65 @@ button {
   color: var(--bg);
 }
 
+.llm-fields {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.field input,
+.field select {
+  appearance: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field select {
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 32px;
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.field-hint.problem {
+  color: var(--bad);
+}
+
+.field-hint a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .start-actions {
   display: flex;
   gap: 10px;
@@ -529,6 +588,25 @@ button {
 
 .player-meta .counts {
   display: inline-block;
+}
+
+.player-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 15px;
+  color: var(--ink-2);
+  vertical-align: 1px;
+}
+
+.game[data-llm='unavailable'] .player-tag {
+  text-decoration: line-through;
+  color: var(--muted);
 }
 
 .player-bar .spacer {
@@ -1570,6 +1648,14 @@ p .pip,
   align-items: center;
   color: var(--muted);
   font-size: 12px;
+  min-width: 0;
+}
+
+.thinking .thinker {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .thinking i {
@@ -1913,6 +1999,34 @@ p .pip,
   font-weight: 650;
   border-bottom: none;
   padding-top: 12px;
+}
+
+.log-list li.note {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.llm-notice {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  box-sizing: border-box;
+  padding: 4px 4px 4px 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--bad);
+  color: var(--ink-2);
+  font-size: 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  z-index: 6;
+  overflow-wrap: anywhere;
 }
 
 .deck-viewer {

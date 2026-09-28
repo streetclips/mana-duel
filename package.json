@@ -12,12 +12,16 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:live": "LLM_LIVE=1 vitest run tests/llm/live.test.ts",
     "sim": "tsx scripts/sim.ts",
     "cards": "tsx scripts/cards.ts",
     "verify": "npm run typecheck && npm run test && npm run sim -- --games 60 --quiet && npm run build"
   },
   "dependencies": {
-    "preact": "^10.29.8"
+    "@openrouter/ai-sdk-provider": "^3.1.0",
+    "ai": "^7.0.118",
+    "preact": "^10.29.8",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

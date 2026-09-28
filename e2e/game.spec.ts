@@ -119,6 +119,29 @@ test('a human turn can be played with taps only', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('auto-pass turns off from the URL or from the menu, which remembers it', async ({ page }) => {
+  const errors = collectErrors(page);
+  const aiTurn = (): Promise<void> =>
+    page.evaluate(() => {
+      window.manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
+      window.manaDuel.settle();
+    });
+  await page.goto('/?seed=1&aiDelay=0&autoPass=off');
+  await aiTurn();
+  await expect(page.getByTestId('prompt')).toHaveText("AI's main phase");
+  await page.goto('/?seed=1&aiDelay=0');
+  await aiTurn();
+  await expect(page.getByTestId('prompt')).toHaveText('Your main phase');
+  await page.getByTestId('btn-menu').click();
+  await page.getByTestId('menu-autopass').click();
+  await page.reload();
+  await aiTurn();
+  await expect(page.getByTestId('prompt')).toHaveText("AI's main phase");
+  await page.getByTestId('btn-menu').click();
+  await expect(page.getByTestId('menu-autopass')).toHaveAttribute('aria-checked', 'false');
+  expect(errors).toEqual([]);
+});
+
 test('spells, targets and combat work from the UI', async ({ page }) => {
   await page.goto('/?seed=1&aiDelay=0');
   await page.evaluate(() =>

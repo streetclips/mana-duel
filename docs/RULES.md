@@ -97,6 +97,13 @@ It stops for you when the opponent casts something you could answer, when the op
 after blockers are declared, and in your main phases — each time only if you have something to play. **End turn**
 passes until your turn is over and skips your attack; it still stops if the opponent casts a spell.
 
+**Auto-pass: off** in the menu (remembered in this browser; also `?autoPass=off` and `manaDuel.setAutoPass(false)`)
+keeps only the first rule and End turn: the game stops wherever you could act, in the opponent's turn too.
+
+The AI seat never auto-passes. The classic AI decides at every chance to act; an LLM is asked at every decision
+with more than one legal choice, and a single choice is played without asking it. So the AI gets the windows that
+auto-pass skips for you; with auto-pass off, both seats get the same ones.
+
 ## Differences from Magic
 
 | Magic | Mana Duel |

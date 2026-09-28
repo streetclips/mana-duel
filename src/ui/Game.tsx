@@ -13,6 +13,7 @@ import {
   type PlayerId,
   type Target,
 } from '../engine';
+import { saveAutoPass } from './autoPassChoice';
 import { cssVars } from './cardInfo';
 import { FxTracker, fxNow, fxTime, fxView, withGhosts, type BattlefieldItem } from './fx';
 import { MIN_CARD_SCALE, fitCardScale, type CardSlot } from './layout';
@@ -21,7 +22,7 @@ import { GhostCard, HandCard, PermanentCard, type CardFlags } from './components
 import { ActionBar, CenterStrip, Lands, PlayerBar } from './components/Board';
 import { DeckViewer } from './components/DeckViewer';
 import { FxLayer } from './components/Fx';
-import { CardSheet, GameOverModal, LogIcon, LogPanel, Menu, MenuIcon } from './components/Overlays';
+import { CardSheet, CloseIcon, GameOverModal, LogIcon, LogPanel, Menu, MenuIcon } from './components/Overlays';
 import {
   actionsForCard,
   barModel,
@@ -137,6 +138,7 @@ export function Game({ controller, onHome }: GameProps) {
   const [decksOpen, setDecksOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [gameOverHidden, setGameOverHidden] = useState(false);
+  const [llmNoticeHidden, setLlmNoticeHidden] = useState(false);
   const [tracker] = useState(() => new FxTracker());
   const [, setFxTick] = useState(0);
   const root = useRef<HTMLDivElement>(null);
@@ -156,6 +158,10 @@ export function Game({ controller, onHome }: GameProps) {
   }, [controller]);
 
   useEffect(() => {
+    setLlmNoticeHidden(false);
+  }, [controller.session]);
+
+  useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 2400);
     return () => clearTimeout(timer);
@@ -164,7 +170,7 @@ export function Game({ controller, onHome }: GameProps) {
   const current = isCompatible(s, human, interaction) ? interaction : interactionFor(s, human);
   const actions = useMemo(() => controller.legalActions(), [s, controller.autoplay]);
   const targets = useMemo(() => selectableTargets(actions, current), [actions, current]);
-  const bar = barModel(s, human, current, controller.busy, controller.log.at(-1)?.text);
+  const bar = barModel(s, human, current, controller.busy, controller.lastEventText());
   const hand = s.players[human].hand;
   const overlap = useHandOverlap(hand.length);
 
@@ -351,6 +357,11 @@ export function Game({ controller, onHome }: GameProps) {
   const decider = pending && pending.kind !== 'gameOver' ? pending.player : null;
   const thinking = controller.busy && decider !== null && (decider !== human || controller.autoplay);
   const gameOver = pending?.kind === 'gameOver';
+  const llmModel = controller.opponent.kind === 'llm' ? controller.opponent.model : null;
+  const llmEffort = controller.opponent.kind === 'llm' && controller.opponent.effort ? ` · ${controller.opponent.effort} effort` : '';
+  const llmState = llmModel ? (controller.llmUnavailable ? 'unavailable' : controller.llmThinking ? 'thinking' : 'ready') : undefined;
+  const thinkerName = s.players[decider ?? opponent].name;
+  const thinkerLabel = controller.llmThinking && llmModel ? `${thinkerName} · ${llmModel.split('/').pop()}` : thinkerName;
 
   return (
     <div
@@ -364,6 +375,7 @@ export function Game({ controller, onHome }: GameProps) {
       data-interaction={current.kind}
       data-fx-speed={controller.fxSpeed}
       data-fx-seq={fx.seq}
+      data-llm={llmState}
       style={cssVars({ '--fx-time': String(fxTime(controller.fxSpeed)) })}
     >
       <div class="top-actions">
@@ -381,6 +393,11 @@ export function Game({ controller, onHome }: GameProps) {
           player={opponent}
           human={human}
           deckName={deckName(opponent)}
+          tag={
+            llmModel
+              ? { text: 'LLM', title: controller.llmUnavailable ? `LLM unavailable: ${controller.llmUnavailable}` : `OpenRouter · ${llmModel}${llmEffort}` }
+              : undefined
+          }
           targetable={targeting && targets.has(targetKey({ player: opponent }))}
           aimed={aimed.has(targetKey({ player: opponent }))}
           fx={fx.players.get(opponent)}
@@ -415,7 +432,7 @@ export function Game({ controller, onHome }: GameProps) {
         />
       </section>
 
-      <ActionBar bar={bar} thinking={thinking} opponentName={s.players[decider ?? opponent].name} onCommand={run} />
+      <ActionBar bar={bar} thinking={thinking} opponentName={thinkerLabel} onCommand={run} />
 
       <div class="hand" data-testid="hand" ref={overlap.ref} style={overlap.style}>
         {hand.map((id) => (
@@ -432,6 +449,15 @@ export function Game({ controller, onHome }: GameProps) {
       </div>
 
       <FxLayer s={s} human={human} fx={fx} />
+
+      {controller.llmUnavailable && !llmNoticeHidden && (
+        <div class="llm-notice" role="status" data-testid="llm-notice">
+          <span data-testid="llm-notice-text">LLM unavailable: {controller.llmUnavailable}. The classic AI is playing.</span>
+          <button type="button" class="icon-btn" aria-label="Hide" data-testid="llm-notice-hide" onClick={() => setLlmNoticeHidden(true)}>
+            <CloseIcon />
+          </button>
+        </div>
+      )}
 
       {inspected && s.cards[inspected] && (
         <CardSheet
@@ -460,6 +486,7 @@ export function Game({ controller, onHome }: GameProps) {
         <Menu
           gameOver={gameOver}
           fast={controller.aiDelayMs < 300}
+          autoPass={controller.autoPass}
           onLog={() => {
             setMenuOpen(false);
             setLogOpen(true);
@@ -475,6 +502,12 @@ export function Game({ controller, onHome }: GameProps) {
           onToggleSpeed={() => {
             controller.setAiDelay(controller.aiDelayMs < 300 ? DEFAULT_AI_DELAY_MS : 150);
             setMenuOpen(false);
+          }}
+          onToggleAutoPass={() => {
+            const on = !controller.autoPass;
+            saveAutoPass(on);
+            setMenuOpen(false);
+            controller.setAutoPass(on);
           }}
           onNewGame={() => {
             setMenuOpen(false);

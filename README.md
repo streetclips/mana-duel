@@ -1,8 +1,8 @@
 # Mana Duel
 
 A minimalist, mobile-first card duel built on the rules of Magic: The Gathering. Three decks — **Emberwild** (red and
-green), **Dawntide** (white and blue) and **Duskmire** (black) — and one opponent: an AI that plays by the same rules
-and never looks at your hand.
+green), **Dawntide** (white and blue) and **Duskmire** (black) — and one opponent that plays by the same rules and
+never looks at your hand: the built-in AI, or a language model of your choice through OpenRouter.
 
 ## Play
 
@@ -20,8 +20,14 @@ npm run build      # static site in dist/, served by `npm run preview`
   counterspell.
 - Attack by tapping your creatures, then **Attack**. Block by tapping your creature, then the attacker it should
   stop. Numbered badges pair attackers with their blockers.
-- Priority passes by itself while there is nothing to decide; **End turn** skips straight to the opponent.
+- Priority passes by itself while there is nothing to decide; **End turn** skips straight to the opponent. Turn
+  **Auto-pass** off in the menu to stop wherever you could act, the opponent's turn included, as the AI does.
 - **Watch AI vs AI** on the start screen lets the AI play both seats.
+- **Who plays the AI**: *Classic*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
+  and your API key (kept in this browser only). The model picks every move among the legal ones, the log shows its
+  reasoning and its next prompts recall it; when it fails to answer, the classic AI moves for it. With
+  `OPENROUTER_API_KEY` set in the shell or in `.env.local`, `npm run dev` adds the key on the server and no key needs
+  typing. `?ai=llm&model=<id>` starts a game against it directly. Details in [`docs/LLM.md`](docs/LLM.md).
 - Every change is animated: the card the opponent plays is shown with its target, creatures strike each other in
   combat, damage and life changes pop, the dead fade out in their place, drawn cards slide into your hand and each
   turn is announced. `?fx=slow` plays them in slow motion and `?fx=off` turns them off.
@@ -38,6 +44,10 @@ npm run build      # static site in dist/, served by `npm run preview`
   logic, keeps combat tricks for combat, answers burn with pumps, counters what is worth countering and only
   chump-blocks to survive. A test proves hidden cards never change its decisions. It plays all three decks, and
   simulated games between them stay close to even.
+- **LLM opponent** (`src/llm`): the AI seat's view of the game as JSON (its own hand, the opponent's card counts),
+  every legal move as a zod schema, and one AI SDK `generateText` call with `Output.object` per decision, through
+  the OpenRouter provider. Answers the engine refuses are retried, then left to the classic AI. It loads only when
+  a game uses it, and the tests run it offline against mocked models.
 - **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, a deck selector and deck viewer, light
   and dark themes, a game log, animations driven by cues that tests and agents can read, and an automation API on
   `window.manaDuel`.
@@ -52,6 +62,7 @@ npm run build      # static site in dist/, served by `npm run preview`
 | `npm test` | Engine, AI, controller and UI tests (Vitest, happy-dom), including 38 feature checks |
 | `npm run sim -- --games 270` | Headless AI games in all nine deck matchups, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup) |
 | `npm run test:e2e` | Playwright on the production build, two phone viewports |
+| `npm run test:live` | Real OpenRouter calls, one per decision kind (needs `OPENROUTER_API_KEY`, spends credits; `OPENROUTER_MODEL` picks the model). `npm run sim -- --p1 llm --model <id> --log 1` plays a whole game against it |
 | `npm run verify` | Typecheck, tests, 60 simulated games and the build, in one go |
 
 [`docs/VERIFICATION.md`](docs/VERIFICATION.md) maps every feature to its tests. With the game open,
@@ -66,14 +77,16 @@ src/
 ├── engine/   types, cards/ (one file per card), registry, decks, mana, state, targets, combat,
 │             effects, rules, game, actions, scenario, describe, invariants
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
-├── app/      controller, autopass, fx (animation cues), testApi, checks
-└── ui/       App, StartScreen (deck selector), Game, model (interaction logic), deckChoice, fx and motion
-              (animations), components/ (Board, Card, DeckViewer, Fx, Overlays), styles.css
+├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy
+├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks
+└── ui/       App, StartScreen (deck and AI selector), Game, model (interaction logic), deckChoice,
+              opponentChoice, autoPassChoice, fx and motion (animations), components/ (Board, Card, DeckViewer,
+              Fx, Overlays), styles.css
 public/cards/ one SVG illustration per card, named <id>.svg
-tests/        engine/ ai/ app/ ui/ + helpers.ts
+tests/        engine/ ai/ llm/ app/ ui/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
 e2e/          Playwright specs
-scripts/      sim.ts, cards.ts
-docs/         RULES.md, VERIFICATION.md, CARDS.md
+scripts/      sim.ts, cards.ts, openrouterProxy.ts
+docs/         RULES.md, VERIFICATION.md, CARDS.md, LLM.md
 ```
 
 Mana Duel is an independent fan project inspired by Magic: The Gathering, a trademark of Wizards of the Coast. Card

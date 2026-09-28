@@ -405,9 +405,11 @@ function priorityBar(s: GameState, human: PlayerId, pass: Action): BarModel {
   }
   const attackers = s.combat?.attackers ?? [];
   const names = attackers.map((id) => cardName(s, id)).join(', ');
-  let prompt: Prompt = { title: STEP_NAMES[s.step], detail: 'You can cast instants now' };
-  if (s.step === 'declareAttackers' && !myTurn) {
-    prompt = { title: `${s.players[s.activePlayer].name} attacks with ${names}`, detail: 'Cast an instant before blocks, or continue' };
+  const active = s.players[s.activePlayer].name;
+  const step = STEP_NAMES[s.step].toLowerCase();
+  let prompt: Prompt = { title: myTurn ? `Your ${step}` : `${active}'s ${step}`, detail: 'You can cast instants now' };
+  if (s.step === 'declareAttackers') {
+    prompt = { title: `${myTurn ? 'You attack' : `${active} attacks`} with ${names}`, detail: 'Cast an instant before blocks, or continue' };
   } else if (s.step === 'declareBlockers') {
     const blocked = s.combat?.blocks.length ?? 0;
     prompt = {

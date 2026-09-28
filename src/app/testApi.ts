@@ -18,8 +18,9 @@ import {
   type PendingDecision,
   type ScenarioSpec,
 } from '../engine';
+import type { Prompt } from '../llm/prompt';
 import { CHECKS, runChecks, type CheckResult } from './checks';
-import type { ControllerOptions, GameController, Matchup, Replay } from './controller';
+import type { ControllerOptions, GameController, LlmRecord, Matchup, OpponentSetup, Replay } from './controller';
 import type { FxCue } from './fx';
 
 export interface EngineApi {
@@ -34,7 +35,7 @@ export interface EngineApi {
   play(state: GameState, actions: Action[]): GameState;
 }
 
-export const API_VERSION = '1.2';
+export const API_VERSION = '1.4';
 
 export interface DeckSummary {
   id: string;
@@ -71,9 +72,11 @@ export interface ManaDuelApi {
   loadReplay(replay: Replay): ApiResult;
   replay(): Replay;
   settle(): PendingDecision | null;
+  idle(): Promise<PendingDecision | null>;
   playToEnd(): PendingDecision | null;
   setAiDelay(ms: number): void;
   setAutoplay(on: boolean): void;
+  setAutoPass(on: boolean): void;
   fx(since?: number): FxRecord[];
   fxSeq(): number;
   setFxSpeed(speed: number): void;
@@ -82,6 +85,9 @@ export interface ManaDuelApi {
   cards(): { id: string; name: string; type: string; cost: string | null; text: string[] }[];
   decks(): DeckSummary[];
   matchup(): Matchup | null;
+  opponent(): OpponentSetup;
+  llmDecisions(): LlmRecord[];
+  llmPrompt(): Promise<Prompt | null>;
   checks(): { id: string; title: string }[];
   runChecks(ids?: string[]): CheckResult[];
   engine: EngineApi;
@@ -98,15 +104,22 @@ const HELP = `window.manaDuel — automation API
                         {type:'declareBlockers', player:0, blocks:[{blocker:'c9', attacker:'c50'}]}
                         {type:'pass', player:0}, {type:'keep', player:0}, {type:'mulligan', player:0}
   pass(), endTurn(), concede()
-  settle()              run the AI now instead of waiting for its animations
-  playToEnd()           let the AI finish the game for both seats
-  newGame({seed, skipMulligans, startingPlayer, aiDelayMs, decks: ['dawntide', 'duskmire']})
-                        decks are [yours, AI's]; omitted, the current decks are kept
+  settle()              run the AI now instead of waiting for its animations; stops where an LLM must answer
+  await idle()          resolves once the game waits for you or is over (LLM answers included)
+  playToEnd()           let the AI finish the game for both seats (an LLM seat: setAutoplay(true), await idle())
+  newGame({seed, skipMulligans, startingPlayer, aiDelayMs, autoPass, decks: ['dawntide', 'duskmire'],
+           opponent: {kind: 'llm', model: 'openai/gpt-6-luna'} | {kind: 'classic'}})
+                        decks are [yours, AI's]; omitted, the current decks and opponent are kept
+  opponent()            who plays the AI seat: {kind: 'classic'} or {kind: 'llm', model}
+  llmDecisions()        the LLM's recent decisions: action, source (model | fallback), reason, error, ms, usage
+  await llmPrompt()     the exact {system, prompt} the LLM gets for the AI's pending decision, else null
   decks()               the decks you can pick: id, name, colors, card list
   matchup()             deck ids in play, [yours, AI's] (null for a loaded scenario)
   loadScenario(spec)    build a position: {activePlayer, step, players:[{hand, battlefield, library, life}, {...}]}
   replay() / loadReplay(replay)
   setAiDelay(ms), setAutoplay(on), log(), cards()
+  setAutoPass(on)       off: you pass yourself wherever you could act, as the LLM does (also ?autoPass=off);
+                        a window with nothing to do and End turn still pass on their own
   fx(since?)            animation cues of recent actions, oldest first: {seq, kind, card | player, ...}
   fxSeq()               seq of the latest action: read it before acting, then fx(seq) lists only newer cues
   setFxSpeed(speed)     animation speed: 1 normal, 0.25 slow motion, 0 off (also ?fx=off|slow|<speed>)
@@ -149,6 +162,11 @@ export function createTestApi(controller: GameController, showGame: () => void, 
       controller.settle();
       return structuredClone(controller.state.pending);
     },
+    idle: async () => {
+      controller.settle();
+      await controller.whenIdle();
+      return structuredClone(controller.state.pending);
+    },
     playToEnd: () => {
       const autoplay = controller.autoplay;
       controller.autoplay = true;
@@ -158,6 +176,7 @@ export function createTestApi(controller: GameController, showGame: () => void, 
     },
     setAiDelay: (ms) => controller.setAiDelay(ms),
     setAutoplay: (on) => controller.setAutoplay(on),
+    setAutoPass: (on) => controller.setAutoPass(on),
     fx: (since = 0) =>
       controller.fx
         .filter((batch) => batch.seq > since)
@@ -180,6 +199,9 @@ export function createTestApi(controller: GameController, showGame: () => void, 
         cards: deck.cards.map((entry) => ({ id: entry.card, name: getCardDef(entry.card).name, count: entry.count })),
       })),
     matchup: () => (controller.decks ? [...controller.decks] : null),
+    opponent: () => structuredClone(controller.opponent),
+    llmDecisions: () => structuredClone(controller.llmRecords),
+    llmPrompt: () => controller.llmPrompt(),
     checks: () => CHECKS.map((check) => ({ id: check.id, title: check.title })),
     runChecks: (ids) => runChecks(ids),
     engine: {

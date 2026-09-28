@@ -153,17 +153,24 @@ export function rulesText(def: CardDef): string[] {
   if (def.spell) {
     lines.push(sentences(def.spell.effects, def.spell.targets, def.name, 'it'));
   }
-  for (const trigger of def.triggers ?? []) {
-    const body = sentences(trigger.effects, trigger.targets, 'it', 'it');
-    lines.push(`${TRIGGER_OPENERS[trigger.on]}, ${lowerFirst(body)}`);
-  }
-  for (const ability of def.activated ?? []) {
-    const cost = [ability.cost && ability.cost !== '{0}' ? ability.cost : '', ability.tap ? '{T}' : '']
-      .filter(Boolean)
-      .join(', ');
-    lines.push(`${cost}: ${sentences(ability.effects, ability.targets, 'This creature', 'this creature')}`);
-  }
+  (def.triggers ?? []).forEach((_, index) => lines.push(triggerText(def, index)));
+  (def.activated ?? []).forEach((_, index) => lines.push(activatedText(def, index)));
   return lines;
+}
+
+export function triggerText(def: CardDef, index: number): string {
+  const trigger = def.triggers?.[index];
+  if (!trigger) return '';
+  return `${TRIGGER_OPENERS[trigger.on]}, ${lowerFirst(sentences(trigger.effects, trigger.targets, 'it', 'it'))}`;
+}
+
+export function activatedText(def: CardDef, index: number): string {
+  const ability = def.activated?.[index];
+  if (!ability) return '';
+  const cost = [ability.cost && ability.cost !== '{0}' ? ability.cost : '', ability.tap ? '{T}' : '']
+    .filter(Boolean)
+    .join(', ');
+  return `${cost}: ${sentences(ability.effects, ability.targets, 'This creature', 'this creature')}`;
 }
 
 export function cardSummary(defId: string): string {

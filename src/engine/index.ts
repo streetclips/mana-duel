@@ -13,7 +13,7 @@ export {
   tryApplyAction,
 } from './game';
 export type { ActionResult, GameOptions, PlayerSetup } from './game';
-export { blockAssignments, getLegalActions, playableHandCards, priorityActions } from './actions';
+export { blockAssignments, forcedAction, getLegalActions, playableHandCards, priorityActions } from './actions';
 export {
   attackersError,
   blockOptions,
@@ -59,6 +59,7 @@ export {
   KEYWORD_NAMES,
   KEYWORD_REMINDERS,
   STEP_NAMES,
+  activatedText,
   cardName,
   cardRef,
   cardSummary,
@@ -68,6 +69,7 @@ export {
   rulesText,
   targetPhrase,
   targetRef,
+  triggerText,
   typeLine,
 } from './describe';
 export { checkInvariants } from './invariants';
