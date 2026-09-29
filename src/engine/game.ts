@@ -34,6 +34,7 @@ import {
   opponent,
   queueTriggers,
   tapCards,
+  triggeredAbility,
 } from './state';
 import { targetCombos, targetsError } from './targets';
 import type {
@@ -332,6 +333,7 @@ function performAction(s: GameState, action: Action): void {
         targets: [...targets],
       });
       s.events.push({ t: 'activate', player, card: action.card, ability: action.ability, targets: [...targets] });
+      if (ability.sacrifice) moveCard(s, action.card, 'graveyard');
       s.pending = null;
       s.passes = 0;
       s.priority = player;
@@ -363,7 +365,7 @@ function performAction(s: GameState, action: Action): void {
       const decision = expectPending(s, 'chooseTargets', player);
       const trigger = s.triggers.find((candidate) => candidate.id === decision.trigger);
       if (!trigger) illegal('that trigger is no longer waiting for targets');
-      const ability = defOf(s, trigger.source).triggers?.[trigger.ability];
+      const ability = triggeredAbility(defOf(s, trigger.source), trigger.ability);
       const error = targetsError(s, player, ability?.targets ?? [], action.targets ?? []);
       if (error) illegal(error);
       s.triggers = s.triggers.filter((candidate) => candidate.id !== trigger.id);
@@ -379,7 +381,7 @@ function performAction(s: GameState, action: Action): void {
         s.events.push({ t: 'discard', player, card: id });
       }
       s.pending = null;
-      finishCleanup(s);
+      if (decision.source === undefined) finishCleanup(s);
       return;
     }
     default:
@@ -453,7 +455,8 @@ function runStateBasedActions(s: GameState): void {
       return toughness <= 0 || card.damage >= toughness || (card.deathtouchDamage && card.damage > 0);
     });
     if (dying.length === 0) return;
-    for (const id of dying) moveCard(s, id, 'graveyard');
+    const watchers: [CardId[], CardId[]] = [[...s.players[0].battlefield], [...s.players[1].battlefield]];
+    for (const id of dying) moveCard(s, id, 'graveyard', { watchers: watchers[getCard(s, id).controller] });
   }
 }
 
@@ -463,7 +466,7 @@ function putNextTriggerOnStack(s: GameState): boolean {
     s.triggers.findIndex((trigger) => trigger.controller === s.activePlayer),
   );
   const trigger = s.triggers[index] as PendingTrigger;
-  const ability = defOf(s, trigger.source).triggers?.[trigger.ability];
+  const ability = triggeredAbility(defOf(s, trigger.source), trigger.ability);
   if (!ability) {
     s.triggers.splice(index, 1);
     return false;

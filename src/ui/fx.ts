@@ -1,5 +1,5 @@
 import { revealsPlay, type FxBatch, type FxCue, type FxKind } from '../app/fx';
-import { formatModifier, type CardId, type GameState, type PlayerId, type Target } from '../engine';
+import { formatPump, type CardId, type GameState, type PlayerId, type Target } from '../engine';
 
 export interface FxEntry {
   key: string;
@@ -249,7 +249,7 @@ export function fxView(entries: FxEntry[], s: GameState, human: PlayerId, specta
         const shrink = cue.power < 0 || cue.toughness < 0;
         const fx = card(cue.card, entry);
         fx.flash = { key: entry.key, tone: shrink ? 'damage' : 'good', delay: 0 };
-        fx.float = { key: entry.key, text: formatModifier(cue.power, cue.toughness), tone: shrink ? 'minus' : 'plus', delay: 0 };
+        fx.float = { key: entry.key, text: formatPump(cue.power, cue.toughness, cue.keywords), tone: shrink ? 'minus' : 'plus', delay: 0 };
         break;
       }
       case 'life': {

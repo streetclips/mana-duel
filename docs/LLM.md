@@ -37,7 +37,8 @@ sections, the constant ones first so providers can cache the prefix:
 4. **Your recent thoughts**: the `reason` of its last 10 decisions that were played, each with its turn and step
    (`thoughtLine`), so it can keep to a plan. Fallbacks and forced moves add none.
 5. **Game state from your seat**: `playerView` as compact JSON. Its hand, both battlefields (tapped, sick, damage,
-   combat, pumps, `plusOneCounters`), graveyards, untapped mana, life, the stack from the top.
+   combat, pumps and keywords granted `untilEndOfTurn`, `plusOneCounters`, `token`), graveyards, untapped mana,
+   life, the stack from the top.
 6. **Decision**: the question, the options and how to answer.
 
 Hidden from the model: the opponent's hand (`handSize` only), both libraries (`libraryCards` only), the seed and
@@ -52,7 +53,7 @@ with the hidden cards shuffled at every decision of real games and expects the s
 | `mulligan`, `priority`, `chooseTargets` | `{ reason, choice }`, `choice` an enum of the ids of every legal action | yes |
 | `declareAttackers` | `{ reason, attack: { <id>: boolean } }` for every creature that can attack | yes |
 | `declareBlockers` | `{ reason, blocks: { <blocker>: "none" \| <attacker> } }`, each blocker's own legal attackers | all but menace |
-| `bottom`, `discard` | `{ reason, cards: <hand id>[] }` | the count is checked after |
+| `bottom`, `discard` | `{ reason, cards: <hand id>[] }`; a discard names the card that causes it, or cleanup | the count is checked after |
 
 `reason` comes first so the model thinks before it answers; the log shows it as "AI thinks: …", and the next prompts
 list it under "Your recent thoughts".

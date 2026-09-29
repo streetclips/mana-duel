@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#261d33"/>
+      <stop offset="1" stop-color="#30423a"/>
+    </linearGradient>
+    <path id="flask" d="M55.5 17 H64.5 V31 C71 33 75 38 75 45 C75 53.3 68.3 60 60 60 C51.7 60 45 53.3 45 45 C45 38 49 33 55.5 31 Z"/>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="60" cy="42" r="26" fill="#b9a6d6" opacity="0.1"/>
+  <circle cx="60" cy="48" r="16" fill="#c6f25a" opacity="0.08"/>
+  <path d="M0 62 Q60 58 120 62 V80 H0 Z" fill="#1d2721"/>
+  <ellipse cx="60" cy="61" rx="18" ry="2.6" fill="#b37be0" opacity="0.3"/>
+  <path d="M46 60 C40 53 31 52 24 55.4 C30 60.6 39 62 46 60 Z M74 60 C80 53 89 52 96 55.4 C90 60.6 81 62 74 60 Z" fill="#3f6b3d"/>
+  <path d="M44 59.4 C38 56.6 32 56 27 56.6 M76 59.4 C82 56.6 88 56 93 56.6" fill="none" stroke="#2c4f2c" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M40 57 C36 50 30 48 25 49 C28 54 34 57 40 57 Z M80 57 C84 50 90 48 95 49 C92 54 86 57 80 57 Z" fill="#4f7a45"/>
+  <use href="#flask" fill="#d8ccef" opacity="0.16"/>
+  <path d="M45.6 47 C50 44.6 55 46.4 60 45.6 C65 44.8 70 44.6 74.4 47 C73.6 54.4 67.6 59.4 60 59.4 C52.4 59.4 46.4 54.4 45.6 47 Z" fill="#7b4fa8"/>
+  <ellipse cx="60" cy="53" rx="9" ry="4.6" fill="#b37be0" opacity="0.55"/>
+  <path d="M47 48.6 C52 46.6 56 49.2 60 48 C64 46.8 68 48.2 73 47.6" fill="none" stroke="#c6f25a" stroke-width="1.3" stroke-linecap="round"/>
+  <path d="M51 53 C54 55 57 52 60 54 C63 56 66 53 69 54.6" fill="none" stroke="#c6f25a" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/>
+  <g fill="#efe4ff">
+    <circle cx="56" cy="52.4" r="0.9"/>
+    <circle cx="63.4" cy="50.6" r="0.7"/>
+    <circle cx="60.6" cy="56" r="0.6"/>
+    <circle cx="61.4" cy="40" r="0.8"/>
+    <circle cx="59" cy="34.4" r="0.6"/>
+  </g>
+  <use href="#flask" fill="none" stroke="#e8e0f5" stroke-width="1.2" opacity="0.85"/>
+  <path d="M49.4 41.6 C50.4 38.4 52.4 36.2 55 35 M57.4 19.6 V28" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+  <rect x="54" y="15.4" width="12" height="3" rx="1.5" fill="#e8e0f5"/>
+  <path d="M56.5 16 V11.4 C56.5 10 57.6 9.4 60 9.4 C62.4 9.4 63.5 10 63.5 11.4 V16 Z" fill="#8a6a45"/>
+  <path d="M58 12 H62 M58.4 14 H61.6" stroke="#6e5236" stroke-width="0.7" stroke-linecap="round"/>
+  <path d="M34 60 C35 56 36.6 54 38 52.6 M86 60 C85 56 83.4 54 82 52.6" fill="none" stroke="#5a7a3a" stroke-width="0.9" stroke-linecap="round"/>
+  <g fill="#2a1a3a" stroke="#9a86c0" stroke-width="0.6">
+    <circle cx="35.4" cy="62" r="3"/>
+    <circle cx="41" cy="64.2" r="2.8"/>
+    <circle cx="31" cy="65.6" r="2.6"/>
+    <circle cx="84.6" cy="62" r="3"/>
+    <circle cx="79.2" cy="64.4" r="2.6"/>
+    <circle cx="89.4" cy="65.2" r="2.8"/>
+  </g>
+  <g fill="#f4ecff">
+    <circle cx="34.4" cy="61" r="0.8"/>
+    <circle cx="40.1" cy="63.3" r="0.7"/>
+    <circle cx="30.2" cy="64.8" r="0.6"/>
+    <circle cx="83.6" cy="61" r="0.8"/>
+    <circle cx="78.4" cy="63.6" r="0.6"/>
+    <circle cx="88.5" cy="64.3" r="0.7"/>
+  </g>
+  <path d="M30 42.6 L31.3 46.2 L35.1 46.3 L32.1 48.7 L33.2 52.4 L30 50.2 L26.8 52.4 L27.9 48.7 L24.9 46.3 L28.7 46.2 Z M91.7 42.9 L91.8 46.7 L95.4 48 L91.8 49.3 L91.7 53.1 L89.3 50.1 L85.6 51.2 L87.8 48 L85.6 44.8 L89.3 45.9 Z" fill="#9a6fcf"/>
+  <circle cx="30" cy="48" r="1.3" fill="#f2d04a"/>
+  <circle cx="90" cy="48" r="1.3" fill="#f2d04a"/>
+  <g fill="#c6f25a" opacity="0.8">
+    <circle cx="44" cy="24" r="0.9"/>
+    <circle cx="78" cy="18" r="0.8"/>
+    <circle cx="82" cy="36" r="1"/>
+    <circle cx="38" cy="36" r="0.7"/>
+  </g>
+</svg>

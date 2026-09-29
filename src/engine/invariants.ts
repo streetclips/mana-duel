@@ -1,5 +1,5 @@
-import { hasCardDef } from './registry';
-import { isCreature } from './state';
+import { getCardDef, hasCardDef } from './registry';
+import { isCreature, isTokenDef } from './state';
 import type { CardId, GameState, PlayerId } from './types';
 
 export function checkInvariants(s: GameState): string[] {
@@ -25,6 +25,9 @@ export function checkInvariants(s: GameState): string[] {
         if (card.zone !== zone) problems.push(`${id} is listed in ${zone} but marked as ${card.zone}`);
         if (zone === 'battlefield' && card.controller !== player) problems.push(`${id} is on the wrong battlefield`);
         if (zone !== 'battlefield' && card.owner !== player) problems.push(`${id} is in the wrong player's ${zone}`);
+        if (zone !== 'battlefield' && hasCardDef(card.def) && isTokenDef(getCardDef(card.def))) {
+          problems.push(`token ${id} exists outside the battlefield`);
+        }
       }
     }
   }
@@ -36,7 +39,11 @@ export function checkInvariants(s: GameState): string[] {
   for (const id in s.cards) {
     const card = s.cards[id];
     if (!card) continue;
-    if (!seen.has(id)) problems.push(`${id} is in no zone`);
+    const token = hasCardDef(card.def) && isTokenDef(getCardDef(card.def));
+    if (card.zone === 'gone') {
+      if (!token) problems.push(`${id} ceased to exist but is not a token`);
+      if (seen.has(id)) problems.push(`${id} ceased to exist but is still in ${seen.get(id)}`);
+    } else if (!seen.has(id)) problems.push(`${id} is in no zone`);
     if (!hasCardDef(card.def)) problems.push(`${id} has an unknown definition ${card.def}`);
     if (card.damage < 0 || !Number.isInteger(card.damage)) problems.push(`${id} has invalid damage ${card.damage}`);
     if (card.counters < 0 || !Number.isInteger(card.counters)) problems.push(`${id} has invalid counters ${card.counters}`);
@@ -49,7 +56,8 @@ export function checkInvariants(s: GameState): string[] {
   if (!pending) problems.push('no pending decision');
   if (pending?.kind === 'priority' && s.priority !== pending.player) problems.push('priority holder mismatch');
   const turnBasedDecisions = ['mulligan', 'bottom', 'declareAttackers', 'declareBlockers', 'discard'];
-  if (pending && turnBasedDecisions.includes(pending.kind) && s.priority !== null) {
+  const effectDiscard = pending?.kind === 'discard' && pending.source !== undefined;
+  if (pending && turnBasedDecisions.includes(pending.kind) && !effectDiscard && s.priority !== null) {
     problems.push(`priority is set during ${pending.kind}`);
   }
 

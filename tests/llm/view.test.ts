@@ -85,6 +85,19 @@ describe('the view of one seat', () => {
     ]);
   });
 
+  it('marks tokens and shows keywords granted until end of turn', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'charge_of_the_forge', id: 'charge' }], battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }] },
+        {},
+      ],
+    });
+    s = pass(pass(cast(s, 'charge')));
+    expect(playerView(s, 1).opponent.creatures).toEqual([
+      { id: 'soldier', name: 'Soldier', token: true, power: 2, toughness: 1, keywords: ['First strike'], untilEndOfTurn: '+1/+0, first strike' },
+    ]);
+  });
+
   it('lists the stack from the top, with each item’s text and targets from the viewer’s seat', () => {
     const s = cast(
       scenario({

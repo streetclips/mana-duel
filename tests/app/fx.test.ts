@@ -318,6 +318,50 @@ describe('fx cues: spells and abilities', () => {
   });
 });
 
+describe('fx cues: tokens, keyword grants, undying and discards', () => {
+  it('shows tokens entering like any other creature', () => {
+    const s = scenario({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] });
+    const { state, cues } = passCollecting(cast(s, 'banners'), stackEmpty);
+    const tokens = state.players[0].battlefield.filter((id) => state.cards[id]?.def === 'soldier_token');
+    expect(tokens).toHaveLength(2);
+    expect(cues).toEqual(tokens.map((card) => ({ kind: 'enter', player: 0, card })));
+  });
+
+  it('carries the keywords a pump grants', () => {
+    const s = scenario({
+      players: [
+        { hand: [{ card: 'charge_of_the_forge', id: 'charge' }], battlefield: ['mountain', 'plains', { card: 'test_bear', id: 'bear' }] },
+        {},
+      ],
+    });
+    expect(passCollecting(cast(s, 'charge'), stackEmpty).cues).toEqual([{ kind: 'pump', card: 'bear', power: 1, toughness: 0, keywords: ['firstStrike'] }]);
+  });
+
+  it('shows an undying creature dying, then coming back with its counter', () => {
+    const s = scenario({
+      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { battlefield: [{ card: 'gravebloom_sprout', id: 'sprout' }] }],
+    });
+    expect(passCollecting(cast(s, 'snap', [{ card: 'sprout' }]), stackEmpty).cues).toEqual([
+      { kind: 'damage', card: 'sprout', amount: 2 },
+      { kind: 'dies', player: 1, card: 'sprout', next: null },
+      { kind: 'ability', player: 1, card: 'sprout' },
+      { kind: 'enter', player: 1, card: 'sprout' },
+      { kind: 'pump', card: 'sprout', power: 1, toughness: 1 },
+    ]);
+  });
+
+  it('shows the card an effect makes a player discard', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
+        { hand: [{ card: 'ember_snap', id: 'snap' }] },
+      ],
+    });
+    s = passTo(cast(s, 'leech'), 'discard');
+    expect(step(s, { type: 'discard', player: 1, cards: ['snap'] }).cues).toEqual([{ kind: 'discard', player: 1, card: 'snap' }]);
+  });
+});
+
 describe('fx holds', () => {
   const cast1: FxCue = { kind: 'play', player: 1, card: 'snap', via: 'cast', targets: [] };
   const cast0: FxCue = { kind: 'play', player: 0, card: 'snap', via: 'cast', targets: [] };

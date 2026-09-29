@@ -55,6 +55,28 @@ describe('animations of life totals', () => {
   });
 });
 
+describe('animations of tokens and keyword grants', () => {
+  it('float the keyword a pump grants, and fade a token that dies out in its place', () => {
+    const { settle } = setup({
+      players: [
+        {
+          hand: [{ card: 'charge_of_the_forge', id: 'charge' }, { card: 'ember_snap', id: 'snap' }],
+          battlefield: ['mountain', 'mountain', 'plains', { card: 'soldier_token', id: 'soldier' }],
+        },
+        { battlefield: [{ card: 'soldier_token', id: 'theirs' }] },
+      ],
+    });
+    castFromHand('charge');
+    settle();
+    expect(byTestId('fx-float-soldier').textContent).toBe('+1/+0, first strike');
+    castFromHand('snap');
+    fireEvent.click(byTestId('card-theirs'));
+    settle();
+    expect(byTestId('fx-ghost-theirs').dataset.def).toBe('soldier_token');
+    expect(screen.queryByTestId('card-theirs')).toBeNull();
+  });
+});
+
 describe('animations of combat', () => {
   it('make the attacker and its blocker strike each other and leave a ghost of the creature that died', () => {
     const { controller, run, settle } = setup({

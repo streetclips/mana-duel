@@ -1,6 +1,6 @@
 import { blockOptions, blocksError, eligibleAttackers } from './combat';
 import { activationBlocker, castBlocker, landPlayError } from './rules';
-import { MAX_MULLIGANS, defOf, isLandDef } from './state';
+import { MAX_MULLIGANS, defOf, isLandDef, triggeredAbility } from './state';
 import { targetCombos } from './targets';
 import type { Action, Block, CardId, GameState, PlayerId } from './types';
 
@@ -42,7 +42,7 @@ export function getLegalActions(s: GameState, options: EnumerationOptions = {}):
     case 'chooseTargets': {
       const trigger = s.triggers.find((candidate) => candidate.id === pending.trigger);
       if (!trigger) return [];
-      const ability = defOf(s, trigger.source).triggers?.[trigger.ability];
+      const ability = triggeredAbility(defOf(s, trigger.source), trigger.ability);
       return targetCombos(s, player, ability?.targets ?? []).map((targets) => ({
         type: 'chooseTargets',
         player,

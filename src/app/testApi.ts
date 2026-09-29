@@ -82,7 +82,7 @@ export interface ManaDuelApi {
   setFxSpeed(speed: number): void;
   freezeFx(progress?: number | null): Promise<string[]>;
   log(): string[];
-  cards(): { id: string; name: string; type: string; cost: string | null; text: string[] }[];
+  cards(): { id: string; name: string; type: string; cost: string | null; text: string[]; token: boolean }[];
   decks(): DeckSummary[];
   matchup(): Matchup | null;
   opponent(): OpponentSetup;
@@ -188,7 +188,7 @@ export function createTestApi(controller: GameController, showGame: () => void, 
     cards: () =>
       allCardDefs()
         .filter((def) => !def.id.startsWith('test_'))
-        .map((def) => ({ id: def.id, name: def.name, type: typeLine(def), cost: def.cost ?? null, text: rulesText(def) })),
+        .map((def) => ({ id: def.id, name: def.name, type: typeLine(def), cost: def.cost ?? null, text: rulesText(def), token: def.token === true })),
     decks: () =>
       DECK_LIST.map((deck) => ({
         id: deck.id,

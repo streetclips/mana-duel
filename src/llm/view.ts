@@ -4,7 +4,7 @@ import {
   activatedText,
   cardSummary,
   describeEvent,
-  formatModifier,
+  formatPump,
   getCard,
   getCardDef,
   getDeck,
@@ -38,6 +38,7 @@ export interface LandView extends CardRefView {
 }
 
 export interface CreatureView extends CardRefView {
+  token?: true;
   power: number;
   toughness: number;
   keywords?: string[];
@@ -111,7 +112,9 @@ export function targetLabel(s: GameState, target: Target, viewer: PlayerId): str
 
 function creatureView(s: GameState, id: CardId): CreatureView {
   const card = getCard(s, id);
-  const view: CreatureView = { id, name: getCardDef(card.def).name, power: getPower(s, id), toughness: getToughness(s, id) };
+  const def = getCardDef(card.def);
+  const view: CreatureView = { id, name: def.name, power: getPower(s, id), toughness: getToughness(s, id) };
+  if (def.token) view.token = true;
   const keywords = getKeywords(s, id);
   if (keywords.length > 0) view.keywords = keywords.map((keyword) => KEYWORD_NAMES[keyword]);
   if (card.counters > 0) view.plusOneCounters = card.counters;
@@ -119,7 +122,8 @@ function creatureView(s: GameState, id: CardId): CreatureView {
   if (pumps.length > 0) {
     const power = pumps.reduce((sum, effect) => sum + effect.power, 0);
     const toughness = pumps.reduce((sum, effect) => sum + effect.toughness, 0);
-    view.untilEndOfTurn = formatModifier(power, toughness);
+    const granted = [...new Set(pumps.flatMap((effect) => effect.keywords ?? []))];
+    view.untilEndOfTurn = formatPump(power, toughness, granted);
   }
   if (card.damage > 0) view.damage = card.damage;
   if (card.tapped) view.tapped = true;

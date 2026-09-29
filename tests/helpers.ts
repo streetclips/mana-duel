@@ -112,6 +112,16 @@ const TEST_CARDS: CardDef[] = [
     types: ['land'],
     mana: ['R', 'G'],
   },
+  {
+    id: 'test_double_hitter',
+    name: 'Test Double Hitter',
+    types: ['creature'],
+    cost: '{1}{U}',
+    power: 1,
+    toughness: 1,
+    keywords: ['doubleStrike'],
+    triggers: [{ on: 'damagesPlayer', targets: [], effects: [{ kind: 'draw', amount: 1 }] }],
+  },
 ];
 
 for (const def of TEST_CARDS) {

@@ -118,6 +118,83 @@ Green and white: an army that grows with +1/+1 counters, team-wide pumps and lif
 | 2 | Pack Pounce | `pack_pounce` | {1}{G} | Sorcery | — | Put a +1/+1 counter on target creature you control. It fights target creature you don't control. |
 | 2 | Harvest Hymn | `harvest_hymn` | {2}{G}{W} | Sorcery | — | Put a +1/+1 counter on each creature you control. You gain 2 life. |
 
+## Brightforge (40 cards, RW)
+
+Red and white: creature tokens, first strike and haste; the army grows with every soldier.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Mountain | `mountain` | — | Basic Land — Mountain | — | {T}: Add {R}. |
+| 8 | Plains | `plains` | — | Basic Land — Plains | — | {T}: Add {W}. |
+| 2 | Forge Cadet | `forge_cadet` | {1}{W} | Creature — Human Soldier | 1/1 | Whenever another creature you control enters, put a +1/+1 counter on this creature. |
+| 2 | Muster Sergeant | `muster_sergeant` | {1}{W} | Creature — Human Soldier | 1/1 | When this creature enters, create a 1/1 white Soldier creature token. |
+| 2 | Sunsteel Lancer | `sunsteel_lancer` | {R}{W} | Creature — Human Knight | 2/2 | First strike |
+| 2 | Kindling Caller | `kindling_caller` | {1}{R} | Creature — Human Shaman | 1/1 | When this creature enters, create a 1/1 red Elemental creature token with haste. |
+| 2 | Bannerguard Knight | `bannerguard_knight` | {2}{W} | Creature — Human Knight | 2/2 | Vigilance · When this creature enters, create a 1/1 white Soldier creature token. |
+| 2 | Hammerfall Raider | `hammerfall_raider` | {2}{R} | Creature — Human Warrior | 2/2 | Whenever this creature attacks, create a 1/1 red Elemental creature token with haste. |
+| 2 | Brightforge Marshal | `brightforge_marshal` | {2}{R}{W} | Creature — Human Soldier | 2/2 | When this creature enters, create two 1/1 white Soldier creature tokens. |
+| 1 | Forgewing Griffin | `forgewing_griffin` | {3}{W} | Creature — Griffin | 2/2 | Flying · When this creature enters, create a 1/1 white Soldier creature token. |
+| 1 | Brightforge Warlord | `brightforge_warlord` | {3}{R}{W} | Creature — Human Knight | 4/4 | When this creature enters, creatures you control get +1/+0 and gain haste until end of turn. |
+| 2 | Raise the Banners | `raise_the_banners` | {1}{W} | Instant | — | Create two 1/1 white Soldier creature tokens. |
+| 2 | Molten Rebuke | `molten_rebuke` | {1}{R} | Instant | — | Molten Rebuke deals 3 damage to target creature. |
+| 1 | Sunbrand | `sunbrand` | {1}{R}{W} | Instant | — | Sunbrand deals 3 damage to any target. You gain 3 life. |
+| 2 | Charge of the Forge | `charge_of_the_forge` | {R}{W} | Instant | — | Creatures you control get +1/+0 and gain first strike until end of turn. |
+| 1 | Stoke the Forge | `stoke_the_forge` | {3}{R} | Sorcery | — | Create two 1/1 red Elemental creature tokens with haste. |
+
+## Mistgrave (40 cards, UB)
+
+Blue and black: skulking creatures slip past bigger blockers and strip the opponent's hand.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Island | `island` | — | Basic Land — Island | — | {T}: Add {U}. |
+| 8 | Swamp | `swamp` | — | Basic Land — Swamp | — | {T}: Add {B}. |
+| 2 | Gutterfang Rat | `gutterfang_rat` | {B} | Creature — Rat | 1/1 | Skulk, deathtouch |
+| 2 | Fogslip Thief | `fogslip_thief` | {1}{U} | Creature — Human Rogue | 2/2 | Skulk · Whenever this creature deals combat damage to a player, draw a card. |
+| 2 | Hushwing Bat | `hushwing_bat` | {1}{B} | Creature — Bat | 1/1 | Flying · Whenever this creature deals combat damage to a player, that player discards a card. |
+| 2 | Inkwell Scribe | `inkwell_scribe` | {1}{U} | Creature — Human Wizard | 1/3 | When this creature enters, draw a card, then discard a card. |
+| 2 | Memory Leech | `memory_leech` | {2}{B} | Creature — Leech | 2/3 | When this creature enters, each opponent discards a card. |
+| 2 | Mistcloak Ambusher | `mistcloak_ambusher` | {2}{U} | Creature — Human Rogue | 3/2 | Flash, skulk |
+| 2 | Veilborn Specter | `veilborn_specter` | {2}{U}{B} | Creature — Specter | 2/3 | Flying · Whenever this creature deals combat damage to a player, draw a card. |
+| 1 | Mistgrave Revenant | `mistgrave_revenant` | {3}{U}{B} | Creature — Zombie Horror | 4/4 | Skulk · Whenever this creature deals combat damage to a player, draw a card. That player discards a card. |
+| 2 | Rob the Mind | `rob_the_mind` | {2}{B} | Sorcery | — | Each opponent discards two cards. |
+| 2 | Drag Below | `drag_below` | {1}{U}{B} | Instant | — | Return target creature you don't control to its owner's hand. Each opponent discards a card. |
+| 2 | Choking Mist | `choking_mist` | {1}{B} | Instant | — | Target creature gets -3/-3 until end of turn. |
+| 2 | Sift the Depths | `sift_the_depths` | {1}{U} | Instant | — | Draw two cards, then discard a card. |
+| 1 | Drown the Truth | `drown_the_truth` | {2}{U}{B} | Instant | — | Destroy target creature. |
+
+## Gloamwood (40 cards, BG)
+
+Black and green: undying, sacrifice and deathtouch; every death feeds the wood.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Forest | `forest` | — | Basic Land — Forest | — | {T}: Add {G}. |
+| 8 | Swamp | `swamp` | — | Basic Land — Swamp | — | {T}: Add {B}. |
+| 2 | Gravebloom Sprout | `gravebloom_sprout` | {G} | Creature — Plant | 1/1 | Undying |
+| 2 | Rotwing Crow | `rotwing_crow` | {1}{B} | Creature — Bird | 1/1 | Flying · Whenever another creature you control dies, each opponent loses 1 life. |
+| 2 | Rootgnaw Boar | `rootgnaw_boar` | {1}{G} | Creature — Boar | 1/2 | Whenever another creature you control dies, put a +1/+1 counter on this creature. |
+| 2 | Bloodspore Thrall | `bloodspore_thrall` | {1}{B} | Creature — Fungus Zombie | 1/1 | Undying · Sacrifice this creature: Each opponent loses 1 life. |
+| 2 | Bonewood Stalker | `bonewood_stalker` | {2}{B} | Creature — Zombie Beast | 2/2 | Sacrifice this creature: Target creature gets -2/-2 until end of turn. |
+| 2 | Sporecap Shambler | `sporecap_shambler` | {2}{G} | Creature — Fungus | 2/1 | When this creature dies, create two 1/1 green Saproling creature tokens. |
+| 2 | Gloomsilk Spider | `gloomsilk_spider` | {2}{G} | Creature — Spider | 1/2 | Reach, deathtouch |
+| 2 | Rotbark Treefolk | `rotbark_treefolk` | {3}{G} | Creature — Treefolk | 2/3 | Undying |
+| 1 | Gloamwood Elder | `gloamwood_elder` | {3}{B}{G} | Creature — Treefolk Shaman | 3/4 | Reach · Whenever another creature you control dies, create a 1/1 green Saproling creature token. |
+| 2 | Venom Duel | `venom_duel` | {1}{B}{G} | Sorcery | — | Target creature you control gains deathtouch until end of turn. It fights target creature you don't control. |
+| 2 | Rot into Loam | `rot_into_loam` | {B}{G} | Instant | — | Target creature gets -2/-2 until end of turn. Create a 1/1 green Saproling creature token. |
+| 1 | Sporecall | `sporecall` | {2}{G} | Sorcery | — | Create two 1/1 green Saproling creature tokens. |
+| 2 | Nightshade Tonic | `nightshade_tonic` | {1}{G} | Instant | — | Target creature gets +1/+1 and gains deathtouch until end of turn. |
+
+## Tokens
+
+Creatures that effects create. A token that leaves the battlefield ceases to exist.
+
+| Token | Id | Type | P/T | Rules text | Created by |
+| --- | --- | --- | --- | --- | --- |
+| Soldier | `soldier_token` | Token Creature — Soldier | 1/1 | — | Muster Sergeant (Brightforge), Bannerguard Knight (Brightforge), Brightforge Marshal (Brightforge), Forgewing Griffin (Brightforge), Raise the Banners (Brightforge) |
+| Elemental | `elemental_token` | Token Creature — Elemental | 1/1 | Haste | Kindling Caller (Brightforge), Hammerfall Raider (Brightforge), Stoke the Forge (Brightforge) |
+| Saproling | `saproling_token` | Token Creature — Saproling | 1/1 | — | Sporecap Shambler (Gloamwood), Gloamwood Elder (Gloamwood), Rot into Loam (Gloamwood), Sporecall (Gloamwood) |
+
 ## Keywords
 
 | Keyword | Meaning | In a deck |
@@ -134,3 +211,5 @@ Green and white: an army that grows with +1/+1 counters, team-wide pumps and lif
 | Menace | Can't be blocked except by two or more creatures. | yes |
 | Defender | Can't attack. | yes |
 | Flash | You may cast it any time you could cast an instant. | yes |
+| Skulk | Can't be blocked by creatures with greater power. | yes |
+| Undying | When it dies, if it had no +1/+1 counters on it, it returns to the battlefield with a +1/+1 counter on it. | yes |

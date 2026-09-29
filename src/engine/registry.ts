@@ -48,10 +48,16 @@ export function validateCardDef(def: CardDef): void {
   if (isLand && def.cost) fail('lands have no mana cost');
   if (isSpell && !def.spell) fail('instants and sorceries need a spell ability');
   if (!isSpell && def.spell) fail('only instants and sorceries have a spell ability');
+  if (def.token && (!isCreature || def.cost)) fail('tokens are creatures without a mana cost');
   const abilities = [def.spell, ...(def.triggers ?? []), ...(def.activated ?? [])];
   for (const ability of abilities) {
     if (!ability) continue;
+    const discards = ability.effects.filter((effect) => effect.kind === 'discard').length;
+    if (discards > 1 || (discards === 1 && ability.effects.at(-1)?.kind !== 'discard')) fail('a discard must be the last effect');
+    if (ability.effects.some((effect) => effect.kind === 'returnToBattlefield')) fail('returning to the battlefield is undying only');
+    const sacrificed = 'sacrifice' in ability && ability.sacrifice === true;
     for (const effect of ability.effects) {
+      if (sacrificed && 'to' in effect && effect.to === 'self') fail('an ability that sacrifices its creature cannot affect it');
       const refs = effect.kind === 'fight' ? [effect.a, effect.b] : 'to' in effect ? [effect.to] : [];
       for (const ref of refs) {
         if (ref === 'self' && !isCreature) fail('"self" effects need a permanent source');

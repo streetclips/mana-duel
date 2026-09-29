@@ -2,6 +2,7 @@ import { chooseAction } from '../ai';
 import {
   DECK_LIST,
   applyAction,
+  blockOptions,
   checkInvariants,
   createGame,
   createScenario,
@@ -9,6 +10,7 @@ import {
   eligibleAttackers,
   expandDeck,
   getCardDef,
+  getKeywords,
   getLegalActions,
   getPower,
   getToughness,
@@ -511,7 +513,7 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F29',
-    title: 'Decks: five 40-card decks with 16 lands each and no nonland card in common',
+    title: 'Decks: eight 40-card decks with 16 lands each and no nonland card in common',
     run: () => {
       const owners = new Map<string, number>();
       for (const deck of DECK_LIST) {
@@ -519,10 +521,14 @@ export const CHECKS: Check[] = [
       }
       const shared = [...owners].filter(([id, count]) => count > 1 && !getCardDef(id).supertypes?.includes('Basic')).map(([id]) => id);
       return first(
-        expectValue(DECK_LIST.map((deck) => deck.id), ['emberwild', 'dawntide', 'duskmire', 'stormglass', 'sunmeadow'], 'decks'),
+        expectValue(
+          DECK_LIST.map((deck) => deck.id),
+          ['emberwild', 'dawntide', 'duskmire', 'stormglass', 'sunmeadow', 'brightforge', 'mistgrave', 'gloamwood'],
+          'decks',
+        ),
         expectValue(
           DECK_LIST.map((deck) => [deckSize(deck), expandDeck(deck).filter((id) => getCardDef(id).types.includes('land')).length]),
-          [[40, 16], [40, 16], [40, 16], [40, 16], [40, 16]],
+          DECK_LIST.map(() => [40, 16]),
           'cards and lands per deck',
         ),
         expectValue(shared, [], 'nonland cards in more than one deck'),
@@ -764,6 +770,201 @@ export const CHECKS: Check[] = [
         expectValue(rallied, [[3, 3], [3, 3], [2, 1]], 'after Rally the Meadow'),
         expectValue(attacking, [[4, 3], [4, 3]], 'after Sunmeadow Herald attacks'),
         expectValue(stats(['herald', 'squire']), [[2, 2], [2, 2]], 'on the next turn'),
+      );
+    },
+  },
+  {
+    id: 'F44',
+    title: 'Tokens: Raise the Banners creates two 1/1 Soldiers; a token that dies or returns to hand ceases to exist',
+    run: () => {
+      let s = createScenario({
+        players: [
+          { hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] },
+          { hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'undertow', id: 'undertow' }], battlefield: ['mountain', 'island', 'island'] },
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'banners', targets: [] }]));
+      const tokens = s.players[0].battlefield.filter((id) => s.cards[id]?.def === 'soldier_token');
+      const created = tokens.map((id) => [getPower(s, id), getToughness(s, id)]);
+      const [dying = '', bounced = ''] = tokens;
+      s = resolve(play(s, [{ type: 'pass', player: 0 }, { type: 'cast', player: 1, card: 'snap', targets: [{ card: dying }] }]));
+      s = resolve(play(s, [{ type: 'pass', player: 0 }, { type: 'cast', player: 1, card: 'undertow', targets: [{ card: bounced }] }]));
+      return first(
+        expectValue(created, [[1, 1], [1, 1]], 'Soldier tokens'),
+        expectValue(
+          [zone(s, dying), zone(s, bounced), s.players[0].graveyard, s.players[0].hand],
+          ['gone', 'gone', ['banners'], []],
+          'tokens after Ember Snap and Undertow',
+        ),
+      );
+    },
+  },
+  {
+    id: 'F45',
+    title: '"Another creature you control" triggers: Forge Cadet grows with each new creature, tokens included; two Rotwing Crows that die together drain for each other',
+    run: () => {
+      let cadet = createScenario({
+        players: [{ hand: [{ card: 'muster_sergeant', id: 'sergeant' }], battlefield: ['plains', 'plains', { card: 'forge_cadet', id: 'cadet' }] }, {}],
+      });
+      cadet = resolve(play(cadet, [{ type: 'cast', player: 0, card: 'sergeant', targets: [] }]));
+      let crows = toAttackers(
+        createScenario({
+          activePlayer: 1,
+          players: [
+            { battlefield: [{ card: 'rotwing_crow', id: 'a' }, { card: 'rotwing_crow', id: 'b' }] },
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+          ],
+        }),
+      );
+      crows = toBlockers(play(crows, [{ type: 'declareAttackers', player: 1, attackers: ['rhino'] }]));
+      crows = toMain2(
+        play(crows, [
+          {
+            type: 'declareBlockers',
+            player: 0,
+            blocks: [
+              { blocker: 'a', attacker: 'rhino' },
+              { blocker: 'b', attacker: 'rhino' },
+            ],
+          },
+        ]),
+      );
+      return first(
+        expectValue([cadet.cards.cadet?.counters, getPower(cadet, 'cadet')], [2, 3], 'Forge Cadet after Muster Sergeant and its token'),
+        expectValue([zone(crows, 'a'), zone(crows, 'b'), crows.players[1].life], ['graveyard', 'graveyard', 18], 'crows and the attacking player'),
+      );
+    },
+  },
+  {
+    id: 'F46',
+    title: 'Keyword grants: Charge of the Forge gives +1/+0 and first strike until end of turn; Brightforge Warlord gives itself haste as it arrives',
+    run: () => {
+      let s = toAttackers(
+        createScenario({
+          players: [
+            { hand: [{ card: 'charge_of_the_forge', id: 'charge' }], battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }] },
+            { battlefield: [{ card: 'beacon_squire', id: 'squire' }] },
+          ],
+        }),
+      );
+      s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['soldier'] }]));
+      s = resolve(
+        play(s, [
+          { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'squire', attacker: 'soldier' }] },
+          { type: 'cast', player: 0, card: 'charge', targets: [] },
+        ]),
+      );
+      const charged = [getPower(s, 'soldier'), getKeywords(s, 'soldier')];
+      s = toMain2(s);
+      let warlord = createScenario({
+        players: [{ hand: [{ card: 'brightforge_warlord', id: 'warlord' }], battlefield: ['mountain', 'mountain', 'mountain', 'plains', 'plains'] }, {}],
+      });
+      warlord = toAttackers(resolve(play(warlord, [{ type: 'cast', player: 0, card: 'warlord', targets: [] }])));
+      return first(
+        expectValue(charged, [2, ['firstStrike']], 'Soldier after Charge of the Forge'),
+        expectValue([zone(s, 'squire'), zone(s, 'soldier')], ['graveyard', 'battlefield'], 'after first-strike damage'),
+        expectValue(eligibleAttackers(warlord), ['warlord'], 'attackers the turn Brightforge Warlord arrives'),
+      );
+    },
+  },
+  {
+    id: 'F47',
+    title: 'Skulk: creatures with greater power cannot block Fogslip Thief',
+    run: () => {
+      let s = toAttackers(
+        createScenario({
+          players: [
+            { battlefield: [{ card: 'fogslip_thief', id: 'thief' }] },
+            { battlefield: [{ card: 'beacon_squire', id: 'squire' }, { card: 'timberland_rhino', id: 'rhino' }] },
+          ],
+        }),
+      );
+      s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['thief'] }]));
+      return first(
+        expectValue(blockOptions(s), { squire: ['thief'] }, 'blockers for Fogslip Thief'),
+        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'thief' }] }, 'rhino cannot block thief'),
+      );
+    },
+  },
+  {
+    id: 'F48',
+    title: 'Discard: Memory Leech makes the opponent choose a card to discard; Sift the Depths draws two, then you discard one',
+    run: () => {
+      let leech = createScenario({
+        players: [
+          { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
+          { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }] },
+        ],
+      });
+      leech = resolve(play(leech, [{ type: 'cast', player: 0, card: 'leech', targets: [] }]));
+      const asked = expectValue(leech.pending, { kind: 'discard', player: 1, count: 1, source: 'leech' }, 'pending decision');
+      leech = play(leech, [{ type: 'discard', player: 1, cards: ['snap'] }]);
+      let sift = createScenario({ players: [{ hand: [{ card: 'sift_the_depths', id: 'sift' }], battlefield: ['island', 'island'] }, {}] });
+      sift = resolve(play(sift, [{ type: 'cast', player: 0, card: 'sift', targets: [] }]));
+      const drawn = sift.players[0].hand.length;
+      const card = sift.players[0].hand[0] as string;
+      sift = play(sift, [{ type: 'discard', player: 0, cards: [card] }]);
+      return first(
+        asked,
+        expectValue([zone(leech, 'snap'), leech.players[1].hand, leech.pending], ['graveyard', ['f'], { kind: 'priority', player: 0 }], 'after the discard'),
+        expectValue([drawn, sift.players[0].hand.length, zone(sift, card)], [2, 1, 'graveyard'], 'Sift the Depths'),
+      );
+    },
+  },
+  {
+    id: 'F49',
+    title: '"Whenever this creature deals combat damage to a player": Hushwing Bat makes that player discard, Fogslip Thief draws a card',
+    run: () => {
+      let s = toAttackers(
+        createScenario({
+          players: [
+            { battlefield: [{ card: 'fogslip_thief', id: 'thief' }, { card: 'hushwing_bat', id: 'bat' }] },
+            { hand: [{ card: 'forest', id: 'f' }] },
+          ],
+        }),
+      );
+      s = passUntil(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['thief', 'bat'] }]), (state) => state.pending?.kind === 'discard');
+      const asked = expectValue(s.pending, { kind: 'discard', player: 1, count: 1, source: 'bat' }, 'pending decision');
+      s = toMain2(play(s, [{ type: 'discard', player: 1, cards: ['f'] }]));
+      return first(asked, expectValue([s.players[1].life, s.players[1].hand.length, s.players[0].hand.length], [17, 0, 1], 'life and hands'));
+    },
+  },
+  {
+    id: 'F50',
+    title: 'Undying: Gravebloom Sprout returns with a +1/+1 counter the first time it dies, and stays dead the second time',
+    run: () => {
+      let s = createScenario({
+        players: [
+          { hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }], battlefield: ['mountain', 'mountain'] },
+          { battlefield: [{ card: 'gravebloom_sprout', id: 'sprout' }] },
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 's1', targets: [{ card: 'sprout' }] }]));
+      const back = [zone(s, 'sprout'), s.cards.sprout?.counters, getPower(s, 'sprout'), getToughness(s, 'sprout')];
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 's2', targets: [{ card: 'sprout' }] }]));
+      return first(
+        expectValue(back, ['battlefield', 1, 2, 2], 'after the first death'),
+        expectValue([zone(s, 'sprout'), s.stack.length], ['graveyard', 0], 'after the second death'),
+      );
+    },
+  },
+  {
+    id: 'F51',
+    title: 'Sacrifice: Bloodspore Thrall dies as the cost of its ability, and its undying trigger resolves before the ability',
+    run: () => {
+      let s = createScenario({ players: [{ battlefield: [{ card: 'bloodspore_thrall', id: 'thrall' }] }, {}] });
+      s = play(s, [{ type: 'activate', player: 0, card: 'thrall', ability: 0, targets: [] }]);
+      const paid = [zone(s, 'thrall'), s.stack.map((item) => item.kind)];
+      s = play(s, [
+        { type: 'pass', player: 0 },
+        { type: 'pass', player: 1 },
+      ]);
+      const returned = [zone(s, 'thrall'), s.cards.thrall?.counters, s.players[1].life];
+      s = resolve(s);
+      return first(
+        expectValue(paid, ['graveyard', ['activated', 'trigger']], 'after activating'),
+        expectValue(returned, ['battlefield', 1, 20], 'after the undying trigger'),
+        expectValue(s.players[1].life, 19, 'opponent life after the ability'),
       );
     },
   },

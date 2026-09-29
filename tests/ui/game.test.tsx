@@ -339,6 +339,51 @@ describe('combat', () => {
   });
 });
 
+describe('tokens, sacrifices and discards', () => {
+  it('shows the tokens a spell creates on the battlefield, as tokens in the card sheet', () => {
+    const { controller, settle } = setup({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] });
+    playFromHand('banners', 'sheet-cast');
+    settle();
+    const tokens = controller.state.players[0].battlefield.filter((id) => controller.state.cards[id]?.def === 'soldier_token');
+    expect(tokens).toHaveLength(2);
+    expect(within(byTestId('battlefield-0')).getAllByRole('button').filter((button) => button.dataset.def === 'soldier_token')).toHaveLength(2);
+    click(byTestId(`card-${tokens[0]}`));
+    expect(byTestId('card-sheet').textContent).toContain('Token Creature — Soldier');
+  });
+
+  it('sacrifices a creature from its card sheet, then asks for the target', () => {
+    const { controller, settle } = setup({
+      players: [{ battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] }, { battlefield: [{ card: 'ember_hound', id: 'hound' }] }],
+    });
+    click(byTestId('card-stalker'));
+    expect(byTestId('card-sheet').textContent).toContain('Sacrifice this creature: Target creature gets -2/-2 until end of turn.');
+    expect(byTestId('sheet-activate').textContent).toBe('Activate Sacrifice: -2/-2');
+    click(byTestId('sheet-activate'));
+    expect(byTestId('prompt').textContent).toBe('Choose target creature');
+    click(byTestId('card-hound'));
+    settle();
+    expect([controller.state.cards.stalker?.zone, controller.state.cards.hound?.zone]).toEqual(['graveyard', 'graveyard']);
+  });
+
+  it('asks which card to discard when a spell says so, in the middle of the turn', () => {
+    const { controller, settle } = setup({
+      players: [
+        { hand: [{ card: 'sift_the_depths', id: 'sift' }], battlefield: ['island', 'island'], library: [{ card: 'forest', id: 'a' }, { card: 'island', id: 'b' }] },
+        {},
+      ],
+    });
+    playFromHand('sift', 'sheet-cast');
+    settle();
+    expect(byTestId('prompt').textContent).toBe('Choose 1 card to discard');
+    expect(byTestId('prompt-detail').textContent).toBe('Sift the Depths · 0/1 selected');
+    click(byTestId('card-a'));
+    click(byTestId('btn-confirm-cards'));
+    settle();
+    expect(controller.state.players[0].hand).toEqual(['b']);
+    expect(byTestId('prompt').textContent).toBe('Your main phase');
+  });
+});
+
 describe('end of turn and game over', () => {
   it('asks to discard down to seven cards', () => {
     const { controller, settle } = setup({

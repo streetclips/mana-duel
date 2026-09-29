@@ -227,6 +227,7 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm }: 
           <li>Attack with your creatures; the defender picks blockers. Damage happens all at once.</li>
           <li>Instants, and creatures with flash, can be cast whenever you have priority, even in response to a spell.</li>
           <li>A counterspell targets a spell on the stack: tap it in the strip between the two sides.</li>
+          <li>Tokens are creatures that cards create; they vanish when they leave the battlefield.</li>
           <li>Tap a card to see what it does. Long-press or right-click to inspect any card.</li>
         </ul>
       </details>

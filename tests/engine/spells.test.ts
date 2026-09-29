@@ -1,15 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import {
+  UNDYING_TRIGGER,
+  activatedText,
+  blockOptions,
   castBlocker,
   checkInvariants,
+  createScenario,
   describeEvent,
   describeState,
+  eligibleAttackers,
+  getCardDef,
+  getKeywords,
   getLegalActions,
   getPower,
   getToughness,
   tryApplyAction,
   type CardInstance,
   type GameEvent,
+  type GameState,
 } from '../../src/engine';
 import {
   act,
@@ -775,5 +783,337 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
     let s = scenario({ players: [{ battlefield: [{ card: 'sunmeadow_herald', id: 'herald' }, { card: 'test_bear', id: 'bear' }] }, {}] });
     s = finishCombat(attack(s, ['herald']));
     expect([getPower(s, 'herald'), getPower(s, 'bear'), getToughness(s, 'bear'), life(s, 1)]).toEqual([3, 3, 2, 17]);
+  });
+});
+
+function tokensOf(s: GameState, player: 0 | 1, def: string): string[] {
+  return s.players[player].battlefield.filter((id) => s.cards[id]?.def === def);
+}
+
+describe('Brightforge: creature tokens and "whenever another creature you control enters"', () => {
+  it('Raise the Banners creates two 1/1 Soldier tokens, summoning sick like any new creature', () => {
+    let s = scenario({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] });
+    s = resolveStack(cast(s, 'banners'));
+    const tokens = tokensOf(s, 0, 'soldier_token');
+    expect(tokens.map((id) => [getPower(s, id), getToughness(s, id), s.cards[id]?.summoningSick])).toEqual([
+      [1, 1, true],
+      [1, 1, true],
+    ]);
+    expect(s.events.filter((event) => event.t === 'create')).toEqual(tokens.map((card) => ({ t: 'create', player: 0, card })));
+    expect(describeEvent(s, { t: 'create', player: 0, card: tokens[0] as string }, 0)).toBe('You create a Soldier token.');
+  });
+
+  it('a token that dies goes to the graveyard long enough to die, then ceases to exist; so does one returned to hand', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'undertow', id: 'undertow' }], battlefield: ['mountain', 'island', 'island'] },
+        { battlefield: [{ card: 'soldier_token', id: 't1' }, { card: 'soldier_token', id: 't2' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'snap', [{ card: 't1' }]));
+    expect(s.events).toContainEqual({ t: 'dies', card: 't1', player: 1 });
+    expect([zoneOf(s, 't1'), s.players[1].graveyard]).toEqual(['gone', []]);
+    expect(describeEvent(s, { t: 'dies', card: 't1', player: 1 }, 0)).toBe("AI's Soldier dies.");
+    s = resolveStack(cast(s, 'undertow', [{ card: 't2' }]));
+    expect([zoneOf(s, 't2'), s.players[1].hand]).toEqual(['gone', []]);
+  });
+
+  it('tokens exist only on the battlefield', () => {
+    expect(() => createScenario({ players: [{ hand: ['soldier_token'] }, {}] })).toThrow(/can only be on the battlefield/);
+    const s = scenario({ players: [{ hand: [{ card: 'test_bear', id: 'bear' }], battlefield: [{ card: 'soldier_token', id: 'token' }] }, {}] });
+    const inHand = structuredClone(s);
+    inHand.players[0].battlefield = [];
+    inHand.players[0].hand.push('token');
+    (inHand.cards.token as CardInstance).zone = 'hand';
+    expect(checkInvariants(inHand)).toContain('token token exists outside the battlefield');
+    const vanished = structuredClone(s);
+    vanished.players[0].hand = [];
+    (vanished.cards.bear as CardInstance).zone = 'gone';
+    expect(checkInvariants(vanished)).toContain('bear ceased to exist but is not a token');
+  });
+
+  it('Forge Cadet gets a +1/+1 counter for each other creature entering under your control, tokens included', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'muster_sergeant', id: 'sergeant' }], battlefield: ['plains', 'plains', { card: 'forge_cadet', id: 'cadet' }] },
+        { hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] },
+      ],
+    });
+    s = resolveStack(cast(s, 'sergeant'));
+    expect([s.cards.cadet?.counters, getPower(s, 'cadet'), tokensOf(s, 0, 'soldier_token').length]).toEqual([2, 3, 1]);
+    s = resolveStack(cast(pass(s), 'banners'));
+    expect([s.cards.cadet?.counters, tokensOf(s, 1, 'soldier_token').length]).toEqual([2, 2]);
+  });
+
+  it("Kindling Caller's Elemental token has haste and attacks the turn it is created", () => {
+    let s = scenario({ players: [{ hand: [{ card: 'kindling_caller', id: 'caller' }], battlefield: ['mountain', 'mountain'] }, {}] });
+    s = resolveStack(cast(s, 'caller'));
+    const [token] = tokensOf(s, 0, 'elemental_token');
+    s = passTo(s, 'declareAttackers');
+    expect(eligibleAttackers(s)).toEqual([token]);
+    s = finishCombat(act(s, { type: 'declareAttackers', player: 0, attackers: [token as string] }));
+    expect(life(s, 1)).toBe(19);
+  });
+
+  it('Hammerfall Raider creates an Elemental whenever it attacks; the token joins the next attack, not this one', () => {
+    let s = scenario({ players: [{ battlefield: [{ card: 'hammerfall_raider', id: 'raider' }] }, {}] });
+    s = resolveStack(attack(s, ['raider']));
+    expect([tokensOf(s, 0, 'elemental_token').length, s.combat?.attackers]).toEqual([1, ['raider']]);
+    s = finishCombat(s);
+    expect(life(s, 1)).toBe(18);
+  });
+
+  it('Brightforge Warlord gives each creature you control +1/+0 and haste until end of turn', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'brightforge_warlord', id: 'warlord' }],
+          battlefield: ['mountain', 'mountain', 'mountain', 'plains', 'plains', { card: 'forge_cadet', id: 'cadet', sick: true }],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'warlord'));
+    expect([getPower(s, 'warlord'), getToughness(s, 'warlord'), getKeywords(s, 'warlord')]).toEqual([5, 4, ['haste']]);
+    expect([getPower(s, 'cadet'), getToughness(s, 'cadet')]).toEqual([3, 2]);
+    s = passTo(s, 'declareAttackers');
+    expect(eligibleAttackers(s)).toEqual(['cadet', 'warlord']);
+    s = finishCombat(act(s, { type: 'declareAttackers', player: 0, attackers: ['cadet', 'warlord'] }));
+    expect(life(s, 1)).toBe(12);
+    s = passToStep(s, 'main1', s.turn + 2);
+    expect([getPower(s, 'warlord'), getKeywords(s, 'warlord')]).toEqual([4, []]);
+  });
+
+  it('Charge of the Forge gives your creatures +1/+0 and first strike, so they strike before their blockers', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'charge_of_the_forge', id: 'charge' }], battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }] },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+      ],
+    });
+    s = block(attack(s, ['soldier']), [{ blocker: 'bear', attacker: 'soldier' }]);
+    s = resolveStack(cast(s, 'charge'));
+    expect([getPower(s, 'soldier'), getKeywords(s, 'soldier')]).toEqual([2, ['firstStrike']]);
+    s = finishCombat(s);
+    expect([zoneOf(s, 'bear'), zoneOf(s, 'soldier')]).toEqual(['graveyard', 'battlefield']);
+  });
+});
+
+describe('Mistgrave: skulk, discards and "whenever this creature deals combat damage to a player"', () => {
+  it('skulk: creatures with greater power cannot block it, measured when blockers are declared', () => {
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'fogslip_thief', id: 'thief' }] },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }, { card: 'test_giant', id: 'giant' }] },
+      ],
+    });
+    s = passTo(attack(s, ['thief']), 'declareBlockers');
+    expect(blockOptions(s)).toEqual({ bear: ['thief'] });
+    expect(tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'giant', attacker: 'thief' }] })).toEqual({
+      ok: false,
+      error: 'giant cannot block thief',
+    });
+    let pumped = scenario({
+      players: [
+        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'fogslip_thief', id: 'thief' }] },
+        { battlefield: [{ card: 'test_giant', id: 'giant' }] },
+      ],
+    });
+    pumped = passTo(resolveStack(cast(attack(pumped, ['thief']), 'surge', [{ card: 'thief' }])), 'declareBlockers');
+    expect(blockOptions(pumped)).toEqual({ giant: ['thief'] });
+  });
+
+  it('Memory Leech makes the opponent choose a card to discard, then play goes on', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
+        { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }] },
+      ],
+    });
+    s = pass(pass(pass(pass(cast(s, 'leech')))));
+    expect(s.pending).toEqual({ kind: 'discard', player: 1, count: 1, source: 'leech' });
+    expect(getLegalActions(s)).toEqual([
+      { type: 'discard', player: 1, cards: ['f'] },
+      { type: 'discard', player: 1, cards: ['snap'] },
+    ]);
+    s = act(s, { type: 'discard', player: 1, cards: ['snap'] });
+    expect([zoneOf(s, 'snap'), s.players[1].hand, s.pending]).toEqual(['graveyard', ['f'], { kind: 'priority', player: 0 }]);
+    expect(describeEvent(s, { t: 'discard', player: 1, card: 'snap' }, 0)).toBe('AI discards Ember Snap.');
+  });
+
+  it('an effect asks for no more cards than the hand holds, and for none from an empty hand', () => {
+    const rob = (hand: string[]): GameState =>
+      resolveStack(cast(scenario({ players: [{ hand: [{ card: 'rob_the_mind', id: 'rob' }], battlefield: ['swamp', 'swamp', 'swamp'] }, { hand }] }), 'rob'));
+    expect(rob(['forest', 'forest', 'forest']).pending).toEqual({ kind: 'discard', player: 1, count: 2, source: 'rob' });
+    expect(rob(['forest']).pending).toEqual({ kind: 'discard', player: 1, count: 1, source: 'rob' });
+    expect(rob([]).pending).toEqual({ kind: 'priority', player: 0 });
+  });
+
+  it('Sift the Depths draws two cards, then you discard one, in the middle of your turn', () => {
+    let s = scenario({
+      players: [{ hand: [{ card: 'sift_the_depths', id: 'sift' }], battlefield: ['island', 'island'], library: [{ card: 'forest', id: 'a' }, { card: 'island', id: 'b' }] }, {}],
+    });
+    s = resolveStack(cast(s, 'sift'));
+    expect([s.pending, s.players[0].hand]).toEqual([{ kind: 'discard', player: 0, count: 1, source: 'sift' }, ['a', 'b']]);
+    s = act(s, { type: 'discard', player: 0, cards: ['a'] });
+    expect([s.players[0].hand, s.step, s.pending]).toEqual([['b'], 'main1', { kind: 'priority', player: 0 }]);
+  });
+
+  it('combat damage to a player: Hushwing Bat makes that player discard, Fogslip Thief draws a card', () => {
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'fogslip_thief', id: 'thief' }, { card: 'hushwing_bat', id: 'bat' }], library: [{ card: 'island', id: 'top' }] },
+        { hand: [{ card: 'forest', id: 'f' }] },
+      ],
+    });
+    s = passTo(attack(s, ['thief', 'bat']), 'discard');
+    expect(s.pending).toEqual({ kind: 'discard', player: 1, count: 1, source: 'bat' });
+    s = resolveStack(act(s, { type: 'discard', player: 1, cards: ['f'] }));
+    expect([life(s, 1), s.players[0].hand, zoneOf(s, 'f')]).toEqual([17, ['top'], 'graveyard']);
+  });
+
+  it('triggers once per combat damage step that hits the player, so twice with double strike', () => {
+    let s = scenario({ players: [{ battlefield: [{ card: 'test_double_hitter', id: 'hitter' }] }, {}] });
+    s = finishCombat(attack(s, ['hitter']));
+    expect([life(s, 1), s.players[0].hand.length]).toEqual([18, 2]);
+  });
+
+  it('only combat damage dealt to a player triggers it', () => {
+    let s = scenario({ players: [{ battlefield: [{ card: 'fogslip_thief', id: 'thief' }] }, { battlefield: [{ card: 'test_bear', id: 'bear' }] }] });
+    s = finishCombat(block(attack(s, ['thief']), [{ blocker: 'bear', attacker: 'thief' }]));
+    expect([s.players[0].hand, zoneOf(s, 'thief'), zoneOf(s, 'bear')]).toEqual([[], 'graveyard', 'graveyard']);
+  });
+
+  it('Drag Below returns a creature to its owner’s hand, then that player discards a card, which may be that creature', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'drag_below', id: 'drag' }], battlefield: ['island', 'swamp', 'swamp'] },
+        { hand: [{ card: 'forest', id: 'f' }], battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'drag', [{ card: 'rhino' }]));
+    expect([zoneOf(s, 'rhino'), s.pending]).toEqual(['hand', { kind: 'discard', player: 1, count: 1, source: 'drag' }]);
+    s = act(s, { type: 'discard', player: 1, cards: ['rhino'] });
+    expect([zoneOf(s, 'rhino'), s.players[1].hand]).toEqual(['graveyard', ['f']]);
+  });
+});
+
+describe('Gloamwood: undying, sacrifice and "whenever another creature you control dies"', () => {
+  it('an undying creature returns with a +1/+1 counter the first time it dies, and stays dead the second time', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }], battlefield: ['mountain', 'mountain'] },
+        { battlefield: [{ card: 'gravebloom_sprout', id: 'sprout' }] },
+      ],
+    });
+    s = pass(pass(cast(s, 's1', [{ card: 'sprout' }])));
+    expect([zoneOf(s, 'sprout'), s.stack.map((item) => (item.kind === 'trigger' ? item.ability : item.kind))]).toEqual(['graveyard', [UNDYING_TRIGGER]]);
+    s = resolveStack(s);
+    expect([zoneOf(s, 'sprout'), s.cards.sprout?.counters, getPower(s, 'sprout'), s.cards.sprout?.summoningSick]).toEqual([
+      'battlefield',
+      1,
+      2,
+      true,
+    ]);
+    expect(describeEvent(s, { t: 'return', player: 1, card: 'sprout' }, 0)).toBe("AI's Gravebloom Sprout returns to the battlefield.");
+    s = resolveStack(cast(s, 's2', [{ card: 'sprout' }]));
+    expect([zoneOf(s, 'sprout'), s.stack, s.cards.sprout?.counters]).toEqual(['graveyard', [], 0]);
+  });
+
+  it('Bloodspore Thrall is sacrificed as the cost: its undying trigger resolves before the ability', () => {
+    let s = scenario({ players: [{ battlefield: [{ card: 'bloodspore_thrall', id: 'thrall' }] }, {}] });
+    s = activate(s, 'thrall');
+    expect([zoneOf(s, 'thrall'), s.stack.map((item) => item.kind)]).toEqual(['graveyard', ['activated', 'trigger']]);
+    s = pass(pass(s));
+    expect([zoneOf(s, 'thrall'), s.cards.thrall?.counters, life(s, 1)]).toEqual(['battlefield', 1, 20]);
+    s = resolveStack(s);
+    expect(life(s, 1)).toBe(19);
+    s = resolveStack(activate(s, 'thrall'));
+    expect([zoneOf(s, 'thrall'), life(s, 1)]).toEqual(['graveyard', 18]);
+  });
+
+  it('a creature that leaves the battlefield and returns is a new object: a spell aimed at it fizzles', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'grave_sentence', id: 'sentence' }], battlefield: ['swamp', 'swamp', 'swamp', 'swamp'] },
+        { battlefield: [{ card: 'bloodspore_thrall', id: 'thrall' }] },
+      ],
+    });
+    s = activate(pass(cast(s, 'sentence', [{ card: 'thrall' }])), 'thrall');
+    expect(s.stack.map((item) => item.lost ?? [])).toEqual([[0], [], []]);
+    s = resolveStack(s);
+    expect(s.events).toContainEqual({ t: 'fizzle', item: expect.objectContaining({ kind: 'spell', card: 'sentence' }) });
+    expect([zoneOf(s, 'thrall'), s.cards.thrall?.counters, life(s, 0), zoneOf(s, 'sentence')]).toEqual(['battlefield', 1, 19, 'graveyard']);
+  });
+
+  it('Bonewood Stalker sacrifices itself to give a creature -2/-2, and the ability resolves without its source', () => {
+    let s = scenario({ players: [{ battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] }, { battlefield: [{ card: 'test_bear', id: 'bear' }] }] });
+    s = resolveStack(activate(s, 'stalker', 0, [{ card: 'bear' }]));
+    expect([zoneOf(s, 'stalker'), zoneOf(s, 'bear')]).toEqual(['graveyard', 'graveyard']);
+    expect(activatedText(getCardDef('bonewood_stalker'), 0)).toBe('Sacrifice this creature: Target creature gets -2/-2 until end of turn.');
+  });
+
+  it('Rotwing Crow drains the opponent for each other creature of yours that dies, one dying at the same time included', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [
+        { battlefield: [{ card: 'rotwing_crow', id: 'crowA' }, { card: 'rotwing_crow', id: 'crowB' }] },
+        { battlefield: [{ card: 'test_giant', id: 'giant' }] },
+      ],
+    });
+    s = block(attack(s, ['giant']), [
+      { blocker: 'crowA', attacker: 'giant' },
+      { blocker: 'crowB', attacker: 'giant' },
+    ]);
+    s = finishCombat(s);
+    expect([zoneOf(s, 'crowA'), zoneOf(s, 'crowB'), life(s, 1)]).toEqual(['graveyard', 'graveyard', 18]);
+  });
+
+  it('Rootgnaw Boar grows when another creature of yours dies, not when the opponent’s does', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }],
+          battlefield: ['mountain', 'mountain', { card: 'test_bear', id: 'mine' }, { card: 'rootgnaw_boar', id: 'boar' }],
+        },
+        { battlefield: [{ card: 'test_bear', id: 'theirs' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 's1', [{ card: 'theirs' }]));
+    s = resolveStack(cast(s, 's2', [{ card: 'mine' }]));
+    expect([s.cards.boar?.counters, getPower(s, 'boar')]).toEqual([1, 2]);
+  });
+
+  it('Sporecap Shambler leaves two Saprolings, and Gloamwood Elder plants one more for it', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+        { battlefield: [{ card: 'sporecap_shambler', id: 'shambler' }, { card: 'gloamwood_elder', id: 'elder' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'snap', [{ card: 'shambler' }]));
+    expect(tokensOf(s, 1, 'saproling_token')).toHaveLength(3);
+  });
+
+  it('Venom Duel gives your creature deathtouch before it fights, so a 1/1 Saproling kills a 5/5', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'venom_duel', id: 'duel' }], battlefield: ['swamp', 'forest', 'forest', { card: 'saproling_token', id: 'sap' }] },
+        { battlefield: [{ card: 'test_giant', id: 'giant' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'duel', [{ card: 'sap' }, { card: 'giant' }]));
+    expect([zoneOf(s, 'giant'), zoneOf(s, 'sap')]).toEqual(['graveyard', 'gone']);
+  });
+
+  it('Nightshade Tonic grants +1/+1 and deathtouch until end of turn', () => {
+    let s = scenario({ players: [{ hand: [{ card: 'nightshade_tonic', id: 'tonic' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] }, {}] });
+    s = resolveStack(cast(s, 'tonic', [{ card: 'bear' }]));
+    const pump: GameEvent = { t: 'pump', card: 'bear', power: 1, toughness: 1, keywords: ['deathtouch'] };
+    expect([getPower(s, 'bear'), getKeywords(s, 'bear'), s.events]).toEqual([3, ['deathtouch'], expect.arrayContaining([pump])]);
+    expect(describeEvent(s, pump, 0)).toBe('Your Test Bear gets +1/+1 and gains deathtouch until end of turn.');
+    expect(describeState(s)).toContain('Test Bear(bear) 3/3');
+    s = passToStep(s, 'main1', s.turn + 2);
+    expect([getPower(s, 'bear'), getKeywords(s, 'bear')]).toEqual([2, []]);
   });
 });

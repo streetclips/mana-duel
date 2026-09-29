@@ -1,5 +1,5 @@
 import { advance, emptyState } from './game';
-import { hasCardDef } from './registry';
+import { getCardDef, hasCardDef } from './registry';
 import type { CardId, GameState, PlayerId, Zone } from './types';
 
 export interface ScenarioCard {
@@ -68,9 +68,10 @@ export function createScenario(spec: ScenarioSpec): GameState {
     return id;
   };
 
-  const place = (player: PlayerId, zone: Exclude<Zone, 'stack'>, entry: ScenarioEntry): void => {
+  const place = (player: PlayerId, zone: Exclude<Zone, 'stack' | 'gone'>, entry: ScenarioEntry): void => {
     const card = typeof entry === 'string' ? { card: entry } : entry;
     if (!hasCardDef(card.card)) throw new Error(`Unknown card definition "${card.card}"`);
+    if (getCardDef(card.card).token && zone !== 'battlefield') throw new Error(`The token "${card.card}" can only be on the battlefield`);
     const id = card.id ?? nextAutoId();
     s.cards[id] = {
       id,

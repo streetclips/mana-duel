@@ -11,8 +11,17 @@ import type {
   PlayerId,
   PlayerState,
   TriggerEvent,
+  TriggeredAbility,
   Zone,
 } from './types';
+
+export const UNDYING_TRIGGER = -1;
+
+const UNDYING_ABILITY: TriggeredAbility = {
+  on: 'dies',
+  targets: [],
+  effects: [{ kind: 'returnToBattlefield', counters: 1 }],
+};
 
 export const STARTING_LIFE = 20;
 export const OPENING_HAND = 7;
@@ -91,6 +100,14 @@ export function hasFlashDef(def: CardDef): boolean {
   return (def.keywords ?? []).includes('flash');
 }
 
+export function isTokenDef(def: CardDef): boolean {
+  return def.token === true;
+}
+
+export function triggeredAbility(def: CardDef, index: number): TriggeredAbility | undefined {
+  return index === UNDYING_TRIGGER ? UNDYING_ABILITY : def.triggers?.[index];
+}
+
 export function isPermanentDef(def: CardDef): boolean {
   return def.types.includes('creature') || def.types.includes('land');
 }
@@ -132,7 +149,17 @@ export function getToughness(s: GameState, id: CardId): number {
 }
 
 export function getKeywords(s: GameState, id: CardId): Keyword[] {
-  return defOf(s, id).keywords ?? [];
+  const printed = defOf(s, id).keywords ?? [];
+  let keywords = printed;
+  for (const effect of s.effects) {
+    if (effect.card !== id || !effect.keywords) continue;
+    for (const keyword of effect.keywords) {
+      if (keywords.includes(keyword)) continue;
+      if (keywords === printed) keywords = [...printed];
+      keywords.push(keyword);
+    }
+  }
+  return keywords;
 }
 
 export function hasKeyword(s: GameState, id: CardId, keyword: Keyword): boolean {
@@ -156,6 +183,7 @@ function zoneList(s: GameState, card: CardInstance, zone: Zone): CardId[] | null
     case 'battlefield':
       return s.players[card.controller].battlefield;
     case 'stack':
+    case 'gone':
       return null;
   }
 }
@@ -163,17 +191,54 @@ function zoneList(s: GameState, card: CardInstance, zone: Zone): CardId[] | null
 export interface MoveOptions {
   toBottom?: boolean;
   controller?: PlayerId;
+  watchers?: CardId[];
+}
+
+function removeFromList(list: CardId[] | null, id: CardId): void {
+  if (!list) return;
+  const index = list.indexOf(id);
+  if (index >= 0) list.splice(index, 1);
+}
+
+function enterBattlefield(s: GameState, id: CardId): void {
+  const card = getCard(s, id);
+  const creature = isCreatureDef(getCardDef(card.def));
+  card.summoningSick = creature;
+  s.events.push({ t: 'enter', player: card.controller, card: id });
+  queueTriggers(s, id, 'enters', card.controller);
+  if (!creature) return;
+  for (const other of s.players[card.controller].battlefield) {
+    if (other !== id) queueTriggers(s, other, 'allyEnters', card.controller);
+  }
+}
+
+export function createToken(s: GameState, defId: string, controller: PlayerId): CardId {
+  const id = newId(s, 'tk');
+  s.cards[id] = {
+    id,
+    def: defId,
+    owner: controller,
+    controller,
+    zone: 'battlefield',
+    tapped: false,
+    summoningSick: false,
+    damage: 0,
+    deathtouchDamage: false,
+    counters: 0,
+  };
+  s.players[controller].battlefield.push(id);
+  s.events.push({ t: 'create', player: controller, card: id });
+  enterBattlefield(s, id);
+  return id;
 }
 
 export function moveCard(s: GameState, id: CardId, to: Zone, options: MoveOptions = {}): void {
   const card = getCard(s, id);
   const from = card.zone;
-  const fromList = zoneList(s, card, from);
-  if (fromList) {
-    const index = fromList.indexOf(id);
-    if (index >= 0) fromList.splice(index, 1);
-  }
+  const def = getCardDef(card.def);
+  removeFromList(zoneList(s, card, from), id);
   const previousController = card.controller;
+  const undying = from === 'battlefield' && card.counters === 0 && getKeywords(s, id).includes('undying');
 
   if (from === 'battlefield') {
     card.tapped = false;
@@ -183,6 +248,7 @@ export function moveCard(s: GameState, id: CardId, to: Zone, options: MoveOption
     card.counters = 0;
     s.effects = s.effects.filter((effect) => effect.card !== id);
     removeFromCombat(s, id);
+    loseTargetsOn(s, id);
   }
 
   card.zone = to;
@@ -193,15 +259,26 @@ export function moveCard(s: GameState, id: CardId, to: Zone, options: MoveOption
     else toList.unshift(id);
   }
 
-  const def = getCardDef(card.def);
   if (from === 'battlefield' && to === 'graveyard' && isCreatureDef(def)) {
     s.events.push({ t: 'dies', card: id, player: previousController });
     queueTriggers(s, id, 'dies', previousController);
+    for (const watcher of options.watchers ?? s.players[previousController].battlefield) {
+      if (watcher !== id) queueTriggers(s, watcher, 'allyDies', previousController);
+    }
+    if (undying) s.triggers.push({ id: newId(s, 't'), controller: previousController, source: id, ability: UNDYING_TRIGGER });
   }
-  if (to === 'battlefield') {
-    card.summoningSick = isCreatureDef(def);
-    s.events.push({ t: 'enter', player: card.controller, card: id });
-    queueTriggers(s, id, 'enters', card.controller);
+  if (to === 'battlefield') enterBattlefield(s, id);
+  if (isTokenDef(def) && to !== 'battlefield') {
+    removeFromList(zoneList(s, card, to), id);
+    card.zone = 'gone';
+  }
+}
+
+function loseTargetsOn(s: GameState, id: CardId): void {
+  for (const item of s.stack) {
+    item.targets.forEach((target, index) => {
+      if ('card' in target && target.card === id && !item.lost?.includes(index)) item.lost = [...(item.lost ?? []), index];
+    });
   }
 }
 

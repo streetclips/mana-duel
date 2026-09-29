@@ -1,6 +1,7 @@
 import { getCardDef } from './registry';
 import {
   changeLife,
+  createToken,
   creaturesOf,
   defOf,
   drawCards,
@@ -12,18 +13,23 @@ import {
   moveCard,
   newId,
   onBattlefield,
+  opponent,
+  triggeredAbility,
 } from './state';
 import { isLegalTarget, isPlayerTarget } from './targets';
 import type {
   CardId,
+  ContinuousEffect,
   Effect,
   EffectTarget,
+  GameEvent,
   GameState,
   Keyword,
   PlayerId,
   StackItem,
   Target,
   TargetSpec,
+  Who,
 } from './types';
 
 export interface DamageAssignment {
@@ -84,9 +90,19 @@ function resolveCreatureTarget(s: GameState, ctx: EffectContext, ref: EffectTarg
   return target.card;
 }
 
-function pumpUntilEndOfTurn(s: GameState, card: CardId, power: number, toughness: number): void {
-  s.effects.push({ id: newId(s, 'e'), card, power, toughness, until: 'endOfTurn' });
-  s.events.push({ t: 'pump', card, power, toughness });
+function pumpUntilEndOfTurn(s: GameState, card: CardId, power: number, toughness: number, keywords: Keyword[] = []): void {
+  const effect: ContinuousEffect = { id: newId(s, 'e'), card, power, toughness, until: 'endOfTurn' };
+  const event: GameEvent = { t: 'pump', card, power, toughness };
+  if (keywords.length > 0) {
+    effect.keywords = [...keywords];
+    event.keywords = [...keywords];
+  }
+  s.effects.push(effect);
+  s.events.push(event);
+}
+
+function playerOf(ctx: EffectContext, who: Who | undefined): PlayerId {
+  return who === 'opponent' ? opponent(ctx.controller) : ctx.controller;
 }
 
 function addCounters(s: GameState, card: CardId, amount: number): void {
@@ -105,11 +121,11 @@ export function executeEffects(s: GameState, effects: Effect[], ctx: EffectConte
       }
       case 'pump': {
         const card = resolveCreatureTarget(s, ctx, effect.to);
-        if (card) pumpUntilEndOfTurn(s, card, effect.power, effect.toughness);
+        if (card) pumpUntilEndOfTurn(s, card, effect.power, effect.toughness, effect.keywords);
         break;
       }
       case 'pumpTeam':
-        for (const card of creaturesOf(s, ctx.controller)) pumpUntilEndOfTurn(s, card, effect.power, effect.toughness);
+        for (const card of creaturesOf(s, ctx.controller)) pumpUntilEndOfTurn(s, card, effect.power, effect.toughness, effect.keywords);
         break;
       case 'addCounters': {
         const card = resolveCreatureTarget(s, ctx, effect.to);
@@ -148,10 +164,12 @@ export function executeEffects(s: GameState, effects: Effect[], ctx: EffectConte
       case 'gainLife':
         changeLife(s, ctx.controller, effect.amount);
         break;
-      case 'loseLife':
-        s.events.push({ t: 'loseLife', player: ctx.controller, amount: effect.amount });
-        changeLife(s, ctx.controller, -effect.amount);
+      case 'loseLife': {
+        const player = playerOf(ctx, effect.who);
+        s.events.push({ t: 'loseLife', player, amount: effect.amount });
+        changeLife(s, player, -effect.amount);
         break;
+      }
       case 'fight': {
         const a = resolveCreatureTarget(s, ctx, effect.a);
         const b = resolveCreatureTarget(s, ctx, effect.b);
@@ -167,6 +185,23 @@ export function executeEffects(s: GameState, effects: Effect[], ctx: EffectConte
         );
         break;
       }
+      case 'createTokens':
+        for (let i = 0; i < effect.amount; i++) createToken(s, effect.token, ctx.controller);
+        break;
+      case 'discard': {
+        const player = playerOf(ctx, effect.who);
+        const count = Math.min(effect.amount, s.players[player].hand.length);
+        if (count > 0) s.pending = { kind: 'discard', player, count, source: ctx.source };
+        break;
+      }
+      case 'returnToBattlefield': {
+        const card = s.cards[ctx.source];
+        if (!card || card.zone !== 'graveyard') break;
+        moveCard(s, ctx.source, 'battlefield', { controller: card.owner });
+        s.events.push({ t: 'return', player: card.owner, card: ctx.source });
+        addCounters(s, ctx.source, effect.counters);
+        break;
+      }
     }
   }
 }
@@ -178,14 +213,14 @@ export function stackItemSource(item: StackItem): CardId {
 export function stackItemAbility(s: GameState, item: StackItem): { targets: TargetSpec[]; effects: Effect[] } | null {
   const def = defOf(s, stackItemSource(item));
   if (item.kind === 'spell') return def.spell ?? { targets: [], effects: [] };
-  if (item.kind === 'trigger') return def.triggers?.[item.ability] ?? null;
+  if (item.kind === 'trigger') return triggeredAbility(def, item.ability) ?? null;
   return def.activated?.[item.ability] ?? null;
 }
 
 export function targetLegality(s: GameState, item: StackItem, specs: TargetSpec[]): boolean[] {
   return item.targets.map((target, i) => {
     const spec = specs[i];
-    return spec ? isLegalTarget(s, item.controller, spec, target) : false;
+    return spec && !item.lost?.includes(i) ? isLegalTarget(s, item.controller, spec, target) : false;
   });
 }
 

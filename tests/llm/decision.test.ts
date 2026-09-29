@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { applyAction, createGame, forcedAction, getLegalActions } from '../../src/engine';
 import { DecisionError, decisionFor, describeAction, type Decision } from '../../src/llm';
-import { attack, passTo, passToStep, scenario } from '../helpers';
+import { attack, cast, passTo, passToStep, scenario } from '../helpers';
 
 const reason = 'Because.';
 
@@ -153,6 +153,24 @@ describe('choosing cards', () => {
     expect(decision.kind).toBe('discard');
     expect(decision.answer).toBe('Answer with "cards": exactly 2 card ids from the list.');
     expect(decision.options).toHaveLength(9);
+  });
+
+  it('names the card that makes it discard', () => {
+    const s = passTo(
+      cast(
+        scenario({
+          players: [
+            { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
+            { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }] },
+          ],
+        }),
+        'leech',
+      ),
+      'discard',
+    );
+    const decision = decisionFor(s, 1);
+    expect(decision.question).toBe("Your opponent's Memory Leech makes you discard 1 card: choose which.");
+    expect(decision.toAction({ reason, cards: ['snap'] })).toEqual({ type: 'discard', player: 1, cards: ['snap'] });
   });
 });
 

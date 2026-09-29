@@ -3,6 +3,7 @@ import {
   KEYWORDS,
   KEYWORD_NAMES,
   KEYWORD_REMINDERS,
+  allCardDefs,
   getCardDef,
   rulesText,
   typeLine,
@@ -38,6 +39,24 @@ export function renderCardsMarkdown(): string {
     }
     lines.push('');
   }
+  const creators = (token: string): string[] =>
+    Object.values(DECKS).flatMap((deck) =>
+      deck.cards
+        .map((entry) => getCardDef(entry.card))
+        .filter((def) =>
+          [def.spell, ...(def.triggers ?? []), ...(def.activated ?? [])].some((ability) =>
+            ability?.effects.some((effect) => effect.kind === 'createTokens' && effect.token === token),
+          ),
+        )
+        .map((def) => `${def.name} (${deck.name})`),
+    );
+  lines.push('## Tokens', '', 'Creatures that effects create. A token that leaves the battlefield ceases to exist.', '');
+  lines.push('| Token | Id | Type | P/T | Rules text | Created by |', '| --- | --- | --- | --- | --- | --- |');
+  for (const def of allCardDefs().filter((card) => card.token)) {
+    const text = rulesText(def).join(' · ');
+    lines.push(`| ${def.name} | \`${def.id}\` | ${typeLine(def)} | ${statsOf(def)} | ${escapeCell(text) || '—'} | ${creators(def.id).join(', ')} |`);
+  }
+  lines.push('');
   const used = new Set(
     Object.values(DECKS).flatMap((deck) => deck.cards.flatMap((entry) => getCardDef(entry.card).keywords ?? [])),
   );

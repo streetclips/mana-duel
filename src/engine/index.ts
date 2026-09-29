@@ -1,12 +1,15 @@
 export * from './types';
 export { allCardDefs, getCardDef, getCost, hasCardDef, registerCard } from './registry';
 export {
+  BRIGHTFORGE,
   DAWNTIDE,
   DECKS,
   DECK_LIST,
   DEFAULT_DECK_ID,
   DUSKMIRE,
   EMBERWILD,
+  GLOAMWOOD,
+  MISTGRAVE,
   STORMGLASS,
   SUNMEADOW,
   deckSize,
@@ -50,6 +53,7 @@ export {
   MAX_HAND_SIZE,
   OPENING_HAND,
   STARTING_LIFE,
+  UNDYING_TRIGGER,
   cloneState,
   creaturesOf,
   defOf,
@@ -62,10 +66,12 @@ export {
   isCreature,
   isLand,
   isReadyToTap,
+  isTokenDef,
   landsOf,
   manaSources,
   onBattlefield,
   opponent,
+  triggeredAbility,
 } from './state';
 export { isLegalTarget, isPlayerTarget, isSpellOnStack, legalTargets, sameTarget, targetCombos, targetKey } from './targets';
 export {
@@ -80,6 +86,9 @@ export {
   describeEvent,
   describeState,
   formatModifier,
+  formatPump,
+  keywordList,
+  tokenDescription,
   rulesText,
   targetPhrase,
   targetRef,

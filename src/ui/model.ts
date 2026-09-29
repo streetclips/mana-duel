@@ -12,6 +12,7 @@ import {
   targetKey,
   targetPhrase,
   targetRef,
+  triggeredAbility,
   type Action,
   type Block,
   type CardId,
@@ -138,7 +139,7 @@ function targetSpecsFor(s: GameState, interaction: Interaction): { specs: Target
     const triggerId = s.pending.trigger;
     const trigger = s.triggers.find((candidate) => candidate.id === triggerId);
     if (!trigger) return null;
-    return { specs: defOf(s, trigger.source).triggers?.[trigger.ability]?.targets ?? [], source: trigger.source };
+    return { specs: triggeredAbility(defOf(s, trigger.source), trigger.ability)?.targets ?? [], source: trigger.source };
   }
   return null;
 }
@@ -307,10 +308,11 @@ export function barModel(
         pending.kind === 'bottom'
           ? { type: 'bottom', player: human, cards: chosen }
           : { type: 'discard', player: human, cards: chosen };
+      const cause = pending.kind === 'discard' && pending.source ? `${cardName(s, pending.source)} · ` : '';
       return {
         prompt: {
           title: `Choose ${pending.count} card${pending.count === 1 ? '' : 's'} to ${verb}`,
-          detail: `${chosen.length}/${pending.count} selected`,
+          detail: `${cause}${chosen.length}/${pending.count} selected`,
         },
         buttons: [
           {

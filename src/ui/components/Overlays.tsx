@@ -5,7 +5,7 @@ import {
   KEYWORD_REMINDERS,
   castBlocker,
   countersLabel,
-  formatModifier,
+  formatPump,
   getCardDef,
   hasKeyword,
   landPlayError,
@@ -90,7 +90,9 @@ function actionLabel(s: GameState, action: Action): string {
   if (action.type === 'activate') {
     const ability = getCardDef(s.cards[action.card]?.def ?? '').activated?.[action.ability];
     if (!ability) return 'Activate';
-    const cost = [ability.cost, ability.tap ? '{T}' : ''].filter(Boolean).join(', ');
+    const cost = [ability.cost === '{0}' ? '' : ability.cost, ability.tap ? '{T}' : '', ability.sacrifice ? 'Sacrifice' : '']
+      .filter(Boolean)
+      .join(', ');
     return `Activate ${cost}: ${ability.effects.map(effectHint).join(', ')}`;
   }
   return action.type;
@@ -134,7 +136,7 @@ export function CardSheet({ s, id, human, actions, onAction, onClose }: CardShee
     const pumps = s.effects.filter((effect) => effect.card === id);
     for (const pump of pumps) {
       const tone = pump.power < 0 || pump.toughness < 0 ? 'bad' : 'good';
-      statuses.push({ text: `${formatModifier(pump.power, pump.toughness)} this turn`, tone });
+      statuses.push({ text: `${formatPump(pump.power, pump.toughness, pump.keywords)} this turn`, tone });
     }
     if (card.controller !== human) statuses.push({ text: `${s.players[card.controller].name}'s` });
   }

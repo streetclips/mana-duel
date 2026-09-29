@@ -29,7 +29,9 @@ test('the start screen leads into a game', async ({ page }) => {
 test('the deck selector sets up the chosen matchup', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
-  for (const name of ['Emberwild', 'Dawntide', 'Duskmire', 'Stormglass', 'Sunmeadow']) await expect(page.getByTestId('start-screen')).toContainText(name);
+  for (const name of ['Emberwild', 'Dawntide', 'Duskmire', 'Stormglass', 'Sunmeadow', 'Brightforge', 'Mistgrave', 'Gloamwood']) {
+    await expect(page.getByTestId('start-screen')).toContainText(name);
+  }
   await page.getByTestId('deck-dawntide').click();
   await expect(page.getByTestId('deck-dawntide')).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByTestId('deck-emberwild')).toHaveAttribute('aria-checked', 'false');
@@ -199,21 +201,71 @@ test('Stormglass and Sunmeadow: a flash creature in the opponent’s turn, +1/+1
   expect(errors).toEqual([]);
 });
 
-test('every card shows art that loads in the browser build', async ({ page }) => {
+test('every card shows art that loads in the browser build, tokens on the battlefield', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=1&aiDelay=0');
-  const ids = await page.evaluate(() => {
-    const cards = window.manaDuel.cards().map((card) => card.id);
-    window.manaDuel.loadScenario({ players: [{ hand: cards }, {}] });
-    return cards;
+  const { cards, tokens } = await page.evaluate(() => {
+    const all = window.manaDuel.cards();
+    const cards = all.filter((card) => !card.token).map((card) => card.id);
+    const tokens = all.filter((card) => card.token).map((card) => card.id);
+    window.manaDuel.loadScenario({ players: [{ hand: cards, battlefield: tokens }, {}] });
+    return { cards, tokens };
   });
-  const art = page.getByTestId('hand').locator('.art img');
-  await expect(art).toHaveCount(ids.length);
-  await expect
-    .poll(() =>
-      art.evaluateAll((images) => images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0).length),
-    )
-    .toBe(ids.length);
+  expect(tokens.length).toBeGreaterThan(0);
+  for (const [zone, count] of [['hand', cards.length], ['battlefield-0', tokens.length]] as const) {
+    const art = page.getByTestId(zone).locator('.art img');
+    await expect(art).toHaveCount(count);
+    await expect
+      .poll(() =>
+        art.evaluateAll((images) => images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0).length),
+      )
+      .toBe(count);
+  }
+  await expectNoHorizontalOverflow(page);
+  expect(errors).toEqual([]);
+});
+
+test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the AI forces, an undying creature sacrificed', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=5&first=you&deck=brightforge&aiDeck=mistgrave&aiDelay=0');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Brightforge');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Mistgrave');
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] }),
+  );
+  await page.getByTestId('card-banners').click();
+  await page.getByTestId('sheet-cast').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  const soldiers = page.getByTestId('battlefield-0').locator('[data-def="soldier_token"]');
+  await expect(soldiers).toHaveCount(2);
+  await soldiers.first().click({ button: 'right' });
+  await expect(page.getByTestId('card-sheet')).toContainText('Token Creature — Soldier');
+  await page.getByTestId('card-sheet').click({ position: { x: 10, y: 10 } });
+
+  await page.evaluate(() => {
+    window.manaDuel.loadScenario({
+      activePlayer: 1,
+      players: [
+        { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }] },
+        { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
+      ],
+    });
+    window.manaDuel.settle();
+  });
+  await expect(page.getByTestId('prompt')).toHaveText('Choose 1 card to discard');
+  await expect(page.getByTestId('prompt-detail')).toHaveText('Memory Leech · 0/1 selected');
+  await page.getByTestId('card-snap').click();
+  await page.getByTestId('btn-confirm-cards').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  expect(await page.evaluate(() => window.manaDuel.state().cards.snap?.zone)).toBe('graveyard');
+  expect(await page.evaluate(() => window.manaDuel.log())).toContain('You discard Ember Snap.');
+
+  await page.evaluate(() => window.manaDuel.loadScenario({ players: [{ battlefield: [{ card: 'bloodspore_thrall', id: 'thrall' }] }, {}] }));
+  await page.getByTestId('card-thrall').click();
+  await page.getByTestId('sheet-activate').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('pt-thrall')).toHaveText('2/2');
+  await expect(page.getByTestId('life-1')).toHaveText('19');
   await expectNoHorizontalOverflow(page);
   expect(errors).toEqual([]);
 });

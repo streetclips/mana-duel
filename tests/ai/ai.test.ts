@@ -319,6 +319,98 @@ describe('AI with the Stormglass and Sunmeadow cards', () => {
   });
 });
 
+describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
+  it('casts Brightforge Warlord before combat, so the whole army attacks with haste', () => {
+    const s = scenario({
+      activePlayer: 1,
+      players: [
+        {},
+        {
+          hand: [{ card: 'brightforge_warlord', id: 'warlord' }],
+          battlefield: ['mountain', 'mountain', 'mountain', 'plains', 'plains', { card: 'sunsteel_lancer', id: 'lancer' }, { card: 'soldier_token', id: 'soldier', sick: true }],
+        },
+      ],
+    });
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'warlord', targets: [] });
+  });
+
+  it('casts its creatures before combat while Forge Cadet grows with each of them', () => {
+    const s = scenario({
+      activePlayer: 1,
+      players: [
+        {},
+        {
+          hand: [{ card: 'muster_sergeant', id: 'sergeant' }],
+          battlefield: ['plains', 'plains', { card: 'forge_cadet', id: 'cadet' }, { card: 'sunsteel_lancer', id: 'lancer' }],
+        },
+      ],
+    });
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'sergeant', targets: [] });
+  });
+
+  it('makes blockers with Raise the Banners when an attack would be lethal', () => {
+    const s = pass(
+      attack(
+        scenario({
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { life: 3, hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] },
+          ],
+        }),
+        ['rhino'],
+      ),
+    );
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'banners', targets: [] });
+  });
+
+  it('casts Rob the Mind while the opponent holds cards, not into an empty hand', () => {
+    const rob = (hand: string[]) =>
+      scenario({
+        activePlayer: 1,
+        step: 'main2',
+        players: [{ hand }, { hand: [{ card: 'rob_the_mind', id: 'rob' }], battlefield: ['swamp', 'swamp', 'swamp'] }],
+      });
+    expect(chooseAction(rob(['timberland_rhino', 'ember_snap', 'forest']), 1)).toEqual({ type: 'cast', player: 1, card: 'rob', targets: [] });
+    expect(chooseAction(rob([]), 1)).toEqual({ type: 'pass', player: 1 });
+  });
+
+  it('discards the card it needs least when an effect makes it discard', () => {
+    const s = passTo(
+      cast(
+        scenario({
+          players: [
+            { hand: [{ card: 'rob_the_mind', id: 'rob' }], battlefield: ['swamp', 'swamp', 'swamp'] },
+            { hand: [{ card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }, { card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest', 'forest'] },
+          ],
+        }),
+        'rob',
+      ),
+      'discard',
+    );
+    const action = chooseAction(s, 1);
+    expect(action.type === 'discard' ? [...action.cards].sort() : action).toEqual(['f1', 'f2']);
+  });
+
+  it('sacrifices Bonewood Stalker to kill a creature worth more', () => {
+    const s = scenario({
+      activePlayer: 1,
+      players: [{ battlefield: [{ card: 'cinderwing_drake', id: 'drake' }] }, { battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] }],
+    });
+    expect(chooseAction(s, 1)).toEqual({ type: 'activate', player: 1, card: 'stalker', ability: 0, targets: [{ card: 'drake' }] });
+  });
+
+  it('attacks with a skulking creature that no blocker is allowed to stop', () => {
+    const s = passTo(
+      scenario({
+        activePlayer: 1,
+        players: [{ battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, { battlefield: [{ card: 'fogslip_thief', id: 'thief' }] }],
+      }),
+      'declareAttackers',
+    );
+    expect(chooseAttackers(s, 1)).toEqual(['thief']);
+  });
+});
+
 describe('AI rollouts', () => {
   it('aim a death trigger at the most valuable target it can kill, not at its own controller', () => {
     let s = scenario({
@@ -518,6 +610,9 @@ describe('AI fairness', () => {
       ['stormglass', 'sunmeadow'],
       ['sunmeadow', 'duskmire'],
       ['dawntide', 'stormglass'],
+      ['brightforge', 'mistgrave'],
+      ['mistgrave', 'gloamwood'],
+      ['gloamwood', 'brightforge'],
     ];
     for (const [seed, [first, second]] of matchups.entries()) {
       let s = createGame({ seed: seed + 1, players: [{ deck: first }, { deck: second }] });

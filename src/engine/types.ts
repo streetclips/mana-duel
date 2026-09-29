@@ -27,7 +27,9 @@ export type Keyword =
   | 'lifelink'
   | 'menace'
   | 'defender'
-  | 'flash';
+  | 'flash'
+  | 'skulk'
+  | 'undying';
 
 export const KEYWORDS: readonly Keyword[] = [
   'flying',
@@ -42,6 +44,8 @@ export const KEYWORDS: readonly Keyword[] = [
   'menace',
   'defender',
   'flash',
+  'skulk',
+  'undying',
 ];
 
 export type TargetSpec =
@@ -54,21 +58,26 @@ export type Target = { player: PlayerId } | { card: CardId };
 
 export type EffectTarget = number | 'self';
 
+export type Who = 'you' | 'opponent';
+
 export type Effect =
   | { kind: 'damage'; amount: number; to: EffectTarget }
-  | { kind: 'pump'; power: number; toughness: number; to: EffectTarget }
+  | { kind: 'pump'; power: number; toughness: number; to: EffectTarget; keywords?: Keyword[] }
   | { kind: 'destroy'; to: EffectTarget }
   | { kind: 'bounce'; to: EffectTarget }
   | { kind: 'counter'; to: number }
   | { kind: 'draw'; amount: number }
   | { kind: 'gainLife'; amount: number }
-  | { kind: 'loseLife'; amount: number }
+  | { kind: 'loseLife'; amount: number; who?: Who }
   | { kind: 'fight'; a: EffectTarget; b: EffectTarget }
-  | { kind: 'pumpTeam'; power: number; toughness: number }
+  | { kind: 'pumpTeam'; power: number; toughness: number; keywords?: Keyword[] }
   | { kind: 'addCounters'; amount: number; to: EffectTarget }
-  | { kind: 'addCountersTeam'; amount: number };
+  | { kind: 'addCountersTeam'; amount: number }
+  | { kind: 'createTokens'; token: string; amount: number }
+  | { kind: 'discard'; amount: number; who?: Who }
+  | { kind: 'returnToBattlefield'; counters: number };
 
-export type TriggerEvent = 'enters' | 'dies' | 'attacks' | 'spell';
+export type TriggerEvent = 'enters' | 'dies' | 'attacks' | 'spell' | 'allyEnters' | 'allyDies' | 'damagesPlayer';
 
 export interface TriggeredAbility {
   on: TriggerEvent;
@@ -79,6 +88,7 @@ export interface TriggeredAbility {
 export interface ActivatedAbility {
   cost: string;
   tap?: boolean;
+  sacrifice?: boolean;
   targets: TargetSpec[];
   effects: Effect[];
 }
@@ -99,13 +109,15 @@ export interface CardDef {
   toughness?: number;
   keywords?: Keyword[];
   mana?: Color[];
+  token?: boolean;
+  colors?: Color[];
   spell?: SpellAbility;
   triggers?: TriggeredAbility[];
   activated?: ActivatedAbility[];
   flavor?: string;
 }
 
-export type Zone = 'library' | 'hand' | 'battlefield' | 'graveyard' | 'stack';
+export type Zone = 'library' | 'hand' | 'battlefield' | 'graveyard' | 'stack' | 'gone';
 
 export interface CardInstance {
   id: CardId;
@@ -153,15 +165,16 @@ export type Step =
   | 'cleanup';
 
 export type StackItem =
-  | { id: string; kind: 'spell'; controller: PlayerId; card: CardId; targets: Target[] }
-  | { id: string; kind: 'trigger'; controller: PlayerId; source: CardId; ability: number; targets: Target[] }
-  | { id: string; kind: 'activated'; controller: PlayerId; source: CardId; ability: number; targets: Target[] };
+  | { id: string; kind: 'spell'; controller: PlayerId; card: CardId; targets: Target[]; lost?: number[] }
+  | { id: string; kind: 'trigger'; controller: PlayerId; source: CardId; ability: number; targets: Target[]; lost?: number[] }
+  | { id: string; kind: 'activated'; controller: PlayerId; source: CardId; ability: number; targets: Target[]; lost?: number[] };
 
 export interface ContinuousEffect {
   id: string;
   card: CardId;
   power: number;
   toughness: number;
+  keywords?: Keyword[];
   until: 'endOfTurn';
 }
 
@@ -192,7 +205,7 @@ export type PendingDecision =
   | { kind: 'declareAttackers'; player: PlayerId }
   | { kind: 'declareBlockers'; player: PlayerId }
   | { kind: 'chooseTargets'; player: PlayerId; trigger: string }
-  | { kind: 'discard'; player: PlayerId; count: number }
+  | { kind: 'discard'; player: PlayerId; count: number; source?: CardId }
   | { kind: 'gameOver'; winner: PlayerId | null; reason: GameOverReason };
 
 export type GameOverReason = 'life' | 'decked' | 'concede' | 'turnLimit';
@@ -230,12 +243,14 @@ export type GameEvent =
   | { t: 'counter'; card: CardId; player: PlayerId }
   | { t: 'bounce'; card: CardId; player: PlayerId }
   | { t: 'enter'; player: PlayerId; card: CardId }
+  | { t: 'create'; player: PlayerId; card: CardId }
+  | { t: 'return'; player: PlayerId; card: CardId }
   | { t: 'attack'; player: PlayerId; attackers: CardId[] }
   | { t: 'block'; player: PlayerId; blocks: Block[] }
   | { t: 'damage'; source: CardId; target: Target; amount: number; combat: boolean }
   | { t: 'life'; player: PlayerId; delta: number; life: number }
   | { t: 'loseLife'; player: PlayerId; amount: number }
-  | { t: 'pump'; card: CardId; power: number; toughness: number }
+  | { t: 'pump'; card: CardId; power: number; toughness: number; keywords?: Keyword[] }
   | { t: 'addCounters'; card: CardId; amount: number }
   | { t: 'fight'; a: CardId; b: CardId }
   | { t: 'dies'; card: CardId; player: PlayerId }

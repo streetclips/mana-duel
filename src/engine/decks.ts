@@ -145,7 +145,83 @@ export const SUNMEADOW: DeckDef = {
   ],
 };
 
-export const DECK_LIST: readonly DeckDef[] = [EMBERWILD, DAWNTIDE, DUSKMIRE, STORMGLASS, SUNMEADOW];
+export const BRIGHTFORGE: DeckDef = {
+  id: 'brightforge',
+  name: 'Brightforge',
+  description: 'Red and white: creature tokens, first strike and haste; the army grows with every soldier.',
+  colors: ['R', 'W'],
+  featured: 'brightforge_warlord',
+  cards: [
+    { card: 'mountain', count: 8 },
+    { card: 'plains', count: 8 },
+    { card: 'forge_cadet', count: 2 },
+    { card: 'muster_sergeant', count: 2 },
+    { card: 'sunsteel_lancer', count: 2 },
+    { card: 'kindling_caller', count: 2 },
+    { card: 'bannerguard_knight', count: 2 },
+    { card: 'hammerfall_raider', count: 2 },
+    { card: 'brightforge_marshal', count: 2 },
+    { card: 'forgewing_griffin', count: 1 },
+    { card: 'brightforge_warlord', count: 1 },
+    { card: 'raise_the_banners', count: 2 },
+    { card: 'molten_rebuke', count: 2 },
+    { card: 'sunbrand', count: 1 },
+    { card: 'charge_of_the_forge', count: 2 },
+    { card: 'stoke_the_forge', count: 1 },
+  ],
+};
+
+export const MISTGRAVE: DeckDef = {
+  id: 'mistgrave',
+  name: 'Mistgrave',
+  description: "Blue and black: skulking creatures slip past bigger blockers and strip the opponent's hand.",
+  colors: ['U', 'B'],
+  featured: 'mistgrave_revenant',
+  cards: [
+    { card: 'island', count: 8 },
+    { card: 'swamp', count: 8 },
+    { card: 'gutterfang_rat', count: 2 },
+    { card: 'fogslip_thief', count: 2 },
+    { card: 'hushwing_bat', count: 2 },
+    { card: 'inkwell_scribe', count: 2 },
+    { card: 'memory_leech', count: 2 },
+    { card: 'mistcloak_ambusher', count: 2 },
+    { card: 'veilborn_specter', count: 2 },
+    { card: 'mistgrave_revenant', count: 1 },
+    { card: 'rob_the_mind', count: 2 },
+    { card: 'drag_below', count: 2 },
+    { card: 'choking_mist', count: 2 },
+    { card: 'sift_the_depths', count: 2 },
+    { card: 'drown_the_truth', count: 1 },
+  ],
+};
+
+export const GLOAMWOOD: DeckDef = {
+  id: 'gloamwood',
+  name: 'Gloamwood',
+  description: 'Black and green: undying, sacrifice and deathtouch; every death feeds the wood.',
+  colors: ['B', 'G'],
+  featured: 'gloamwood_elder',
+  cards: [
+    { card: 'forest', count: 8 },
+    { card: 'swamp', count: 8 },
+    { card: 'gravebloom_sprout', count: 2 },
+    { card: 'rotwing_crow', count: 2 },
+    { card: 'rootgnaw_boar', count: 2 },
+    { card: 'bloodspore_thrall', count: 2 },
+    { card: 'bonewood_stalker', count: 2 },
+    { card: 'sporecap_shambler', count: 2 },
+    { card: 'gloomsilk_spider', count: 2 },
+    { card: 'rotbark_treefolk', count: 2 },
+    { card: 'gloamwood_elder', count: 1 },
+    { card: 'venom_duel', count: 2 },
+    { card: 'rot_into_loam', count: 2 },
+    { card: 'sporecall', count: 1 },
+    { card: 'nightshade_tonic', count: 2 },
+  ],
+};
+
+export const DECK_LIST: readonly DeckDef[] = [EMBERWILD, DAWNTIDE, DUSKMIRE, STORMGLASS, SUNMEADOW, BRIGHTFORGE, MISTGRAVE, GLOAMWOOD];
 
 export const DECKS: Record<string, DeckDef> = Object.fromEntries(DECK_LIST.map((deck) => [deck.id, deck]));
 

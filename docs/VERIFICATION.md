@@ -17,7 +17,7 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | Id | Feature | Tests |
 | --- | --- | --- |
 | F01 | Setup: 40-card decks, seven-card hands, 20 life; the same seed gives the same game | `tests/engine/setup.test.ts` › game setup |
-| F29 | Decks: Emberwild, Dawntide, Duskmire, Stormglass and Sunmeadow, 40 cards and 16 lands each, in their own colors; no nonland card in two decks; every card is in a deck | `tests/engine/cards.test.ts` › decks |
+| F29 | Decks: Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave and Gloamwood, 40 cards and 16 lands each, in their own colors; no nonland card in two decks; every card is in a deck and every token is created by one of their cards | `tests/engine/cards.test.ts` › decks |
 | F02 | London mulligan: new seven, one card to the bottom per mulligan, at most six | `tests/engine/setup.test.ts` › London mulligan · `tests/ui/game.test.tsx` › opening hand |
 | F03 | Turn order; the starting player skips the first draw | `tests/engine/setup.test.ts` · `tests/engine/turn.test.ts` › turn structure, passing through a whole turn |
 | F04 | One land per turn, main phase, empty stack | `tests/engine/turn.test.ts` › lands |
@@ -47,13 +47,21 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F41 | "Whenever you cast an instant or sorcery spell": only its controller's instants and sorceries trigger it, above the spell, so it resolves first; pumps, damage and +1/+1 counters (Arc Initiate, Galvanic Channeler, Stormglass Drake) | `tests/engine/spells.test.ts` › Stormglass |
 | F42 | +1/+1 counters: added to power and toughness, damage and `-N/-N` included; they outlast cleanup and leave with the creature; one creature or each creature you control; on enters, dies and attacks triggers | `tests/engine/spells.test.ts` › Sunmeadow |
 | F43 | Pumps for every creature you control until end of turn (Rally the Meadow, Sunmeadow Herald's attack) | `tests/engine/spells.test.ts` › Sunmeadow |
+| F44 | Tokens: created under the controller of the effect, summoning sick unless they have haste; one that dies or returns to hand ceases to exist; they only exist on the battlefield | `tests/engine/spells.test.ts` › Brightforge |
+| F45 | "Whenever another creature you control enters" and "dies", tokens included; creatures that die together see each other die (Forge Cadet, Rotwing Crow, Rootgnaw Boar, Gloamwood Elder) | `tests/engine/spells.test.ts` › Brightforge, Gloamwood |
+| F46 | Keywords granted until end of turn: first strike (Charge of the Forge), haste (Brightforge Warlord), deathtouch (Venom Duel, Nightshade Tonic) | `tests/engine/spells.test.ts` › Brightforge, Gloamwood |
+| F47 | Skulk: no blocker with greater power, compared when blockers are declared | `tests/engine/spells.test.ts` › Mistgrave |
+| F48 | Discard: the discarding player chooses, at most the cards in hand, and the game goes on in the same step; "draw two cards, then discard a card" | `tests/engine/spells.test.ts` › Mistgrave · `tests/ui/game.test.tsx` › tokens, sacrifices and discards |
+| F49 | "Whenever this creature deals combat damage to a player" (Fogslip Thief, Hushwing Bat), not when it is blocked | `tests/engine/spells.test.ts` › Mistgrave |
+| F50 | Undying: the creature returns once, with a +1/+1 counter, as a new object that a spell aimed at it no longer targets | `tests/engine/spells.test.ts` › Gloamwood |
+| F51 | "Sacrifice this creature" as a cost: its death triggers resolve first, then the ability without its source | `tests/engine/spells.test.ts` › Gloamwood |
 | F21 | Activated abilities, repeatable, `{T}` costs | `tests/engine/turn.test.ts` › activated abilities |
 | F22 | Cleanup: discard to seven, damage and pumps wear off | `tests/engine/turn.test.ts` › turn structure |
 | F23 | Game over: 0 life, empty library, concession, turn limit | `tests/engine/gameover.test.ts` |
 | F24 | Every listed action is legal; bad input is refused with a reason and changes nothing | `tests/engine/properties.test.ts` |
 | F25 | Replays: seed plus actions reproduces a game exactly | `tests/engine/properties.test.ts` · `tests/app/controller.test.ts` |
 | F26 | Invariants after every action (one zone per card, clean state off the battlefield) | `tests/engine/properties.test.ts` · `npm run sim` |
-| F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all 25 matchups by default) |
+| F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all 64 matchups by default) |
 
 ## AI
 
@@ -63,6 +71,7 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F28 | Chump-blocks only when the damage would be lethal | `tests/ai/ai.test.ts` › AI combat |
 | F37 | Counters threats but lets harmless spells resolve; returns lethal attackers; removal on the biggest threat or a tapped attacker; pays life only when it can afford it | `tests/ai/ai.test.ts` › AI with the Dawntide and Duskmire answers |
 | — | Flashes in blockers when attacked; finds lethal through Galvanic Channeler; puts +1/+1 counters where they are worth most; Rally the Meadow after blockers; Wild Blossom against burn; Pack Pounce before a fight | `tests/ai/ai.test.ts` › AI with the Stormglass and Sunmeadow cards |
+| — | Casts Brightforge Warlord before combat; makes blockers with Raise the Banners against a lethal attack; Rob the Mind only into a hand that holds cards; discards the card it needs least; sacrifices Bonewood Stalker for a better creature; attacks with a skulker nothing may block | `tests/ai/ai.test.ts` › AI with the Brightforge, Mistgrave and Gloamwood cards |
 | — | Mulligans hands whose lands cannot cast their spells | `tests/ai/ai.test.ts` › AI setup decisions |
 | — | Fairness: hidden cards never change a decision, in mirror and mixed matchups | `tests/ai/ai.test.ts` › AI fairness |
 | — | Strength: beats a random player nearly always with any deck; AI vs AI balanced and crash-free | `tests/ai/ai.test.ts` › AI strength · `npm run sim -- --games 1000 --quiet` (`"errors": 0`, per-deck `winRate` near 0.5) · `npm run sim -- --p0 random --games 50 --quiet` |
@@ -73,9 +82,9 @@ How it works is in `docs/LLM.md`. Everything here runs offline, against mocked m
 
 | Feature | Tests |
 | --- | --- |
-| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat, pumps and +1/+1 counters, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
+| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat, pumps, keywords granted until end of turn, +1/+1 counters and tokens, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
 | Fairness: the prompt is the same whatever the hidden cards are, over real games in three matchups; the latest events and thoughts, in order | `tests/llm/player.test.ts` › the LLM prompt |
-| Every legal action is an option for mulligans, priority and targets; attackers, blockers and cards to bottom or discard are constrained fields; a refused answer names the rule | `tests/llm/decision.test.ts` |
+| Every legal action is an option for mulligans, priority and targets; attackers, blockers and cards to bottom or discard are constrained fields, a discard names the card that causes it; a refused answer names the rule | `tests/llm/decision.test.ts` |
 | One call per real decision, none for a forced one; retries with the reason; the classic AI when every attempt fails or time runs out; unavailable after 401, 402 or 404; cancellation; lazy loading | `tests/llm/player.test.ts` |
 | The OpenRouter request: strict `json_schema`, `provider.require_parameters`, the key, a proxy base URL; the catalog of models with structured outputs | `tests/llm/openrouter.test.ts` |
 | Whole games where the model answers anything its schema allows: never an illegal action, sound invariants | `tests/llm/games.test.ts` |
@@ -93,7 +102,7 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | --- | --- | --- |
 | F38 | Combat: an attacker and its blocker strike each other; the damage, the trample to the player and the death show, and the dead creature fades out in its own place | `tests/app/fx.test.ts` › combat · `tests/ui/animations.test.tsx` › animations of combat · `e2e/animations.spec.ts` › in combat |
 | F39 | The opponent's spell is revealed with its target; burn shows the life lost; a new turn is announced and deals the drawn card | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` › animations of plays, of draws and turns · `e2e/animations.spec.ts` |
-| — | Lands and permanents entering, abilities, pumps and shrinks, +1/+1 counters and pumps for every creature you control (shown as pumps), lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
+| — | Lands and permanents entering, tokens entering, abilities, pumps and shrinks with the keywords they grant, +1/+1 counters and pumps for every creature you control (shown as pumps), an undying creature dying and coming back, lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
 | — | Timing: hits land after the strikes, draws deal one after another, hooks stay until a newer action animates something, slow motion, a new game starts over | `tests/ui/fxTracker.test.ts` |
 | — | Pacing: with an AI delay the AI and automatic passing wait for the opponent's plays and for combat to be seen; not with `aiDelay=0` or `fx=off` | `tests/app/controller.test.ts` › animation cues |
 | — | Browser: CSS and Web Animations run and end, `freezeFx` holds them, `fx=off` and `fx=slow`, reduced motion, no overflow mid-animation, no console errors | `e2e/animations.spec.ts` |
@@ -107,6 +116,7 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | Deck viewer: every card with its count and art, mana curve, card details, "Choose"; both decks from the in-game menu | `tests/ui/game.test.tsx` › deck viewer · `tests/ui/deckViewer.test.ts` · `e2e/game.spec.ts` › the deck viewer |
 | Counterspells target a spell by tapping it in the center strip; stack items open their card | `tests/ui/game.test.tsx` › counterspells · `e2e/game.spec.ts` › URL parameters pick the decks |
 | Flash creatures cast from the card sheet in the opponent's turn; +1/+1 counters raise the P/T tag and show in the card sheet | `e2e/game.spec.ts` › Stormglass and Sunmeadow |
+| Tokens on the battlefield and in the card sheet; sacrifice abilities from the card sheet; a spell that makes you discard asks which card, naming itself; an undying creature back with its counter | `tests/ui/game.test.tsx` › tokens, sacrifices and discards · `e2e/game.spec.ts` › Brightforge, Mistgrave and Gloamwood |
 | Controller decks: per-seat decks, kept by "New game", recorded in replays, none for scenarios | `tests/app/controller.test.ts` › decks |
 | Automatic passing and End turn (behaviour described in `docs/RULES.md`) | `tests/app/controller.test.ts` › auto-pass, ends the turn on request |
 | Auto-pass off: stops wherever you could act, End turn still works; the menu toggle, remembered, `?autoPass=on\|off`, `setAutoPass()`; prompts that name whose step it is | `tests/app/controller.test.ts` › auto-pass · `tests/ui/game.test.tsx` › auto-pass · `e2e/game.spec.ts` › auto-pass |
@@ -139,3 +149,9 @@ For a human-eyes check on a phone-sized viewport (for example Playwright at 390�
    manaDuel.freezeFx(0.4)`. The screenshot shows the Rhino and the Grove Tender that chump-blocks it meeting over the
    center strip, a spark on each and −3 beside the AI's life; after `manaDuel.freezeFx(null)` the Grove Tender fades
    out in its place.
+7. Try the newest decks' mechanics: open `/?seed=2&first=you&deck=brightforge&aiDeck=mistgrave&aiDelay=0`, run
+   `manaDuel.loadScenario({ players: [{ hand: ['raise_the_banners'], battlefield: ['plains', 'plains',
+   'forge_cadet'] }, {}] })` and cast Raise the Banners: two Soldier tokens appear and Forge Cadet grows to 3/3. Then
+   run `manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: ['forest', 'ember_snap'] }, { hand:
+   ['memory_leech'], battlefield: ['swamp', 'swamp', 'swamp'] }] })` and `manaDuel.settle()`: the AI casts Memory
+   Leech and the prompt asks you to choose 1 card to discard.

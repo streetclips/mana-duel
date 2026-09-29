@@ -12,6 +12,7 @@ import {
   opponent,
   queueTriggers,
 } from './state';
+import { isPlayerTarget } from './targets';
 import type { Block, CardId, GameState, PlayerId } from './types';
 
 export function defendingPlayer(s: GameState): PlayerId {
@@ -37,6 +38,7 @@ export function canBlockAttacker(s: GameState, blocker: CardId, attacker: CardId
   if (hasKeyword(s, attacker, 'flying') && !hasKeyword(s, blocker, 'flying') && !hasKeyword(s, blocker, 'reach')) {
     return false;
   }
+  if (hasKeyword(s, attacker, 'skulk') && getPower(s, blocker) > getPower(s, attacker)) return false;
   return true;
 }
 
@@ -194,5 +196,10 @@ export function performCombatDamage(s: GameState, kind: 'first' | 'regular'): vo
   if (kind === 'first') {
     combat.firstStrikers = combatants(s).filter((id) => dealsDamageInStep(s, id, 'first'));
   }
-  applyDamage(s, assignCombatDamage(s, kind), true);
+  const assignments = assignCombatDamage(s, kind);
+  applyDamage(s, assignments, true);
+  const hits = assignments.filter((assignment) => assignment.amount > 0 && isPlayerTarget(assignment.target));
+  for (const source of new Set(hits.map((hit) => hit.source))) {
+    queueTriggers(s, source, 'damagesPlayer', getCard(s, source).controller);
+  }
 }

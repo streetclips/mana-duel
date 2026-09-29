@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BRIGHTFORGE,
   DECK_LIST,
   EMBERWILD,
+  GLOAMWOOD,
+  MISTGRAVE,
   STORMGLASS,
   SUNMEADOW,
   cardSummary,
@@ -14,7 +17,9 @@ import {
   hasDeck,
   registerCard,
   rulesText,
+  triggerText,
   typeLine,
+  UNDYING_TRIGGER,
   type CardDef,
 } from '../../src/engine';
 import { CORE_CARDS } from '../../src/engine/cards';
@@ -22,11 +27,23 @@ import { CORE_CARDS } from '../../src/engine/cards';
 const isLandId = (id: string): boolean => getCardDef(id).types.includes('land');
 
 describe('decks', () => {
-  it('are Emberwild, Dawntide, Duskmire, Stormglass and Sunmeadow', () => {
-    expect(DECK_LIST.map((deck) => deck.id)).toEqual(['emberwild', 'dawntide', 'duskmire', 'stormglass', 'sunmeadow']);
+  it('are Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave and Gloamwood', () => {
+    expect(DECK_LIST.map((deck) => deck.id)).toEqual([
+      'emberwild',
+      'dawntide',
+      'duskmire',
+      'stormglass',
+      'sunmeadow',
+      'brightforge',
+      'mistgrave',
+      'gloamwood',
+    ]);
     expect(getDeck('emberwild')).toBe(EMBERWILD);
     expect(getDeck('stormglass')).toBe(STORMGLASS);
     expect(getDeck('sunmeadow')).toBe(SUNMEADOW);
+    expect(getDeck('brightforge')).toBe(BRIGHTFORGE);
+    expect(getDeck('mistgrave')).toBe(MISTGRAVE);
+    expect(getDeck('gloamwood')).toBe(GLOAMWOOD);
   });
 
   for (const deck of DECK_LIST) {
@@ -64,9 +81,18 @@ describe('decks', () => {
     }
   });
 
-  it('use every card in the game', () => {
+  it('use every card in the game, and every token is created by one of their cards', () => {
     const used = new Set(DECK_LIST.flatMap((deck) => deck.cards.map((entry) => entry.card)));
-    expect(CORE_CARDS.map((def) => def.id).filter((id) => !used.has(id))).toEqual([]);
+    expect(CORE_CARDS.filter((def) => !def.token && !used.has(def.id)).map((def) => def.id)).toEqual([]);
+    const created = new Set(
+      [...used].flatMap((id) => {
+        const def = getCardDef(id);
+        const abilities = [def.spell, ...(def.triggers ?? []), ...(def.activated ?? [])];
+        return abilities.flatMap((ability) => (ability?.effects ?? []).flatMap((effect) => (effect.kind === 'createTokens' ? [effect.token] : [])));
+      }),
+    );
+    expect([...created].sort()).toEqual(CORE_CARDS.filter((def) => def.token).map((def) => def.id).sort());
+    for (const id of created) expect(getCardDef(id).token).toBe(true);
   });
 
   it('are looked up by id', () => {
@@ -199,6 +225,100 @@ describe('rules text', () => {
       text: ["Put a +1/+1 counter on target creature you control. It fights target creature you don't control."],
     },
     harvest_hymn: { type: 'Sorcery', text: ['Put a +1/+1 counter on each creature you control. You gain 2 life.'] },
+    soldier_token: { type: 'Token Creature — Soldier', text: [] },
+    elemental_token: { type: 'Token Creature — Elemental', text: ['Haste'] },
+    saproling_token: { type: 'Token Creature — Saproling', text: [] },
+    forge_cadet: {
+      type: 'Creature — Human Soldier',
+      text: ['Whenever another creature you control enters, put a +1/+1 counter on this creature.'],
+    },
+    muster_sergeant: { type: 'Creature — Human Soldier', text: ['When this creature enters, create a 1/1 white Soldier creature token.'] },
+    sunsteel_lancer: { type: 'Creature — Human Knight', text: ['First strike'] },
+    kindling_caller: {
+      type: 'Creature — Human Shaman',
+      text: ['When this creature enters, create a 1/1 red Elemental creature token with haste.'],
+    },
+    bannerguard_knight: {
+      type: 'Creature — Human Knight',
+      text: ['Vigilance', 'When this creature enters, create a 1/1 white Soldier creature token.'],
+    },
+    hammerfall_raider: {
+      type: 'Creature — Human Warrior',
+      text: ['Whenever this creature attacks, create a 1/1 red Elemental creature token with haste.'],
+    },
+    brightforge_marshal: { type: 'Creature — Human Soldier', text: ['When this creature enters, create two 1/1 white Soldier creature tokens.'] },
+    forgewing_griffin: { type: 'Creature — Griffin', text: ['Flying', 'When this creature enters, create a 1/1 white Soldier creature token.'] },
+    brightforge_warlord: {
+      type: 'Creature — Human Knight',
+      text: ['When this creature enters, creatures you control get +1/+0 and gain haste until end of turn.'],
+    },
+    raise_the_banners: { type: 'Instant', text: ['Create two 1/1 white Soldier creature tokens.'] },
+    molten_rebuke: { type: 'Instant', text: ['Molten Rebuke deals 3 damage to target creature.'] },
+    sunbrand: { type: 'Instant', text: ['Sunbrand deals 3 damage to any target. You gain 3 life.'] },
+    charge_of_the_forge: { type: 'Instant', text: ['Creatures you control get +1/+0 and gain first strike until end of turn.'] },
+    stoke_the_forge: { type: 'Sorcery', text: ['Create two 1/1 red Elemental creature tokens with haste.'] },
+    gutterfang_rat: { type: 'Creature — Rat', text: ['Skulk, deathtouch'] },
+    fogslip_thief: {
+      type: 'Creature — Human Rogue',
+      text: ['Skulk', 'Whenever this creature deals combat damage to a player, draw a card.'],
+    },
+    hushwing_bat: {
+      type: 'Creature — Bat',
+      text: ['Flying', 'Whenever this creature deals combat damage to a player, that player discards a card.'],
+    },
+    inkwell_scribe: { type: 'Creature — Human Wizard', text: ['When this creature enters, draw a card, then discard a card.'] },
+    memory_leech: { type: 'Creature — Leech', text: ['When this creature enters, each opponent discards a card.'] },
+    mistcloak_ambusher: { type: 'Creature — Human Rogue', text: ['Flash, skulk'] },
+    veilborn_specter: {
+      type: 'Creature — Specter',
+      text: ['Flying', 'Whenever this creature deals combat damage to a player, draw a card.'],
+    },
+    mistgrave_revenant: {
+      type: 'Creature — Zombie Horror',
+      text: ['Skulk', 'Whenever this creature deals combat damage to a player, draw a card. That player discards a card.'],
+    },
+    rob_the_mind: { type: 'Sorcery', text: ['Each opponent discards two cards.'] },
+    drag_below: {
+      type: 'Instant',
+      text: ["Return target creature you don't control to its owner's hand. Each opponent discards a card."],
+    },
+    choking_mist: { type: 'Instant', text: ['Target creature gets -3/-3 until end of turn.'] },
+    sift_the_depths: { type: 'Instant', text: ['Draw two cards, then discard a card.'] },
+    drown_the_truth: { type: 'Instant', text: ['Destroy target creature.'] },
+    gravebloom_sprout: { type: 'Creature — Plant', text: ['Undying'] },
+    rotwing_crow: {
+      type: 'Creature — Bird',
+      text: ['Flying', 'Whenever another creature you control dies, each opponent loses 1 life.'],
+    },
+    rootgnaw_boar: {
+      type: 'Creature — Boar',
+      text: ['Whenever another creature you control dies, put a +1/+1 counter on this creature.'],
+    },
+    bloodspore_thrall: { type: 'Creature — Fungus Zombie', text: ['Undying', 'Sacrifice this creature: Each opponent loses 1 life.'] },
+    bonewood_stalker: {
+      type: 'Creature — Zombie Beast',
+      text: ['Sacrifice this creature: Target creature gets -2/-2 until end of turn.'],
+    },
+    sporecap_shambler: {
+      type: 'Creature — Fungus',
+      text: ['When this creature dies, create two 1/1 green Saproling creature tokens.'],
+    },
+    gloomsilk_spider: { type: 'Creature — Spider', text: ['Reach, deathtouch'] },
+    rotbark_treefolk: { type: 'Creature — Treefolk', text: ['Undying'] },
+    gloamwood_elder: {
+      type: 'Creature — Treefolk Shaman',
+      text: ['Reach', 'Whenever another creature you control dies, create a 1/1 green Saproling creature token.'],
+    },
+    venom_duel: {
+      type: 'Sorcery',
+      text: ["Target creature you control gains deathtouch until end of turn. It fights target creature you don't control."],
+    },
+    rot_into_loam: {
+      type: 'Instant',
+      text: ['Target creature gets -2/-2 until end of turn. Create a 1/1 green Saproling creature token.'],
+    },
+    sporecall: { type: 'Sorcery', text: ['Create two 1/1 green Saproling creature tokens.'] },
+    nightshade_tonic: { type: 'Instant', text: ['Target creature gets +1/+1 and gains deathtouch until end of turn.'] },
   };
 
   for (const [id, { type, text }] of Object.entries(expected)) {
@@ -209,14 +329,22 @@ describe('rules text', () => {
     });
   }
 
-  it('covers every card in every deck', () => {
+  it('covers every card in every deck and every token', () => {
     for (const id of new Set(DECK_LIST.flatMap(expandDeck))) expect(Object.keys(expected)).toContain(id);
+    for (const def of CORE_CARDS.filter((card) => card.token)) expect(Object.keys(expected)).toContain(def.id);
   });
 
   it('builds one-line summaries', () => {
     expect(cardSummary('timberland_rhino')).toBe('Timberland Rhino · {2}{G}{G} · Creature — Rhino · 4/4 · Trample');
     expect(cardSummary('turn_the_tide')).toBe('Turn the Tide · {1}{U}{U} · Instant · Counter target spell.');
     expect(cardSummary('squall_skimmer')).toBe('Squall Skimmer · {1}{U} · Creature — Bird · 2/1 · Flash, flying');
+    expect(cardSummary('elemental_token')).toBe('Elemental · Token Creature — Elemental · 1/1 · Haste');
+  });
+
+  it('describes the undying return like a death trigger', () => {
+    expect(triggerText(getCardDef('rotbark_treefolk'), UNDYING_TRIGGER)).toBe(
+      "When this creature dies, if it had no +1/+1 counters on it, return it to the battlefield under its owner's control with a +1/+1 counter on it.",
+    );
   });
 
   it('calls a target named earlier in the same ability "it"', () => {
@@ -259,6 +387,47 @@ describe('card validation', () => {
         spell: { targets: [{ kind: 'spell' }], effects: [{ kind: 'damage', amount: 1, to: 0 }] },
       }),
     ).toThrow(/only counter effects/);
+  });
+
+  it('rejects tokens with a cost, discards before other effects, undying returns and sacrificed sources that affect themselves', () => {
+    expect(() => registerCard({ id: 'bad7', name: 'Bad', types: ['creature'], cost: '{W}', token: true, power: 1, toughness: 1 })).toThrow(/tokens/);
+    expect(() =>
+      registerCard({
+        id: 'bad8',
+        name: 'Bad',
+        types: ['sorcery'],
+        cost: '{B}',
+        spell: {
+          targets: [],
+          effects: [
+            { kind: 'discard', amount: 1, who: 'opponent' },
+            { kind: 'draw', amount: 1 },
+          ],
+        },
+      }),
+    ).toThrow(/discard must be the last effect/);
+    expect(() =>
+      registerCard({
+        id: 'bad9',
+        name: 'Bad',
+        types: ['creature'],
+        cost: '{G}',
+        power: 1,
+        toughness: 1,
+        triggers: [{ on: 'dies', targets: [], effects: [{ kind: 'returnToBattlefield', counters: 1 }] }],
+      }),
+    ).toThrow(/undying only/);
+    expect(() =>
+      registerCard({
+        id: 'bad10',
+        name: 'Bad',
+        types: ['creature'],
+        cost: '{B}',
+        power: 1,
+        toughness: 1,
+        activated: [{ cost: '{0}', sacrifice: true, targets: [], effects: [{ kind: 'pump', power: 1, toughness: 1, to: 'self' }] }],
+      }),
+    ).toThrow(/sacrifices its creature/);
   });
 });
 

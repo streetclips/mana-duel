@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a1a1c"/>
+      <stop offset="1" stop-color="#6a2c22"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <path d="M60 1 A30 30 0 0 0 60 61 Z" fill="#e8583a" opacity="0.28"/>
+  <path d="M60 1 A30 30 0 0 1 60 61 Z" fill="#fbe29a" opacity="0.26"/>
+  <circle cx="60" cy="31" r="17" fill="#fbd46a" opacity="0.18"/>
+  <path d="M74.5 15.8 L80.5 10.5 L75.2 16.5 Z M80.1 25 L88 23.5 L80.4 26.1 Z M80.4 35.9 L88 38.5 L80.1 37 Z M75.2 45.5 L80.5 51.5 L74.5 46.2 Z" fill="#fff3c4" opacity="0.85"/>
+  <path d="M60 42 V64" stroke="#4a4146" stroke-width="3"/>
+  <path d="M60 42 V49" stroke="#f28a3b" stroke-width="3" opacity="0.8"/>
+  <path d="M60 63 V78" stroke="#8a5a30" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M57.2 67 H62.8 M57.2 72 H62.8" stroke="#6b4424" stroke-width="1"/>
+  <path d="M61.2 19.6 L65 12.2 L64.7 20.5 Z M66.8 21.7 L73.8 17.2 L69.3 24.2 Z M70.5 26.3 L78.8 26 L71.4 29.8 Z M71.4 32.2 L78.8 36 L70.5 35.7 Z M69.3 37.8 L73.8 44.8 L66.8 40.3 Z M64.7 41.5 L65 49.8 L61.2 42.4 Z" fill="#fbd46a"/>
+  <path d="M58.8 42.4 Q55.2 46.8 51.3 49.6 L55.3 41.5 Z M53.2 40.3 Q47.9 42.3 43.2 42.8 L50.7 37.8 Z M49.5 35.7 Q43.9 34.7 39.6 32.8 L48.6 32.2 Z M48.6 29.8 Q44.2 26.2 41.4 22.3 L49.5 26.3 Z M50.7 24.2 Q48.7 18.9 48.2 14.2 L53.2 21.7 Z M55.3 20.5 Q56.3 14.9 58.2 10.6 L58.8 19.6 Z" fill="#f28a3b"/>
+  <path d="M60 20 A11 11 0 0 1 60 42 Z" fill="#fff0b8"/>
+  <path d="M60 20 A11 11 0 0 0 60 42 Z" fill="#e8583a"/>
+  <path d="M60 24 A7 7 0 0 1 60 38 Z" fill="#fffbea"/>
+  <path d="M60 24 A7 7 0 0 0 60 38 Z" fill="#f6a13b"/>
+  <circle cx="60" cy="31" r="2.6" fill="#fff6dc"/>
+  <path d="M86 12 L86.8 14.7 L89.5 15.5 L86.8 16.3 L86 19 L85.2 16.3 L82.5 15.5 L85.2 14.7 Z M94 42 L94.6 44 L96.6 44.6 L94.6 45.2 L94 47.2 L93.4 45.2 L91.4 44.6 L93.4 44 Z" fill="#fffbea"/>
+  <g fill="#fffbea" opacity="0.9">
+    <circle cx="98" cy="24" r="0.9"/>
+    <circle cx="80" cy="58" r="0.8"/>
+    <circle cx="104" cy="34" r="0.7"/>
+  </g>
+  <g fill="#f6a13b">
+    <circle cx="34" cy="20" r="1"/>
+    <circle cx="28" cy="40" r="1.1"/>
+    <circle cx="38" cy="54" r="0.8"/>
+    <circle cx="22" cy="28" r="0.7"/>
+    <circle cx="42" cy="10" r="0.8"/>
+  </g>
+  <path d="M30 48 C28.5 45.5 29.5 43 31.5 41.5 C31.5 43.5 33 44.5 33 46.5 C33 48 31.8 49 30.5 49 Z M36.5 31 C35.3 29 36 27 37.6 25.8 C37.6 27.4 38.8 28.2 38.8 29.8 C38.8 31 37.8 31.8 36.8 31.8 Z" fill="#e8583a"/>
+</svg>

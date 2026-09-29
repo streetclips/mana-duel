@@ -1,12 +1,13 @@
 import {
   getCardDef,
-  getKeywords,
   isCreature,
   isLand,
   opponent,
   type CardId,
   type GameState,
+  type Keyword,
   type PlayerId,
+  type TriggerEvent,
 } from '../engine';
 
 export const WIN_SCORE = 10_000;
@@ -27,12 +28,18 @@ function counters(s: GameState, id: CardId): number {
   return s.cards[id]?.counters ?? 0;
 }
 
+function printedKeywords(s: GameState, id: CardId): readonly Keyword[] {
+  return getCardDef(s.cards[id]?.def ?? '').keywords ?? [];
+}
+
+const LASTING_TRIGGERS: ReadonlySet<TriggerEvent> = new Set(['attacks', 'spell', 'allyEnters', 'allyDies', 'damagesPlayer']);
+
 export function creatureValue(s: GameState, id: CardId): number {
   const def = getCardDef(s.cards[id]?.def ?? '');
   const power = (def.power ?? 0) + counters(s, id);
   const toughness = (def.toughness ?? 0) + counters(s, id);
   let value = 1 + power * 1.5 + toughness;
-  for (const keyword of getKeywords(s, id)) {
+  for (const keyword of printedKeywords(s, id)) {
     switch (keyword) {
       case 'flying':
         value += 1 + power * 0.6;
@@ -64,6 +71,12 @@ export function creatureValue(s: GameState, id: CardId): number {
       case 'defender':
         value -= power * 1.2;
         break;
+      case 'skulk':
+        value += 0.6 + power * 0.4;
+        break;
+      case 'undying':
+        if (counters(s, id) === 0) value += 1 + power * 0.5;
+        break;
       case 'haste':
       case 'flash':
         break;
@@ -71,7 +84,7 @@ export function creatureValue(s: GameState, id: CardId): number {
   }
   if (def.mana?.length) value += 1.2;
   if (def.activated?.length) value += 1;
-  for (const trigger of def.triggers ?? []) if (trigger.on === 'attacks' || trigger.on === 'spell') value += 1;
+  for (const trigger of def.triggers ?? []) if (LASTING_TRIGGERS.has(trigger.on)) value += 1;
   return value;
 }
 
@@ -97,12 +110,12 @@ function exposurePenalty(s: GameState, player: PlayerId): number {
   if (s.activePlayer !== player) return 0;
   const opp = opponent(player);
   const attackers = s.players[opp].battlefield
-    .filter((id) => isCreature(s, id) && !getKeywords(s, id).includes('defender'))
-    .map((id) => ({ power: (getCardDef(s.cards[id]?.def ?? '').power ?? 0) + counters(s, id), flying: getKeywords(s, id).includes('flying') }))
+    .filter((id) => isCreature(s, id) && !printedKeywords(s, id).includes('defender'))
+    .map((id) => ({ power: (getCardDef(s.cards[id]?.def ?? '').power ?? 0) + counters(s, id), flying: printedKeywords(s, id).includes('flying') }))
     .sort((a, b) => b.power - a.power);
   const blockers = s.players[player].battlefield.filter((id) => isCreature(s, id) && !s.cards[id]?.tapped);
   let flyingBlockers = blockers.filter((id) => {
-    const keywords = getKeywords(s, id);
+    const keywords = printedKeywords(s, id);
     return keywords.includes('flying') || keywords.includes('reach');
   }).length;
   let groundBlockers = blockers.length - flyingBlockers;

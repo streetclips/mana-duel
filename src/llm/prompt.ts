@@ -29,6 +29,8 @@ Rules:
 - Each blocker blocks one attacker; several creatures may block the same attacker. Combat damage is dealt at the same time; an attacker's damage is split automatically among its blockers. Unblocked attackers damage the defending player.
 - A creature dies once the damage marked on it reaches its toughness.
 - Spells and abilities go on the stack and resolve last in, first out, once both players pass priority in a row. A spell whose targets are all gone does nothing.
+- Tokens ("token": true) are creatures that effects create. A token that leaves the battlefield ceases to exist.
+- When an effect makes a player discard, that player chooses the cards. An ability that sacrifices its creature as a cost puts it into the graveyard at once, as a death.
 - Keywords:
 ${KEYWORD_LINES}
 

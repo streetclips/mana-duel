@@ -5,6 +5,7 @@ import {
   targetKey,
   type CardId,
   type GameState,
+  type Keyword,
   type PlayerId,
   type Target,
 } from '../engine';
@@ -20,7 +21,7 @@ export type FxCue =
   | { kind: 'strike'; card: CardId; target: Target }
   | { kind: 'damage'; card: CardId; amount: number }
   | { kind: 'life'; player: PlayerId; delta: number }
-  | { kind: 'pump'; card: CardId; power: number; toughness: number }
+  | { kind: 'pump'; card: CardId; power: number; toughness: number; keywords?: Keyword[] }
   | { kind: 'dies'; player: PlayerId; card: CardId; next: CardId | null }
   | { kind: 'bounce'; player: PlayerId; card: CardId; next: CardId | null }
   | { kind: 'counter'; player: PlayerId; card: CardId }
@@ -118,12 +119,16 @@ export function fxCues(before: GameState | null, after: GameState): FxCue[] {
       case 'addCounters': {
         const power = event.t === 'pump' ? event.power : event.amount;
         const toughness = event.t === 'pump' ? event.toughness : event.amount;
+        const keywords = event.t === 'pump' ? (event.keywords ?? []) : [];
         const existing = pumps.get(event.card);
         if (existing) {
           existing.power += power;
           existing.toughness += toughness;
+          const merged = [...new Set([...(existing.keywords ?? []), ...keywords])];
+          if (merged.length > 0) existing.keywords = merged;
         } else {
           const cue: CueOf<'pump'> = { kind: 'pump', card: event.card, power, toughness };
+          if (keywords.length > 0) cue.keywords = [...keywords];
           pumps.set(event.card, cue);
           cues.push(cue);
         }

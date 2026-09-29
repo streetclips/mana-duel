@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1723"/>
+      <stop offset="1" stop-color="#2d3a36"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="60" cy="42" r="30" fill="#b9a6d6" opacity="0.1"/>
+  <path d="M0 64 Q60 61 120 64 V80 H0 Z" fill="#17141d"/>
+  <path d="M12 68 V34 C12 26 30 26 30 34 V68 Z M90 68 V34 C90 28 94 25 99 22 C104 25 108 28 108 34 V68 Z" fill="#4a4358"/>
+  <path d="M12 68 V34 C12 30.6 14 28.4 17 27.2 V68 Z M103 68 V24.8 C106 27 108 30 108 34 V68 Z" fill="#3c3548"/>
+  <path d="M12 34 C12 26 30 26 30 34 C27.4 32.4 25 35 22 33.4 C19 32 16 35.4 12 34 Z M90 34 C90 28 94 25 99 22 C104 25 108 28 108 34 C105.4 32 103 35 99.6 33 C96.6 31.4 93.6 35 90 34 Z" fill="#4f7a45"/>
+  <path d="M21 39 V49 M17.6 42.4 H24.4 M97 40 L99.6 45 L97.6 49 L100.4 54" fill="none" stroke="#302a3a" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="none" stroke="#e6def5" stroke-opacity="0.45" stroke-width="0.6">
+    <path d="M27.6 28.4 L93.4 25.6"/>
+    <path d="M60 42 L60 27 M60 42 L80 26.2 M60 42 L90 36 M60 42 L90 50 M60 42 L74 63 M60 42 L46 63 M60 42 L30 52 M60 42 L30 38 M60 42 L40 27.9"/>
+    <polygon points="60,37.5 66.2,37.1 68.7,40.3 69.2,44.4 64,48 55.7,48.5 51.2,44.9 50.6,40.8 54.2,37.9"/>
+    <polygon points="60,34.1 71,33.3 75.4,38.9 76.2,46.3 67.1,52.7 52.4,53.5 44.4,47.2 43.5,39.8 49.7,34.8"/>
+    <polygon points="60,30.6 75.8,29.5 82.1,37.6 83.3,48.2 70.2,57.3 49,58.4 37.7,49.4 36.3,38.8 45.3,31.6"/>
+  </g>
+  <ellipse cx="60" cy="46" rx="13" ry="15" fill="#b9a6d6" opacity="0.14"/>
+  <g fill="none" stroke="#1f1826" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M56 37 L45 27.4 L39.6 33.6 M55 40 L40.4 36.6 L33 44.6 M55 43.4 L42.6 49.6 L36.6 58 M57 46.6 L48 56.6 L44 65"/>
+    <path d="M64 37 L75 27.4 L80.4 33.6 M65 40 L79.6 36.6 L87 44.6 M65 43.4 L77.4 49.6 L83.4 58 M63 46.6 L72 56.6 L76 65"/>
+  </g>
+  <path d="M45 27.4 h0.1 M40.4 36.6 h0.1 M42.6 49.6 h0.1 M48 56.6 h0.1 M75 27.4 h0.1 M79.6 36.6 h0.1 M77.4 49.6 h0.1 M72 56.6 h0.1" stroke="#b9a6d6" stroke-width="1.6" stroke-linecap="round"/>
+  <ellipse cx="60" cy="49" rx="8" ry="9.6" fill="#1f1826"/>
+  <ellipse cx="60" cy="38" rx="5.4" ry="4.8" fill="#1f1826"/>
+  <ellipse cx="60" cy="48.6" rx="5" ry="7" fill="#c9b3ee" opacity="0.2"/>
+  <path d="M56.4 43.6 H63.6 L60 48.6 Z M60 48.6 L63.6 53.6 H56.4 Z" fill="#c9b3ee"/>
+  <g fill="#c9b3ee">
+    <circle cx="54.6" cy="50" r="1"/>
+    <circle cx="65.4" cy="50" r="1"/>
+  </g>
+  <g fill="#e6d8ff">
+    <circle cx="58" cy="36.6" r="0.8"/>
+    <circle cx="62" cy="36.6" r="0.8"/>
+    <circle cx="58.9" cy="34.8" r="0.6"/>
+    <circle cx="61.1" cy="34.8" r="0.6"/>
+  </g>
+  <path d="M58.4 33.6 L57.8 31.6 M61.6 33.6 L62.2 31.6" stroke="#c9b3ee" stroke-linecap="round"/>
+  <g fill="none" stroke="#221d2a" stroke-width="1.3" stroke-linecap="round">
+    <path d="M36 64 Q36 58 33 54 M39 64 Q40 59 42 56 M82 64 Q82 58.6 85 55 M85 64 Q86 60 88 58"/>
+  </g>
+  <g fill="#c9b3ee" opacity="0.8">
+    <circle cx="40" cy="16" r="0.9"/>
+    <circle cx="82" cy="14" r="0.8"/>
+    <circle cx="52" cy="10" r="0.7"/>
+  </g>
+  <g fill="#c6f25a" opacity="0.7">
+    <circle cx="70" cy="12" r="0.8"/>
+    <circle cx="34" cy="22" r="0.6"/>
+  </g>
+</svg>

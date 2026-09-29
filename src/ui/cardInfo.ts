@@ -4,10 +4,12 @@ import {
   formatModifier,
   getCardDef,
   getCost,
+  type ActivatedAbility,
   type CardDef,
   type Color,
   type Effect,
   type Keyword,
+  type TriggerEvent,
 } from '../engine';
 
 export const SHORT_KEYWORDS: Record<Keyword, string> = {
@@ -23,11 +25,24 @@ export const SHORT_KEYWORDS: Record<Keyword, string> = {
   menace: 'Menace',
   defender: 'Defender',
   flash: 'Flash',
+  skulk: 'Skulk',
+  undying: 'Undying',
 };
 
 export function cardColors(def: CardDef): Color[] {
   if (def.types.includes('land')) return def.mana ?? [];
+  if (def.token) return def.colors ?? [];
   return costColors(getCost(def.id));
+}
+
+function shortKeywords(keywords: readonly Keyword[] = []): string {
+  return keywords.map((keyword) => SHORT_KEYWORDS[keyword].toLowerCase()).join(', ');
+}
+
+function pumpHint(power: number, toughness: number, keywords: readonly Keyword[] = []): string {
+  if (keywords.length === 0) return formatModifier(power, toughness);
+  if (power === 0 && toughness === 0) return shortKeywords(keywords);
+  return `${formatModifier(power, toughness)} ${shortKeywords(keywords)}`;
 }
 
 export function cardColorVar(def: CardDef): string {
@@ -42,7 +57,7 @@ export function effectHint(effect: Effect): string {
     case 'damage':
       return `${effect.amount} dmg`;
     case 'pump':
-      return formatModifier(effect.power, effect.toughness);
+      return pumpHint(effect.power, effect.toughness, effect.keywords);
     case 'destroy':
       return 'destroy';
     case 'bounce':
@@ -54,28 +69,45 @@ export function effectHint(effect: Effect): string {
     case 'gainLife':
       return `+${effect.amount} life`;
     case 'loseLife':
-      return `-${effect.amount} life`;
+      return effect.who === 'opponent' ? `opp -${effect.amount} life` : `-${effect.amount} life`;
     case 'fight':
       return 'fight';
     case 'pumpTeam':
-      return `team ${formatModifier(effect.power, effect.toughness)}`;
+      return `team ${pumpHint(effect.power, effect.toughness, effect.keywords)}`;
     case 'addCounters':
       return `+${effect.amount} counter${effect.amount === 1 ? '' : 's'}`;
     case 'addCountersTeam':
       return `team +${effect.amount} counter${effect.amount === 1 ? '' : 's'}`;
+    case 'createTokens':
+      return `+${effect.amount} ${getCardDef(effect.token).name}${effect.amount === 1 ? '' : 's'}`;
+    case 'discard':
+      return effect.who === 'opponent' ? `opp discards ${effect.amount}` : `discard ${effect.amount}`;
+    case 'returnToBattlefield':
+      return 'returns';
   }
+}
+
+const TRIGGER_HINTS: Record<TriggerEvent, string> = {
+  enters: 'Enters',
+  dies: 'Dies',
+  attacks: 'Attacks',
+  spell: 'Spell',
+  allyEnters: 'Ally enters',
+  allyDies: 'Ally dies',
+  damagesPlayer: 'Hits',
+};
+
+export function activatedCost(ability: ActivatedAbility): string {
+  const cost = ability.cost === '{0}' ? '' : ability.cost.replace(/[{}]/g, '');
+  return [ability.tap ? 'T' : '', ability.sacrifice ? 'Sac' : '', cost].filter(Boolean).join(',');
 }
 
 export function shortText(defId: string): string {
   const def = getCardDef(defId);
   const parts: string[] = (def.keywords ?? []).map((keyword) => SHORT_KEYWORDS[keyword]);
   if (def.mana?.length && def.types.includes('creature')) parts.push(`T: +${def.mana.join('/')}`);
-  const openers = { enters: 'Enters', dies: 'Dies', attacks: 'Attacks', spell: 'Spell' } as const;
-  for (const trigger of def.triggers ?? []) parts.push(`${openers[trigger.on]}: ${trigger.effects.map(effectHint).join(', ')}`);
-  for (const ability of def.activated ?? []) {
-    const cost = ability.cost.replace(/[{}]/g, '');
-    parts.push(`${ability.tap ? 'T,' : ''}${cost}: ${ability.effects.map(effectHint).join(', ')}`);
-  }
+  for (const trigger of def.triggers ?? []) parts.push(`${TRIGGER_HINTS[trigger.on]}: ${trigger.effects.map(effectHint).join(', ')}`);
+  for (const ability of def.activated ?? []) parts.push(`${activatedCost(ability)}: ${ability.effects.map(effectHint).join(', ')}`);
   return parts.join(' · ');
 }
 

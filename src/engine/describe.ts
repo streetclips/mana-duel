@@ -1,10 +1,11 @@
 import { formatCost } from './mana';
 import { getCardDef, getCost } from './registry';
-import { getCard, getPower, getToughness, isCreatureDef } from './state';
+import { UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef } from './state';
 import { isPlayerTarget } from './targets';
 import type {
   CardDef,
   CardId,
+  Color,
   Effect,
   EffectTarget,
   GameEvent,
@@ -14,6 +15,7 @@ import type {
   Step,
   Target,
   TargetSpec,
+  TriggerEvent,
 } from './types';
 
 export const KEYWORD_NAMES: Record<Keyword, string> = {
@@ -29,6 +31,8 @@ export const KEYWORD_NAMES: Record<Keyword, string> = {
   menace: 'Menace',
   defender: 'Defender',
   flash: 'Flash',
+  skulk: 'Skulk',
+  undying: 'Undying',
 };
 
 export const KEYWORD_REMINDERS: Record<Keyword, string> = {
@@ -44,6 +48,8 @@ export const KEYWORD_REMINDERS: Record<Keyword, string> = {
   menace: "Can't be blocked except by two or more creatures.",
   defender: "Can't attack.",
   flash: 'You may cast it any time you could cast an instant.',
+  skulk: "Can't be blocked by creatures with greater power.",
+  undying: 'When it dies, if it had no +1/+1 counters on it, it returns to the battlefield with a +1/+1 counter on it.',
 };
 
 export const STEP_NAMES: Record<Step, string> = {
@@ -82,8 +88,33 @@ export function formatModifier(power: number, toughness: number): string {
 }
 
 export function typeLine(def: CardDef): string {
-  const main = [...(def.supertypes ?? []), ...def.types.map(capitalize)].join(' ');
+  const main = [...(def.token ? ['Token'] : []), ...(def.supertypes ?? []), ...def.types.map(capitalize)].join(' ');
   return def.subtypes?.length ? `${main} — ${def.subtypes.join(' ')}` : main;
+}
+
+const COLOR_WORDS: Record<Color, string> = { W: 'white', U: 'blue', B: 'black', R: 'red', G: 'green' };
+
+function andList(items: string[]): string {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
+}
+
+export function keywordList(keywords: readonly Keyword[]): string {
+  return andList(keywords.map((keyword) => lowerFirst(KEYWORD_NAMES[keyword])));
+}
+
+export function formatPump(power: number, toughness: number, keywords: readonly Keyword[] = []): string {
+  if (keywords.length === 0) return formatModifier(power, toughness);
+  if (power === 0 && toughness === 0) return keywordList(keywords);
+  return `${formatModifier(power, toughness)}, ${keywordList(keywords)}`;
+}
+
+export function tokenDescription(defId: string, amount = 1): string {
+  const token = getCardDef(defId);
+  const colors = token.colors?.length ? andList(token.colors.map((color) => COLOR_WORDS[color])) : 'colorless';
+  const noun = [...(token.subtypes ?? []), 'creature', amount === 1 ? 'token' : 'tokens'].join(' ');
+  const keywords = token.keywords?.length ? ` with ${keywordList(token.keywords)}` : '';
+  return `${token.power}/${token.toughness} ${colors} ${noun}${keywords}`;
 }
 
 export function targetPhrase(spec: TargetSpec): string {
@@ -117,12 +148,29 @@ export function countersLabel(count: number): string {
   return count === 1 ? '+1/+1 counter' : `${count} +1/+1 counters`;
 }
 
-function effectSentence(effect: Effect, ref: (target: EffectTarget) => string, subject: string): string {
+function gainsText(verb: 'get' | 'gets', power: number, toughness: number, keywords: readonly Keyword[] = []): string {
+  const gain = verb === 'gets' ? 'gains' : 'gain';
+  if (keywords.length === 0) return `${verb} ${formatModifier(power, toughness)}`;
+  if (power === 0 && toughness === 0) return `${gain} ${keywordList(keywords)}`;
+  return `${verb} ${formatModifier(power, toughness)} and ${gain} ${keywordList(keywords)}`;
+}
+
+function cardsCount(amount: number): string {
+  return amount === 1 ? 'a card' : `${countWord(amount)} cards`;
+}
+
+interface SentenceContext {
+  subject: string;
+  on?: TriggerEvent;
+}
+
+function effectSentence(effect: Effect, ref: (target: EffectTarget) => string, context: SentenceContext): string {
+  const subject = context.subject;
   switch (effect.kind) {
     case 'damage':
       return `${subject} deals ${effect.amount} damage to ${ref(effect.to)}.`;
     case 'pump':
-      return `${capitalize(ref(effect.to))} gets ${formatModifier(effect.power, effect.toughness)} until end of turn.`;
+      return `${capitalize(ref(effect.to))} ${gainsText('gets', effect.power, effect.toughness, effect.keywords)} until end of turn.`;
     case 'destroy':
       return `Destroy ${ref(effect.to)}.`;
     case 'bounce':
@@ -134,19 +182,27 @@ function effectSentence(effect: Effect, ref: (target: EffectTarget) => string, s
     case 'gainLife':
       return `You gain ${effect.amount} life.`;
     case 'loseLife':
-      return `You lose ${effect.amount} life.`;
+      return effect.who === 'opponent' ? `Each opponent loses ${effect.amount} life.` : `You lose ${effect.amount} life.`;
     case 'fight':
       return `${capitalize(ref(effect.a))} fights ${ref(effect.b)}.`;
     case 'pumpTeam':
-      return `Creatures you control get ${formatModifier(effect.power, effect.toughness)} until end of turn.`;
+      return `Creatures you control ${gainsText('get', effect.power, effect.toughness, effect.keywords)} until end of turn.`;
     case 'addCounters':
       return `Put ${plusCounters(effect.amount)} on ${ref(effect.to)}.`;
     case 'addCountersTeam':
       return `Put ${plusCounters(effect.amount)} on each creature you control.`;
+    case 'createTokens':
+      return `Create ${effect.amount === 1 ? 'a' : countWord(effect.amount)} ${tokenDescription(effect.token, effect.amount)}.`;
+    case 'discard':
+      if (effect.who !== 'opponent') return `Discard ${cardsCount(effect.amount)}.`;
+      if (context.on === 'damagesPlayer') return `That player discards ${cardsCount(effect.amount)}.`;
+      return `Each opponent discards ${cardsCount(effect.amount)}.`;
+    case 'returnToBattlefield':
+      return `Return it to the battlefield under its owner's control with ${plusCounters(effect.counters)} on it.`;
   }
 }
 
-function sentences(effects: Effect[], specs: TargetSpec[], subject: string, self: string): string {
+function sentences(effects: Effect[], specs: TargetSpec[], context: SentenceContext, self: string): string {
   const named = new Set<number>();
   const ref = (target: EffectTarget): string => {
     if (target === 'self') return self;
@@ -155,15 +211,26 @@ function sentences(effects: Effect[], specs: TargetSpec[], subject: string, self
     named.add(target);
     return targetPhrase(spec);
   };
-  return effects.map((effect) => effectSentence(effect, ref, subject)).join(' ');
+  const lines: string[] = [];
+  effects.forEach((effect, index) => {
+    const text = effectSentence(effect, ref, context);
+    const previous = effects[index - 1];
+    if (effect.kind === 'discard' && effect.who !== 'opponent' && previous?.kind === 'draw' && lines.length > 0) {
+      lines.push(`${(lines.pop() as string).replace(/\.$/, '')}, then ${lowerFirst(text)}`);
+    } else lines.push(text);
+  });
+  return lines.join(' ');
 }
 
-const TRIGGER_OPENERS = {
+const TRIGGER_OPENERS: Record<TriggerEvent, string> = {
   enters: 'When this creature enters',
   dies: 'When this creature dies',
   attacks: 'Whenever this creature attacks',
   spell: 'Whenever you cast an instant or sorcery spell',
-} as const;
+  allyEnters: 'Whenever another creature you control enters',
+  allyDies: 'Whenever another creature you control dies',
+  damagesPlayer: 'Whenever this creature deals combat damage to a player',
+};
 
 export function rulesText(def: CardDef): string[] {
   const lines: string[] = [];
@@ -174,7 +241,7 @@ export function rulesText(def: CardDef): string[] {
     lines.push(`{T}: Add ${def.mana.map((color) => `{${color}}`).join(' or ')}.`);
   }
   if (def.spell) {
-    lines.push(sentences(def.spell.effects, def.spell.targets, def.name, 'it'));
+    lines.push(sentences(def.spell.effects, def.spell.targets, { subject: def.name }, 'it'));
   }
   (def.triggers ?? []).forEach((_, index) => lines.push(triggerText(def, index)));
   (def.activated ?? []).forEach((_, index) => lines.push(activatedText(def, index)));
@@ -182,18 +249,27 @@ export function rulesText(def: CardDef): string[] {
 }
 
 export function triggerText(def: CardDef, index: number): string {
+  if (index === UNDYING_TRIGGER) {
+    return `${TRIGGER_OPENERS.dies}, if it had no +1/+1 counters on it, return it to the battlefield under its owner's control with a +1/+1 counter on it.`;
+  }
   const trigger = def.triggers?.[index];
   if (!trigger) return '';
-  return `${TRIGGER_OPENERS[trigger.on]}, ${lowerFirst(sentences(trigger.effects, trigger.targets, 'it', 'it'))}`;
+  const self = trigger.on === 'allyEnters' || trigger.on === 'allyDies' ? 'this creature' : 'it';
+  return `${TRIGGER_OPENERS[trigger.on]}, ${lowerFirst(sentences(trigger.effects, trigger.targets, { subject: self, on: trigger.on }, self))}`;
 }
 
 export function activatedText(def: CardDef, index: number): string {
   const ability = def.activated?.[index];
   if (!ability) return '';
-  const cost = [ability.cost && ability.cost !== '{0}' ? ability.cost : '', ability.tap ? '{T}' : '']
+  const cost = [
+    ability.cost && ability.cost !== '{0}' ? ability.cost : '',
+    ability.tap ? '{T}' : '',
+    ability.sacrifice ? 'Sacrifice this creature' : '',
+  ]
     .filter(Boolean)
     .join(', ');
-  return `${cost}: ${sentences(ability.effects, ability.targets, 'This creature', 'this creature')}`;
+  const subject = ability.sacrifice ? 'It' : 'This creature';
+  return `${cost}: ${sentences(ability.effects, ability.targets, { subject }, 'this creature')}`;
 }
 
 export function cardSummary(defId: string): string {
@@ -286,7 +362,11 @@ export function describeEvent(s: GameState, event: GameEvent, viewer: PlayerId):
     case 'loseLife':
       return `${verb(s, event.player, viewer, 'lose')} ${event.amount} life.`;
     case 'pump':
-      return `${capitalize(cardRef(s, event.card, viewer))} gets ${formatModifier(event.power, event.toughness)} until end of turn.`;
+      return `${capitalize(cardRef(s, event.card, viewer))} ${gainsText('gets', event.power, event.toughness, event.keywords)} until end of turn.`;
+    case 'create':
+      return `${verb(s, event.player, viewer, 'create')} a ${cardName(s, event.card)} token.`;
+    case 'return':
+      return `${capitalize(cardRef(s, event.card, viewer))} returns to the battlefield.`;
     case 'addCounters':
       return `${capitalize(cardRef(s, event.card, viewer))} gets ${event.amount === 1 ? 'a +1/+1 counter' : `${event.amount} +1/+1 counters`}.`;
     case 'fight':

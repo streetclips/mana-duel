@@ -210,7 +210,13 @@ function blockersDecision(s: GameState, player: PlayerId): Decision {
   };
 }
 
-function cardsDecision(kind: 'bottom' | 'discard', s: GameState, player: PlayerId, count: number): Decision {
+function discardQuestion(s: GameState, player: PlayerId, count: number, source: CardId | undefined): string {
+  if (source === undefined) return `Cleanup: you have more than 7 cards in hand. Discard ${plural(count, 'card')}.`;
+  const whose = getCard(s, source).controller === player ? 'Your' : "Your opponent's";
+  return `${whose} ${cardName(s, source)} makes you discard ${plural(count, 'card')}: choose which.`;
+}
+
+function cardsDecision(kind: 'bottom' | 'discard', s: GameState, player: PlayerId, count: number, source?: CardId): Decision {
   const hand = s.players[player].hand;
   const schema = z.object({
     reason: REASON,
@@ -219,7 +225,7 @@ function cardsDecision(kind: 'bottom' | 'discard', s: GameState, player: PlayerI
   const question =
     kind === 'bottom'
       ? `You kept after ${plural(s.players[player].mulligans, 'mulligan')}: put ${plural(count, 'card')} from your hand on the bottom of your library.`
-      : `Cleanup: you have more than 7 cards in hand. Discard ${plural(count, 'card')}.`;
+      : discardQuestion(s, player, count, source);
   return {
     kind,
     question,
@@ -253,7 +259,8 @@ export function decisionFor(s: GameState, player: PlayerId): Decision {
     case 'declareBlockers':
       return blockersDecision(s, player);
     case 'bottom':
+      return cardsDecision('bottom', s, player, pending.count);
     case 'discard':
-      return cardsDecision(pending.kind, s, player, pending.count);
+      return cardsDecision('discard', s, player, pending.count, pending.source);
   }
 }

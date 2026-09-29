@@ -15,6 +15,21 @@ import { rollout } from './rollout';
 const MIN_GAIN = 0.01;
 const MAX_ENUMERATED_ATTACKERS = 5;
 
+function signature(s: GameState, id: CardId): string {
+  const card = s.cards[id];
+  if (!card) return id;
+  const effects = s.effects
+    .filter((effect) => effect.card === id)
+    .map((effect) => `${effect.power}/${effect.toughness}/${(effect.keywords ?? []).join(',')}`);
+  const state = [card.def, card.controller, card.counters, card.damage, card.deathtouchDamage, card.tapped, card.summoningSick];
+  return [...state, ...effects].join('|');
+}
+
+function blockedSignature(s: GameState, blocks: Block[], attacker: CardId): string {
+  const blockers = blocks.filter((block) => block.attacker === attacker).map((block) => signature(s, block.blocker));
+  return `${signature(s, attacker)}[${blockers.sort().join('+')}]`;
+}
+
 function blockScore(s: GameState, player: PlayerId, blocks: Block[]): number {
   if (blocksError(s, blocks)) return Number.NEGATIVE_INFINITY;
   return evaluate(rollout(applyAction(s, { type: 'declareBlockers', player, blocks }), 1), player);
@@ -74,11 +89,15 @@ export function chooseBlocks(s: GameState, player: PlayerId): Block[] {
 
   for (let round = 0; round < blockers.length; round++) {
     const used = new Set(blocks.map((block) => block.blocker));
+    const tried = new Set<string>();
     let bestBlocks: Block[] | null = null;
     let bestValue = current + MIN_GAIN;
     for (const blocker of blockers) {
       if (used.has(blocker)) continue;
       for (const attacker of options[blocker] ?? []) {
+        const key = `${signature(s, blocker)}>${blockedSignature(s, blocks, attacker)}`;
+        if (tried.has(key)) continue;
+        tried.add(key);
         const candidate = completeBlock(s, blocks, { blocker, attacker }, options, used);
         if (!candidate) continue;
         const value = blockScore(s, player, candidate);
@@ -117,13 +136,19 @@ function improveAttack(s: GameState, player: PlayerId, eligible: CardId[], start
   let currentValue = startValue;
   for (let round = 0; round < eligible.length * 2; round++) {
     let improved = false;
+    let tried = new Set<string>();
     for (const id of eligible) {
-      const next = current.includes(id) ? current.filter((other) => other !== id) : [...current, id];
+      const attacking = current.includes(id);
+      const key = `${signature(s, id)}${attacking ? '-' : '+'}`;
+      if (tried.has(key)) continue;
+      tried.add(key);
+      const next = attacking ? current.filter((other) => other !== id) : [...current, id];
       const value = attackValue(s, player, next);
       if (value > currentValue + MIN_GAIN) {
         current = next;
         currentValue = value;
         improved = true;
+        tried = new Set<string>();
       }
     }
     if (!improved) break;

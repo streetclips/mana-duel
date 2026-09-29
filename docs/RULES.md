@@ -1,13 +1,14 @@
 # Rules
 
-Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its five decks need. This page is the
+Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its eight decks need. This page is the
 contract of `src/engine`: what is implemented, and where it deliberately differs from Magic.
 
 ## Game
 
-- Two players, 20 life each, seven-card opening hands. Each player brings one of five 40-card decks, chosen
-  before the game: Emberwild (red/green), Dawntide (white/blue), Duskmire (black), Stormglass (blue/red) or
-  Sunmeadow (green/white). Both may bring the same deck.
+- Two players, 20 life each, seven-card opening hands. Each player brings one of eight 40-card decks, chosen
+  before the game: Emberwild (red/green), Dawntide (white/blue), Duskmire (black), Stormglass (blue/red),
+  Sunmeadow (green/white), Brightforge (red/white), Mistgrave (blue/black) or Gloamwood (black/green). Both may
+  bring the same deck.
   No nonland card appears in two decks; basic lands may.
 - The starting player comes from a seeded coin flip (or `startingPlayer`). They skip their first draw.
 - London mulligan: shuffle the hand away, draw seven, and once you keep, put one card on the bottom per mulligan.
@@ -55,7 +56,8 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 - Attackers: your untapped creatures that have been under your control since your turn began (or have haste) and
   lack defender. Attacking taps them unless they have vigilance. Every attacker attacks the opponent.
 - Blockers: untapped creatures. A blocker blocks one attacker; an attacker can take several blockers. Flying can
-  only be blocked by flying or reach; menace needs two or more blockers.
+  only be blocked by flying or reach; menace needs two or more blockers; skulk can't be blocked by a creature with
+  greater power, compared when blockers are declared (a pump before blocks changes who may block).
 - Damage is simultaneous. Each attacker splits its damage automatically: lethal damage to each blocker in the order
   that destroys the most (least remaining toughness first), the rest to the last blocker, or to the player with
   trample. Deathtouch makes one damage lethal, trample assignment included. Lifelink gains that much life.
@@ -65,14 +67,28 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 
 ## Abilities
 
-- Triggers: "when this creature enters", "when this creature dies", "whenever this creature attacks" and "whenever
-  you cast an instant or sorcery spell". They go on the stack the next time a player would receive priority, the
-  active player's first; targets are chosen then. A trigger with no legal target is skipped.
+- Triggers: "when this creature enters", "when this creature dies", "whenever this creature attacks", "whenever
+  you cast an instant or sorcery spell", "whenever another creature you control enters", "whenever another
+  creature you control dies" and "whenever this creature deals combat damage to a player". They go on the stack
+  the next time a player would receive priority, the active player's first; targets are chosen then. A trigger with
+  no legal target is skipped.
+- "Another creature you control" includes tokens, one trigger per creature: Raise the Banners gives Forge Cadet
+  two +1/+1 counters. Creatures that die at the same time see each other die: two Rotwing Crows killed by one
+  attacker each drain for the other.
+- "Deals combat damage to a player" triggers once per combat damage step in which the creature hit the player
+  (twice with double strike), trample damage included, and not for blocked creatures without trample.
 - "Whenever you cast an instant or sorcery spell" triggers for each permanent of the caster that has it, and only
   for that player's instants and sorceries, not for creature spells. The trigger goes on the stack above the spell,
   so it resolves first (Arc Initiate is already 3/3 when the Static Jolt that triggered it resolves).
 - Activated abilities use the stack and can be activated as often as you can pay (Crag Dragon: `{R}: +1/+0`,
   Duskmire Shade: `{B}: +1/+1`).
+- "Sacrifice this creature" is a cost: the creature dies as the ability goes on the stack, so its death triggers
+  (undying included) go on the stack above the ability and resolve first. The ability still resolves without it.
+- Undying: when a creature with undying dies without +1/+1 counters, it returns to the battlefield under its
+  owner's control with a +1/+1 counter, as a new creature (summoning sick, untapped, out of combat). With that
+  counter on it, its next death is for good.
+- A creature that leaves the battlefield is a new object if it comes back: a spell or ability that targeted it
+  loses that target and fizzles when nothing else is left to act on, even after undying returned it.
 - Damage from a creature's ability or a fight uses that creature's deathtouch and lifelink. Death triggers work
   from the graveyard: Crypt Ghoul and Nightveil Wraith deal their damage after they die.
 
@@ -89,8 +105,19 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 - **Return to hand** puts a creature back in its owner's hand: it leaves combat and loses its damage, pumps and
   tapped state. Cast again, it is a new creature with summoning sickness.
 - **Counter** removes a spell from the stack (see above).
-- **Draw**, **gain life** and **lose life** affect the controller of the spell or ability. Losing life is not
-  damage: lifelink and deathtouch don't apply, and it can make you lose the game.
+- **Draw**, **gain life** and **lose life** affect the controller of the spell or ability, except "each opponent
+  loses N life" (Rotwing Crow, Bloodspore Thrall). Losing life is not damage: lifelink and deathtouch don't apply,
+  and it can make you lose the game.
+- **Keyword grants**: "gains first strike / haste / deathtouch until end of turn" work like pumps, alone or with
+  one ("+1/+0 and first strike"), on one creature or on each creature you control. They end at cleanup.
+- **Tokens**: "create a 1/1 white Soldier creature token" puts a new creature onto the battlefield under the
+  controller of the spell or ability: summoning sick unless it has haste, and it counts as a creature entering. A
+  token that leaves the battlefield dies (or returns to hand) as usual, triggers included, then ceases to exist: it
+  never stays in a graveyard or a hand, and undying can't bring it back.
+- **Discard**: "each opponent discards a card", "that player discards a card" and "draw two cards, then discard a
+  card" stop the game for the discarding player, who chooses the cards; the spell or ability finishes first, then
+  the active player gets priority again. A player with fewer cards discards what they have; one with none skips it.
+  A discard is always the last effect of its ability.
 - "Target tapped creature" (Dawn's Verdict) only accepts a creature that is tapped when the spell is cast and still
   tapped when it resolves; attacking taps a creature unless it has vigilance.
 
@@ -122,4 +149,5 @@ auto-pass skips for you; with auto-pass off, both seats get the same ones.
 | Mana pool and manual tapping | Automatic payment |
 | The same object may be targeted by two "target" words | Targets are always distinct |
 | Counterspells can counter abilities or specific kinds of spell | Only "counter target spell", any spell |
-| Tokens, counters other than +1/+1, exile, auras, equipment, replacement effects, layers | Not in the engine yet |
+| A discard happens where it is written, and some are at random | The discarding player always chooses, and a discard is the last effect of its ability |
+| Counters other than +1/+1, exile, graveyard targets, auras, equipment, replacement effects, layers | Not in the engine yet |

@@ -3,6 +3,7 @@ import {
   getCardDef,
   getLegalActions,
   type Action,
+  type CardDef,
   type GameState,
   type PlayerId,
 } from '../engine';
@@ -20,10 +21,27 @@ function hasReadyAttacker(s: GameState, player: PlayerId): boolean {
   return s.players[player].battlefield.some((id) => canAttack(s, id));
 }
 
-function isNonHasteCreatureSpell(s: GameState, action: Action): boolean {
+function helpsThisCombat(def: CardDef): boolean {
+  if ((def.keywords ?? []).includes('haste')) return true;
+  return (def.triggers ?? []).some(
+    (trigger) =>
+      trigger.on === 'enters' &&
+      trigger.effects.some(
+        (effect) => effect.kind === 'pumpTeam' || (effect.kind === 'createTokens' && (getCardDef(effect.token).keywords ?? []).includes('haste')),
+      ),
+  );
+}
+
+function growsWithNewCreatures(s: GameState, player: PlayerId): boolean {
+  return s.players[player].battlefield.some((id) =>
+    (getCardDef(s.cards[id]?.def ?? '').triggers ?? []).some((trigger) => trigger.on === 'allyEnters'),
+  );
+}
+
+function waitsForCombat(s: GameState, action: Action): boolean {
   if (action.type !== 'cast') return false;
   const def = getCardDef(s.cards[action.card]?.def ?? '');
-  return def.types.includes('creature') && !(def.keywords ?? []).includes('haste');
+  return def.types.includes('creature') && !helpsThisCombat(def) && !growsWithNewCreatures(s, action.player);
 }
 
 function choosePriorityAction(s: GameState, player: PlayerId): Action {
@@ -37,7 +55,7 @@ function choosePriorityAction(s: GameState, player: PlayerId): Action {
 
   let candidates = legal.filter((action) => action.type === 'cast' || action.type === 'activate');
   const beforeCombat = s.step === 'main1' && s.activePlayer === player && hasReadyAttacker(s, player);
-  if (beforeCombat) candidates = candidates.filter((action) => !isNonHasteCreatureSpell(s, action));
+  if (beforeCombat) candidates = candidates.filter((action) => !waitsForCombat(s, action));
   if (candidates.length === 0) return pass;
 
   let best: Action = pass;

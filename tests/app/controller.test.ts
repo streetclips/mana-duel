@@ -233,6 +233,9 @@ describe('test API', () => {
       ['duskmire', 40],
       ['stormglass', 40],
       ['sunmeadow', 40],
+      ['brightforge', 40],
+      ['mistgrave', 40],
+      ['gloamwood', 40],
     ]);
     expect(api.decks()[2]?.cards).toContainEqual({ id: 'swamp', name: 'Swamp', count: 16 });
     expect(api.matchup()).toEqual(['emberwild', 'emberwild']);
