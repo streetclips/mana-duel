@@ -46,6 +46,19 @@ function finishFx(page: Page): Promise<void> {
   });
 }
 
+function lidAngle(page: Page, selector: string): Promise<number> {
+  return page.locator(`${selector} .box-hinge`).evaluate((hinge) => {
+    const matrix = new DOMMatrixReadOnly(getComputedStyle(hinge).transform);
+    return Math.round((Math.atan2(matrix.m23, matrix.m22) * 180) / Math.PI);
+  });
+}
+
+function boxTransitions(page: Page, selector: string): Promise<string[]> {
+  return page.locator(`${selector} .deck-box`).evaluate((box) =>
+    box.getAnimations({ subtree: true }).map((animation) => (animation instanceof CSSTransition ? animation.transitionProperty : '')),
+  );
+}
+
 const COMBAT: ScenarioSpec = {
   activePlayer: 1,
   players: [
@@ -183,4 +196,31 @@ test('with reduced motion the hooks stay but nothing moves', async ({ page }) =>
   await page.evaluate(() => window.manaDuel.settle());
   await expect(page.getByTestId('fx-ghost-elf')).toHaveAttribute('data-fx', /\bdies\b/);
   expect((await runningFx(page)).filter((animation) => animation.name === 'fx-lunge' || animation.name === 'fx-shake')).toEqual([]);
+});
+
+test('a deck box opens when its seat is tapped, and the chosen deck’s box opens in its place', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/');
+  const seat = '[data-testid="seat-0"]';
+  expect(await lidAngle(page, seat)).toBe(0);
+  await page.getByTestId('seat-0').click();
+  expect(await boxTransitions(page, seat)).toContain('transform');
+  await expect.poll(() => lidAngle(page, seat)).toBe(116);
+  const rise = await page.locator(`${seat} .box-cards i`).evaluateAll((cards) => cards.map((card) => new DOMMatrixReadOnly(getComputedStyle(card).transform).m42));
+  expect(rise).toHaveLength(3);
+  expect(rise.every((offset) => offset < 0)).toBe(true);
+  await expect.poll(() => lidAngle(page, '[data-testid="deck-emberwild"]')).toBe(116);
+  expect(await lidAngle(page, '[data-testid="deck-mistgrave"]')).toBe(0);
+
+  await page.getByTestId('deck-mistgrave').click();
+  await expect(page.getByTestId('seat-0')).toHaveAttribute('data-deck', 'mistgrave');
+  expect(await boxTransitions(page, seat)).toContain('transform');
+  await expect.poll(() => lidAngle(page, seat)).toBe(116);
+  await expect.poll(() => lidAngle(page, '[data-testid="deck-mistgrave"]')).toBe(116);
+  await expect.poll(() => lidAngle(page, '[data-testid="deck-emberwild"]')).toBe(0);
+  await expectNoHorizontalOverflow(page);
+
+  await page.getByTestId('btn-picker-done').click();
+  await expect.poll(() => lidAngle(page, seat)).toBe(0);
+  expect(errors).toEqual([]);
 });

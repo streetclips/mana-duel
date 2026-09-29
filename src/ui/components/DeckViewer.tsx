@@ -14,7 +14,6 @@ interface DeckViewerProps {
   tabs: DeckTab[];
   initial?: string;
   onClose: () => void;
-  onChoose?: (deck: DeckDef) => void;
 }
 
 interface DeckGroup {
@@ -124,7 +123,7 @@ function DeckCard({ def, count, onTap }: { def: CardDef; count: number; onTap: (
   );
 }
 
-export function DeckViewer({ tabs, initial, onClose, onChoose }: DeckViewerProps) {
+export function DeckViewer({ tabs, initial, onClose }: DeckViewerProps) {
   const [key, setKey] = useState(initial ?? tabs[0]?.key ?? '');
   const [inspected, setInspected] = useState<string | null>(null);
   const tab = tabs.find((candidate) => candidate.key === key) ?? tabs[0];
@@ -187,14 +186,6 @@ export function DeckViewer({ tabs, initial, onClose, onChoose }: DeckViewerProps
           </section>
         ))}
       </div>
-
-      {onChoose && (
-        <footer class="deck-viewer-footer">
-          <button type="button" class="btn" data-testid="btn-deck-choose" onClick={() => onChoose(deck)}>
-            Choose {deck.name}
-          </button>
-        </footer>
-      )}
 
       {inspectedEntry && (
         <Sheet label={getCardDef(inspectedEntry.card).name} onClose={() => setInspected(null)}>

@@ -13,8 +13,9 @@ src/ai/      chooseAction(state, player) via engine rollouts ──────�
 src/llm/     LLM player: seat view, legal moves as a zod schema ────┘
 src/app/     GameController (decks per seat, AI timers, async LLM seat, auto-pass, log, fx cues, replay),
              window.manaDuel, feature checks
-src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with the deck
-             selector, deck viewer; card art from public/cards/; animations of the fx cues (fx.ts, motion.ts)
+src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with a deck box
+             per seat that opens onto the deck picker, deck viewer; card art from public/cards/; animations of
+             the fx cues (fx.ts, motion.ts)
 tests/       Vitest: engine, ai, llm, app, ui (happy-dom) e2e/  Playwright on the production build
 scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts (writes docs/CARDS.md),
              openrouterProxy.ts (dev server proxy that adds OPENROUTER_API_KEY)
@@ -62,10 +63,12 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 - DOM hooks (`data-testid`): `card-<cardId>` (plus `data-zone`, `data-def`, `data-tapped`), `player-<0|1>`,
   `life-<0|1>`, `deck-name-<p>`, `prompt`, `phase`, `stack`, `stack-<itemId>` (plus `data-card`, `data-targetable`),
   `hand`, `lands-<p>`, `battlefield-<p>`, `btn-<id>` for bar buttons and `sheet-<actionType>` for card-sheet actions.
-  Start screen: `deck-<deckId>` (a radio with `aria-checked`), `deck-view-<deckId>`, `opponent-<deckId|random>`,
-  `ai-classic`, `ai-llm`, `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
+  Start screen: `seat-<p>` (a deck box: `data-deck`, `aria-expanded`) opens `deck-picker` (`data-seat`), which holds
+  `deck-<deckId>` or `opponent-<deckId|random>` radios (`aria-checked`), `deck-detail`, `deck-view-<deckId>` and
+  `btn-picker-done`; each box's `.deck-box[data-open]` tells whether its lid is open. `ai-classic`, `ai-llm`,
+  `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
   `llm-notice` (unavailable, `llm-notice-hide` closes it), `game[data-llm]` (`thinking`, `ready`, `unavailable`). Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),
-  `deck-tab-<p>` in game, `mana-curve`, `btn-deck-choose`, `btn-deck-close`; `menu-decks` opens it in game.
+  `deck-tab-<p>` in game, `mana-curve`, `btn-deck-close`; `menu-decks` opens it in game.
   `menu-autopass` (`aria-checked`) toggles auto-pass.
 - Animations (fx): every animated element carries `data-fx` with the cue kinds it plays (`[data-slot="<cardId>"]` on
   battlefield cards, `player-<p>`, hand cards, land pips, stack items), and `fx-ghost-<cardId>` (a creature fading
@@ -106,8 +109,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 - A new `GameEvent` animates once `src/app/fx.ts` turns it into a cue (`tests/app/fx.test.ts`) and `src/ui/fx.ts`
   gives the cue its hooks and overlays (`tests/ui/animations.test.tsx`, `e2e/animations.spec.ts`).
 - Decks live in `src/engine/decks.ts`: 40 cards, 16 lands, only the deck's colors, and no nonland card shared with
-  another deck (basic lands may be). `featured` names the card whose art stands for the deck on the start
-  screen. A new deck appears in the selector, the viewer, the simulator and `docs/CARDS.md` on its own.
+  another deck (basic lands may be). `featured` names the card whose art is on the deck's box. A new deck
+  appears in both seats' pickers, the viewer, the simulator and `docs/CARDS.md` on its own.
 
 ## Conventions
 

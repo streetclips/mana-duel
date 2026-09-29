@@ -33,9 +33,13 @@ function playFromHand(card: string, button: 'sheet-cast' | 'sheet-playLand'): vo
 }
 
 describe('start screen', () => {
-  it('shows the decks and starts a game', () => {
+  it('shows your deck box against the AI’s and starts a game', () => {
     const { settle } = setup(undefined, 'start');
-    for (const deck of DECK_LIST) expect(byTestId('start-screen').textContent).toContain(deck.name);
+    expect(byTestId('seat-0').dataset.deck).toBe('emberwild');
+    expect(byTestId('seat-1').dataset.deck).toBe('random');
+    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('You: Emberwild');
+    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('AI: Random');
+    expect(screen.queryByTestId('deck-picker')).toBeNull();
     click(byTestId('btn-play'));
     settle();
     expect(byTestId('prompt').textContent).toBe('Keep your opening hand?');
@@ -44,16 +48,60 @@ describe('start screen', () => {
 });
 
 const checked = (id: string): string | null => byTestId(id).getAttribute('aria-checked');
+const expanded = (seat: 0 | 1): string | null => byTestId(`seat-${seat}`).getAttribute('aria-expanded');
+const boxOpen = (element: HTMLElement): string | undefined => element.querySelector<HTMLElement>('.deck-box')?.dataset.open;
+const options = (): string[] =>
+  within(byTestId('deck-picker'))
+    .getAllByRole('radio')
+    .map((option) => option.dataset.testid ?? '');
 
 describe('deck selection', () => {
+  it('opens a seat’s box onto every deck it may play, and closes it again', () => {
+    setup(undefined, 'start');
+    expect(boxOpen(byTestId('seat-0'))).toBe('false');
+    click(byTestId('seat-0'));
+    expect(expanded(0)).toBe('true');
+    expect(expanded(1)).toBe('false');
+    expect(boxOpen(byTestId('seat-0'))).toBe('true');
+    expect(boxOpen(byTestId('seat-1'))).toBe('false');
+    expect(byTestId('deck-picker').dataset.seat).toBe('0');
+    expect(options()).toEqual(DECK_LIST.map((deck) => `deck-${deck.id}`));
+    for (const deck of DECK_LIST) expect(byTestId('deck-picker').textContent).toContain(deck.name);
+    expect(screen.queryByTestId('ai-classic')).toBeNull();
+
+    click(byTestId('seat-1'));
+    expect(expanded(0)).toBe('false');
+    expect(expanded(1)).toBe('true');
+    expect(byTestId('deck-picker').dataset.seat).toBe('1');
+    expect(options()).toEqual(['opponent-random', ...DECK_LIST.map((deck) => `opponent-${deck.id}`)]);
+
+    click(byTestId('seat-1'));
+    expect(screen.queryByTestId('deck-picker')).toBeNull();
+    expect(expanded(1)).toBe('false');
+    expect(byTestId('ai-classic')).toBeTruthy();
+
+    click(byTestId('seat-0'));
+    click(byTestId('btn-picker-done'));
+    expect(screen.queryByTestId('deck-picker')).toBeNull();
+    expect(boxOpen(byTestId('seat-0'))).toBe('false');
+  });
+
   it('plays the chosen deck against the chosen AI deck', () => {
     const { controller, settle } = setup(undefined, 'start');
+    click(byTestId('seat-0'));
     expect(checked('deck-emberwild')).toBe('true');
     click(byTestId('deck-dawntide'));
     expect(checked('deck-dawntide')).toBe('true');
     expect(checked('deck-emberwild')).toBe('false');
+    expect(boxOpen(byTestId('deck-dawntide'))).toBe('true');
+    expect(boxOpen(byTestId('deck-emberwild'))).toBe('false');
+    expect(byTestId('seat-0').dataset.deck).toBe('dawntide');
+    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('You: Dawntide');
+    expect(byTestId('deck-picker').dataset.seat).toBe('0');
+    click(byTestId('seat-1'));
     click(byTestId('opponent-duskmire'));
     expect(checked('opponent-duskmire')).toBe('true');
+    expect(byTestId('seat-1').dataset.deck).toBe('duskmire');
     click(byTestId('btn-play'));
     settle();
     expect(controller.decks).toEqual(['dawntide', 'duskmire']);
@@ -63,7 +111,9 @@ describe('deck selection', () => {
 
   it('gives the AI a random deck unless one is picked', () => {
     const { controller } = setup(undefined, 'start');
+    click(byTestId('seat-1'));
     expect(checked('opponent-random')).toBe('true');
+    click(byTestId('seat-0'));
     click(byTestId('deck-duskmire'));
     click(byTestId('btn-watch'));
     expect(controller.decks?.[0]).toBe('duskmire');
@@ -71,21 +121,44 @@ describe('deck selection', () => {
     expect(controller.autoplay).toBe(true);
   });
 
+  it('describes the chosen deck, or what Random does', () => {
+    setup(undefined, 'start');
+    click(byTestId('seat-1'));
+    expect(byTestId('deck-detail').textContent).toContain(`A different deck every game: one of the ${DECK_LIST.length}`);
+    expect(within(byTestId('deck-detail')).queryByRole('button')).toBeNull();
+    click(byTestId('opponent-gloamwood'));
+    expect(byTestId('deck-detail').textContent).toContain('Gloamwood');
+    expect(byTestId('deck-detail').textContent).toContain(DECK_LIST.find((deck) => deck.id === 'gloamwood')?.description);
+    expect(byTestId('deck-view-gloamwood')).toBeTruthy();
+  });
+
+  it('shows the LLM on the AI’s seat when it plays', () => {
+    setup(undefined, 'start');
+    click(byTestId('ai-llm'));
+    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('AI · LLM: Random');
+    click(byTestId('ai-classic'));
+    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('AI: Random');
+  });
+
   it('remembers the choice for the next visit', () => {
     setup(undefined, 'start');
+    click(byTestId('seat-0'));
     click(byTestId('deck-duskmire'));
+    click(byTestId('seat-1'));
     click(byTestId('opponent-dawntide'));
     cleanup();
     setup(undefined, 'start');
+    expect(byTestId('seat-0').dataset.deck).toBe('duskmire');
+    expect(byTestId('seat-1').dataset.deck).toBe('dawntide');
+    click(byTestId('seat-0'));
     expect(checked('deck-duskmire')).toBe('true');
-    expect(checked('opponent-dawntide')).toBe('true');
   });
 
   it('ignores a stored choice that names an unknown deck', () => {
     localStorage.setItem('manaDuel.decks', JSON.stringify({ deck: 'nope', opponent: 'duskmire' }));
     setup(undefined, 'start');
-    expect(checked('deck-emberwild')).toBe('true');
-    expect(checked('opponent-random')).toBe('true');
+    expect(byTestId('seat-0').dataset.deck).toBe('emberwild');
+    expect(byTestId('seat-1').dataset.deck).toBe('random');
   });
 });
 
@@ -96,8 +169,10 @@ describe('deck viewer', () => {
       .filter((element) => element.dataset.testid?.startsWith('deck-card-'))
       .map((element) => Number(element.dataset.count));
 
-  it('shows every card of a deck with its count, curve and details, and chooses it', () => {
+  it('shows every card of the chosen deck with its count, curve and details, and returns to the picker', () => {
     setup(undefined, 'start');
+    click(byTestId('seat-0'));
+    click(byTestId('deck-duskmire'));
     click(byTestId('deck-view-duskmire'));
     expect(byTestId('deck-viewer').dataset.deck).toBe('duskmire');
     expect(copies().reduce((sum, count) => sum + count, 0)).toBe(40);
@@ -109,17 +184,22 @@ describe('deck viewer', () => {
     expect(byTestId('card-sheet').textContent).toContain('1 copy in Duskmire');
     click(byTestId('card-sheet'));
     expect(screen.queryByTestId('card-sheet')).toBeNull();
-    click(byTestId('btn-deck-choose'));
+    click(byTestId('btn-deck-close'));
     expect(screen.queryByTestId('deck-viewer')).toBeNull();
+    expect(byTestId('deck-picker').dataset.seat).toBe('0');
     expect(checked('deck-duskmire')).toBe('true');
   });
 
-  it('closes without changing the chosen deck', () => {
+  it('opens the AI’s deck from its seat without changing yours', () => {
     setup(undefined, 'start');
+    click(byTestId('seat-1'));
+    click(byTestId('opponent-dawntide'));
     click(byTestId('deck-view-dawntide'));
+    expect(byTestId('deck-viewer').dataset.deck).toBe('dawntide');
     click(byTestId('btn-deck-close'));
     expect(screen.queryByTestId('deck-viewer')).toBeNull();
-    expect(checked('deck-emberwild')).toBe('true');
+    expect(byTestId('seat-0').dataset.deck).toBe('emberwild');
+    expect(byTestId('seat-1').dataset.deck).toBe('dawntide');
   });
 
   it('shows both decks of the game from the menu', () => {
@@ -127,7 +207,6 @@ describe('deck viewer', () => {
     click(byTestId('btn-menu'));
     click(byTestId('menu-decks'));
     expect(byTestId('deck-viewer').dataset.deck).toBe('dawntide');
-    expect(screen.queryByTestId('btn-deck-choose')).toBeNull();
     click(byTestId('deck-tab-1'));
     expect(byTestId('deck-viewer').dataset.deck).toBe('duskmire');
     expect(byTestId('deck-tab-1').textContent).toBe('AI · Duskmire');

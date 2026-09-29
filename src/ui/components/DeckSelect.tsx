@@ -1,0 +1,147 @@
+import { useLayoutEffect, useRef } from 'preact/hooks';
+import { DECK_LIST, type PlayerId } from '../../engine';
+import { chosenDeck, deckOptions, seatDeck, withSeatDeck, type DeckChoice } from '../deckChoice';
+import { cssVars } from '../cardInfo';
+import { DeckBox } from './DeckBox';
+import { ColorDots } from './DeckViewer';
+
+export const PICKER_ID = 'deck-picker';
+
+function deckName(id: string): string {
+  return chosenDeck(id)?.name ?? 'Random';
+}
+
+function ChevronIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+      <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  );
+}
+
+interface SeatProps {
+  seat: PlayerId;
+  deckId: string;
+  who: string;
+  active: boolean;
+  onTap: () => void;
+}
+
+function Seat({ seat, deckId, who, active, onTap }: SeatProps) {
+  return (
+    <button
+      type="button"
+      class={`seat seat-${seat}${active ? ' active' : ''}`}
+      data-testid={`seat-${seat}`}
+      data-deck={deckId}
+      aria-label={`${who}: ${deckName(deckId)}`}
+      aria-expanded={active}
+      aria-controls={active ? PICKER_ID : undefined}
+      onClick={onTap}
+    >
+      <span class="seat-box">
+        <DeckBox key={deckId} deck={chosenDeck(deckId)} open={active} printed />
+      </span>
+      <span class="seat-who">{who}</span>
+      <span class="seat-deck">
+        {deckName(deckId)}
+        <ChevronIcon />
+      </span>
+    </button>
+  );
+}
+
+interface VersusProps {
+  choice: DeckChoice;
+  picking: PlayerId | null;
+  names: readonly [string, string];
+  onPick: (seat: PlayerId) => void;
+}
+
+export function Versus({ choice, picking, names, onPick }: VersusProps) {
+  const seat = (player: PlayerId) => (
+    <Seat seat={player} deckId={seatDeck(choice, player)} who={names[player]} active={picking === player} onTap={() => onPick(player)} />
+  );
+  return (
+    <div class={`versus${picking === null ? '' : ' picking'}`} role="group" aria-label="Matchup" data-testid="versus">
+      {seat(0)}
+      <span key={`${choice.deck}:${choice.opponent}`} class="vs" aria-hidden="true">
+        vs
+      </span>
+      {seat(1)}
+    </div>
+  );
+}
+
+interface DeckPickerProps {
+  seat: PlayerId;
+  choice: DeckChoice;
+  onChange: (choice: DeckChoice) => void;
+  onView: (deckId: string) => void;
+  onDone: () => void;
+}
+
+export function DeckPicker({ seat, choice, onChange, onView, onDone }: DeckPickerProps) {
+  const grid = useRef<HTMLDivElement>(null);
+  const selected = seatDeck(choice, seat);
+  const deck = chosenDeck(selected);
+  const title = seat === 0 ? 'Your deck' : "The AI's deck";
+
+  useLayoutEffect(() => {
+    const list = grid.current;
+    const option = list?.querySelector<HTMLElement>('[aria-checked="true"]');
+    const first = list?.firstElementChild;
+    if (!list || !option || !(first instanceof HTMLElement)) return;
+    const hidden = option.offsetTop < list.scrollTop || option.offsetTop + option.offsetHeight > list.scrollTop + list.clientHeight;
+    if (hidden) list.scrollTop = option.offsetTop - first.offsetTop;
+  }, [seat]);
+
+  return (
+    <section id={PICKER_ID} class="picker" data-testid="deck-picker" data-seat={seat} aria-label={title}>
+      <header class="picker-head">
+        <h2 class="section-label">{title}</h2>
+        <span class="picker-count num">{DECK_LIST.length} decks</span>
+        <button type="button" class="picker-done" data-testid="btn-picker-done" onClick={onDone}>
+          Done
+        </button>
+      </header>
+      <div class="picker-detail" data-testid="deck-detail" aria-live="polite">
+        <div class="picker-detail-text">
+          <h3>
+            {deck ? deck.name : 'Random'}
+            {deck && <ColorDots deck={deck} />}
+          </h3>
+          <p>{deck ? deck.description : `A different deck every game: one of the ${DECK_LIST.length}, drawn when the game starts.`}</p>
+        </div>
+        {deck && (
+          <button
+            type="button"
+            class="btn secondary"
+            aria-label={`View the ${deck.name} deck`}
+            data-testid={`deck-view-${deck.id}`}
+            onClick={() => onView(deck.id)}
+          >
+            Cards
+          </button>
+        )}
+      </div>
+      <div class="picker-grid" role="radiogroup" aria-label={title} ref={grid}>
+        {deckOptions(seat).map((id, index) => (
+          <button
+            key={id}
+            type="button"
+            role="radio"
+            aria-checked={id === selected}
+            class="deck-option"
+            style={cssVars({ '--i': String(index) })}
+            data-testid={seat === 0 ? `deck-${id}` : `opponent-${id}`}
+            onClick={() => onChange(withSeatDeck(choice, seat, id))}
+          >
+            <DeckBox deck={chosenDeck(id)} open={id === selected} />
+            <span class="deck-option-name">{deckName(id)}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}

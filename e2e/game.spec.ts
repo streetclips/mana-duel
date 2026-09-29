@@ -29,15 +29,27 @@ test('the start screen leads into a game', async ({ page }) => {
 test('the deck selector sets up the chosen matchup', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
+  await expect(page.getByTestId('seat-0')).toHaveAttribute('data-deck', 'emberwild');
+  await expect(page.getByTestId('seat-1')).toHaveAttribute('data-deck', 'random');
+  await page.getByTestId('seat-0').click();
+  const picker = page.getByTestId('deck-picker');
   for (const name of ['Emberwild', 'Dawntide', 'Duskmire', 'Stormglass', 'Sunmeadow', 'Brightforge', 'Mistgrave', 'Gloamwood']) {
-    await expect(page.getByTestId('start-screen')).toContainText(name);
+    await expect(picker).toContainText(name);
   }
   await page.getByTestId('deck-dawntide').click();
   await expect(page.getByTestId('deck-dawntide')).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByTestId('deck-emberwild')).toHaveAttribute('aria-checked', 'false');
+  await expect(page.getByTestId('seat-0')).toHaveAttribute('data-deck', 'dawntide');
+  await expectNoHorizontalOverflow(page);
+  await page.getByTestId('seat-1').click();
+  await expect(picker).toHaveAttribute('data-seat', '1');
+  await page.getByTestId('opponent-gloamwood').click();
   await page.getByTestId('opponent-duskmire').click();
   await expect(page.getByTestId('opponent-duskmire')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('seat-1')).toHaveAttribute('data-deck', 'duskmire');
   await expectNoHorizontalOverflow(page);
+  await page.getByTestId('btn-picker-done').click();
+  await expect(picker).toHaveCount(0);
   await page.getByTestId('btn-play').click();
   await expect(page.getByTestId('prompt')).toHaveText('Keep your opening hand?');
   await expect(page.getByTestId('deck-name-0')).toContainText('Dawntide');
@@ -49,6 +61,8 @@ test('the deck selector sets up the chosen matchup', async ({ page }) => {
 test('the deck viewer shows every card of a deck, with art and details', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
+  await page.getByTestId('seat-0').click();
+  await page.getByTestId('deck-duskmire').click();
   await page.getByTestId('deck-view-duskmire').click();
   const viewer = page.getByTestId('deck-viewer');
   await expect(viewer).toHaveAttribute('data-deck', 'duskmire');
@@ -65,9 +79,23 @@ test('the deck viewer shows every card of a deck, with art and details', async (
   await expect(page.getByTestId('card-sheet')).toContainText('1 copy in Duskmire');
   await page.getByTestId('card-sheet').click({ position: { x: 10, y: 10 } });
   await expect(page.getByTestId('card-sheet')).toHaveCount(0);
-  await page.getByTestId('btn-deck-choose').click();
+  await page.getByTestId('btn-deck-close').click();
   await expect(viewer).toHaveCount(0);
+  await expect(page.getByTestId('deck-picker')).toHaveAttribute('data-seat', '0');
   await expect(page.getByTestId('deck-duskmire')).toHaveAttribute('aria-checked', 'true');
+  expect(errors).toEqual([]);
+});
+
+test('every deck box shows its featured art in the browser build', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/');
+  await page.getByTestId('seat-1').click();
+  const art = page.getByTestId('deck-picker').locator('.box-art img');
+  const decks = await page.evaluate(() => window.manaDuel.decks().length);
+  await expect(art).toHaveCount(decks);
+  await expect
+    .poll(() => art.evaluateAll((images) => images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0).length))
+    .toBe(decks);
   expect(errors).toEqual([]);
 });
 

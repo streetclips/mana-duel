@@ -106,14 +106,15 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | — | Timing: hits land after the strikes, draws deal one after another, hooks stay until a newer action animates something, slow motion, a new game starts over | `tests/ui/fxTracker.test.ts` |
 | — | Pacing: with an AI delay the AI and automatic passing wait for the opponent's plays and for combat to be seen; not with `aiDelay=0` or `fx=off` | `tests/app/controller.test.ts` › animation cues |
 | — | Browser: CSS and Web Animations run and end, `freezeFx` holds them, `fx=off` and `fx=slow`, reduced motion, no overflow mid-animation, no console errors | `e2e/animations.spec.ts` |
+| — | Deck boxes: a seat's box lifts its lid and raises its cards when tapped, the chosen deck's box opens in its place and in the picker, and they close again | `e2e/animations.spec.ts` › a deck box opens |
 
 ## App and UI
 
 | Feature | Tests |
 | --- | --- |
 | Playing with taps only: mulligan and bottom, lands, casting with targets and cancel, abilities, attacks, blocks, discards, concession, card sheet, log | `tests/ui/game.test.tsx` · `e2e/game.spec.ts` |
-| Deck selector: your deck and the AI's (or a random one), remembered for the next visit; the game plays that matchup | `tests/ui/game.test.tsx` › deck selection · `e2e/game.spec.ts` › the deck selector |
-| Deck viewer: every card with its count and art, mana curve, card details, "Choose"; both decks from the in-game menu | `tests/ui/game.test.tsx` › deck viewer · `tests/ui/deckViewer.test.ts` · `e2e/game.spec.ts` › the deck viewer |
+| Deck selector: your deck box against the AI's; tapping one opens the picker of every deck that seat may play (Random only for the AI's, first), the chosen one described, remembered for the next visit; the game plays that matchup | `tests/ui/game.test.tsx` › deck selection · `tests/ui/deckChoice.test.ts` · `e2e/game.spec.ts` › the deck selector |
+| Deck viewer: every card with its count and art, mana curve, card details, opened from the picker and back to it; both decks from the in-game menu | `tests/ui/game.test.tsx` › deck viewer · `tests/ui/deckViewer.test.ts` · `e2e/game.spec.ts` › the deck viewer |
 | Counterspells target a spell by tapping it in the center strip; stack items open their card | `tests/ui/game.test.tsx` › counterspells · `e2e/game.spec.ts` › URL parameters pick the decks |
 | Flash creatures cast from the card sheet in the opponent's turn; +1/+1 counters raise the P/T tag and show in the card sheet | `e2e/game.spec.ts` › Stormglass and Sunmeadow |
 | Tokens on the battlefield and in the card sheet; sacrifice abilities from the card sheet; a spell that makes you discard asks which card, naming itself; an undying creature back with its counter | `tests/ui/game.test.tsx` › tokens, sacrifices and discards · `e2e/game.spec.ts` › Brightforge, Mistgrave and Gloamwood |
@@ -124,14 +125,14 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | Mobile layout without horizontal overflow at 360×640 and on a Pixel 7; no console errors | `e2e/game.spec.ts` (projects `mobile`, `small-phone`) |
 | Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`, `opponent()`, `llmDecisions()`, `llmPrompt()`, `idle()`, `setAutoPass()`), URL parameters (`deck`, `aiDeck`, `fx`, `ai`, `model`, `autoPass`), `data-testid`, `data-fx` and `data-llm` hooks | `tests/app/controller.test.ts` › test API, animation cues · `tests/app/llm.test.ts` · `e2e/game.spec.ts` · `e2e/animations.spec.ts` · `e2e/llm.spec.ts` |
 | `docs/CARDS.md` matches the card definitions | `tests/docs.test.ts` · `npm run cards -- --check` |
-| Card art: every card has `public/cards/<id>.svg`, shown in hand, on the battlefield and in the card sheet | `tests/ui/art.test.ts` · `tests/ui/game.test.tsx` › card art · `e2e/game.spec.ts` › every card shows art |
+| Card art: every card has `public/cards/<id>.svg`, shown in hand, on the battlefield and in the card sheet; each deck's featured card on its box | `tests/ui/art.test.ts` · `tests/ui/game.test.tsx` › card art · `e2e/game.spec.ts` › every card shows art, every deck box shows its featured art |
 
 ## Manual pass in a browser
 
 For a human-eyes check on a phone-sized viewport (for example Playwright at 390×844):
 
-1. Open `/`, pick Dawntide for yourself and Duskmire for the AI, open **View** on a deck and tap a card, then
-   **Play vs AI**: both player bars name their deck.
+1. Open `/`, tap your deck box and pick Dawntide, tap the AI's and pick Duskmire, open **Cards** and tap a card,
+   close it, then **Play vs AI**: both player bars name their deck.
 2. Open `/?seed=7&first=you`, keep the hand, play a land from the card sheet, press **End turn**, and watch the AI
    play its turn (the center strip narrates each action).
 3. Load a combat position and play it with taps: `manaDuel.loadScenario({ players: [{ hand: ['ember_snap'],

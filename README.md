@@ -15,8 +15,9 @@ npm run build      # static site in dist/, served by `npm run preview`
 docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same site served by nginx, as deployed
 ```
 
-- Pick your deck and the AI's on the start screen (or let chance pick the AI's); **View** opens a deck with every
-  card, its mana curve and card details. The in-game menu shows both decks too.
+- On the start screen your deck box faces the AI's. Tap one to open it onto every deck and pick another (the AI's
+  may also be random); **Cards** opens the chosen deck with every card, its mana curve and card details. The
+  in-game menu shows both decks too.
 - Tap a card to read it; the sheet that opens holds its actions (play, cast, activate). Long-press or right-click
   inspects any card.
 - Targets glow when a spell needs one: tap the creature or the player, or the spell in the center strip for a
@@ -54,7 +55,8 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   every legal move as a zod schema, and one AI SDK `generateText` call with `Output.object` per decision, through
   the OpenRouter provider. Answers the engine refuses are retried, then left to the classic AI. It loads only when
   a game uses it, and the tests run it offline against mocked models.
-- **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, a deck selector and deck viewer, light
+- **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, a deck selector of 3D deck boxes that
+  open, a deck viewer, light
   and dark themes, a game log, animations driven by cues that tests and agents can read, and an automation API on
   `window.manaDuel`.
 - **Cards**: 119 cards — 111 that belong to a single deck (16 in Emberwild, 14 each in Dawntide, Duskmire,
@@ -87,8 +89,8 @@ src/
 ├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy
 ├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks
 └── ui/       App, StartScreen (deck and AI selector), Game, model (interaction logic), deckChoice,
-              opponentChoice, autoPassChoice, fx and motion (animations), components/ (Board, Card, DeckViewer,
-              Fx, Overlays), styles.css
+              opponentChoice, autoPassChoice, fx and motion (animations), components/ (Board, Card, DeckBox,
+              DeckSelect, DeckViewer, Fx, Overlays), styles.css
 public/cards/ one SVG illustration per card, named <id>.svg
 tests/        engine/ ai/ llm/ app/ ui/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
 e2e/          Playwright specs

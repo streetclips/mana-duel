@@ -1,8 +1,9 @@
-import { DECK_LIST, getDeck, type DeckDef } from '../engine';
-import { cardArtUrl } from './cardInfo';
-import { ColorDots } from './components/DeckViewer';
-import { RANDOM_DECK, type DeckChoice } from './deckChoice';
+import { useLayoutEffect, useRef, useState } from 'preact/hooks';
+import type { PlayerId } from '../engine';
+import { DeckPicker, Versus } from './components/DeckSelect';
+import type { DeckChoice } from './deckChoice';
 import { REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
+import { prefersReducedMotion } from './motion';
 import { llmProblem, type OpponentChoice } from './opponentChoice';
 
 export interface LlmSettings {
@@ -21,46 +22,6 @@ interface StartScreenProps {
   onPlay: () => void;
   onWatch: () => void;
   llm: LlmSettings;
-}
-
-interface DeckTileProps {
-  deck: DeckDef;
-  selected: boolean;
-  onSelect: () => void;
-  onView: () => void;
-}
-
-function DeckTile({ deck, selected, onSelect, onView }: DeckTileProps) {
-  return (
-    <div class={`deck-tile${selected ? ' selected' : ''}`}>
-      <button
-        type="button"
-        class="deck-choice"
-        role="radio"
-        aria-checked={selected}
-        data-testid={`deck-${deck.id}`}
-        onClick={onSelect}
-      >
-        <img class="deck-art" src={cardArtUrl(deck.featured)} alt="" draggable={false} />
-        <span class="deck-text">
-          <span class="deck-title">
-            <b>{deck.name}</b>
-            <ColorDots deck={deck} />
-          </span>
-          <span class="deck-description">{deck.description}</span>
-        </span>
-      </button>
-      <button
-        type="button"
-        class="deck-view"
-        aria-label={`View the ${deck.name} deck`}
-        data-testid={`deck-view-${deck.id}`}
-        onClick={onView}
-      >
-        View
-      </button>
-    </div>
-  );
 }
 
 function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null }) {
@@ -132,78 +93,104 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
 }
 
 export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm }: StartScreenProps) {
-  const opponents = [RANDOM_DECK, ...DECK_LIST.map((deck) => deck.id)];
+  const [picking, setPicking] = useState<PlayerId | null>(null);
+  const matchup = useRef<HTMLDivElement>(null);
+  const lastTop = useRef<number | null>(null);
   const problem = llmProblem(llm.choice, llm.apiKey, llm.proxy);
+
+  const pick = (seat: PlayerId | null): void => {
+    lastTop.current = matchup.current?.getBoundingClientRect().top ?? null;
+    setPicking(seat);
+  };
+
+  useLayoutEffect(() => {
+    const element = matchup.current;
+    const from = lastTop.current;
+    lastTop.current = null;
+    if (!element || from === null || typeof element.animate !== 'function' || prefersReducedMotion()) return;
+    const offset = from - element.getBoundingClientRect().top;
+    if (Math.abs(offset) < 1) return;
+    element.animate([{ translate: `0 ${offset}px` }, { translate: '0 0' }], { duration: 340, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+  }, [picking]);
+
   const players = [
     { kind: 'classic', label: 'Classic' },
     { kind: 'llm', label: 'LLM' },
   ] as const;
+  const names = ['You', llm.choice.kind === 'llm' ? 'AI · LLM' : 'AI'] as const;
   return (
-    <main class="start" data-testid="start-screen">
-      <header>
-        <h1>Mana Duel</h1>
-        <p class="tagline">A minimalist card duel. Pick a deck, then take on the AI.</p>
-      </header>
+    <main class={`start${picking === null ? '' : ' picking'}`} data-testid="start-screen">
+      <div class="start-body">
+        <header class="start-head">
+          <div>
+            <h1>Mana Duel</h1>
+            <p class="tagline">A minimalist card duel. Tap a deck box to choose, then take on the AI.</p>
+          </div>
+        </header>
 
-      <section class="start-section" aria-labelledby="your-deck-label">
-        <h2 id="your-deck-label" class="section-label">
-          Your deck
-        </h2>
-        <div class="deck-picker" role="radiogroup" aria-labelledby="your-deck-label">
-          {DECK_LIST.map((deck) => (
-            <DeckTile
-              key={deck.id}
-              deck={deck}
-              selected={deck.id === choice.deck}
-              onSelect={() => onChange({ ...choice, deck: deck.id })}
-              onView={() => onView(deck.id)}
+        <div class="matchup" ref={matchup}>
+          <Versus choice={choice} picking={picking} names={names} onPick={(seat) => pick(picking === seat ? null : seat)} />
+          {picking !== null && (
+            <DeckPicker
+              seat={picking}
+              choice={choice}
+              onChange={onChange}
+              onView={onView}
+              onDone={() => {
+                matchup.current?.querySelector<HTMLElement>(`.seat-${picking}`)?.focus();
+                pick(null);
+              }}
             />
-          ))}
+          )}
         </div>
-      </section>
 
-      <section class="start-section" aria-labelledby="ai-deck-label">
-        <h2 id="ai-deck-label" class="section-label">
-          AI's deck
-        </h2>
-        <div class="segmented wrap" role="radiogroup" aria-labelledby="ai-deck-label">
-          {opponents.map((id) => (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={choice.opponent === id}
-              class={choice.opponent === id ? 'on' : ''}
-              data-testid={`opponent-${id}`}
-              onClick={() => onChange({ ...choice, opponent: id })}
-            >
-              {id === RANDOM_DECK ? 'Random' : getDeck(id).name}
-            </button>
-          ))}
-        </div>
-      </section>
+        {picking === null && (
+          <>
+            <section class="start-section" aria-labelledby="ai-player-label">
+              <h2 id="ai-player-label" class="section-label">
+                Who plays the AI
+              </h2>
+              <div class="segmented" role="radiogroup" aria-labelledby="ai-player-label">
+                {players.map((player) => (
+                  <button
+                    key={player.kind}
+                    type="button"
+                    role="radio"
+                    aria-checked={llm.choice.kind === player.kind}
+                    class={llm.choice.kind === player.kind ? 'on' : ''}
+                    data-testid={`ai-${player.kind}`}
+                    onClick={() => llm.onChoice({ ...llm.choice, kind: player.kind })}
+                  >
+                    {player.label}
+                  </button>
+                ))}
+              </div>
+              {llm.choice.kind === 'llm' && <LlmFields llm={llm} problem={problem} />}
+            </section>
 
-      <section class="start-section" aria-labelledby="ai-player-label">
-        <h2 id="ai-player-label" class="section-label">
-          Who plays the AI
-        </h2>
-        <div class="segmented" role="radiogroup" aria-labelledby="ai-player-label">
-          {players.map((player) => (
-            <button
-              key={player.kind}
-              type="button"
-              role="radio"
-              aria-checked={llm.choice.kind === player.kind}
-              class={llm.choice.kind === player.kind ? 'on' : ''}
-              data-testid={`ai-${player.kind}`}
-              onClick={() => llm.onChoice({ ...llm.choice, kind: player.kind })}
-            >
-              {player.label}
-            </button>
-          ))}
-        </div>
-        {llm.choice.kind === 'llm' && <LlmFields llm={llm} problem={problem} />}
-      </section>
+            <details class="rules">
+              <summary>How to play</summary>
+              <ul>
+                <li>
+                  Tap a deck box to choose your deck or the AI's, or let chance choose the AI's. You both start at 20 life
+                  with 40 cards.
+                </li>
+                <li>
+                  The classic AI plays on its own. Pick LLM to let a language model from OpenRouter make the AI's decisions
+                  instead: it sees what the AI may see, never your hand, and the classic AI steps in if it fails to answer.
+                </li>
+                <li>Bring the AI to 0 life to win. Play one land per turn; lands pay for spells automatically.</li>
+                <li>Creatures can't attack the turn they arrive, unless they have haste.</li>
+                <li>Attack with your creatures; the defender picks blockers. Damage happens all at once.</li>
+                <li>Instants, and creatures with flash, can be cast whenever you have priority, even in response to a spell.</li>
+                <li>A counterspell targets a spell on the stack: tap it in the strip between the two sides.</li>
+                <li>Tokens are creatures that cards create; they vanish when they leave the battlefield.</li>
+                <li>Tap a card to see what it does. Long-press or right-click to inspect any card.</li>
+              </ul>
+            </details>
+          </>
+        )}
+      </div>
 
       <div class="start-actions">
         <button type="button" class="btn" data-testid="btn-play" disabled={!!problem} onClick={onPlay}>
@@ -213,24 +200,6 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm }: 
           Watch AI vs AI
         </button>
       </div>
-
-      <details class="rules">
-        <summary>How to play</summary>
-        <ul>
-          <li>Pick your deck and the AI's, or let chance choose the AI's. You both start at 20 life with 40 cards.</li>
-          <li>
-            The classic AI plays on its own. Pick LLM to let a language model from OpenRouter make the AI's decisions
-            instead: it sees what the AI may see, never your hand, and the classic AI steps in if it fails to answer.
-          </li>
-          <li>Bring the AI to 0 life to win. Play one land per turn; lands pay for spells automatically.</li>
-          <li>Creatures can't attack the turn they arrive, unless they have haste.</li>
-          <li>Attack with your creatures; the defender picks blockers. Damage happens all at once.</li>
-          <li>Instants, and creatures with flash, can be cast whenever you have priority, even in response to a spell.</li>
-          <li>A counterspell targets a spell on the stack: tap it in the strip between the two sides.</li>
-          <li>Tokens are creatures that cards create; they vanish when they leave the battlefield.</li>
-          <li>Tap a card to see what it does. Long-press or right-click to inspect any card.</li>
-        </ul>
-      </details>
     </main>
   );
 }

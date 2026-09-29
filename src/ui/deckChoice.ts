@@ -1,4 +1,4 @@
-import { DEFAULT_DECK_ID, hasDeck } from '../engine';
+import { DECK_LIST, DEFAULT_DECK_ID, getDeck, hasDeck, type DeckDef, type PlayerId } from '../engine';
 
 export const RANDOM_DECK = 'random';
 
@@ -36,4 +36,21 @@ export function saveDeckChoice(choice: DeckChoice): void {
 
 export function resolveMatchup(choice: DeckChoice, pickRandom: () => string): [string, string] {
   return [choice.deck, choice.opponent === RANDOM_DECK ? pickRandom() : choice.opponent];
+}
+
+export function deckOptions(seat: PlayerId): string[] {
+  const decks = DECK_LIST.map((deck) => deck.id);
+  return seat === 0 ? decks : [RANDOM_DECK, ...decks];
+}
+
+export function seatDeck(choice: DeckChoice, seat: PlayerId): string {
+  return seat === 0 ? choice.deck : choice.opponent;
+}
+
+export function withSeatDeck(choice: DeckChoice, seat: PlayerId, id: string): DeckChoice {
+  return seat === 0 ? { ...choice, deck: id } : { ...choice, opponent: id };
+}
+
+export function chosenDeck(id: string): DeckDef | null {
+  return id !== RANDOM_DECK && hasDeck(id) ? getDeck(id) : null;
 }

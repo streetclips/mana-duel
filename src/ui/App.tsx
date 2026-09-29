@@ -86,14 +86,7 @@ export function App({ controller, initialScreen, onReady, llmProxy = false, load
           llm={{ choice: opponent, apiKey, proxy: llmProxy, models, onChoice: changeOpponent, onApiKey: changeKey }}
         />
         {viewed && (
-          <DeckViewer
-            tabs={[{ key: viewed.id, label: viewed.name, deck: viewed }]}
-            onClose={() => setViewing(null)}
-            onChoose={(deck) => {
-              change({ ...choice, deck: deck.id });
-              setViewing(null);
-            }}
-          />
+          <DeckViewer tabs={[{ key: viewed.id, label: viewed.name, deck: viewed }]} onClose={() => setViewing(null)} />
         )}
       </>
     );
