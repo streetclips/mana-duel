@@ -225,6 +225,28 @@ button {
   margin: 8px 0 0;
 }
 
+.start-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sound-toggles {
+  flex: none;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+}
+
+.sound-toggle[aria-pressed='true'] {
+  color: var(--ink-2);
+}
+
+.sound-toggle[aria-pressed='false'] {
+  opacity: 0.75;
+}
+
 .matchup {
   display: flex;
   flex-direction: column;

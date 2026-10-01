@@ -18,6 +18,16 @@ import {
   type PendingDecision,
   type ScenarioSpec,
 } from '../engine';
+import {
+  GameAudio,
+  type AudioLevel,
+  type AudioState,
+  type PlayedSound,
+  type RenderResult,
+  type RenderTarget,
+  type SoundId,
+  type ThemeSummary,
+} from '../audio';
 import type { Prompt } from '../llm/prompt';
 import { CHECKS, runChecks, type CheckResult } from './checks';
 import type { ControllerOptions, GameController, LlmRecord, Matchup, OpponentSetup, Replay } from './controller';
@@ -35,7 +45,7 @@ export interface EngineApi {
   play(state: GameState, actions: Action[]): GameState;
 }
 
-export const API_VERSION = '1.4';
+export const API_VERSION = '1.5';
 
 export interface DeckSummary {
   id: string;
@@ -52,9 +62,38 @@ export type FxRecord = FxCue & { seq: number };
 
 export interface UiHooks {
   freezeFx(progress: number | null): Promise<string[]>;
+  audio?: GameAudio;
 }
 
 const NO_UI: UiHooks = { freezeFx: async () => [] };
+
+export interface AudioApi {
+  state(): AudioState;
+  played(since?: number): PlayedSound[];
+  sounds(): SoundId[];
+  themes(): ThemeSummary[];
+  level(): AudioLevel;
+  render(target: RenderTarget): Promise<RenderResult>;
+  setMusic(on: boolean): void;
+  setSfx(on: boolean): void;
+  setVolume(volume: number): void;
+  unlock(): Promise<AudioState>;
+}
+
+function audioApi(audio: GameAudio): AudioApi {
+  return {
+    state: () => audio.state(),
+    played: (since) => audio.played(since),
+    sounds: () => audio.sounds(),
+    themes: () => audio.themes(),
+    level: () => audio.level(),
+    render: (target) => audio.render(target),
+    setMusic: (on) => audio.setMusic(on),
+    setSfx: (on) => audio.setSfx(on),
+    setVolume: (volume) => audio.setVolume(volume),
+    unlock: () => audio.unlock(),
+  };
+}
 
 export interface ManaDuelApi {
   version: string;
@@ -90,6 +129,7 @@ export interface ManaDuelApi {
   llmPrompt(): Promise<Prompt | null>;
   checks(): { id: string; title: string }[];
   runChecks(ids?: string[]): CheckResult[];
+  audio: AudioApi;
   engine: EngineApi;
 }
 
@@ -126,6 +166,13 @@ const HELP = `window.manaDuel — automation API
   freezeFx(progress?)   for a screenshot: call it with the action, holds the running animations and
                         transitions at 0..1 of their length (default 0.5), lists the fx ones; null resumes
   checks() / runChecks(ids?)   built-in feature checks (docs/VERIFICATION.md), [] of failures = healthy
+  audio.state()         music and sound effects: {context: none | running | suspended, music: {on, theme, mood,
+                        heard, bar, notes}, sfx: {on, played, dropped}}; silent until your first tap or key
+  audio.played(since?)  sounds started for recent actions, oldest first: {seq, sound, at, color}; since as in fx()
+  audio.level()         {rms, peak} of what plays now; await audio.render(sound | {theme, mood, bars}) renders
+                        offline: {seconds, peak, rms, tail, finite}
+  audio.setMusic(on), audio.setSfx(on), audio.setVolume(0..1)   also ?music=on|off&sfx=on|off
+  audio.unlock(), audio.sounds(), audio.themes()   (docs/AUDIO.md)
   engine.*              pure engine: createScenario, applyAction, play(state, actions), chooseAction...`;
 
 function toApiResult(result: { ok: true; state: GameState } | { ok: false; error: string }): ApiResult {
@@ -204,6 +251,7 @@ export function createTestApi(controller: GameController, showGame: () => void, 
     llmPrompt: () => controller.llmPrompt(),
     checks: () => CHECKS.map((check) => ({ id: check.id, title: check.title })),
     runChecks: (ids) => runChecks(ids),
+    audio: audioApi(ui.audio ?? new GameAudio({ createContext: null })),
     engine: {
       createGame,
       createScenario,

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { PlayerId } from '../engine';
 import { DeckPicker, Versus } from './components/DeckSelect';
+import { SoundToggles, type AudioToggles } from './components/SoundToggles';
 import type { DeckChoice } from './deckChoice';
 import { REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
 import { prefersReducedMotion } from './motion';
@@ -22,6 +23,7 @@ interface StartScreenProps {
   onPlay: () => void;
   onWatch: () => void;
   llm: LlmSettings;
+  audio?: AudioToggles;
 }
 
 function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null }) {
@@ -92,7 +94,7 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
   );
 }
 
-export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm }: StartScreenProps) {
+export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, audio }: StartScreenProps) {
   const [picking, setPicking] = useState<PlayerId | null>(null);
   const matchup = useRef<HTMLDivElement>(null);
   const lastTop = useRef<number | null>(null);
@@ -122,9 +124,12 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm }: 
     <main class={`start${picking === null ? '' : ' picking'}`} data-testid="start-screen">
       <div class="start-body">
         <header class="start-head">
-          <div>
-            <h1>Mana Duel</h1>
-            <p class="tagline">A minimalist card duel. Tap a deck box to choose, then take on the AI.</p>
+          <div class="start-title">
+            <div>
+              <h1>Mana Duel</h1>
+              <p class="tagline">A minimalist card duel. Tap a deck box to choose, then take on the AI.</p>
+            </div>
+            {audio && <SoundToggles audio={audio} />}
           </div>
         </header>
 

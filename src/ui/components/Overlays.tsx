@@ -20,6 +20,7 @@ import {
 import type { LogEntry } from '../../app/controller';
 import { effectHint } from '../cardInfo';
 import { DetailCard, RulesLine } from './Card';
+import type { AudioToggles } from './SoundToggles';
 
 interface SheetProps {
   label: string;
@@ -195,6 +196,7 @@ interface MenuProps {
   gameOver: boolean;
   fast: boolean;
   autoPass: boolean;
+  audio?: AudioToggles;
   onNewGame: () => void;
   onConcede: () => void;
   onLog: () => void;
@@ -205,7 +207,7 @@ interface MenuProps {
   onClose: () => void;
 }
 
-export function Menu({ gameOver, fast, autoPass, onNewGame, onConcede, onLog, onDecks, onToggleSpeed, onToggleAutoPass, onHome, onClose }: MenuProps) {
+export function Menu({ gameOver, fast, autoPass, audio, onNewGame, onConcede, onLog, onDecks, onToggleSpeed, onToggleAutoPass, onHome, onClose }: MenuProps) {
   return (
     <>
       <div class="scrim clear" onClick={onClose} />
@@ -224,6 +226,16 @@ export function Menu({ gameOver, fast, autoPass, onNewGame, onConcede, onLog, on
         <button type="button" role="menuitemcheckbox" aria-checked={autoPass} data-testid="menu-autopass" onClick={onToggleAutoPass}>
           Auto-pass: {autoPass ? 'on' : 'off'}
         </button>
+        {audio && (
+          <>
+            <button type="button" role="menuitemcheckbox" aria-checked={audio.music} data-testid="menu-music" onClick={audio.onToggleMusic}>
+              Music: {audio.music ? 'on' : 'off'}
+            </button>
+            <button type="button" role="menuitemcheckbox" aria-checked={audio.sfx} data-testid="menu-sfx" onClick={audio.onToggleSfx}>
+              Sound effects: {audio.sfx ? 'on' : 'off'}
+            </button>
+          </>
+        )}
         <button type="button" role="menuitem" data-testid="menu-new-game" onClick={onNewGame}>
           New game
         </button>

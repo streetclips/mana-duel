@@ -137,7 +137,7 @@ test('a human turn can be played with taps only', async ({ page }) => {
   await page.getByTestId('btn-keep').click();
   await expect(page.getByTestId('prompt')).toHaveText('Your main phase');
 
-  const land = page.locator('[data-testid="hand"] [data-def="mountain"], [data-testid="hand"] [data-def="forest"]').first();
+  const land = page.locator('[data-testid="hand"] [data-def="mountain"]').first();
   const landId = await land.getAttribute('data-card');
   await land.click();
   await page.getByTestId('sheet-playLand').click();

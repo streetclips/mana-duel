@@ -7,6 +7,12 @@ export function useControllerVersion(controller: GameController): number {
   return version;
 }
 
+export function useSubscription(source: { subscribe(listener: () => void): () => void } | undefined): number {
+  const [version, setVersion] = useState(0);
+  useEffect(() => source?.subscribe(() => setVersion((value) => value + 1)), [source]);
+  return version;
+}
+
 export interface PressHandlers {
   onPointerDown: (event: PointerEvent) => void;
   onPointerUp: () => void;

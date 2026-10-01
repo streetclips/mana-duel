@@ -1,10 +1,12 @@
 import { render } from 'preact';
 import { GameController, randomDeckId, type LlmFactory, type OpponentSetup } from './app/controller';
 import { createTestApi, type ManaDuelApi } from './app/testApi';
+import { GameAudio, bindAudioDataset } from './audio';
 import { DEFAULT_DECK_ID, hasDeck } from './engine';
 import { lazyLlmPlayer } from './llm/lazy';
 import { DEFAULT_MODEL, fetchModels, isModelId, isReasoningEffort } from './llm/models';
 import { App, type Screen } from './ui/App';
+import { audioChoiceFrom, loadAudioChoice } from './ui/audioChoice';
 import { loadAutoPass } from './ui/autoPassChoice';
 import { RANDOM_DECK } from './ui/deckChoice';
 import { freezeFx } from './ui/motion';
@@ -74,8 +76,13 @@ const controller = new GameController({
 const direct = ['seed', 'autoplay', 'skipMulligan', 'first', 'deck', 'aiDeck', 'ai', 'model', 'effort'].some((name) => params.has(name));
 const initialScreen: Screen = direct ? 'game' : 'start';
 
+const audio = new GameAudio({ ...audioChoiceFrom(params, loadAudioChoice()), scene: initialScreen === 'start' ? 'title' : 'game' });
+audio.attach(controller);
+audio.listen(window);
+bindAudioDataset(audio, document.documentElement);
+
 let showGame = (): void => undefined;
-window.manaDuel = createTestApi(controller, () => showGame(), { freezeFx });
+window.manaDuel = createTestApi(controller, () => showGame(), { freezeFx, audio });
 
 const root = document.getElementById('app');
 if (!root) throw new Error('Missing #app element');
@@ -88,6 +95,7 @@ render(
     }}
     llmProxy={proxyUrl !== null}
     loadModels={fetchModels}
+    audio={audio}
   />,
   root,
 );

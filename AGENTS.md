@@ -16,7 +16,10 @@ src/app/     GameController (decks per seat, AI timers, async LLM seat, auto-pas
 src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with a deck box
              per seat that opens onto the deck picker, deck viewer; card art from public/cards/; animations of
              the fx cues (fx.ts, motion.ts)
-tests/       Vitest: engine, ai, llm, app, ui (happy-dom) e2e/  Playwright on the production build
+src/audio/   music and sound effects synthesized with Web Audio: a theme per deck whose mood follows the game, a
+             sound per fx cue; GameAudio starts on the first tap
+tests/       Vitest: engine, ai, llm, app, ui (happy-dom), audio (fake AudioContext) e2e/  Playwright on the
+             production build
 scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts (writes docs/CARDS.md),
              openrouterProxy.ts (dev server proxy that adds OPENROUTER_API_KEY)
 ```
@@ -41,7 +44,7 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
    noise, and one run of 1000 still moves a deck by about 3 points: settle a close call with a second `--seed`. To
    compare two versions of a card, run the same `--seed` before and after, with `--decks <id>,all` to play only that
    deck's matchups.
-4. For UI changes, also run `npm run test:e2e` (two phone viewports). Done when every test passes.
+4. For UI or audio changes, also run `npm run test:e2e` (two phone viewports). Done when every test passes.
 5. Steps 1–4 never reach OpenRouter. `npm run test:live` makes real calls and spends credits: run it only when asked.
 
 ## Driving the running game
@@ -51,7 +54,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 - URL parameters: `seed`, `first=you|ai`, `aiDelay` (ms), `skipMulligan=1`, `autoplay=1` (AI plays both seats),
   `deck=<id>` (yours), `aiDeck=<id>|random`, `ai=llm` with `model=<openrouter id>` and `effort=minimal|low|medium|high`
   (the LLM plays the AI seat), `autoPass=off|on` (off: you pass by hand wherever you could act; the menu toggle is
-  remembered), `theme=dark|light`, `fx=off|slow|<speed>` (animations). Decks default to Emberwild.
+  remembered), `theme=dark|light`, `fx=off|slow|<speed>` (animations), `music=on|off` and `sfx=on|off` (over the
+  remembered toggles; `off` keeps a browser you drive quiet). Decks default to Emberwild.
   Any of `seed`, `first`, `skipMulligan`, `autoplay`, `deck`, `aiDeck`, `ai`, `model`, `effort` skips the start screen.
 - `window.manaDuel` (`manaDuel.help()` prints it): read with `state()`, `describe()`, `pending()`,
   `legalActions()`, `decks()`, `matchup()`; act for player 0 with `dispatch(action)`, `pass()`, `endTurn()`,
@@ -59,7 +63,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
   `settle()` runs the AI immediately and stops where the LLM must answer; `await idle()` waits until you decide or the
   game ends; `newGame({ decks: ['dawntide', 'duskmire'], opponent: { kind: 'llm', model } })`, `loadScenario(spec)`,
   `replay()`, `runChecks()`, `fx(since)` for the animation cues of recent actions, `opponent()`, `llmDecisions()`,
-  `await llmPrompt()` (what the LLM gets now), and `engine.*` for pure engine calls.
+  `await llmPrompt()` (what the LLM gets now), `audio.*` for the music and sounds (`audio.played(fxSeq)` lists the
+  sounds of the actions after it), and `engine.*` for pure engine calls.
 - DOM hooks (`data-testid`): `card-<cardId>` (plus `data-zone`, `data-def`, `data-tapped`), `player-<0|1>`,
   `life-<0|1>`, `deck-name-<p>`, `prompt`, `phase`, `stack`, `stack-<itemId>` (plus `data-card`, `data-targetable`),
   `hand`, `lands-<p>`, `battlefield-<p>`, `btn-<id>` for bar buttons and `sheet-<actionType>` for card-sheet actions.
@@ -69,7 +74,9 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
   `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
   `llm-notice` (unavailable, `llm-notice-hide` closes it), `game[data-llm]` (`thinking`, `ready`, `unavailable`). Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),
   `deck-tab-<p>` in game, `mana-curve`, `btn-deck-close`; `menu-decks` opens it in game.
-  `menu-autopass` (`aria-checked`) toggles auto-pass.
+  `menu-autopass` (`aria-checked`) toggles auto-pass. Audio: `menu-music`, `menu-sfx` (`aria-checked`), start-screen
+  `btn-music`, `btn-sfx` (`aria-pressed`), and `html[data-audio]` (`none` until the first tap, `running`, `suspended`,
+  `unsupported`), `html[data-music]` (theme id or `off`), `html[data-mood]`.
 - Animations (fx): every animated element carries `data-fx` with the cue kinds it plays (`[data-slot="<cardId>"]` on
   battlefield cards, `player-<p>`, hand cards, land pips, stack items), and `fx-ghost-<cardId>` (a creature fading
   out where it died or bounced), `fx-reveal` (the card the opponent plays), `fx-turn`, `fx-hurt`, `fx-life-<p>`,
@@ -80,6 +87,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 - Browsers stall timers in background windows, the Playwright MCP window included: pass `aiDelay=0` and call
   `manaDuel.settle()` rather than waiting for the AI. With `aiDelay` above 0 the AI also waits for the animations of
   the opponent's plays and of combat.
+- Sound starts only after a tap or key on the page, and an `evaluate` is no tap: click something, or
+  `await manaDuel.audio.unlock()`.
 
 ## References
 
@@ -89,6 +98,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 - `docs/CARDS.md` — generated card and keyword list.
 - `docs/LLM.md` — LLM opponent: prompt, answer schemas, fallbacks, keys and dev proxy, live tests; read it before
   touching `src/llm` or the controller's AI seat.
+- `docs/AUDIO.md` — music and sound effects: themes per color, moods, the sound of each fx cue, mix, test hooks; read
+  it before touching `src/audio` or giving a cue a sound.
 
 ## Extending
 
@@ -107,10 +118,12 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
   `invariants.ts`, a scenario field and a place in `src/llm/view.ts`. Cover it with a scenario test in
   `tests/engine` and a check in `src/app/checks.ts`.
 - A new `GameEvent` animates once `src/app/fx.ts` turns it into a cue (`tests/app/fx.test.ts`) and `src/ui/fx.ts`
-  gives the cue its hooks and overlays (`tests/ui/animations.test.tsx`, `e2e/animations.spec.ts`).
+  gives the cue its hooks and overlays (`tests/ui/animations.test.tsx`, `e2e/animations.spec.ts`); it sounds once
+  `soundsOf` in `src/audio/cues.ts` maps the cue to a sound (`tests/audio/cues.test.ts`).
 - Decks live in `src/engine/decks.ts`: 40 cards, 16 lands, only the deck's colors, and no nonland card shared with
   another deck (basic lands may be). `featured` names the card whose art is on the deck's box. A new deck
-  appears in both seats' pickers, the viewer, the simulator and `docs/CARDS.md` on its own.
+  appears in both seats' pickers, the viewer, the simulator and `docs/CARDS.md` on its own, and gets a music theme
+  from its colors.
 
 ## Conventions
 

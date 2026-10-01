@@ -108,6 +108,25 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | — | Browser: CSS and Web Animations run and end, `freezeFx` holds them, `fx=off` and `fx=slow`, reduced motion, no overflow mid-animation, no console errors | `e2e/animations.spec.ts` |
 | — | Deck boxes: a seat's box lifts its lid and raises its cards when tapped, the chosen deck's box opens in its place and in the picker, and they close again | `e2e/animations.spec.ts` › a deck box opens |
 
+## Audio
+
+How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run against a strict fake `AudioContext`
+(`tests/audio/fakeAudio.ts`); `e2e/audio.spec.ts` plays them in Chromium.
+
+| Feature | Tests |
+| --- | --- |
+| Themes: one per deck from its colors, a different one for each combination, the title and colorless themes; every pitched note in key, each bar's chord on the pad and its root in the bass, the eight-bar loop | `tests/audio/music.test.ts` |
+| Moods: calm, danger at 5 life or less, combat while attackers are declared, over at the end; drums in combat and a heartbeat in danger; louder moods on the next beat, calmer ones on the bar line | `tests/audio/music.test.ts` · `tests/audio/engine.test.ts` › changes its mood on the beat · `e2e/audio.spec.ts` › a game plays the theme of your deck |
+| A sound for every cue kind, timed like its animation: hits at the impact, the dead after them, your draws one after another, a turn's card after its bell, lands and spells in their colors; repeats capped; a burst heard by its latest actions; slow motion stretches it | `tests/audio/cues.test.ts` · `tests/audio/director.test.ts` · `e2e/audio.spec.ts` › every action plays its sound |
+| Victory, defeat and stalemate jingles, once per game, none for a finished replay | `tests/audio/cues.test.ts` › the end of a game · `tests/audio/director.test.ts` · `e2e/audio.spec.ts` › a game ends with a victory jingle |
+| Sound gate: one of each sound per 45 ms and ten at once, jingles always | `tests/audio/cues.test.ts` › the sound gate · `tests/audio/engine.test.ts` › drops a sound repeated |
+| Recipes and notes: finite, audible layers that fade out; envelopes that start and end silent; every source stopped and every node released; music and effects mixed into a compressed master | `tests/audio/synth.test.ts` |
+| Engine: no context before a tap; silent where Web Audio is missing or fails; music scheduled ahead of the audio clock, skipping ahead after a stall; a new theme fades the old one out; toggles; suspended while hidden or with everything off; level and volume | `tests/audio/engine.test.ts` |
+| Director: the sounds of each action once, after it; the title theme on the start screen, your deck's theme in a game, the colorless one for a scenario; the opening deal | `tests/audio/director.test.ts` · `tests/ui/audio.test.tsx` › follow the screen |
+| Browser: the first tap starts the music and the output rises above silence; every sound and every theme in every mood renders finite, audible, unclipped and fades out; a hidden page pauses it; no console errors | `e2e/audio.spec.ts` |
+| Settings: the game menu and start-screen toggles, remembered; `?music=on\|off`, `?sfx=on\|off`; none without audio | `tests/ui/audio.test.tsx` · `e2e/audio.spec.ts` › turn off from the menu, the start screen turns music and sound effects off and on |
+| Automation: `manaDuel.audio` (`state`, `played`, `level`, `render`, toggles, `unlock`, `sounds`, `themes`) and `html[data-audio]`, `[data-music]`, `[data-mood]` | `tests/audio/api.test.ts` · `e2e/audio.spec.ts` |
+
 ## App and UI
 
 | Feature | Tests |
@@ -123,7 +142,7 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | Auto-pass off: stops wherever you could act, End turn still works; the menu toggle, remembered, `?autoPass=on\|off`, `setAutoPass()`; prompts that name whose step it is | `tests/app/controller.test.ts` › auto-pass · `tests/ui/game.test.tsx` › auto-pass · `e2e/game.spec.ts` › auto-pass |
 | AI runs on timers the player can follow, and waits for the animations it should see; controller replays and concessions | `tests/app/controller.test.ts` › GameController, animation cues |
 | Mobile layout without horizontal overflow at 360×640 and on a Pixel 7; no console errors | `e2e/game.spec.ts` (projects `mobile`, `small-phone`) |
-| Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`, `opponent()`, `llmDecisions()`, `llmPrompt()`, `idle()`, `setAutoPass()`), URL parameters (`deck`, `aiDeck`, `fx`, `ai`, `model`, `autoPass`), `data-testid`, `data-fx` and `data-llm` hooks | `tests/app/controller.test.ts` › test API, animation cues · `tests/app/llm.test.ts` · `e2e/game.spec.ts` · `e2e/animations.spec.ts` · `e2e/llm.spec.ts` |
+| Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`, `opponent()`, `llmDecisions()`, `llmPrompt()`, `idle()`, `setAutoPass()`, `audio.*`), URL parameters (`deck`, `aiDeck`, `fx`, `ai`, `model`, `autoPass`, `music`, `sfx`), `data-testid`, `data-fx`, `data-llm` and `data-audio` hooks | `tests/app/controller.test.ts` › test API, animation cues · `tests/app/llm.test.ts` · `e2e/game.spec.ts` · `e2e/animations.spec.ts` · `e2e/llm.spec.ts` |
 | `docs/CARDS.md` matches the card definitions | `tests/docs.test.ts` · `npm run cards -- --check` |
 | Card art: every card has `public/cards/<id>.svg`, shown in hand, on the battlefield and in the card sheet; each deck's featured card on its box | `tests/ui/art.test.ts` · `tests/ui/game.test.tsx` › card art · `e2e/game.spec.ts` › every card shows art, every deck box shows its featured art |
 

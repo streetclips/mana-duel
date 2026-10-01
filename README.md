@@ -35,6 +35,11 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 - Every change is animated: the card the opponent plays is shown with its target, creatures strike each other in
   combat, damage and life changes pop, the dead fade out in their place, drawn cards slide into your hand and each
   turn is announced. `?fx=slow` plays them in slow motion and `?fx=off` turns them off.
+- Music and sound effects: each deck plays its own theme, in the colors of its cards, that brings in the drums when
+  creatures attack and turns tense at low life; every play, hit, death and turn has its sound, timed with its
+  animation, and the game ends on a victory or a defeat. All of it is synthesized with the Web Audio API, starts
+  with your first tap and turns off from the menu or the start screen (`?music=off`, `?sfx=off`). Details in
+  [`docs/AUDIO.md`](docs/AUDIO.md).
 
 ## What is inside
 
@@ -59,6 +64,9 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   open, a deck viewer, light
   and dark themes, a game log, animations driven by cues that tests and agents can read, and an automation API on
   `window.manaDuel`.
+- **Audio** (`src/audio`): a generative score, one theme per color combination and four moods that follow the game,
+  scheduled ahead of the audio clock, and a sound for every animation cue, each built from layers of synthesized
+  tones and noise. Tests read what plays and render every sound offline.
 - **Cards**: 119 cards — 111 that belong to a single deck (16 in Emberwild, 14 each in Dawntide, Duskmire,
   Sunmeadow and Brightforge, 13 each in Stormglass, Mistgrave and Gloamwood), the five basic lands, which any deck may
   use, and three tokens that cards create (Soldier, Elemental, Saproling) — each with its own SVG illustration in
@@ -68,7 +76,7 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 
 | Command | What it proves |
 | --- | --- |
-| `npm test` | Engine, AI, controller and UI tests (Vitest, happy-dom), including 50 feature checks |
+| `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 50 feature checks |
 | `npm run sim -- --games 1000` | Headless AI games in all 64 deck matchups, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup) |
 | `npm run test:e2e` | Playwright on the production build, two phone viewports |
 | `npm run test:live` | Real OpenRouter calls, one per decision kind (needs `OPENROUTER_API_KEY`, spends credits; `OPENROUTER_MODEL` picks the model). `npm run sim -- --p1 llm --model <id> --log 1` plays a whole game against it |
@@ -88,14 +96,15 @@ src/
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
 ├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy
 ├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks
+├── audio/    music (themes and moods), cues (a sound per cue), synth, engine, director, render, sounds, gate
 └── ui/       App, StartScreen (deck and AI selector), Game, model (interaction logic), deckChoice,
-              opponentChoice, autoPassChoice, fx and motion (animations), components/ (Board, Card, DeckBox,
-              DeckSelect, DeckViewer, Fx, Overlays), styles.css
+              opponentChoice, autoPassChoice, audioChoice, fx and motion (animations), components/ (Board, Card,
+              DeckBox, DeckSelect, DeckViewer, Fx, Overlays, SoundToggles), styles.css
 public/cards/ one SVG illustration per card, named <id>.svg
-tests/        engine/ ai/ llm/ app/ ui/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
+tests/        engine/ ai/ llm/ app/ ui/ audio/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
 e2e/          Playwright specs
 scripts/      sim.ts, cards.ts, openrouterProxy.ts
-docs/         RULES.md, VERIFICATION.md, CARDS.md, LLM.md
+docs/         RULES.md, VERIFICATION.md, CARDS.md, LLM.md, AUDIO.md
 ```
 
 Mana Duel is an independent fan project inspired by Magic: The Gathering, a trademark of Wizards of the Coast. Card

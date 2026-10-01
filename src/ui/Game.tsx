@@ -23,6 +23,7 @@ import { ActionBar, CenterStrip, Lands, PlayerBar } from './components/Board';
 import { DeckViewer } from './components/DeckViewer';
 import { FxLayer } from './components/Fx';
 import { CardSheet, CloseIcon, GameOverModal, LogIcon, LogPanel, Menu, MenuIcon } from './components/Overlays';
+import type { AudioToggles } from './components/SoundToggles';
 import {
   actionsForCard,
   barModel,
@@ -42,6 +43,7 @@ import { useControllerVersion } from './useController';
 
 interface GameProps {
   controller: GameController;
+  audio?: AudioToggles;
   onHome: () => void;
 }
 
@@ -123,7 +125,7 @@ function Battlefield({ s, player, items, children }: BattlefieldProps) {
   );
 }
 
-export function Game({ controller, onHome }: GameProps) {
+export function Game({ controller, audio, onHome }: GameProps) {
   useControllerVersion(controller);
   const s = controller.state;
   const human = controller.human;
@@ -487,6 +489,20 @@ export function Game({ controller, onHome }: GameProps) {
           gameOver={gameOver}
           fast={controller.aiDelayMs < 300}
           autoPass={controller.autoPass}
+          audio={
+            audio && {
+              music: audio.music,
+              sfx: audio.sfx,
+              onToggleMusic: () => {
+                setMenuOpen(false);
+                audio.onToggleMusic();
+              },
+              onToggleSfx: () => {
+                setMenuOpen(false);
+                audio.onToggleSfx();
+              },
+            }
+          }
           onLog={() => {
             setMenuOpen(false);
             setLogOpen(true);
