@@ -513,7 +513,7 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F29',
-    title: 'Decks: eight 40-card decks with 16 lands each and no nonland card in common',
+    title: 'Decks: eleven 40-card decks with 16 lands each and no nonland card in common',
     run: () => {
       const owners = new Map<string, number>();
       for (const deck of DECK_LIST) {
@@ -523,7 +523,7 @@ export const CHECKS: Check[] = [
       return first(
         expectValue(
           DECK_LIST.map((deck) => deck.id),
-          ['emberwild', 'dawntide', 'duskmire', 'stormglass', 'sunmeadow', 'brightforge', 'mistgrave', 'gloamwood'],
+          ['emberwild', 'dawntide', 'duskmire', 'stormglass', 'sunmeadow', 'brightforge', 'mistgrave', 'gloamwood', 'vesperhall', 'cindermaw', 'deepgrove'],
           'decks',
         ),
         expectValue(
@@ -966,6 +966,126 @@ export const CHECKS: Check[] = [
         expectValue(returned, ['battlefield', 1, 20], 'after the undying trigger'),
         expectValue(s.players[1].life, 19, 'opponent life after the ability'),
       );
+    },
+  },
+  {
+    id: 'F52',
+    title: '"Whenever you gain life": Vesper Novice grows and Sanguine Chorister drains; lifelink damage dealt at once is one gain',
+    run: () => {
+      let collector = createScenario({
+        players: [
+          {
+            hand: [{ card: 'tithe_collector', id: 'collector' }],
+            battlefield: ['swamp', 'swamp', { card: 'sanguine_chorister', id: 'chorister' }, { card: 'vesper_novice', id: 'novice' }],
+          },
+          {},
+        ],
+      });
+      collector = resolve(play(collector, [{ type: 'cast', player: 0, card: 'collector', targets: [] }]));
+      let combat = toAttackers(
+        createScenario({
+          players: [
+            { battlefield: [{ card: 'chantry_guard', id: 'guard' }, { card: 'ghostlit_penitent', id: 'penitent' }, { card: 'vesper_novice', id: 'novice' }] },
+            {},
+          ],
+        }),
+      );
+      combat = toMain2(play(combat, [{ type: 'declareAttackers', player: 0, attackers: ['guard', 'penitent'] }]));
+      return first(
+        expectValue([collector.players[0].life, collector.players[1].life, collector.cards.novice?.counters], [21, 18, 1], 'after Tithe Collector'),
+        expectValue([combat.players[0].life, combat.cards.novice?.counters], [23, 1], 'after two lifelink attackers'),
+      );
+    },
+  },
+  {
+    id: 'F53',
+    title: 'Bloodthirst: Blistering Hellion gets two +1/+1 counters only once the opponent was dealt damage this turn, until the turn ends',
+    run: () => {
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'blistering_hellion', id: 'h1' }, { card: 'blistering_hellion', id: 'h2' }, { card: 'bloodfire_bolt', id: 'bolt' }],
+            battlefield: ['mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'swamp', 'swamp', 'swamp'],
+          },
+          {},
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'h1', targets: [] }]));
+      const before = s.cards.h1?.counters;
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'bolt', targets: [{ player: 1 }] }]));
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'h2', targets: [] }]));
+      const after = [s.cards.h2?.counters, getPower(s, 'h2'), getToughness(s, 'h2')];
+      s = passUntil(s, (state) => state.activePlayer === 1 && state.step === 'main1' && state.pending?.kind === 'priority');
+      return first(
+        expectValue(before, 0, 'Blistering Hellion cast first'),
+        expectValue(after, [2, 5, 4], 'Blistering Hellion cast after Bloodfire Bolt'),
+        expectValue(s.players[1].damagedThisTurn, false, 'next turn'),
+      );
+    },
+  },
+  {
+    id: 'F54',
+    title: "Hexproof: Ember Snap can't target Mossfin Lurker; Shell of the Deep in response makes Magma Lance lose its target",
+    run: () => {
+      const snap = createScenario({
+        players: [
+          { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+          { battlefield: [{ card: 'mossfin_lurker', id: 'lurker' }] },
+        ],
+      });
+      let lance = createScenario({
+        players: [
+          { hand: [{ card: 'magma_lance', id: 'lance' }], battlefield: ['mountain', 'mountain', 'mountain'] },
+          { hand: [{ card: 'shell_of_the_deep', id: 'shell' }], battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }] },
+        ],
+      });
+      lance = resolve(
+        play(lance, [
+          { type: 'cast', player: 0, card: 'lance', targets: [{ card: 'croc' }] },
+          { type: 'pass', player: 0 },
+          { type: 'cast', player: 1, card: 'shell', targets: [{ card: 'croc' }] },
+        ]),
+      );
+      return first(
+        refused(snap, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] }, 'target 0 (lurker) is not legal'),
+        expectValue([zone(lance, 'croc'), zone(lance, 'lance'), getKeywords(lance, 'croc')], ['battlefield', 'graveyard', ['hexproof']], 'after Magma Lance'),
+      );
+    },
+  },
+  {
+    id: 'F55',
+    title: 'Evolve: Shoal Hatchling grows when Kelpweaver Druid enters, not when an equal creature does',
+    run: () => {
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'kelpweaver_druid', id: 'druid' }, { card: 'shoal_hatchling', id: 'second' }],
+            battlefield: ['forest', 'forest', 'forest', { card: 'shoal_hatchling', id: 'first' }],
+          },
+          {},
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'druid', targets: [] }]));
+      const grown = [s.cards.first?.counters, getPower(s, 'first'), getToughness(s, 'first')];
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'second', targets: [] }]));
+      return first(
+        expectValue(grown, [1, 2, 2], 'after Kelpweaver Druid'),
+        expectValue([s.cards.first?.counters, s.cards.second?.counters], [1, 0], 'after a second Shoal Hatchling'),
+      );
+    },
+  },
+  {
+    id: 'F56',
+    title: 'Bite: Snapjaw Strike makes Mossfin Lurker deal damage equal to its power to a creature, and it takes none back',
+    run: () => {
+      let s = createScenario({
+        players: [
+          { hand: [{ card: 'snapjaw_strike', id: 'strike' }], battlefield: ['forest', 'forest', { card: 'mossfin_lurker', id: 'lurker' }] },
+          { battlefield: [{ card: 'mossbark_bear', id: 'bear' }] },
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'strike', targets: [{ card: 'lurker' }, { card: 'bear' }] }]));
+      return expectValue([zone(s, 'bear'), s.cards.lurker?.damage], ['graveyard', 0], 'after Snapjaw Strike');
     },
   },
   {

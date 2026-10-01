@@ -89,7 +89,7 @@ describe('engine properties', () => {
         expect(final.pending?.kind, decks.join(' vs ')).toBe('gameOver');
       }
     }
-  });
+  }, 30_000);
 
   it('names the cards of every event as mentions that read as its text, never a card drawn by the other player', () => {
     let mentions = 0;

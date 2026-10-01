@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b1a36"/>
+      <stop offset="1" stop-color="#5a2440"/>
+    </linearGradient>
+    <g id="lancet">
+      <path d="M-6 40 V12 C-6 6 -3 2 0 0 C3 2 6 6 6 12 V40 Z" fill="#2e1a34"/>
+      <path d="M-4.4 38.6 V12.6 C-4.4 8 -2.4 4.6 0 2.6 C2.4 4.6 4.4 8 4.4 12.6 V38.6 Z" fill="#8a5ab0" opacity="0.4"/>
+      <path d="M0 2.6 V38.6 M-4.4 16 H4.4 M-4.4 28 H4.4" stroke="#2e1a34" stroke-width="0.9"/>
+    </g>
+    <ellipse id="coin" cx="0" cy="0" rx="2.6" ry="1.1"/>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <use href="#lancet" x="40" y="6"/>
+  <use href="#lancet" x="60" y="2"/>
+  <use href="#lancet" x="80" y="6"/>
+  <circle cx="60" cy="44" r="26" fill="#ff6b78" opacity="0.08"/>
+  <circle cx="60" cy="46" r="16" fill="#f6c46a" opacity="0.14"/>
+  <path d="M0 62 H120 V80 H0 Z" fill="#241426"/>
+  <path d="M18 56 H102 V60 H18 Z" fill="#4a3a52"/>
+  <path d="M18 56 H102" stroke="#6a5a72" stroke-width="0.8"/>
+  <path d="M26 60 H94 V72 L88 70 L82 72 L76 70 L70 72 L64 70 L58 72 L52 70 L46 72 L40 70 L34 72 L28 70 L26 71 Z" fill="#f3ead6"/>
+  <path d="M26 62.4 H94" stroke="#e8b64a" stroke-width="1.1"/>
+  <path d="M56 60 H64 V71 L60 69.4 L56 71 Z" fill="#9b2335"/>
+  <path d="M54 52.6 H66 L67.6 56 H52.4 Z" fill="#c99a3e"/>
+  <path d="M44 44 H76 C75 50.6 69 54.6 60 54.6 C51 54.6 45 50.6 44 44 Z" fill="#e8b64a"/>
+  <path d="M60 44 H76 C75 50.6 69 54.6 60 54.6 Z" fill="#c99a3e"/>
+  <path d="M47 47.6 C49 50.6 52.6 52.6 56.6 53.4" fill="none" stroke="#fbe29a" stroke-width="1" stroke-linecap="round"/>
+  <ellipse cx="60" cy="44" rx="16" ry="3" fill="#a8792e"/>
+  <ellipse cx="60" cy="44.4" rx="14" ry="2.3" fill="#c23a4b"/>
+  <ellipse cx="60.6" cy="44.4" rx="4.4" ry="0.9" fill="none" stroke="#ff6b78" stroke-width="0.6"/>
+  <path d="M44 44 C44 42.6 50 41 60 41 C70 41 76 42.6 76 44" fill="none" stroke="#fbe29a" stroke-width="0.7"/>
+  <path d="M60.4 33.4 C62 36 62.2 37.6 60.4 38.6 C58.6 37.6 58.8 36 60.4 33.4 Z" fill="#e0304a"/>
+  <path d="M61.6 23 C62.8 25 63 26.2 61.6 27 C60.2 26.2 60.4 25 61.6 23 Z" fill="#e0304a" opacity="0.9"/>
+  <path d="M59.2 13.6 C60.2 15.2 60.4 16.2 59.2 16.8 C58 16.2 58.2 15.2 59.2 13.6 Z" fill="#e0304a" opacity="0.75"/>
+  <path d="M59.8 36 C59.8 36.8 60.2 37.4 60.8 37.6" fill="none" stroke="#ff8a98" stroke-width="0.5" stroke-linecap="round"/>
+  <g fill="#f6d27a" stroke="#a8792e" stroke-width="0.5">
+    <use href="#coin" x="38" y="56"/>
+    <use href="#coin" x="44.6" y="57.4"/>
+    <use href="#coin" x="80" y="57.6"/>
+    <use href="#coin" x="80" y="55.8"/>
+    <use href="#coin" x="80" y="54"/>
+    <use href="#coin" x="86" y="56.6"/>
+  </g>
+  <path d="M84 44 L84.8 46.2 L87 47 L84.8 47.8 L84 50 L83.2 47.8 L81 47 L83.2 46.2 Z" fill="#fff3c4"/>
+  <g fill="#ffd27a">
+    <circle cx="24" cy="40" r="0.8"/>
+    <circle cx="96" cy="36" r="0.9"/>
+    <circle cx="30" cy="20" r="0.6"/>
+    <circle cx="92" cy="14" r="0.7"/>
+  </g>
+</svg>

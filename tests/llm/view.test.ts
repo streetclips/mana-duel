@@ -98,6 +98,17 @@ describe('the view of one seat', () => {
     ]);
   });
 
+  it('tells which player was dealt damage this turn', () => {
+    let s = scenario({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, {}] });
+    expect([playerView(s, 0).opponent.damagedThisTurn, playerView(s, 1).you.damagedThisTurn]).toEqual([undefined, undefined]);
+    s = pass(pass(cast(s, 'snap', [{ player: 1 }])));
+    expect([playerView(s, 0).opponent.damagedThisTurn, playerView(s, 1).you.damagedThisTurn, playerView(s, 0).you.damagedThisTurn]).toEqual([
+      true,
+      true,
+      undefined,
+    ]);
+  });
+
   it('lists the stack from the top, with each item’s text and targets from the viewer’s seat', () => {
     const s = cast(
       scenario({

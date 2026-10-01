@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
   BRIGHTFORGE,
+  CINDERMAW,
   DECK_LIST,
+  DEEPGROVE,
   EMBERWILD,
+  EVOLVE_TRIGGER,
   GLOAMWOOD,
   MISTGRAVE,
   STORMGLASS,
   SUNMEADOW,
+  VESPERHALL,
   cardSummary,
   costColors,
   deckSize,
@@ -27,7 +31,7 @@ import { CORE_CARDS } from '../../src/engine/cards';
 const isLandId = (id: string): boolean => getCardDef(id).types.includes('land');
 
 describe('decks', () => {
-  it('are Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave and Gloamwood', () => {
+  it('are Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave, Gloamwood, Vesperhall, Cindermaw and Deepgrove', () => {
     expect(DECK_LIST.map((deck) => deck.id)).toEqual([
       'emberwild',
       'dawntide',
@@ -37,6 +41,9 @@ describe('decks', () => {
       'brightforge',
       'mistgrave',
       'gloamwood',
+      'vesperhall',
+      'cindermaw',
+      'deepgrove',
     ]);
     expect(getDeck('emberwild')).toBe(EMBERWILD);
     expect(getDeck('stormglass')).toBe(STORMGLASS);
@@ -44,6 +51,15 @@ describe('decks', () => {
     expect(getDeck('brightforge')).toBe(BRIGHTFORGE);
     expect(getDeck('mistgrave')).toBe(MISTGRAVE);
     expect(getDeck('gloamwood')).toBe(GLOAMWOOD);
+    expect(getDeck('vesperhall')).toBe(VESPERHALL);
+    expect(getDeck('cindermaw')).toBe(CINDERMAW);
+    expect(getDeck('deepgrove')).toBe(DEEPGROVE);
+  });
+
+  it('cover every pair of colors once, and black on its own', () => {
+    const combinations = DECK_LIST.map((deck) => [...deck.colors].sort().join(''));
+    expect(new Set(combinations).size).toBe(DECK_LIST.length);
+    expect(combinations.filter((colors) => colors.length === 2)).toHaveLength(10);
   });
 
   for (const deck of DECK_LIST) {
@@ -319,6 +335,92 @@ describe('rules text', () => {
     },
     sporecall: { type: 'Sorcery', text: ['Create two 1/1 green Saproling creature tokens.'] },
     nightshade_tonic: { type: 'Instant', text: ['Target creature gets +1/+1 and gains deathtouch until end of turn.'] },
+    vesper_novice: { type: 'Creature — Human Cleric', text: ['Whenever you gain life, put a +1/+1 counter on this creature.'] },
+    tithe_collector: {
+      type: 'Creature — Human Rogue',
+      text: ['When this creature enters, each opponent loses 1 life. You gain 1 life.'],
+    },
+    chantry_guard: { type: 'Creature — Human Soldier', text: ['Lifelink'] },
+    ghostlit_penitent: { type: 'Creature — Spirit Cleric', text: ['Flying, lifelink'] },
+    censer_bearer: {
+      type: 'Creature — Human Cleric',
+      text: ['When this creature enters, create a 1/1 white and black Spirit creature token with flying.'],
+    },
+    sanguine_chorister: { type: 'Creature — Vampire Cleric', text: ['Whenever you gain life, each opponent loses 1 life.'] },
+    ashveil_executioner: { type: 'Creature — Human Assassin', text: ['Deathtouch, lifelink'] },
+    lanternwing_angel: { type: 'Creature — Angel', text: ['Flying, lifelink'] },
+    gilded_confessor: {
+      type: 'Creature — Human Cleric',
+      text: ["When this creature enters, target creature you don't control gets -1/-1 until end of turn. You gain 2 life."],
+    },
+    vesperhall_matriarch: {
+      type: 'Creature — Vampire Noble',
+      text: ['Flying', 'Whenever you gain life, put a +1/+1 counter on this creature.'],
+    },
+    penance: { type: 'Instant', text: ['Target creature gets -2/-2 until end of turn. You gain 2 life.'] },
+    vesper_vow: { type: 'Instant', text: ['Target creature gets +2/+2 and gains lifelink until end of turn.'] },
+    rite_of_lanterns: { type: 'Sorcery', text: ['Create two 1/1 white and black Spirit creature tokens with flying.'] },
+    last_rites: { type: 'Sorcery', text: ['Destroy target creature. You gain 2 life.'] },
+    blood_tithe: { type: 'Sorcery', text: ['Each opponent loses 2 life. You gain 2 life. Draw a card.'] },
+    spirit_token: { type: 'Token Creature — Spirit', text: ['Flying'] },
+    spitfire_imp: { type: 'Creature — Imp', text: ['Haste', 'When this creature dies, it deals 1 damage to any target.'] },
+    bloodhungry_ghoul: {
+      type: 'Creature — Zombie',
+      text: ['When this creature enters, if an opponent was dealt damage this turn, put a +1/+1 counter on it.'],
+    },
+    pitfire_raider: { type: 'Creature — Human Berserker', text: ['Haste, menace'] },
+    brimstone_skirmisher: {
+      type: 'Creature — Goblin Warrior',
+      text: ['Whenever this creature attacks, it deals 1 damage to target opponent.'],
+    },
+    blistering_hellion: {
+      type: 'Creature — Hellion',
+      text: ['When this creature enters, if an opponent was dealt damage this turn, put two +1/+1 counters on it.'],
+    },
+    pyre_ghast: { type: 'Creature — Zombie Spirit', text: ['When this creature dies, it deals 2 damage to any target.'] },
+    gorehorn_minotaur: {
+      type: 'Creature — Minotaur Berserker',
+      text: ['Menace', 'When this creature enters, if an opponent was dealt damage this turn, put a +1/+1 counter on it.'],
+    },
+    scorchfang_hound: {
+      type: 'Creature — Hound',
+      text: ['Haste', 'Whenever this creature attacks, it deals 1 damage to target opponent.'],
+    },
+    cindermaw_demon: {
+      type: 'Creature — Demon',
+      text: ['Flying', 'When this creature enters, if an opponent was dealt damage this turn, put two +1/+1 counters on it.'],
+    },
+    splitting_flame: {
+      type: 'Sorcery',
+      text: ['Splitting Flame deals 2 damage to target creature and 2 damage to target opponent.'],
+    },
+    bloodfire_bolt: { type: 'Instant', text: ['Bloodfire Bolt deals 3 damage to any target.'] },
+    rend_flesh: { type: 'Sorcery', text: ['Destroy target creature.'] },
+    blood_frenzy: { type: 'Instant', text: ['Target creature gets +2/+0 and gains first strike until end of turn.'] },
+    grim_kindling: { type: 'Sorcery', text: ['Draw two cards. Grim Kindling deals 1 damage to target opponent.'] },
+    shoal_hatchling: { type: 'Creature — Frog', text: ['Evolve'] },
+    reefwing_fledgling: { type: 'Creature — Bird', text: ['Flying, evolve'] },
+    kelpweaver_druid: { type: 'Creature — Merfolk Druid', text: ['{T}: Add {G} or {U}.'] },
+    tidecrest_mutant: { type: 'Creature — Lizard Mutant', text: ['Evolve, hexproof'] },
+    mossfin_lurker: { type: 'Creature — Fish Beast', text: ['Hexproof'] },
+    tanglejaw_croc: {
+      type: 'Creature — Crocodile',
+      text: ["When this creature enters, return target creature you don't control to its owner's hand."],
+    },
+    mistfin_drake: { type: 'Creature — Drake', text: ['Flying'] },
+    coralhide_behemoth: { type: 'Creature — Beast', text: [] },
+    deepgrove_leviathan: { type: 'Creature — Leviathan', text: ['Trample, hexproof'] },
+    snapjaw_strike: {
+      type: 'Sorcery',
+      text: ["Target creature you control deals damage equal to its power to target creature you don't control."],
+    },
+    shell_of_the_deep: {
+      type: 'Instant',
+      text: ['Target creature you control gets +1/+1 and gains hexproof until end of turn.'],
+    },
+    adaptive_bloom: { type: 'Instant', text: ['Put a +1/+1 counter on target creature you control. Draw a card.'] },
+    undertide_lore: { type: 'Sorcery', text: ['Draw two cards.'] },
+    riptide_recall: { type: 'Instant', text: ["Return target creature you don't control to its owner's hand."] },
   };
 
   for (const [id, { type, text }] of Object.entries(expected)) {
@@ -344,6 +446,12 @@ describe('rules text', () => {
   it('describes the undying return like a death trigger', () => {
     expect(triggerText(getCardDef('rotbark_treefolk'), UNDYING_TRIGGER)).toBe(
       "When this creature dies, if it had no +1/+1 counters on it, return it to the battlefield under its owner's control with a +1/+1 counter on it.",
+    );
+  });
+
+  it('describes the evolve trigger like an "another creature you control enters" trigger', () => {
+    expect(triggerText(getCardDef('shoal_hatchling'), EVOLVE_TRIGGER)).toBe(
+      'Whenever another creature you control enters, if it has greater power or toughness than this creature, put a +1/+1 counter on this creature.',
     );
   });
 
@@ -387,6 +495,26 @@ describe('card validation', () => {
         spell: { targets: [{ kind: 'spell' }], effects: [{ kind: 'damage', amount: 1, to: 0 }] },
       }),
     ).toThrow(/only counter effects/);
+  });
+
+  it('rejects "whenever you gain life" abilities that would gain life again', () => {
+    for (const effect of [
+      { kind: 'gainLife', amount: 1 },
+      { kind: 'damage', amount: 1, to: 0 },
+    ] as const) {
+      expect(() =>
+        registerCard({
+          id: `bad_loop_${effect.kind}`,
+          name: 'Bad',
+          types: ['creature'],
+          cost: '{W}',
+          power: 1,
+          toughness: 1,
+          keywords: ['lifelink'],
+          triggers: [{ on: 'lifeGain', targets: effect.kind === 'damage' ? [{ kind: 'any' }] : [], effects: [effect] }],
+        }),
+      ).toThrow(/cannot gain life or deal damage/);
+    }
   });
 
   it('rejects tokens with a cost, discards before other effects, undying returns and sacrificed sources that affect themselves', () => {

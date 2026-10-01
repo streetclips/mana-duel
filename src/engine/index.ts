@@ -2,9 +2,11 @@ export * from './types';
 export { allCardDefs, getCardDef, getCost, hasCardDef, registerCard } from './registry';
 export {
   BRIGHTFORGE,
+  CINDERMAW,
   DAWNTIDE,
   DECKS,
   DECK_LIST,
+  DEEPGROVE,
   DEFAULT_DECK_ID,
   DUSKMIRE,
   EMBERWILD,
@@ -12,6 +14,7 @@ export {
   MISTGRAVE,
   STORMGLASS,
   SUNMEADOW,
+  VESPERHALL,
   deckSize,
   expandDeck,
   getDeck,
@@ -53,6 +56,7 @@ export {
   MAX_HAND_SIZE,
   OPENING_HAND,
   STARTING_LIFE,
+  EVOLVE_TRIGGER,
   UNDYING_TRIGGER,
   cloneState,
   creaturesOf,

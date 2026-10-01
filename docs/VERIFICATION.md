@@ -17,7 +17,7 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | Id | Feature | Tests |
 | --- | --- | --- |
 | F01 | Setup: 40-card decks, seven-card hands, 20 life; the same seed gives the same game | `tests/engine/setup.test.ts` › game setup |
-| F29 | Decks: Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave and Gloamwood, 40 cards and 16 lands each, in their own colors; no nonland card in two decks; every card is in a deck and every token is created by one of their cards | `tests/engine/cards.test.ts` › decks |
+| F29 | Decks: Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave, Gloamwood, Vesperhall, Cindermaw and Deepgrove, 40 cards and 16 lands each, in their own colors, every pair of colors once; no nonland card in two decks; every card is in a deck and every token is created by one of their cards | `tests/engine/cards.test.ts` › decks |
 | F02 | London mulligan: new seven, one card to the bottom per mulligan, at most six | `tests/engine/setup.test.ts` › London mulligan · `tests/ui/game.test.tsx` › opening hand |
 | F03 | Turn order; the starting player skips the first draw | `tests/engine/setup.test.ts` · `tests/engine/turn.test.ts` › turn structure, passing through a whole turn |
 | F04 | One land per turn, main phase, empty stack | `tests/engine/turn.test.ts` › lands |
@@ -55,13 +55,18 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F49 | "Whenever this creature deals combat damage to a player" (Fogslip Thief, Hushwing Bat), not when it is blocked | `tests/engine/spells.test.ts` › Mistgrave |
 | F50 | Undying: the creature returns once, with a +1/+1 counter, as a new object that a spell aimed at it no longer targets | `tests/engine/spells.test.ts` › Gloamwood |
 | F51 | "Sacrifice this creature" as a cost: its death triggers resolve first, then the ability without its source | `tests/engine/spells.test.ts` › Gloamwood |
+| F52 | "Whenever you gain life": once per gain, lifelink damage dealt at once included, never for the opponent's gains (Vesper Novice, Sanguine Chorister, Vesperhall Matriarch); such an ability can't gain life or deal damage | `tests/engine/spells.test.ts` › Vesperhall · `tests/engine/cards.test.ts` › card validation |
+| F53 | Bloodthirst, "if an opponent was dealt damage this turn": damage in or out of combat counts, losing life and damage to yourself don't, the record clears at the next turn (Blistering Hellion, Bloodhungry Ghoul, Brimstone Skirmisher's attack) | `tests/engine/spells.test.ts` › Cindermaw |
+| F54 | Hexproof: the opponent's spells and abilities can't target the creature, its controller's can; gaining it in response makes the opponent's spell lose its target | `tests/engine/spells.test.ts` › Deepgrove |
+| F55 | Evolve: a +1/+1 counter when another creature with greater power or toughness enters under your control, not for an equal one or the opponent's | `tests/engine/spells.test.ts` › Deepgrove |
+| F56 | Bite (Snapjaw Strike): damage equal to the biter's power, none back, deathtouch included; a spell with two targets still acts on the one left (Splitting Flame) | `tests/engine/spells.test.ts` › Deepgrove, Cindermaw |
 | F21 | Activated abilities, repeatable, `{T}` costs | `tests/engine/turn.test.ts` › activated abilities |
 | F22 | Cleanup: discard to seven, damage and pumps wear off | `tests/engine/turn.test.ts` › turn structure |
 | F23 | Game over: 0 life, empty library, concession, turn limit | `tests/engine/gameover.test.ts` |
 | F24 | Every listed action is legal; bad input is refused with a reason and changes nothing | `tests/engine/properties.test.ts` |
 | F25 | Replays: seed plus actions reproduces a game exactly | `tests/engine/properties.test.ts` · `tests/app/controller.test.ts` |
 | F26 | Invariants after every action (one zone per card, clean state off the battlefield) | `tests/engine/properties.test.ts` · `npm run sim` |
-| F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all 64 matchups by default) |
+| F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all 121 matchups by default) |
 
 ## AI
 
@@ -72,9 +77,10 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F37 | Counters threats but lets harmless spells resolve; returns lethal attackers; removal on the biggest threat or a tapped attacker; pays life only when it can afford it | `tests/ai/ai.test.ts` › AI with the Dawntide and Duskmire answers |
 | — | Flashes in blockers when attacked; finds lethal through Galvanic Channeler; puts +1/+1 counters where they are worth most; Rally the Meadow after blockers; Wild Blossom against burn; Pack Pounce before a fight | `tests/ai/ai.test.ts` › AI with the Stormglass and Sunmeadow cards |
 | — | Casts Brightforge Warlord before combat; makes blockers with Raise the Banners against a lethal attack; Rob the Mind only into a hand that holds cards; discards the card it needs least; sacrifices Bonewood Stalker for a better creature; attacks with a skulker nothing may block | `tests/ai/ai.test.ts` › AI with the Brightforge, Mistgrave and Gloamwood cards |
+| — | Waits until after combat to cast a bloodthirsty creature; casts creatures before combat when an evolving attacker grows; answers removal with Shell of the Deep | `tests/ai/ai.test.ts` › AI with the Vesperhall, Cindermaw and Deepgrove cards |
 | — | Mulligans hands whose lands cannot cast their spells | `tests/ai/ai.test.ts` › AI setup decisions |
 | — | Fairness: hidden cards never change a decision, in mirror and mixed matchups | `tests/ai/ai.test.ts` › AI fairness |
-| — | Strength: beats a random player nearly always with any deck; AI vs AI balanced and crash-free | `tests/ai/ai.test.ts` › AI strength · `npm run sim -- --games 1000 --quiet` (`"errors": 0`, per-deck `winRate` near 0.5) · `npm run sim -- --p0 random --games 50 --quiet` |
+| — | Strength: beats a random player nearly always with any deck; AI vs AI balanced and crash-free | `tests/ai/ai.test.ts` › AI strength · `npm run sim -- --games 3000 --quiet` (`"errors": 0`, per-deck `winRate` near 0.5) · `npm run sim -- --p0 random --games 50 --quiet` |
 
 ## LLM opponent
 
@@ -82,7 +88,7 @@ How it works is in `docs/LLM.md`. Everything here runs offline, against mocked m
 
 | Feature | Tests |
 | --- | --- |
-| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat, pumps, keywords granted until end of turn, +1/+1 counters and tokens, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
+| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat, pumps, keywords granted until end of turn, +1/+1 counters and tokens, which player was dealt damage this turn, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
 | Fairness: the prompt is the same whatever the hidden cards are, over real games in three matchups; the latest events and thoughts, in order | `tests/llm/player.test.ts` › the LLM prompt |
 | Every legal action is an option for mulligans, priority and targets; attackers, blockers and cards to bottom or discard are constrained fields, a discard names the card that causes it; a refused answer names the rule | `tests/llm/decision.test.ts` |
 | One call per real decision, none for a forced one; retries with the reason; the classic AI when every attempt fails or time runs out; unavailable after 401, 402 or 404; cancellation; lazy loading | `tests/llm/player.test.ts` |
@@ -102,7 +108,7 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | --- | --- | --- |
 | F38 | Combat: an attacker and its blocker strike each other; the damage, the trample to the player and the death show, and the dead creature fades out in its own place | `tests/app/fx.test.ts` › combat · `tests/ui/animations.test.tsx` › animations of combat · `e2e/animations.spec.ts` › in combat |
 | F39 | The opponent's spell is revealed with its target; burn shows the life lost; a new turn is announced and deals the drawn card | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` › animations of plays, of draws and turns · `e2e/animations.spec.ts` |
-| — | Lands and permanents entering, tokens entering, abilities, pumps and shrinks with the keywords they grant, +1/+1 counters and pumps for every creature you control (shown as pumps), an undying creature dying and coming back, lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
+| — | Lands and permanents entering, tokens entering, abilities, pumps and shrinks with the keywords they grant, +1/+1 counters and pumps for every creature you control (shown as pumps), an undying creature dying and coming back, a bite striking its target, lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
 | — | Timing: hits land after the strikes, draws deal one after another, hooks stay until a newer action animates something, slow motion, a new game starts over | `tests/ui/fxTracker.test.ts` |
 | — | Pacing: with an AI delay the AI and automatic passing wait for the opponent's plays and for combat to be seen; not with `aiDelay=0` or `fx=off` | `tests/app/controller.test.ts` › animation cues |
 | — | Browser: CSS and Web Animations run and end, `freezeFx` holds them, `fx=off` and `fx=slow`, reduced motion, no overflow mid-animation, no console errors | `e2e/animations.spec.ts` |
@@ -138,6 +144,7 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 | Counterspells target a spell by tapping it in the center strip; stack items open their card | `tests/ui/game.test.tsx` › counterspells · `e2e/game.spec.ts` › URL parameters pick the decks |
 | Flash creatures cast from the card sheet in the opponent's turn; +1/+1 counters raise the P/T tag and show in the card sheet | `e2e/game.spec.ts` › Stormglass and Sunmeadow |
 | Tokens on the battlefield and in the card sheet; sacrifice abilities from the card sheet; a spell that makes you discard asks which card, naming itself; an undying creature back with its counter | `tests/ui/game.test.tsx` › tokens, sacrifices and discards · `e2e/game.spec.ts` › Brightforge, Mistgrave and Gloamwood |
+| A hexproof creature never glows as the opponent's target; life gain and evolve raise a creature's P/T tag; a bloodthirsty creature cast after a hit arrives with its counters | `e2e/game.spec.ts` › Vesperhall, Cindermaw and Deepgrove |
 | Controller decks: per-seat decks, kept by "New game", recorded in replays, none for scenarios | `tests/app/controller.test.ts` › decks |
 | Automatic passing and End turn (behaviour described in `docs/RULES.md`) | `tests/app/controller.test.ts` › auto-pass, ends the turn on request |
 | Auto-pass off: stops wherever you could act, End turn still works; the menu toggle, remembered, `?autoPass=on\|off`, `setAutoPass()`; prompts that name whose step it is | `tests/app/controller.test.ts` › auto-pass · `tests/ui/game.test.tsx` › auto-pass · `e2e/game.spec.ts` › auto-pass |
@@ -176,3 +183,8 @@ For a human-eyes check on a phone-sized viewport (for example Playwright at 390�
    run `manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: ['forest', 'ember_snap'] }, { hand:
    ['memory_leech'], battlefield: ['swamp', 'swamp', 'swamp'] }] })` and `manaDuel.settle()`: the AI casts Memory
    Leech and the prompt asks you to choose 1 card to discard.
+8. Try the Vesperhall, Cindermaw and Deepgrove mechanics: open `/?seed=2&first=you&deck=cindermaw&aiDeck=deepgrove&aiDelay=0`
+   and run `manaDuel.loadScenario({ players: [{ hand: ['bloodfire_bolt', 'blistering_hellion'], battlefield:
+   ['swamp', 'mountain', 'mountain', 'mountain', 'mountain'] }, { battlefield: ['mossfin_lurker'] }] })`. Cast
+   Bloodfire Bolt: the Mossfin Lurker never glows as a target, so aim it at the AI. Then cast Blistering Hellion: it
+   arrives as a 5/4 with two +1/+1 counters, because the AI was dealt damage this turn.

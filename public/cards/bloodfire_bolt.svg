@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a1014"/>
+      <stop offset="0.6" stop-color="#3a1418"/>
+      <stop offset="1" stop-color="#6a2420"/>
+    </linearGradient>
+    <path id="drop" d="M0 -2.6 C0 -2.6 -1.4 -0.2 -1.4 0.7 C-1.4 1.5 -0.8 2.1 0 2.1 C0.8 2.1 1.4 1.5 1.4 0.7 C1.4 -0.2 0 -2.6 0 -2.6 Z"/>
+    <path id="cloud" d="M28 16 C21 16 20 9 27 8 C27 2 36 -1 41 3 C45 -3 58 -3 61 3 C66 -2 78 -1 80 5 C87 3 95 8 92 13 C94 15 92 17.6 88 17.6 H31 C29.6 17.6 28.6 17 28 16 Z"/>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="58" cy="40" r="30" fill="#c23a4b" opacity="0.12"/>
+  <use href="#cloud" fill="#9b2335" opacity="0.6" transform="translate(0 2.4)"/>
+  <use href="#cloud" fill="#24121a"/>
+  <path d="M34 14 C38 12 44 12.6 48 14.6 M66 12 C72 10.4 78 11 82 13.6" fill="none" stroke="#3e1e26" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M0 66 L12 64 L26 66.4 L40 63.4 L54 65 L68 63 L84 65.6 L100 63.6 L120 65 V80 H0 Z" fill="#1e1014"/>
+  <path d="M73 12 L63 30 L68 31 L56 47 L61 48 L50 65" fill="none" stroke="#e8283e" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.18"/>
+  <path d="M66 10 L80 10 L70 26 L78 26 L62 44 L69 44 L50 66 L56 47 L49 47 L60 30 L53 30 Z" fill="#d23a2c" stroke="#f28a3b" stroke-width="1.4" stroke-linejoin="round"/>
+  <path d="M68.6 12 L76.2 12 L66.6 27.6 L73.6 27.6 L60.6 42.6 L65.6 42.6 L53.6 59.4 L57.6 45.6 L51.6 45.6 L62 28.6 L56.6 28.6 Z" fill="#1a080c"/>
+  <path d="M71.6 13.4 L64.6 26.6 M66.4 30.4 L58.4 41.6 M60.4 46 L55.6 54.6" stroke="#9b2335" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M50 66 L42 60 L44 66 L34 64 L42 68.6 L36 72 L46 70.6 L48 76 L52 70.4 L60 74 L56 68.6 L66 68 L56 65.4 L60 58 Z" fill="#c8302a"/>
+  <path d="M50 66.4 L45.4 63 L46.6 66.4 L41 65.6 L45.6 68.4 L42.4 70.6 L47.6 69.6 L49 72.4 L51.6 69.4 L56 71 L53.6 68.4 L59 67.6 L54 66 L56 61.6 Z" fill="#f28a3b"/>
+  <ellipse cx="50.6" cy="67.4" rx="3.6" ry="1.8" fill="#fbd46a"/>
+  <g fill="#5e0e18">
+    <use href="#drop" transform="translate(36 56) rotate(-40) scale(0.8)"/>
+    <use href="#drop" transform="translate(66 58) rotate(40) scale(0.7)"/>
+    <use href="#drop" transform="translate(30 66) rotate(-70) scale(0.6)"/>
+    <use href="#drop" transform="translate(70 66) rotate(70) scale(0.6)"/>
+  </g>
+  <g fill="#9b2335">
+    <use href="#drop" transform="translate(80 32) scale(0.7)"/>
+    <use href="#drop" transform="translate(48 38) scale(0.6)"/>
+    <use href="#drop" transform="translate(74 50) scale(0.5)"/>
+  </g>
+  <g fill="#f6a13b">
+    <circle cx="26" cy="40" r="0.9"/>
+    <circle cx="90" cy="44" r="1"/>
+    <circle cx="40" cy="26" r="0.8"/>
+    <circle cx="86" cy="24" r="0.7"/>
+    <circle cx="100" cy="56" r="0.8"/>
+  </g>
+</svg>

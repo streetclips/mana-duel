@@ -1,14 +1,14 @@
 # Rules
 
-Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its eight decks need. This page is the
+Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its eleven decks need. This page is the
 contract of `src/engine`: what is implemented, and where it deliberately differs from Magic.
 
 ## Game
 
-- Two players, 20 life each, seven-card opening hands. Each player brings one of eight 40-card decks, chosen
+- Two players, 20 life each, seven-card opening hands. Each player brings one of eleven 40-card decks, chosen
   before the game: Emberwild (red/green), Dawntide (white/blue), Duskmire (black), Stormglass (blue/red),
-  Sunmeadow (green/white), Brightforge (red/white), Mistgrave (blue/black) or Gloamwood (black/green). Both may
-  bring the same deck.
+  Sunmeadow (green/white), Brightforge (red/white), Mistgrave (blue/black), Gloamwood (black/green), Vesperhall
+  (white/black), Cindermaw (black/red) or Deepgrove (green/blue). Both may bring the same deck.
   No nonland card appears in two decks; basic lands may.
 - The starting player comes from a seeded coin flip (or `startingPlayer`). They skip their first draw.
 - London mulligan: shuffle the hand away, draw seven, and once you keep, put one card on the bottom per mulligan.
@@ -41,13 +41,17 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
   it can block as soon as it enters.
 - A spell or ability whose targets are all illegal on resolution fizzles. A fight does nothing if either creature is
   gone. One spell cannot pick the same target twice.
+- Hexproof: a creature with hexproof can't be the target of spells or abilities its controller's opponent
+  controls. Its own controller can still target it, and one that gains hexproof in response makes the opponent's
+  spell lose it as a target (Shell of the Deep against Magma Lance).
 - A counterspell targets a spell on the stack, never an ability. The countered spell leaves the stack for its
   owner's graveyard without resolving: a countered creature never enters, so its "enters" triggers never happen.
   Counterspells can counter counterspells.
 
 ## Mana
 
-- Lands and Grove Tender tap for one mana of their color. A summoning-sick creature cannot tap for mana.
+- Lands and Grove Tender tap for one mana of their color, Kelpweaver Druid for {G} or {U}. A summoning-sick creature
+  cannot tap for mana.
 - Paying is automatic: the engine taps lands before creatures and keeps untapped the colors your other cards need.
   There is no mana pool: mana appears exactly when a cost is paid.
 
@@ -69,9 +73,9 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 
 - Triggers: "when this creature enters", "when this creature dies", "whenever this creature attacks", "whenever
   you cast an instant or sorcery spell", "whenever another creature you control enters", "whenever another
-  creature you control dies" and "whenever this creature deals combat damage to a player". They go on the stack
-  the next time a player would receive priority, the active player's first; targets are chosen then. A trigger with
-  no legal target is skipped.
+  creature you control dies", "whenever this creature deals combat damage to a player" and "whenever you gain
+  life". They go on the stack the next time a player would receive priority, the active player's first; targets are
+  chosen then. A trigger with no legal target is skipped.
 - "Another creature you control" includes tokens, one trigger per creature: Raise the Banners gives Forge Cadet
   two +1/+1 counters. Creatures that die at the same time see each other die: two Rotwing Crows killed by one
   attacker each drain for the other.
@@ -80,6 +84,17 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 - "Whenever you cast an instant or sorcery spell" triggers for each permanent of the caster that has it, and only
   for that player's instants and sorceries, not for creature spells. The trigger goes on the stack above the spell,
   so it resolves first (Arc Initiate is already 3/3 when the Static Jolt that triggered it resolves).
+- "Whenever you gain life" triggers once per gain, not per point: lifelink damage dealt at the same time is one gain
+  (two lifelink attackers in one combat damage step trigger Vesper Novice once), and each spell or ability that
+  gains life is another. Only its controller's gains count. Such an ability never gains life or deals damage
+  itself, so it cannot loop.
+- Bloodthirst: "when this creature enters, if an opponent was dealt damage this turn" (Cindermaw) checks as the
+  creature enters whether any source dealt the opponent damage this turn, in combat or not. Losing life is not
+  damage, and damage to yourself does not count. The record clears when the next turn begins. Without it, the
+  trigger never happens.
+- Evolve: whenever another creature enters under your control with greater power or greater toughness than the
+  creature with evolve, that creature gets a +1/+1 counter. Both are compared as the newcomer enters, with the
+  counters and pumps each has then; tokens count, the opponent's creatures don't.
 - Activated abilities use the stack and can be activated as often as you can pay (Crag Dragon: `{R}: +1/+0`,
   Duskmire Shade: `{B}: +1/+1`).
 - "Sacrifice this creature" is a cost: the creature dies as the ability goes on the stack, so its death triggers
@@ -101,12 +116,15 @@ contract of `src/engine`: what is implemented, and where it deliberately differs
 - **+1/+1 counters** add to power and toughness like printed stats, damage and `-N/-N` included, and stay until the
   creature leaves the battlefield: cleanup keeps them; dying or returning to hand removes them. "Each creature you
   control" counts the creatures on the battlefield when it resolves, the source itself included.
+- **Bite** ("target creature you control deals damage equal to its power to target creature you don't control",
+  Snapjaw Strike) is a one-sided fight: the other creature deals no damage back. It uses the biter's power, deathtouch
+  and lifelink when it resolves, and does nothing if either creature is gone.
 - **Destroy** puts a creature into its owner's graveyard, which triggers "when this creature dies".
 - **Return to hand** puts a creature back in its owner's hand: it leaves combat and loses its damage, pumps and
   tapped state. Cast again, it is a new creature with summoning sickness.
 - **Counter** removes a spell from the stack (see above).
 - **Draw**, **gain life** and **lose life** affect the controller of the spell or ability, except "each opponent
-  loses N life" (Rotwing Crow, Bloodspore Thrall). Losing life is not damage: lifelink and deathtouch don't apply,
+  loses N life" (Rotwing Crow, Bloodspore Thrall, Tithe Collector, Sanguine Chorister). Losing life is not damage: lifelink and deathtouch don't apply,
   and it can make you lose the game.
 - **Keyword grants**: "gains first strike / haste / deathtouch until end of turn" work like pumps, alone or with
   one ("+1/+0 and first strike"), on one creature or on each creature you control. They end at cleanup.
@@ -150,4 +168,6 @@ auto-pass skips for you; with auto-pass off, both seats get the same ones.
 | The same object may be targeted by two "target" words | Targets are always distinct |
 | Counterspells can counter abilities or specific kinds of spell | Only "counter target spell", any spell |
 | A discard happens where it is written, and some are at random | The discarding player always chooses, and a discard is the last effect of its ability |
+| Evolve checks again, as its trigger resolves, that the newcomer is still bigger | Evolve only compares as the creature enters |
+| Bloodthirst makes a creature enter with its counters | A triggered ability: the counters arrive when it resolves, so the creature can be answered while it is small |
 | Counters other than +1/+1, exile, graveyard targets, auras, equipment, replacement effects, layers | Not in the engine yet |

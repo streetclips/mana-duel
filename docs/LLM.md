@@ -38,7 +38,7 @@ sections, the constant ones first so providers can cache the prefix:
    (`thoughtLine`), so it can keep to a plan. Fallbacks and forced moves add none.
 5. **Game state from your seat**: `playerView` as compact JSON. Its hand, both battlefields (tapped, sick, damage,
    combat, pumps and keywords granted `untilEndOfTurn`, `plusOneCounters`, `token`), graveyards, untapped mana,
-   life, the stack from the top.
+   life, `damagedThisTurn` for a player dealt damage this turn (what bloodthirst checks), the stack from the top.
 6. **Decision**: the question, the options and how to answer.
 
 Hidden from the model: the opponent's hand (`handSize` only), both libraries (`libraryCards` only), the seed and

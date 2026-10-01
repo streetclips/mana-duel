@@ -89,6 +89,7 @@ export function emptyPlayer(id: PlayerId, name: string): PlayerState {
     bottomed: false,
     drewFromEmptyLibrary: false,
     conceded: false,
+    damagedThisTurn: false,
   };
 }
 
@@ -614,6 +615,7 @@ function goToNextStep(s: GameState): void {
       s.turn += 1;
       s.activePlayer = opponent(s.activePlayer);
     }
+    for (const ps of s.players) ps.damagedThisTurn = false;
     s.events.push({ t: 'turn', turn: s.turn, player: s.activePlayer });
     if (s.turn > s.turnLimit) {
       endGame(s, null, 'turnLimit');

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16384a"/>
+      <stop offset="1" stop-color="#3a7f7a"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="60" cy="24" r="30" fill="#e8f5d0" opacity="0.06"/>
+  <circle cx="60" cy="24" r="18" fill="#e8f5d0" opacity="0.08"/>
+  <g fill="none" stroke="#24505a" stroke-linecap="round">
+    <path d="M14 56 C15 40 13 28 16 14 M108 56 C107 42 109 30 106 16" stroke-width="3.4"/>
+    <path d="M15 30 C10 26 8 22 6 16 M15 24 C19 20 22 14 22 8 M107 30 C112 26 114 22 116 18 M107 24 C103 20 101 14 102 8" stroke-width="1.6"/>
+  </g>
+  <path d="M0 56 Q30 53 60 56 T120 56 V80 H0 Z" fill="#1f5a66"/>
+  <path d="M44 20 C47 32 52 44 58 56 L62 56 C68 44 73 32 76 18 C70 26 66 36 60 40 C54 36 50 28 44 20 Z" fill="#b84a5e"/>
+  <path d="M52 44 C55 48 57 52 58 56 L62 56 C63 52 65 48 68 44 C65 46 62 47 60 47 C58 47 55 46 52 44 Z" fill="#6a2a3a"/>
+  <path d="M43.5 16.1 L46.1 18 L44.7 20.9 L47.5 22.7 L46.1 25.7 L49.1 27.4 L47.7 30.5 L50.9 32.1 L49.5 35.3 L52.7 36.8 L51.3 40.1 L54.7 41.5 L53.3 44.9 L56.8 46.3 L55.3 49.7 Z M76.5 14.4 L73.9 16.6 L75.3 19.7 L72.5 21.8 L73.9 24.9 L70.9 26.8 L72.3 30.1 L69.1 31.8 L70.5 35.1 L67.2 36.6 L68.7 40 L65.3 41.5 L66.7 44.9 L63.2 46.2 L64.7 49.7 Z" fill="#f4f0e0"/>
+  <path d="M44 60 C40 46 36 30 38 12 C40 11 42 12 43 14 C46 28 52 42 58 56 Z" fill="#2f5f55"/>
+  <path d="M76 60 C80 46 84 30 82 10 C80 9 78 10 77 12 C74 28 68 42 62 56 Z" fill="#35685c"/>
+  <path d="M42 56 C39 44 36.6 30 38.4 13 M78 56 C81 44 83.4 30 81.6 11" fill="none" stroke="#5a9a82" stroke-width="1" stroke-linecap="round"/>
+  <g fill="#4f8f7a">
+    <circle cx="42" cy="36" r="0.9"/>
+    <circle cx="44" cy="44" r="0.8"/>
+    <circle cx="41" cy="26" r="0.7"/>
+    <circle cx="79" cy="30" r="0.8"/>
+    <circle cx="80" cy="22" r="0.7"/>
+  </g>
+  <path d="M36 62 C36 55 42 50.4 50 50 C55 49.8 58 51.4 60 54 C62 51.4 65 49.8 70 50 C78 50.4 84 55 84 62 Z" fill="#2f5f55"/>
+  <path d="M40 56 C42 53 46 51.6 50 51.6 M80 56 C78 53 74 51.6 70 51.6" fill="none" stroke="#5a9a82" stroke-width="0.9" stroke-linecap="round"/>
+  <ellipse cx="48" cy="54" rx="3.4" ry="2.6" fill="#35685c"/>
+  <ellipse cx="72" cy="54" rx="3.4" ry="2.6" fill="#35685c"/>
+  <circle cx="48" cy="54.4" r="2" fill="#f2cf6b"/>
+  <circle cx="72" cy="54.4" r="2" fill="#f2cf6b"/>
+  <ellipse cx="48" cy="54.4" rx="0.5" ry="1.6" fill="#1d1c1a"/>
+  <ellipse cx="72" cy="54.4" rx="0.5" ry="1.6" fill="#1d1c1a"/>
+  <path d="M45.2 52.6 C46.8 51 49.6 51 51 52.8 M69 52.8 C70.4 51 73.2 51 74.8 52.6" fill="none" stroke="#264f46" stroke-width="1" stroke-linecap="round"/>
+  <path d="M0 60 Q30 58 60 60 T120 60 V80 H0 Z" fill="#1f5a66"/>
+  <path d="M0 68 Q30 65 60 68 T120 68 V80 H0 Z" fill="#174a56"/>
+  <path d="M34 66 C40 63 50 62.4 60 62.4 C70 62.4 80 63 86 66 C80 72 70 75 60 75 C50 75 40 72 34 66 Z" fill="#123c46" opacity="0.6"/>
+  <g fill="none" stroke="#e8fbff">
+    <ellipse cx="60" cy="61" rx="34" ry="5" stroke-width="0.8" opacity="0.3"/>
+    <ellipse cx="60" cy="60.4" rx="25" ry="3" stroke-width="0.9" opacity="0.55"/>
+  </g>
+  <g transform="rotate(-24 60 11)">
+    <path d="M53 11 C55 8 61 7.4 65 10 C61 13 56 13.4 53 11 Z" fill="#cfe3e8"/>
+    <path d="M65 10 L69.4 7 L68.4 10.4 L69.6 13.4 Z" fill="#9fc0c8"/>
+    <path d="M58 9.4 L60 6.6 L61.6 8.8 Z" fill="#9fc0c8"/>
+    <circle cx="55.4" cy="10.4" r="0.6" fill="#15314f"/>
+  </g>
+  <g fill="none" stroke="#e8fbff" stroke-linecap="round" opacity="0.7">
+    <path d="M33 10 C31.4 13 31.4 16 33 19 M87 8 C88.6 11 88.6 14 87 17" stroke-width="1"/>
+    <path d="M30 13 C29 15 29 16 30 18 M90 11 C91 13 91 14 90 16" stroke-width="0.8"/>
+  </g>
+  <g fill="#e8fbff">
+    <path d="M36 60 L28 50 L33.6 60.4 Z M40.6 59 L37 47.6 L43 58.6 Z M84 60 L92 50 L86.4 60.4 Z M79.4 59 L83 47.6 L77 58.6 Z"/>
+    <path d="M31 61 L22 57.4 L30.4 62.4 Z M89 61 L98 57.4 L89.6 62.4 Z"/>
+  </g>
+  <g fill="#e8fbff">
+    <circle cx="32" cy="46" r="1"/>
+    <circle cx="88" cy="46" r="1"/>
+    <circle cx="38" cy="42" r="0.7"/>
+    <circle cx="82" cy="40" r="0.7"/>
+    <circle cx="26" cy="52" r="0.8"/>
+    <circle cx="94" cy="52" r="0.8"/>
+  </g>
+  <g fill="#d8f59a" opacity="0.7">
+    <circle cx="24" cy="20" r="0.6"/>
+    <circle cx="96" cy="26" r="0.6"/>
+  </g>
+</svg>

@@ -1,6 +1,6 @@
 import { formatCost } from './mana';
 import { getCardDef, getCost } from './registry';
-import { UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef } from './state';
+import { EVOLVE_TRIGGER, UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef } from './state';
 import { isPlayerTarget } from './targets';
 import type {
   CardDef,
@@ -15,6 +15,7 @@ import type {
   Step,
   Target,
   TargetSpec,
+  TriggerCondition,
   TriggerEvent,
 } from './types';
 
@@ -33,6 +34,8 @@ export const KEYWORD_NAMES: Record<Keyword, string> = {
   flash: 'Flash',
   skulk: 'Skulk',
   undying: 'Undying',
+  hexproof: 'Hexproof',
+  evolve: 'Evolve',
 };
 
 export const KEYWORD_REMINDERS: Record<Keyword, string> = {
@@ -50,6 +53,8 @@ export const KEYWORD_REMINDERS: Record<Keyword, string> = {
   flash: 'You may cast it any time you could cast an instant.',
   skulk: "Can't be blocked by creatures with greater power.",
   undying: 'When it dies, if it had no +1/+1 counters on it, it returns to the battlefield with a +1/+1 counter on it.',
+  hexproof: "Can't be the target of spells or abilities your opponents control.",
+  evolve: 'Gets a +1/+1 counter whenever another creature with greater power or toughness enters under your control.',
 };
 
 export const STEP_NAMES: Record<Step, string> = {
@@ -185,6 +190,8 @@ function effectSentence(effect: Effect, ref: (target: EffectTarget) => string, c
       return effect.who === 'opponent' ? `Each opponent loses ${effect.amount} life.` : `You lose ${effect.amount} life.`;
     case 'fight':
       return `${capitalize(ref(effect.a))} fights ${ref(effect.b)}.`;
+    case 'bite':
+      return `${capitalize(ref(effect.a))} deals damage equal to its power to ${ref(effect.b)}.`;
     case 'pumpTeam':
       return `Creatures you control ${gainsText('get', effect.power, effect.toughness, effect.keywords)} until end of turn.`;
     case 'addCounters':
@@ -213,8 +220,12 @@ function sentences(effects: Effect[], specs: TargetSpec[], context: SentenceCont
   };
   const lines: string[] = [];
   effects.forEach((effect, index) => {
-    const text = effectSentence(effect, ref, context);
     const previous = effects[index - 1];
+    if (effect.kind === 'damage' && previous?.kind === 'damage' && lines.length > 0) {
+      lines.push(`${(lines.pop() as string).replace(/\.$/, '')} and ${effect.amount} damage to ${ref(effect.to)}.`);
+      return;
+    }
+    const text = effectSentence(effect, ref, context);
     if (effect.kind === 'discard' && effect.who !== 'opponent' && previous?.kind === 'draw' && lines.length > 0) {
       lines.push(`${(lines.pop() as string).replace(/\.$/, '')}, then ${lowerFirst(text)}`);
     } else lines.push(text);
@@ -230,7 +241,14 @@ const TRIGGER_OPENERS: Record<TriggerEvent, string> = {
   allyEnters: 'Whenever another creature you control enters',
   allyDies: 'Whenever another creature you control dies',
   damagesPlayer: 'Whenever this creature deals combat damage to a player',
+  lifeGain: 'Whenever you gain life',
 };
+
+const TRIGGER_CONDITIONS: Record<TriggerCondition, string> = {
+  opponentDamaged: 'if an opponent was dealt damage this turn',
+};
+
+const SELF_AS_THIS_CREATURE: ReadonlySet<TriggerEvent> = new Set(['allyEnters', 'allyDies', 'lifeGain']);
 
 export function rulesText(def: CardDef): string[] {
   const lines: string[] = [];
@@ -252,10 +270,14 @@ export function triggerText(def: CardDef, index: number): string {
   if (index === UNDYING_TRIGGER) {
     return `${TRIGGER_OPENERS.dies}, if it had no +1/+1 counters on it, return it to the battlefield under its owner's control with a +1/+1 counter on it.`;
   }
+  if (index === EVOLVE_TRIGGER) {
+    return `${TRIGGER_OPENERS.allyEnters}, if it has greater power or toughness than this creature, put a +1/+1 counter on this creature.`;
+  }
   const trigger = def.triggers?.[index];
   if (!trigger) return '';
-  const self = trigger.on === 'allyEnters' || trigger.on === 'allyDies' ? 'this creature' : 'it';
-  return `${TRIGGER_OPENERS[trigger.on]}, ${lowerFirst(sentences(trigger.effects, trigger.targets, { subject: self, on: trigger.on }, self))}`;
+  const self = SELF_AS_THIS_CREATURE.has(trigger.on) ? 'this creature' : 'it';
+  const condition = trigger.condition ? `${TRIGGER_CONDITIONS[trigger.condition]}, ` : '';
+  return `${TRIGGER_OPENERS[trigger.on]}, ${condition}${lowerFirst(sentences(trigger.effects, trigger.targets, { subject: self, on: trigger.on }, self))}`;
 }
 
 export function activatedText(def: CardDef, index: number): string {
@@ -429,6 +451,8 @@ export function describeEventParts(s: GameState, event: GameEvent, viewer: Playe
       return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} gets ${event.amount === 1 ? 'a +1/+1 counter' : `${event.amount} +1/+1 counters`}.`;
     case 'fight':
       return line`${capitalizeParts(cardRefParts(s, event.a, viewer))} fights ${cardRefParts(s, event.b, viewer)}.`;
+    case 'bite':
+      return null;
     case 'dies':
       return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} dies.`;
     case 'discard':

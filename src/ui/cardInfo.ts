@@ -9,6 +9,7 @@ import {
   type Color,
   type Effect,
   type Keyword,
+  type TriggerCondition,
   type TriggerEvent,
 } from '../engine';
 
@@ -27,6 +28,8 @@ export const SHORT_KEYWORDS: Record<Keyword, string> = {
   flash: 'Flash',
   skulk: 'Skulk',
   undying: 'Undying',
+  hexproof: 'Hexproof',
+  evolve: 'Evolve',
 };
 
 export function cardColors(def: CardDef): Color[] {
@@ -72,6 +75,8 @@ export function effectHint(effect: Effect): string {
       return effect.who === 'opponent' ? `opp -${effect.amount} life` : `-${effect.amount} life`;
     case 'fight':
       return 'fight';
+    case 'bite':
+      return 'bite';
     case 'pumpTeam':
       return `team ${pumpHint(effect.power, effect.toughness, effect.keywords)}`;
     case 'addCounters':
@@ -95,6 +100,11 @@ const TRIGGER_HINTS: Record<TriggerEvent, string> = {
   allyEnters: 'Ally enters',
   allyDies: 'Ally dies',
   damagesPlayer: 'Hits',
+  lifeGain: 'Gain life',
+};
+
+const CONDITION_HINTS: Record<TriggerCondition, string> = {
+  opponentDamaged: 'Bloodthirst',
 };
 
 export function activatedCost(ability: ActivatedAbility): string {
@@ -106,7 +116,10 @@ export function shortText(defId: string): string {
   const def = getCardDef(defId);
   const parts: string[] = (def.keywords ?? []).map((keyword) => SHORT_KEYWORDS[keyword]);
   if (def.mana?.length && def.types.includes('creature')) parts.push(`T: +${def.mana.join('/')}`);
-  for (const trigger of def.triggers ?? []) parts.push(`${TRIGGER_HINTS[trigger.on]}: ${trigger.effects.map(effectHint).join(', ')}`);
+  for (const trigger of def.triggers ?? []) {
+    const hint = trigger.condition ? CONDITION_HINTS[trigger.condition] : TRIGGER_HINTS[trigger.on];
+    parts.push(`${hint}: ${trigger.effects.map(effectHint).join(', ')}`);
+  }
   for (const ability of def.activated ?? []) parts.push(`${activatedCost(ability)}: ${ability.effects.map(effectHint).join(', ')}`);
   return parts.join(' · ');
 }

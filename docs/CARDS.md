@@ -185,6 +185,76 @@ Black and green: undying, sacrifice and deathtouch; every death feeds the wood.
 | 1 | Sporecall | `sporecall` | {2}{G} | Sorcery | — | Create two 1/1 green Saproling creature tokens. |
 | 2 | Nightshade Tonic | `nightshade_tonic` | {1}{G} | Instant | — | Target creature gets +1/+1 and gains deathtouch until end of turn. |
 
+## Vesperhall (40 cards, WB)
+
+White and black: lifelink and life drain; every life it gains feeds its faithful and bleeds the opponent.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Plains | `plains` | — | Basic Land — Plains | — | {T}: Add {W}. |
+| 8 | Swamp | `swamp` | — | Basic Land — Swamp | — | {T}: Add {B}. |
+| 2 | Vesper Novice | `vesper_novice` | {1}{W} | Creature — Human Cleric | 1/1 | Whenever you gain life, put a +1/+1 counter on this creature. |
+| 2 | Tithe Collector | `tithe_collector` | {1}{B} | Creature — Human Rogue | 2/1 | When this creature enters, each opponent loses 1 life. You gain 1 life. |
+| 2 | Chantry Guard | `chantry_guard` | {1}{W} | Creature — Human Soldier | 2/1 | Lifelink |
+| 2 | Ghostlit Penitent | `ghostlit_penitent` | {W}{B} | Creature — Spirit Cleric | 1/1 | Flying, lifelink |
+| 2 | Censer Bearer | `censer_bearer` | {2}{W} | Creature — Human Cleric | 1/3 | When this creature enters, create a 1/1 white and black Spirit creature token with flying. |
+| 2 | Sanguine Chorister | `sanguine_chorister` | {1}{W}{B} | Creature — Vampire Cleric | 2/2 | Whenever you gain life, each opponent loses 1 life. |
+| 1 | Ashveil Executioner | `ashveil_executioner` | {2}{B} | Creature — Human Assassin | 2/2 | Deathtouch, lifelink |
+| 2 | Lanternwing Angel | `lanternwing_angel` | {3}{W} | Creature — Angel | 2/2 | Flying, lifelink |
+| 1 | Gilded Confessor | `gilded_confessor` | {2}{W}{B} | Creature — Human Cleric | 3/3 | When this creature enters, target creature you don't control gets -1/-1 until end of turn. You gain 2 life. |
+| 1 | Vesperhall Matriarch | `vesperhall_matriarch` | {3}{W}{B} | Creature — Vampire Noble | 3/3 | Flying · Whenever you gain life, put a +1/+1 counter on this creature. |
+| 2 | Penance | `penance` | {W}{B} | Instant | — | Target creature gets -2/-2 until end of turn. You gain 2 life. |
+| 2 | Vesper Vow | `vesper_vow` | {W} | Instant | — | Target creature gets +2/+2 and gains lifelink until end of turn. |
+| 1 | Rite of Lanterns | `rite_of_lanterns` | {2}{W} | Sorcery | — | Create two 1/1 white and black Spirit creature tokens with flying. |
+| 1 | Last Rites | `last_rites` | {2}{W}{B} | Sorcery | — | Destroy target creature. You gain 2 life. |
+| 1 | Blood Tithe | `blood_tithe` | {2}{B} | Sorcery | — | Each opponent loses 2 life. You gain 2 life. Draw a card. |
+
+## Cindermaw (40 cards, BR)
+
+Black and red: haste, menace and burn; once the opponent bleeds, its bloodthirsty creatures arrive bigger.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Swamp | `swamp` | — | Basic Land — Swamp | — | {T}: Add {B}. |
+| 8 | Mountain | `mountain` | — | Basic Land — Mountain | — | {T}: Add {R}. |
+| 2 | Spitfire Imp | `spitfire_imp` | {R} | Creature — Imp | 1/1 | Haste · When this creature dies, it deals 1 damage to any target. |
+| 2 | Bloodhungry Ghoul | `bloodhungry_ghoul` | {1}{B} | Creature — Zombie | 2/1 | When this creature enters, if an opponent was dealt damage this turn, put a +1/+1 counter on it. |
+| 2 | Pitfire Raider | `pitfire_raider` | {B}{R} | Creature — Human Berserker | 2/1 | Haste, menace |
+| 2 | Brimstone Skirmisher | `brimstone_skirmisher` | {1}{R} | Creature — Goblin Warrior | 2/1 | Whenever this creature attacks, it deals 1 damage to target opponent. |
+| 2 | Blistering Hellion | `blistering_hellion` | {2}{R} | Creature — Hellion | 3/2 | When this creature enters, if an opponent was dealt damage this turn, put two +1/+1 counters on it. |
+| 2 | Pyre Ghast | `pyre_ghast` | {2}{B} | Creature — Zombie Spirit | 2/2 | When this creature dies, it deals 2 damage to any target. |
+| 2 | Gorehorn Minotaur | `gorehorn_minotaur` | {2}{B}{R} | Creature — Minotaur Berserker | 3/3 | Menace · When this creature enters, if an opponent was dealt damage this turn, put a +1/+1 counter on it. |
+| 1 | Scorchfang Hound | `scorchfang_hound` | {3}{R} | Creature — Hound | 3/2 | Haste · Whenever this creature attacks, it deals 1 damage to target opponent. |
+| 1 | Cindermaw Demon | `cindermaw_demon` | {3}{B}{R} | Creature — Demon | 3/3 | Flying · When this creature enters, if an opponent was dealt damage this turn, put two +1/+1 counters on it. |
+| 2 | Splitting Flame | `splitting_flame` | {1}{R} | Sorcery | — | Splitting Flame deals 2 damage to target creature and 2 damage to target opponent. |
+| 2 | Bloodfire Bolt | `bloodfire_bolt` | {B}{R} | Instant | — | Bloodfire Bolt deals 3 damage to any target. |
+| 1 | Rend Flesh | `rend_flesh` | {2}{B} | Sorcery | — | Destroy target creature. |
+| 2 | Blood Frenzy | `blood_frenzy` | {R} | Instant | — | Target creature gets +2/+0 and gains first strike until end of turn. |
+| 1 | Grim Kindling | `grim_kindling` | {1}{B}{R} | Sorcery | — | Draw two cards. Grim Kindling deals 1 damage to target opponent. |
+
+## Deepgrove (40 cards, GU)
+
+Green and blue: evolving creatures grow with every bigger arrival, and hexproof giants shrug off the opponent's spells.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 8 | Forest | `forest` | — | Basic Land — Forest | — | {T}: Add {G}. |
+| 8 | Island | `island` | — | Basic Land — Island | — | {T}: Add {U}. |
+| 2 | Shoal Hatchling | `shoal_hatchling` | {G} | Creature — Frog | 1/1 | Evolve |
+| 2 | Reefwing Fledgling | `reefwing_fledgling` | {1}{U} | Creature — Bird | 1/1 | Flying, evolve |
+| 2 | Kelpweaver Druid | `kelpweaver_druid` | {1}{G} | Creature — Merfolk Druid | 1/2 | {T}: Add {G} or {U}. |
+| 2 | Tidecrest Mutant | `tidecrest_mutant` | {G}{U} | Creature — Lizard Mutant | 2/2 | Evolve, hexproof |
+| 2 | Mossfin Lurker | `mossfin_lurker` | {2}{G} | Creature — Fish Beast | 3/2 | Hexproof |
+| 2 | Tanglejaw Croc | `tanglejaw_croc` | {2}{G}{U} | Creature — Crocodile | 3/3 | When this creature enters, return target creature you don't control to its owner's hand. |
+| 2 | Mistfin Drake | `mistfin_drake` | {3}{U} | Creature — Drake | 3/2 | Flying |
+| 1 | Coralhide Behemoth | `coralhide_behemoth` | {4}{G} | Creature — Beast | 5/5 | — |
+| 1 | Deepgrove Leviathan | `deepgrove_leviathan` | {4}{G}{U} | Creature — Leviathan | 5/5 | Trample, hexproof |
+| 2 | Snapjaw Strike | `snapjaw_strike` | {1}{G} | Sorcery | — | Target creature you control deals damage equal to its power to target creature you don't control. |
+| 2 | Shell of the Deep | `shell_of_the_deep` | {G} | Instant | — | Target creature you control gets +1/+1 and gains hexproof until end of turn. |
+| 2 | Adaptive Bloom | `adaptive_bloom` | {G}{U} | Instant | — | Put a +1/+1 counter on target creature you control. Draw a card. |
+| 1 | Undertide Lore | `undertide_lore` | {2}{U} | Sorcery | — | Draw two cards. |
+| 1 | Riptide Recall | `riptide_recall` | {U} | Instant | — | Return target creature you don't control to its owner's hand. |
+
 ## Tokens
 
 Creatures that effects create. A token that leaves the battlefield ceases to exist.
@@ -194,6 +264,7 @@ Creatures that effects create. A token that leaves the battlefield ceases to exi
 | Soldier | `soldier_token` | Token Creature — Soldier | 1/1 | — | Muster Sergeant (Brightforge), Bannerguard Knight (Brightforge), Brightforge Marshal (Brightforge), Forgewing Griffin (Brightforge), Raise the Banners (Brightforge) |
 | Elemental | `elemental_token` | Token Creature — Elemental | 1/1 | Haste | Kindling Caller (Brightforge), Hammerfall Raider (Brightforge), Stoke the Forge (Brightforge) |
 | Saproling | `saproling_token` | Token Creature — Saproling | 1/1 | — | Sporecap Shambler (Gloamwood), Gloamwood Elder (Gloamwood), Rot into Loam (Gloamwood), Sporecall (Gloamwood) |
+| Spirit | `spirit_token` | Token Creature — Spirit | 1/1 | Flying | Censer Bearer (Vesperhall), Rite of Lanterns (Vesperhall) |
 
 ## Keywords
 
@@ -213,3 +284,5 @@ Creatures that effects create. A token that leaves the battlefield ceases to exi
 | Flash | You may cast it any time you could cast an instant. | yes |
 | Skulk | Can't be blocked by creatures with greater power. | yes |
 | Undying | When it dies, if it had no +1/+1 counters on it, it returns to the battlefield with a +1/+1 counter on it. | yes |
+| Hexproof | Can't be the target of spells or abilities your opponents control. | yes |
+| Evolve | Gets a +1/+1 counter whenever another creature with greater power or toughness enters under your control. | yes |

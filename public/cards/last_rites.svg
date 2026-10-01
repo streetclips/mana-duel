@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2040"/>
+      <stop offset="1" stop-color="#4a3050"/>
+    </linearGradient>
+    <g id="taper">
+      <circle cx="0" cy="-4" r="10" fill="#f6b85a" opacity="0.15"/>
+      <rect x="-1.4" y="0" width="2.8" height="10" rx="0.5" fill="#efe2cc"/>
+      <path d="M0 -5.4 C1.6 -3.2 1.8 -1.6 0 -0.6 C-1.8 -1.6 -1.6 -3.2 0 -5.4 Z" fill="#ffc86a"/>
+      <path d="M0 -3.8 C0.8 -2.8 0.8 -2 0 -1.4 C-0.8 -2 -0.8 -2.8 0 -3.8 Z" fill="#fff3c4"/>
+      <path d="M-3.6 10 H3.6 L1 12 V34 H3 L4 36 H-4 L-3 34 H-1 V12 Z" fill="#c99a3e"/>
+    </g>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <path d="M42 60 V22 C42 12 50 6 60 5 C70 6 78 12 78 22 V60 Z" fill="#33274d"/>
+  <path d="M46 58 V23 C46 14.6 52 10 60 9.4 C68 10 74 14.6 74 23 V58 Z" fill="#7a5aa0" opacity="0.18"/>
+  <circle cx="60" cy="40" r="30" fill="#f6c46a" opacity="0.06"/>
+  <path d="M30 0 H90 V4 H30 Z" fill="#3a2420"/>
+  <path d="M60 4 V8.6" stroke="#5a3a2a" stroke-width="1.2"/>
+  <path d="M54 18 C54 12 56 8.6 60 8.6 C64 8.6 66 12 66 18 L67.6 20.4 H52.4 Z" fill="#c99a3e"/>
+  <path d="M60 8.6 C64 8.6 66 12 66 18 L67.6 20.4 H60 Z" fill="#a8792e"/>
+  <path d="M56.4 11.4 C55.8 13 55.6 15 55.6 17" fill="none" stroke="#f6d27a" stroke-width="0.9" stroke-linecap="round"/>
+  <circle cx="60" cy="21.6" r="1.3" fill="#a8792e"/>
+  <path d="M49.6 11 C48 13.4 48 16.6 49.6 19 M70.4 11 C72 13.4 72 16.6 70.4 19 M46 9 C43.6 12.6 43.6 17.4 46 21 M74 9 C76.4 12.6 76.4 17.4 74 21" fill="none" stroke="#f6d27a" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
+  <path d="M0 66 Q60 62 120 66 V80 H0 Z" fill="#1f1828"/>
+  <use href="#taper" x="28" y="30"/>
+  <use href="#taper" x="92" y="30"/>
+  <path d="M34 53 H86 L89 66 H31 Z" fill="#6a1a2e"/>
+  <path d="M34 53 H86 L87 57 H33 Z" fill="#8a2236"/>
+  <path d="M33 57 H87" stroke="#e8b64a" stroke-width="1"/>
+  <path d="M34 47 L44 50 L86 46.4 V50.4 L44 54 L34 51 Z" fill="#3a2220"/>
+  <path d="M34 41 L44 38 L86 41.6 V46.4 L44 50 L34 47 Z" fill="#5a3634"/>
+  <path d="M34 41 L44 38 L86 41.6 V46.4 L44 50 L34 47 Z" fill="none" stroke="#c99a3e" stroke-width="0.8" stroke-linejoin="round"/>
+  <path d="M44 38 L44 50" stroke="#4a2c2a" stroke-width="0.8"/>
+  <path d="M52 50.6 H56 M70 49.4 H74" stroke="#c99a3e" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M50 44.6 C56 44 64 43.6 72 44.4" fill="none" stroke="#5a8a4a" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M60 44 C58 42 57.6 40.4 58.4 39 C59.6 40.4 60.4 42 60 44 Z M60 44 C62.4 42.6 64 42.6 65.4 43.6 C64 44.6 62.2 44.8 60 44 Z M60 44 C58 45.4 56.4 45.4 55 44.4 C56.4 43.2 58.2 43.2 60 44 Z" fill="#fbf7ee"/>
+  <circle cx="60.4" cy="43.8" r="0.8" fill="#e8b64a"/>
+  <path d="M66 44 C67.4 42.6 69 42.4 70.4 43 C69 44.2 67.4 44.6 66 44 Z" fill="#5a8a4a"/>
+  <g fill="#ffd27a">
+    <circle cx="18" cy="20" r="0.8"/>
+    <circle cx="102" cy="22" r="0.8"/>
+    <circle cx="40" cy="30" r="0.6"/>
+    <circle cx="80" cy="30" r="0.6"/>
+  </g>
+  <g fill="#c8b8e8" opacity="0.6">
+    <circle cx="14" cy="50" r="0.7"/>
+    <circle cx="106" cy="52" r="0.7"/>
+  </g>
+</svg>

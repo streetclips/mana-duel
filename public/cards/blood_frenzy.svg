@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a0c10"/>
+      <stop offset="0.6" stop-color="#5a1418"/>
+      <stop offset="1" stop-color="#8a2420"/>
+    </linearGradient>
+    <path id="drop" d="M0 -2.6 C0 -2.6 -1.4 -0.2 -1.4 0.7 C-1.4 1.5 -0.8 2.1 0 2.1 C0.8 2.1 1.4 1.5 1.4 0.7 C1.4 -0.2 0 -2.6 0 -2.6 Z"/>
+    <g id="eye">
+      <path d="M49 29 L36 25.6 L48.4 31.4 Z" fill="#ff3b3b" opacity="0.5"/>
+      <ellipse cx="53.4" cy="31.4" rx="6" ry="3" fill="#ff3b3b" opacity="0.35" transform="rotate(18 53.4 31.4)"/>
+      <path d="M48.6 29.4 L57.6 32.8 L50 34.2 Z" fill="#ff3b3b"/>
+      <path d="M51 30.8 L55.6 32.6 L51.6 33.2 Z" fill="#ffd0c0"/>
+    </g>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="60" cy="32" r="30" fill="#c23a4b" opacity="0.18"/>
+  <g stroke="#ffb0a0" stroke-width="1" stroke-linecap="round" opacity="0.25">
+    <path d="M8 14 L22 18 M4 30 L18 31 M10 46 L22 43 M112 14 L98 18 M116 30 L102 31 M110 46 L98 43"/>
+  </g>
+  <path d="M22 82 C26 62 38 54 50 51 H70 C82 54 94 62 98 82 Z" fill="#160a0c"/>
+  <path d="M46 22 L38 11 L48.6 16.6 L47.4 5 L54 12.4 L57.4 1 L60.6 11.6 L64.6 1.4 L66.6 12.6 L73 5.4 L71.6 16.8 L82 11.6 L74 22.6 Z" fill="#160a0c"/>
+  <path d="M43.6 44 C41.6 34 43.4 22 49.6 16 C53.6 12 66.4 12 70.4 16 C76.6 22 78.4 34 76.4 44 C72.4 50.6 66.4 53 60 53 C53.6 53 47.6 50.6 43.6 44 Z" fill="#1e0e12"/>
+  <path d="M46 24 C48 19 52 16 56 15" fill="none" stroke="#c23a4b" stroke-width="0.9" stroke-linecap="round" opacity="0.7"/>
+  <use href="#eye"/>
+  <use href="#eye" transform="matrix(-1 0 0 1 120 0)"/>
+  <path d="M51.6 34.4 C51.4 37 52 39.4 51.4 42 M68.4 34.4 C68.6 37 68 39.4 68.6 42" fill="none" stroke="#c23a4b" stroke-width="1.1" stroke-linecap="round" opacity="0.8"/>
+  <path d="M54 43 Q60 45.4 66 43" fill="none" stroke="#5e0e14" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M55.4 43.4 L56.2 45.6 L57 43.8 Z M63 43.8 L63.8 45.6 L64.6 43.4 Z" fill="#efe4cc"/>
+  <path d="M43.6 44 C41.6 34 43.4 22 49.6 16 M76.4 44 C78.4 34 76.6 22 70.4 16" fill="none" stroke="#c23a4b" stroke-width="0.9" stroke-linecap="round" opacity="0.6"/>
+  <path d="M20 54 C34 70 66 74 98 40 C70 66 40 66 20 54 Z" fill="#ff5a5a" opacity="0.35"/>
+  <path d="M24 56 C38 68 66 70 96 42 C70 63 42 64 24 56 Z" fill="#ffd0c0"/>
+  <path d="M34 61.4 C50 67 70 64 90 47.6" fill="none" stroke="#ffffff" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M91 43.4 C94.6 38.4 98.6 34.4 104 30.6 C100.6 35.4 96.6 39.6 92.6 45 Z" fill="#d9d2c0"/>
+  <path d="M92 42.6 C95.6 38 99.4 34.4 103 31.6" fill="none" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M89 42.4 L94.6 46.2" stroke="#3a1a16" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M91.8 44.4 L88.4 48.6" stroke="#5a3424" stroke-width="2" stroke-linecap="round"/>
+  <path d="M104 28 L104.8 30 L107 30.6 L104.8 31.2 L104 33.4 L103.2 31.2 L101 30.6 L103.2 30 Z" fill="#ffffff"/>
+  <g fill="#c23a4b">
+    <use href="#drop" transform="translate(28 66) rotate(-60) scale(0.8)"/>
+    <use href="#drop" transform="translate(36 72) rotate(-40) scale(0.6)"/>
+    <use href="#drop" transform="translate(22 60) rotate(-80) scale(0.6)"/>
+  </g>
+  <g fill="#ffb0a0">
+    <circle cx="30" cy="24" r="0.8"/>
+    <circle cx="90" cy="22" r="0.9"/>
+    <circle cx="104" cy="54" r="0.8"/>
+  </g>
+</svg>

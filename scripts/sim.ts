@@ -1,3 +1,6 @@
+import { fork } from 'node:child_process';
+import { availableParallelism } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { chooseAction } from '../src/ai';
 import {
   DECK_LIST,
@@ -38,6 +41,8 @@ interface Options {
   maxActions: number;
   model: string;
   effort?: ReasoningEffort;
+  workers: number;
+  shard?: [number, number];
 }
 
 const ALL = 'all';
@@ -53,6 +58,7 @@ function parseArgs(argv: string[]): Options {
     log: null,
     maxActions: 20_000,
     model: process.env.OPENROUTER_MODEL || DEFAULT_MODEL,
+    workers: availableParallelism(),
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -71,9 +77,12 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--log') options.log = Number(next());
     else if (arg === '--model') options.model = next();
     else if (arg === '--effort') options.effort = parseEffort(next());
+    else if (arg === '--workers') options.workers = parseWorkers(next());
+    else if (arg === '--shard') options.shard = parseShard(next());
     else if (arg === '--help') {
       console.log(
-        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--quiet] [--json] [--log SEED]\n' +
+        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--workers N] [--quiet] [--json] [--log SEED]\n' +
+          'Games without an llm bot run in parallel processes (--workers, one per CPU by default); the results are the same for any number of workers.\n' +
           'An llm bot asks an OpenRouter model (default ' + DEFAULT_MODEL + ') for every real decision; it needs OPENROUTER_API_KEY.',
       );
       process.exit(0);
@@ -85,6 +94,18 @@ function parseArgs(argv: string[]): Options {
 function parseEffort(value: string): ReasoningEffort {
   if (!isReasoningEffort(value)) throw new Error(`Unknown effort "${value}" (use minimal, low, medium or high)`);
   return value;
+}
+
+function parseWorkers(value: string): number {
+  const workers = Number(value);
+  if (!Number.isInteger(workers) || workers < 1) throw new Error(`Invalid --workers "${value}" (use a whole number from 1)`);
+  return workers;
+}
+
+function parseShard(value: string): [number, number] {
+  const [start, end] = value.split(':').map(Number);
+  if (!Number.isInteger(start) || !Number.isInteger(end)) throw new Error(`Invalid --shard "${value}"`);
+  return [start as number, end as number];
 }
 
 function parseBot(value: string): BotKind {
@@ -283,9 +304,42 @@ function llmSummary(options: Options, results: GameResult[]): Record<string, unk
   };
 }
 
+async function playRange(options: Options, pairs: Matchup[], start: number, end: number, onResult?: (result: GameResult) => void): Promise<GameResult[]> {
+  const results: GameResult[] = [];
+  for (let i = start; i < end; i++) {
+    const result = await playGame(options.seed + i, pairs[i % pairs.length] as Matchup, options);
+    results.push(result);
+    onResult?.(result);
+  }
+  return results;
+}
+
+function playInWorkers(argv: string[], games: number, workers: number): Promise<GameResult[]> {
+  const size = Math.ceil(games / workers);
+  const shards = Array.from({ length: workers }, (_, k): [number, number] => [k * size, Math.min(games, (k + 1) * size)]).filter(([start, end]) => start < end);
+  const shardResults = shards.map(
+    ([start, end]) =>
+      new Promise<GameResult[]>((resolve, reject) => {
+        const child = fork(fileURLToPath(import.meta.url), [...argv, '--shard', `${start}:${end}`], { execArgv: process.execArgv });
+        let results: GameResult[] | null = null;
+        child.on('message', (message) => {
+          results = message as GameResult[];
+        });
+        child.on('error', reject);
+        child.on('exit', (code) => (results ? resolve(results) : reject(new Error(`games ${start} to ${end - 1} stopped with exit code ${code}`))));
+      }),
+  );
+  return Promise.all(shardResults).then((parts) => parts.flat());
+}
+
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const pairs = matchups(options.decks);
+  if (options.shard) {
+    const results = await playRange(options, pairs, ...options.shard);
+    process.send?.(results, () => process.disconnect());
+    return;
+  }
   if (options.log !== null) {
     const lines: string[] = [];
     const result = await playGame(options.log, pairs[0] as Matchup, options, lines);
@@ -298,15 +352,19 @@ async function main(): Promise<void> {
     return;
   }
 
-  const results: GameResult[] = [];
   const started = Date.now();
-  for (let i = 0; i < options.games; i++) {
-    const result = await playGame(options.seed + i, pairs[i % pairs.length] as Matchup, options);
-    results.push(result);
-    if (!options.quiet && !options.json) {
-      const outcome = result.error ? 'ERROR' : result.winner === null ? 'draw' : `p${result.winner} (${result.reason})`;
-      console.log(`seed ${result.seed} (${result.decks.join(' vs ')}): ${outcome} in ${result.turns} turns`);
-    }
+  const report = (result: GameResult): void => {
+    if (options.quiet || options.json) return;
+    const outcome = result.error ? 'ERROR' : result.winner === null ? 'draw' : `p${result.winner} (${result.reason})`;
+    console.log(`seed ${result.seed} (${result.decks.join(' vs ')}): ${outcome} in ${result.turns} turns`);
+  };
+  const workers = options.bots.includes('llm') ? 1 : Math.min(options.workers, options.games);
+  let results: GameResult[];
+  if (workers > 1) {
+    results = await playInWorkers(process.argv.slice(2), options.games, workers);
+    results.forEach(report);
+  } else {
+    results = await playRange(options, pairs, 0, options.games, report);
   }
 
   const finished = results.filter((result) => !result.error);

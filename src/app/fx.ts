@@ -85,6 +85,7 @@ export function fxCues(before: GameState | null, after: GameState): FxCue[] {
         for (const block of event.blocks) cues.push({ kind: 'block', player: event.player, card: block.blocker, attacker: block.attacker });
         break;
       case 'fight':
+      case 'bite':
         fights.push([event.a, event.b]);
         break;
       case 'damage': {

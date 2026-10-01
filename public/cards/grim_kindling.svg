@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e1216"/>
+      <stop offset="0.6" stop-color="#3a1a1e"/>
+      <stop offset="1" stop-color="#5a2420"/>
+    </linearGradient>
+    <g id="page">
+      <path d="M60 50.6 C54 46.6 46 45.6 37.6 47 L36 59.4 C44 58.4 53 59.4 60 63 Z" fill="#e6d3b0"/>
+      <path d="M60 52 C55 49 49 48.4 43 49 L42.4 51 M58 55 C54 53 49 52.4 44 53 M58 58.6 C54 57 49 56.6 44.4 57" fill="none" stroke="#c23a2c" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="2 1.4"/>
+      <path d="M37.6 47 L36 59.4 C44 58.4 53 59.4 60 63" fill="none" stroke="#b8a888" stroke-width="0.8"/>
+      <path d="M37.6 47 C40 45.6 41.6 44 41 42.6 C43.6 43.4 45.6 45.4 46 46.4" fill="#3a1a16"/>
+    </g>
+    <g id="leaf">
+      <path d="M-3 -2 L3 -2.6 L3.4 2 L-2.6 2.6 Z" fill="#e6d3b0"/>
+      <path d="M3 -2.6 L3.4 2 L-2.6 2.6" fill="none" stroke="#f28a3b" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M-3 -2 L-2.6 2.6" stroke="#3a1a16" stroke-width="1"/>
+    </g>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="60" cy="38" r="30" fill="#f28a3b" opacity="0.12"/>
+  <circle cx="60" cy="44" r="16" fill="#f6a13b" opacity="0.14"/>
+  <path d="M0 70 Q30 67 60 69 T120 68 V80 H0 Z" fill="#1e1214"/>
+  <path d="M50 80 V66 H70 V80 Z" fill="#2a2024"/>
+  <path d="M42 62.4 H78 L75.6 66.6 H44.4 Z" fill="#3a2e32"/>
+  <path d="M52 70 H68 M52 74 H68" stroke="#3a2e32" stroke-width="0.8"/>
+  <path d="M60 52.6 C53 48.6 44 48 35 49.6 L33 62.4 C43 61 53 61.8 60 65.4 C67 61.8 77 61 87 62.4 L85 49.6 C76 48 67 48.6 60 52.6 Z" fill="#4a1a1e"/>
+  <circle cx="34.6" cy="61.6" r="1.2" fill="#c8912f"/>
+  <circle cx="85.4" cy="61.6" r="1.2" fill="#c8912f"/>
+  <path d="M62 64 L62.8 71 L64.4 69.4 L66 71.6 L65.4 63.4" fill="#9b2335"/>
+  <use href="#page"/>
+  <use href="#page" transform="matrix(-1 0 0 1 120 0)"/>
+  <path d="M60 50.6 V63" stroke="#8a7a64" stroke-width="0.8"/>
+  <path d="M60 52 C51 51 46 44 48.6 36 C50 31.6 52.6 29.6 53.6 25 C55.4 28.4 56.8 29.8 58.4 29.8 C57.4 25 59 20.6 61.8 17.4 C62.2 21.4 63.6 23.6 65.2 24 C65.8 22.2 66.6 21 67.6 20.2 C68.4 24.6 71 28.6 70.6 34.6 C72.4 33.4 73.4 32 73.8 30.4 C76.2 37 73.4 45 68.6 49 C66 51 63 52.2 60 52 Z" fill="#f28a3b"/>
+  <path d="M60 51 C54.4 50.4 51.4 46 53 40.4 C53.8 37.4 55.6 36 56.4 33 C57.6 35.4 58.6 36.4 59.8 36.4 C59.4 33 60.4 30 62.4 27.6 C62.8 30.6 63.8 32.4 65 33 C65.6 32 66 31.4 66.6 31 C67.6 34.6 69.2 38 68.4 42.6 C67.4 47.4 64 51.2 60 51 Z" fill="#fbd46a"/>
+  <ellipse cx="60" cy="47.6" rx="4.4" ry="3" fill="#fff3c4"/>
+  <use href="#leaf" transform="translate(36 34) rotate(-24)"/>
+  <use href="#leaf" transform="translate(86 30) rotate(18) scale(0.9)"/>
+  <use href="#leaf" transform="translate(42 20) rotate(12) scale(0.7)"/>
+  <use href="#leaf" transform="translate(80 14) rotate(-14) scale(0.6)"/>
+  <g fill="none" stroke="#b8aaa6" stroke-linecap="round" opacity="0.45">
+    <path d="M58 16 C54.6 13 56 9 59.6 8.6 C62.4 8.4 63 11 61.2 12.2" stroke-width="1"/>
+    <path d="M66 12 C68.6 9 67.4 5.6 64.6 5.4" stroke-width="0.8"/>
+  </g>
+  <g fill="#f6a13b">
+    <circle cx="31" cy="28" r="0.9"/>
+    <circle cx="28" cy="22" r="0.7"/>
+    <circle cx="90" cy="24" r="0.9"/>
+    <circle cx="93" cy="18" r="0.7"/>
+    <circle cx="46" cy="14" r="0.7"/>
+    <circle cx="76" cy="8" r="0.6"/>
+    <circle cx="50" cy="30" r="0.8"/>
+    <circle cx="72" cy="26" r="0.8"/>
+  </g>
+</svg>

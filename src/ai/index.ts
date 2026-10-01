@@ -33,9 +33,10 @@ function helpsThisCombat(def: CardDef): boolean {
 }
 
 function growsWithNewCreatures(s: GameState, player: PlayerId): boolean {
-  return s.players[player].battlefield.some((id) =>
-    (getCardDef(s.cards[id]?.def ?? '').triggers ?? []).some((trigger) => trigger.on === 'allyEnters'),
-  );
+  return s.players[player].battlefield.some((id) => {
+    const def = getCardDef(s.cards[id]?.def ?? '');
+    return (def.keywords ?? []).includes('evolve') || (def.triggers ?? []).some((trigger) => trigger.on === 'allyEnters');
+  });
 }
 
 function waitsForCombat(s: GameState, action: Action): boolean {

@@ -32,7 +32,7 @@ function printedKeywords(s: GameState, id: CardId): readonly Keyword[] {
   return getCardDef(s.cards[id]?.def ?? '').keywords ?? [];
 }
 
-const LASTING_TRIGGERS: ReadonlySet<TriggerEvent> = new Set(['attacks', 'spell', 'allyEnters', 'allyDies', 'damagesPlayer']);
+const LASTING_TRIGGERS: ReadonlySet<TriggerEvent> = new Set(['attacks', 'spell', 'allyEnters', 'allyDies', 'damagesPlayer', 'lifeGain']);
 
 export function creatureValue(s: GameState, id: CardId): number {
   const def = getCardDef(s.cards[id]?.def ?? '');
@@ -76,6 +76,12 @@ export function creatureValue(s: GameState, id: CardId): number {
         break;
       case 'undying':
         if (counters(s, id) === 0) value += 1 + power * 0.5;
+        break;
+      case 'hexproof':
+        value += 1 + power * 0.3;
+        break;
+      case 'evolve':
+        value += 1;
         break;
       case 'haste':
       case 'flash':

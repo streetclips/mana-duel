@@ -1,10 +1,11 @@
 # Mana Duel
 
-A minimalist, mobile-first card duel built on the rules of Magic: The Gathering. Eight decks — **Emberwild** (red
+A minimalist, mobile-first card duel built on the rules of Magic: The Gathering. Eleven decks — **Emberwild** (red
 and green), **Dawntide** (white and blue), **Duskmire** (black), **Stormglass** (blue and red), **Sunmeadow** (green
-and white), **Brightforge** (red and white), **Mistgrave** (blue and black) and **Gloamwood** (black and green) — and
-one opponent that plays by the same rules and never looks at your hand: the built-in AI, or a language model of
-your choice through OpenRouter.
+and white), **Brightforge** (red and white), **Mistgrave** (blue and black), **Gloamwood** (black and green),
+**Vesperhall** (white and black), **Cindermaw** (black and red) and **Deepgrove** (green and blue) — and one
+opponent that plays by the same rules and never looks at your hand: the built-in AI, or a language model of your
+choice through OpenRouter.
 
 ## Play
 
@@ -45,16 +46,17 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 
 - **Rules engine** (`src/engine`): turn structure, priority and the stack, instants in response, London mulligan,
   one land per turn, automatic mana payment, summoning sickness, combat with first strike, double strike,
-  trample, deathtouch, lifelink, flying and reach, menace, skulk, vigilance, haste, defender, flash and undying,
-  triggered and activated abilities (including "whenever you cast an instant or sorcery spell", "whenever another
-  creature you control enters" or "dies" and "whenever this creature deals combat damage to a player"), sacrifice
-  costs, creature tokens, counterspells, returning creatures to hand, `-N/-N`, +1/+1 counters, pumps and keywords
-  granted until end of turn, for one creature or every creature you control, discards the player chooses, paying
-  life, fizzling, cleanup and hand size, every way to win or lose. Pure, deterministic and seeded, so any game can be
-  replayed. Details in [`docs/RULES.md`](docs/RULES.md).
+  trample, deathtouch, lifelink, flying and reach, menace, skulk, vigilance, haste, defender, flash, undying, hexproof
+  and evolve, triggered and activated abilities (including "whenever you cast an instant or sorcery spell",
+  "whenever another creature you control enters" or "dies", "whenever this creature deals combat damage to a
+  player", "whenever you gain life" and bloodthirst, "if an opponent was dealt damage this turn"), sacrifice costs,
+  creature tokens, counterspells, returning creatures to hand, fights and bites, `-N/-N`, +1/+1 counters, pumps and
+  keywords granted until end of turn, for one creature or every creature you control, discards the player chooses,
+  paying life, fizzling, cleanup and hand size, every way to win or lose. Pure, deterministic and seeded, so any game
+  can be replayed. Details in [`docs/RULES.md`](docs/RULES.md).
 - **AI** (`src/ai`): evaluates each option by playing the engine forward, predicts blocks with its own blocking
   logic, keeps combat tricks for combat, answers burn with pumps, counters what is worth countering and only
-  chump-blocks to survive. A test proves hidden cards never change its decisions. It plays all eight decks, and
+  chump-blocks to survive. A test proves hidden cards never change its decisions. It plays all eleven decks, and
   simulated games between them stay close to even.
 - **LLM opponent** (`src/llm`): the AI seat's view of the game as JSON (its own hand, the opponent's card counts),
   every legal move as a zod schema, and one AI SDK `generateText` call with `Output.object` per decision, through
@@ -67,20 +69,21 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 - **Audio** (`src/audio`): a generative score, one theme per color combination and four moods that follow the game,
   scheduled ahead of the audio clock, and a sound for every animation cue, each built from layers of synthesized
   tones and noise. Tests read what plays and render every sound offline.
-- **Cards**: 119 cards — 111 that belong to a single deck (16 in Emberwild, 14 each in Dawntide, Duskmire,
-  Sunmeadow and Brightforge, 13 each in Stormglass, Mistgrave and Gloamwood), the five basic lands, which any deck may
-  use, and three tokens that cards create (Soldier, Elemental, Saproling) — each with its own SVG illustration in
-  `public/cards/`, listed in [`docs/CARDS.md`](docs/CARDS.md) (generated from the definitions).
+- **Cards**: 163 cards — 154 that belong to a single deck (16 in Emberwild, 15 in Vesperhall, 14 each in Dawntide,
+  Duskmire, Sunmeadow, Brightforge, Cindermaw and Deepgrove, 13 each in Stormglass, Mistgrave and Gloamwood), the
+  five basic lands, which any deck may use, and four tokens that cards create (Soldier, Elemental, Saproling,
+  Spirit) — each with its own SVG illustration in `public/cards/`, listed in [`docs/CARDS.md`](docs/CARDS.md)
+  (generated from the definitions).
 
 ## Testing and verification
 
 | Command | What it proves |
 | --- | --- |
-| `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 50 feature checks |
-| `npm run sim -- --games 1000` | Headless AI games in all 64 deck matchups, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup) |
+| `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 55 feature checks |
+| `npm run sim -- --games 3000` | Headless AI games in all 121 deck matchups, one process per CPU, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup) |
 | `npm run test:e2e` | Playwright on the production build, two phone viewports |
 | `npm run test:live` | Real OpenRouter calls, one per decision kind (needs `OPENROUTER_API_KEY`, spends credits; `OPENROUTER_MODEL` picks the model). `npm run sim -- --p1 llm --model <id> --log 1` plays a whole game against it |
-| `npm run verify` | Typecheck, tests, 64 simulated games (one per matchup) and the build, in one go |
+| `npm run verify` | Typecheck, tests, 121 simulated games (one per matchup) and the build, in one go |
 
 [`docs/VERIFICATION.md`](docs/VERIFICATION.md) maps every feature to its tests. With the game open,
 `manaDuel.runChecks()` runs the same feature checks inside the browser, and `manaDuel.help()` lists the rest of

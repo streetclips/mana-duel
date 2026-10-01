@@ -29,7 +29,9 @@ export type Keyword =
   | 'defender'
   | 'flash'
   | 'skulk'
-  | 'undying';
+  | 'undying'
+  | 'hexproof'
+  | 'evolve';
 
 export const KEYWORDS: readonly Keyword[] = [
   'flying',
@@ -46,6 +48,8 @@ export const KEYWORDS: readonly Keyword[] = [
   'flash',
   'skulk',
   'undying',
+  'hexproof',
+  'evolve',
 ];
 
 export type TargetSpec =
@@ -70,6 +74,7 @@ export type Effect =
   | { kind: 'gainLife'; amount: number }
   | { kind: 'loseLife'; amount: number; who?: Who }
   | { kind: 'fight'; a: EffectTarget; b: EffectTarget }
+  | { kind: 'bite'; a: EffectTarget; b: EffectTarget }
   | { kind: 'pumpTeam'; power: number; toughness: number; keywords?: Keyword[] }
   | { kind: 'addCounters'; amount: number; to: EffectTarget }
   | { kind: 'addCountersTeam'; amount: number }
@@ -77,10 +82,13 @@ export type Effect =
   | { kind: 'discard'; amount: number; who?: Who }
   | { kind: 'returnToBattlefield'; counters: number };
 
-export type TriggerEvent = 'enters' | 'dies' | 'attacks' | 'spell' | 'allyEnters' | 'allyDies' | 'damagesPlayer';
+export type TriggerEvent = 'enters' | 'dies' | 'attacks' | 'spell' | 'allyEnters' | 'allyDies' | 'damagesPlayer' | 'lifeGain';
+
+export type TriggerCondition = 'opponentDamaged';
 
 export interface TriggeredAbility {
   on: TriggerEvent;
+  condition?: TriggerCondition;
   targets: TargetSpec[];
   effects: Effect[];
 }
@@ -146,6 +154,7 @@ export interface PlayerState {
   bottomed: boolean;
   drewFromEmptyLibrary: boolean;
   conceded: boolean;
+  damagedThisTurn: boolean;
 }
 
 export type Step =
@@ -253,6 +262,7 @@ export type GameEvent =
   | { t: 'pump'; card: CardId; power: number; toughness: number; keywords?: Keyword[] }
   | { t: 'addCounters'; card: CardId; amount: number }
   | { t: 'fight'; a: CardId; b: CardId }
+  | { t: 'bite'; a: CardId; b: CardId }
   | { t: 'dies'; card: CardId; player: PlayerId }
   | { t: 'discard'; player: PlayerId; card: CardId }
   | { t: 'concede'; player: PlayerId }

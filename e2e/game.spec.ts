@@ -360,6 +360,65 @@ test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the A
   expect(errors).toEqual([]);
 });
 
+test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain and evolve grow creatures, bloodthirst after a hit', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=5&first=you&deck=vesperhall&aiDeck=deepgrove&aiDelay=0');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Vesperhall');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Deepgrove');
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [
+        { hand: [{ card: 'penance', id: 'penance' }], battlefield: ['plains', 'swamp', { card: 'vesper_novice', id: 'novice' }] },
+        { battlefield: [{ card: 'mossfin_lurker', id: 'lurker' }, { card: 'kelpweaver_druid', id: 'druid' }] },
+      ],
+    }),
+  );
+  await page.getByTestId('card-penance').click();
+  await page.getByTestId('sheet-cast').click();
+  await expect(page.getByTestId('prompt')).toHaveText('Choose target creature');
+  await expect(page.getByTestId('card-druid')).toHaveAttribute('data-targetable', 'true');
+  await expect(page.getByTestId('card-lurker')).not.toHaveAttribute('data-targetable', 'true');
+  await page.getByTestId('card-druid').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('life-0')).toHaveText('22');
+  await expect(page.getByTestId('pt-novice')).toHaveText('2/2');
+
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [{ hand: [{ card: 'kelpweaver_druid', id: 'druid' }], battlefield: ['forest', 'forest', { card: 'shoal_hatchling', id: 'hatchling' }] }, {}],
+    }),
+  );
+  await page.getByTestId('card-druid').click();
+  await page.getByTestId('sheet-cast').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('pt-hatchling')).toHaveText('2/2');
+
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [
+        {
+          hand: [{ card: 'bloodfire_bolt', id: 'bolt' }, { card: 'blistering_hellion', id: 'hellion' }],
+          battlefield: ['swamp', 'mountain', 'mountain', 'mountain', 'mountain'],
+        },
+        {},
+      ],
+    }),
+  );
+  await page.getByTestId('card-bolt').click();
+  await page.getByTestId('sheet-cast').click();
+  await page.getByTestId('player-1').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('life-1')).toHaveText('17');
+  await page.getByTestId('card-hellion').click();
+  await page.getByTestId('sheet-cast').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('pt-hellion')).toHaveText('5/4');
+  await page.getByTestId('card-hellion').click({ button: 'right' });
+  await expect(page.getByTestId('card-sheet')).toContainText('2 +1/+1 counters');
+  await expectNoHorizontalOverflow(page);
+  expect(errors).toEqual([]);
+});
+
 test('the AI can finish a whole game and the result is shown', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=21&aiDelay=0&skipMulligan=1');

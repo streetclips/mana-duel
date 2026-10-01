@@ -1,4 +1,4 @@
-import { allCreatures, getCard, isCreature } from './state';
+import { allCreatures, getCard, hasKeyword, isCreature } from './state';
 import type { CardId, GameState, PlayerId, Target, TargetSpec } from './types';
 
 export function isPlayerTarget(target: Target): target is { player: PlayerId } {
@@ -29,6 +29,7 @@ export function isLegalTarget(s: GameState, controller: PlayerId, spec: TargetSp
   const card = s.cards[target.card];
   if (!card || card.zone !== 'battlefield' || !isCreature(s, target.card)) return false;
   if (spec.kind === 'player') return false;
+  if (card.controller !== controller && hasKeyword(s, target.card, 'hexproof')) return false;
   if (spec.kind === 'creature') {
     if (spec.controller === 'you' && card.controller !== controller) return false;
     if (spec.controller === 'opponent' && card.controller === controller) return false;

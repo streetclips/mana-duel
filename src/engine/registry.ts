@@ -55,10 +55,12 @@ export function validateCardDef(def: CardDef): void {
     const discards = ability.effects.filter((effect) => effect.kind === 'discard').length;
     if (discards > 1 || (discards === 1 && ability.effects.at(-1)?.kind !== 'discard')) fail('a discard must be the last effect');
     if (ability.effects.some((effect) => effect.kind === 'returnToBattlefield')) fail('returning to the battlefield is undying only');
+    const regains = ability.effects.some((effect) => effect.kind === 'gainLife' || effect.kind === 'damage');
+    if ('on' in ability && ability.on === 'lifeGain' && regains) fail('a "whenever you gain life" ability cannot gain life or deal damage');
     const sacrificed = 'sacrifice' in ability && ability.sacrifice === true;
     for (const effect of ability.effects) {
       if (sacrificed && 'to' in effect && effect.to === 'self') fail('an ability that sacrifices its creature cannot affect it');
-      const refs = effect.kind === 'fight' ? [effect.a, effect.b] : 'to' in effect ? [effect.to] : [];
+      const refs = effect.kind === 'fight' || effect.kind === 'bite' ? [effect.a, effect.b] : 'to' in effect ? [effect.to] : [];
       for (const ref of refs) {
         if (ref === 'self' && !isCreature) fail('"self" effects need a permanent source');
         if (typeof ref === 'number' && (ref < 0 || ref >= ability.targets.length)) fail(`effect refers to missing target ${ref}`);

@@ -1,0 +1,16 @@
+import type { CardDef } from '../types';
+
+export const penance: CardDef = {
+  id: 'penance',
+  name: 'Penance',
+  types: ['instant'],
+  cost: '{W}{B}',
+  spell: {
+    targets: [{ kind: 'creature' }],
+    effects: [
+      { kind: 'pump', power: -2, toughness: -2, to: 0 },
+      { kind: 'gainLife', amount: 2 },
+    ],
+  },
+  flavor: 'The hall forgives. The hall also collects.',
+};

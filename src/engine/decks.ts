@@ -221,7 +221,98 @@ export const GLOAMWOOD: DeckDef = {
   ],
 };
 
-export const DECK_LIST: readonly DeckDef[] = [EMBERWILD, DAWNTIDE, DUSKMIRE, STORMGLASS, SUNMEADOW, BRIGHTFORGE, MISTGRAVE, GLOAMWOOD];
+export const VESPERHALL: DeckDef = {
+  id: 'vesperhall',
+  name: 'Vesperhall',
+  description: 'White and black: lifelink and life drain; every life it gains feeds its faithful and bleeds the opponent.',
+  colors: ['W', 'B'],
+  featured: 'vesperhall_matriarch',
+  cards: [
+    { card: 'plains', count: 8 },
+    { card: 'swamp', count: 8 },
+    { card: 'vesper_novice', count: 2 },
+    { card: 'tithe_collector', count: 2 },
+    { card: 'chantry_guard', count: 2 },
+    { card: 'ghostlit_penitent', count: 2 },
+    { card: 'censer_bearer', count: 2 },
+    { card: 'sanguine_chorister', count: 2 },
+    { card: 'ashveil_executioner', count: 1 },
+    { card: 'lanternwing_angel', count: 2 },
+    { card: 'gilded_confessor', count: 1 },
+    { card: 'vesperhall_matriarch', count: 1 },
+    { card: 'penance', count: 2 },
+    { card: 'vesper_vow', count: 2 },
+    { card: 'rite_of_lanterns', count: 1 },
+    { card: 'last_rites', count: 1 },
+    { card: 'blood_tithe', count: 1 },
+  ],
+};
+
+export const CINDERMAW: DeckDef = {
+  id: 'cindermaw',
+  name: 'Cindermaw',
+  description: 'Black and red: haste, menace and burn; once the opponent bleeds, its bloodthirsty creatures arrive bigger.',
+  colors: ['B', 'R'],
+  featured: 'cindermaw_demon',
+  cards: [
+    { card: 'swamp', count: 8 },
+    { card: 'mountain', count: 8 },
+    { card: 'spitfire_imp', count: 2 },
+    { card: 'bloodhungry_ghoul', count: 2 },
+    { card: 'pitfire_raider', count: 2 },
+    { card: 'brimstone_skirmisher', count: 2 },
+    { card: 'blistering_hellion', count: 2 },
+    { card: 'pyre_ghast', count: 2 },
+    { card: 'gorehorn_minotaur', count: 2 },
+    { card: 'scorchfang_hound', count: 1 },
+    { card: 'cindermaw_demon', count: 1 },
+    { card: 'splitting_flame', count: 2 },
+    { card: 'bloodfire_bolt', count: 2 },
+    { card: 'rend_flesh', count: 1 },
+    { card: 'blood_frenzy', count: 2 },
+    { card: 'grim_kindling', count: 1 },
+  ],
+};
+
+export const DEEPGROVE: DeckDef = {
+  id: 'deepgrove',
+  name: 'Deepgrove',
+  description: "Green and blue: evolving creatures grow with every bigger arrival, and hexproof giants shrug off the opponent's spells.",
+  colors: ['G', 'U'],
+  featured: 'deepgrove_leviathan',
+  cards: [
+    { card: 'forest', count: 8 },
+    { card: 'island', count: 8 },
+    { card: 'shoal_hatchling', count: 2 },
+    { card: 'reefwing_fledgling', count: 2 },
+    { card: 'kelpweaver_druid', count: 2 },
+    { card: 'tidecrest_mutant', count: 2 },
+    { card: 'mossfin_lurker', count: 2 },
+    { card: 'tanglejaw_croc', count: 2 },
+    { card: 'mistfin_drake', count: 2 },
+    { card: 'coralhide_behemoth', count: 1 },
+    { card: 'deepgrove_leviathan', count: 1 },
+    { card: 'snapjaw_strike', count: 2 },
+    { card: 'shell_of_the_deep', count: 2 },
+    { card: 'adaptive_bloom', count: 2 },
+    { card: 'undertide_lore', count: 1 },
+    { card: 'riptide_recall', count: 1 },
+  ],
+};
+
+export const DECK_LIST: readonly DeckDef[] = [
+  EMBERWILD,
+  DAWNTIDE,
+  DUSKMIRE,
+  STORMGLASS,
+  SUNMEADOW,
+  BRIGHTFORGE,
+  MISTGRAVE,
+  GLOAMWOOD,
+  VESPERHALL,
+  CINDERMAW,
+  DEEPGROVE,
+];
 
 export const DECKS: Record<string, DeckDef> = Object.fromEntries(DECK_LIST.map((deck) => [deck.id, deck]));
 

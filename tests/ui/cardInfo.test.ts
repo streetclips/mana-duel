@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getCardDef } from '../../src/engine';
-import { cardColors, shortText } from '../../src/ui/cardInfo';
+import { cardColors, effectHint, shortText } from '../../src/ui/cardInfo';
 
 describe('short card texts', () => {
   it('abbreviate keywords, triggers, tokens, discards and sacrifice costs', () => {
@@ -13,8 +13,18 @@ describe('short card texts', () => {
     expect(shortText('bloodspore_thrall')).toBe('Undying · Sac: opp -1 life');
   });
 
+  it('abbreviate life gain triggers, bloodthirst, evolve, hexproof and bites', () => {
+    expect(shortText('vesper_novice')).toBe('Gain life: +1 counter');
+    expect(shortText('sanguine_chorister')).toBe('Gain life: opp -1 life');
+    expect(shortText('blistering_hellion')).toBe('Bloodthirst: +2 counters');
+    expect(shortText('reefwing_fledgling')).toBe('Flying · Evolve');
+    expect(shortText('deepgrove_leviathan')).toBe('Trample · Hexproof');
+    expect(effectHint({ kind: 'bite', a: 0, b: 1 })).toBe('bite');
+  });
+
   it('color a token by its own colors, other cards by their cost', () => {
     expect(cardColors(getCardDef('elemental_token'))).toEqual(['R']);
     expect(cardColors(getCardDef('sunbrand'))).toEqual(['W', 'R']);
+    expect(cardColors(getCardDef('spirit_token'))).toEqual(['W', 'B']);
   });
 });

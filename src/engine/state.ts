@@ -10,17 +10,25 @@ import type {
   ManaCost,
   PlayerId,
   PlayerState,
+  TriggerCondition,
   TriggerEvent,
   TriggeredAbility,
   Zone,
 } from './types';
 
 export const UNDYING_TRIGGER = -1;
+export const EVOLVE_TRIGGER = -2;
 
 const UNDYING_ABILITY: TriggeredAbility = {
   on: 'dies',
   targets: [],
   effects: [{ kind: 'returnToBattlefield', counters: 1 }],
+};
+
+const EVOLVE_ABILITY: TriggeredAbility = {
+  on: 'allyEnters',
+  targets: [],
+  effects: [{ kind: 'addCounters', amount: 1, to: 'self' }],
 };
 
 export const STARTING_LIFE = 20;
@@ -105,7 +113,9 @@ export function isTokenDef(def: CardDef): boolean {
 }
 
 export function triggeredAbility(def: CardDef, index: number): TriggeredAbility | undefined {
-  return index === UNDYING_TRIGGER ? UNDYING_ABILITY : def.triggers?.[index];
+  if (index === UNDYING_TRIGGER) return UNDYING_ABILITY;
+  if (index === EVOLVE_TRIGGER) return EVOLVE_ABILITY;
+  return def.triggers?.[index];
 }
 
 export function isPermanentDef(def: CardDef): boolean {
@@ -200,6 +210,11 @@ function removeFromList(list: CardId[] | null, id: CardId): void {
   if (index >= 0) list.splice(index, 1);
 }
 
+function evolves(s: GameState, evolver: CardId, newcomer: CardId): boolean {
+  if (!hasKeyword(s, evolver, 'evolve')) return false;
+  return getPower(s, newcomer) > getPower(s, evolver) || getToughness(s, newcomer) > getToughness(s, evolver);
+}
+
 function enterBattlefield(s: GameState, id: CardId): void {
   const card = getCard(s, id);
   const creature = isCreatureDef(getCardDef(card.def));
@@ -208,7 +223,9 @@ function enterBattlefield(s: GameState, id: CardId): void {
   queueTriggers(s, id, 'enters', card.controller);
   if (!creature) return;
   for (const other of s.players[card.controller].battlefield) {
-    if (other !== id) queueTriggers(s, other, 'allyEnters', card.controller);
+    if (other === id) continue;
+    queueTriggers(s, other, 'allyEnters', card.controller);
+    if (evolves(s, other, id)) s.triggers.push({ id: newId(s, 't'), controller: card.controller, source: other, ability: EVOLVE_TRIGGER });
   }
 }
 
@@ -289,10 +306,19 @@ export function removeFromCombat(s: GameState, id: CardId): void {
   combat.blocks = combat.blocks.filter((block) => block.blocker !== id && block.attacker !== id);
 }
 
+function conditionHolds(s: GameState, condition: TriggerCondition | undefined, controller: PlayerId): boolean {
+  switch (condition) {
+    case undefined:
+      return true;
+    case 'opponentDamaged':
+      return s.players[opponent(controller)].damagedThisTurn;
+  }
+}
+
 export function queueTriggers(s: GameState, source: CardId, event: TriggerEvent, controller: PlayerId): void {
   const triggers = defOf(s, source).triggers ?? [];
   triggers.forEach((trigger, ability) => {
-    if (trigger.on === event) s.triggers.push({ id: newId(s, 't'), controller, source, ability });
+    if (trigger.on === event && conditionHolds(s, trigger.condition, controller)) s.triggers.push({ id: newId(s, 't'), controller, source, ability });
   });
 }
 
@@ -315,6 +341,7 @@ export function changeLife(s: GameState, player: PlayerId, delta: number): void 
   const ps = s.players[player];
   ps.life += delta;
   s.events.push({ t: 'life', player, delta, life: ps.life });
+  if (delta > 0) for (const id of ps.battlefield) queueTriggers(s, id, 'lifeGain', player);
 }
 
 export function manaSources(s: GameState, player: PlayerId, exclude?: CardId): ManaSource[] {

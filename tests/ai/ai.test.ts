@@ -411,6 +411,52 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
   });
 });
 
+describe('AI with the Vesperhall, Cindermaw and Deepgrove cards', () => {
+  it('waits until after combat to cast a bloodthirsty creature, which then arrives with its counters', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [
+        {},
+        { hand: [{ card: 'blistering_hellion', id: 'hellion' }], battlefield: ['mountain', 'mountain', 'mountain', { card: 'test_bear', id: 'bear' }] },
+      ],
+    });
+    expect(chooseAction(s, 1)).toEqual({ type: 'pass', player: 1 });
+    for (let i = 0; i < 40 && (s.cards.hellion?.zone !== 'battlefield' || s.stack.length > 0); i++) {
+      const pending = s.pending;
+      if (!pending || pending.kind === 'gameOver') break;
+      s = act(s, chooseAction(s, pending.player));
+    }
+    expect([s.step, s.players[0].life, s.cards.hellion?.zone, s.cards.hellion?.counters]).toEqual(['main2', 18, 'battlefield', 2]);
+  });
+
+  it('casts a creature before combat when it makes an evolving attacker grow', () => {
+    const s = scenario({
+      activePlayer: 1,
+      players: [
+        {},
+        { hand: [{ card: 'mossfin_lurker', id: 'lurker' }], battlefield: ['forest', 'forest', 'forest', { card: 'shoal_hatchling', id: 'hatchling' }] },
+      ],
+    });
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'lurker', targets: [] });
+  });
+
+  it('answers removal by giving its creature hexproof', () => {
+    const s = pass(
+      cast(
+        scenario({
+          players: [
+            { hand: [{ card: 'magma_lance', id: 'lance' }], battlefield: ['mountain', 'mountain', 'mountain'] },
+            { hand: [{ card: 'shell_of_the_deep', id: 'shell' }], battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }] },
+          ],
+        }),
+        'lance',
+        [{ card: 'croc' }],
+      ),
+    );
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'shell', targets: [{ card: 'croc' }] });
+  });
+});
+
 describe('AI rollouts', () => {
   it('aim a death trigger at the most valuable target it can kill, not at its own controller', () => {
     let s = scenario({

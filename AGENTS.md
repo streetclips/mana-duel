@@ -1,8 +1,9 @@
 # Mana Duel
 
-Minimalist, mobile-first card duel on the rules of Magic: The Gathering: eight decks (Emberwild red/green, Dawntide
+Minimalist, mobile-first card duel on the rules of Magic: The Gathering: eleven decks (Emberwild red/green, Dawntide
 white/blue, Duskmire black, Stormglass blue/red, Sunmeadow green/white, Brightforge red/white, Mistgrave blue/black,
-Gloamwood black/green), a human against an AI: the classic one, or an OpenRouter model through the AI SDK.
+Gloamwood black/green, Vesperhall white/black, Cindermaw black/red, Deepgrove green/blue), a human against an AI: the
+classic one, or an OpenRouter model through the AI SDK.
 TypeScript, Preact, Vite; Vitest and Playwright.
 
 ## Layout
@@ -20,7 +21,7 @@ src/audio/   music and sound effects synthesized with Web Audio: a theme per dec
              sound per fx cue; GameAudio starts on the first tap
 tests/       Vitest: engine, ai, llm, app, ui (happy-dom), audio (fake AudioContext) e2e/  Playwright on the
              production build
-scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts (writes docs/CARDS.md),
+scripts/     sim.ts (headless AI games in every matchup + invariants, in parallel), cards.ts (writes docs/CARDS.md),
              openrouterProxy.ts (dev server proxy that adds OPENROUTER_API_KEY)
 ```
 
@@ -37,13 +38,13 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 ## Verify a change
 
 1. After editing cards or decks, run `npm run cards` to regenerate `docs/CARDS.md`.
-2. Run `npm run verify` (typecheck, unit tests, 64 AI-vs-AI games, one per matchup, with invariant checks,
+2. Run `npm run verify` (typecheck, unit tests, 121 AI-vs-AI games, one per matchup, with invariant checks,
    production build). Done when it exits 0.
-3. After changing cards, decks or the AI, check the balance with `npm run sim -- --games 1000 --quiet` (under two
-   minutes): every `decks.*.winRate` should stay between about 0.42 and 0.58. With 64 matchups, smaller runs are
-   noise, and one run of 1000 still moves a deck by about 3 points: settle a close call with a second `--seed`. To
-   compare two versions of a card, run the same `--seed` before and after, with `--decks <id>,all` to play only that
-   deck's matchups.
+3. After changing cards, decks or the AI, check the balance with `npm run sim -- --games 3000 --quiet` (under a
+   minute on ten CPUs: games run in one process per CPU, and `--workers N` changes how many, never the results): every
+   `decks.*.winRate` should stay between about 0.42 and 0.58. With 121 matchups, smaller runs are noise, and one run
+   of 3000 still moves a deck by about 2 points: settle a close call with a second `--seed`. To compare two versions
+   of a card, run the same `--seed` before and after, with `--decks <id>,all` to play only that deck's matchups.
 4. For UI or audio changes, also run `npm run test:e2e` (two phone viewports). Done when every test passes.
 5. Steps 1–4 never reach OpenRouter. `npm run test:live` makes real calls and spends credits: run it only when asked.
 
@@ -118,8 +119,11 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
   `src/ai/evaluate.ts` when it changes what a creature is worth. An effect that waits for a player's choice sets
   `state.pending` during resolution (see the `discard` effect) and needs a case in `src/ai/rollout.ts`. State a
   creature keeps on the battlefield, like +1/+1 counters, also needs its reset in `moveCard`, a rule in
-  `invariants.ts`, a scenario field and a place in `src/llm/view.ts`. Cover it with a scenario test in
-  `tests/engine` and a check in `src/app/checks.ts`.
+  `invariants.ts`, a scenario field and a place in `src/llm/view.ts`; state a player keeps for the turn, like
+  `damagedThisTurn`, resets in `goToNextStep` and needs the same scenario field and view. A keyword that triggers
+  (undying, evolve) is a negative ability index in `state.ts` (`UNDYING_TRIGGER`, `EVOLVE_TRIGGER`) with its text in
+  `triggerText`; a trigger's `condition` (bloodthirst's `opponentDamaged`) is checked by `conditionHolds` when it
+  would trigger. Cover it with a scenario test in `tests/engine` and a check in `src/app/checks.ts`.
 - A new `GameEvent` animates once `src/app/fx.ts` turns it into a cue (`tests/app/fx.test.ts`) and `src/ui/fx.ts`
   gives the cue its hooks and overlays (`tests/ui/animations.test.tsx`, `e2e/animations.spec.ts`); it sounds once
   `soundsOf` in `src/audio/cues.ts` maps the cue to a sound (`tests/audio/cues.test.ts`).

@@ -30,6 +30,7 @@ Rules:
 - A creature dies once the damage marked on it reaches its toughness.
 - Spells and abilities go on the stack and resolve last in, first out, once both players pass priority in a row. A spell whose targets are all gone does nothing.
 - Tokens ("token": true) are creatures that effects create. A token that leaves the battlefield ceases to exist.
+- "damagedThisTurn": true marks a player who was dealt damage this turn, which some cards check. Losing life is not damage. It clears when the next turn begins.
 - When an effect makes a player discard, that player chooses the cards. An ability that sacrifices its creature as a cost puts it into the graveyard at once, as a death.
 - Keywords:
 ${KEYWORD_LINES}

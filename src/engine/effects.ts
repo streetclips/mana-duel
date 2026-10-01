@@ -54,6 +54,7 @@ export function applyDamage(s: GameState, assignments: DamageAssignment[], comba
     if (amount <= 0) continue;
     if (isPlayerTarget(target)) {
       s.events.push({ t: 'damage', source, target, amount, combat });
+      s.players[target.player].damagedThisTurn = true;
       changeLife(s, target.player, -amount);
     } else {
       const card = s.cards[target.card];
@@ -183,6 +184,14 @@ export function executeEffects(s: GameState, effects: Effect[], ctx: EffectConte
           ],
           false,
         );
+        break;
+      }
+      case 'bite': {
+        const a = resolveCreatureTarget(s, ctx, effect.a);
+        const b = resolveCreatureTarget(s, ctx, effect.b);
+        if (!a || !b) break;
+        s.events.push({ t: 'bite', a, b });
+        applyDamage(s, [{ source: a, target: { card: b }, amount: getPower(s, a) }], false);
         break;
       }
       case 'createTokens':

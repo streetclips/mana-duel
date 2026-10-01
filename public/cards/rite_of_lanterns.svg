@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f1d44"/>
+      <stop offset="1" stop-color="#5a3a66"/>
+    </linearGradient>
+    <g id="spirit">
+      <path d="M-5.6 -0.6 C-7.6 -2.4 -10 -2.8 -12 -1.6 Q-12.4 0.4 -10 0.6 Q-10 2.4 -7.6 2.2 Q-6.8 3.4 -5.4 2.4 Z M5.6 -0.6 C7.6 -2.4 10 -2.8 12 -1.6 Q12.4 0.4 10 0.6 Q10 2.4 7.6 2.2 Q6.8 3.4 5.4 2.4 Z" fill="#d8f2f6"/>
+      <path d="M0 -6 C3.8 -6 6 -3.2 6 0 C6 3.2 4.2 5 3.2 7 C2.4 8.6 2.2 10.4 3.4 12 C1 11.8 -0.8 10.2 -1.6 8.2 C-3.4 7 -6 4.6 -6 0 C-6 -3.2 -3.8 -6 0 -6 Z" fill="#eefbfd"/>
+      <ellipse cx="-2" cy="-0.4" rx="0.9" ry="1.3" fill="#2a2d55"/>
+      <ellipse cx="2" cy="-0.4" rx="0.9" ry="1.3" fill="#2a2d55"/>
+    </g>
+    <g id="lantern">
+      <circle cx="0" cy="5" r="13" fill="#f6b85a" opacity="0.14"/>
+      <circle cx="0" cy="5" r="7.4" fill="#ffd27a" opacity="0.22"/>
+      <circle cx="0" cy="-1.6" r="1.4" fill="none" stroke="#c99a3e" stroke-width="0.8"/>
+      <path d="M-4 1 H4 L2.6 -0.6 H-2.6 Z M-4.4 10.6 H4.4 L3 12.8 H-3 Z" fill="#c99a3e"/>
+      <rect x="-3.6" y="1" width="7.2" height="9.6" fill="#ffd76a"/>
+      <rect x="-2" y="2.6" width="4" height="6.4" fill="#fffbe8"/>
+      <path d="M0 1 V10.6" stroke="#c99a3e" stroke-width="0.7"/>
+    </g>
+    <path id="stone" d="M-5 0 V-9 C-5 -13 5 -13 5 -9 V0 Z"/>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <g fill="#e8f9fb" opacity="0.6">
+    <circle cx="12" cy="10" r="0.7"/>
+    <circle cx="58" cy="4" r="0.5"/>
+    <circle cx="104" cy="8" r="0.8"/>
+    <circle cx="24" cy="30" r="0.5"/>
+    <circle cx="98" cy="30" r="0.6"/>
+  </g>
+  <path d="M44 62 V44 L50 38 L55 42 V30 L60 16 L65 30 V42 L70 38 L76 44 V62 Z" fill="#2c2246"/>
+  <path d="M58.2 56 V51 C58.2 48.6 61.8 48.6 61.8 51 V56 Z" fill="#e8b64a" opacity="0.8"/>
+  <path d="M0 62 Q60 58 120 62 V80 H0 Z" fill="#1f1830"/>
+  <g fill="#5a4f6e">
+    <use href="#stone" x="22" y="68"/>
+    <use href="#stone" x="48" y="66" transform="rotate(-6 48 66)"/>
+    <use href="#stone" x="74" y="67" transform="rotate(5 74 67)"/>
+    <use href="#stone" x="98" y="66"/>
+  </g>
+  <path d="M22 58.4 V66 M19.6 61 H24.4 M98 56.4 V64 M95.6 59 H100.4" stroke="#3e3552" stroke-width="1.2"/>
+  <g fill="#bfeef6">
+    <circle cx="45.6" cy="31" r="0.7" opacity="0.7"/>
+    <circle cx="44" cy="28" r="0.6" opacity="0.5"/>
+    <circle cx="75" cy="27" r="0.7" opacity="0.7"/>
+    <circle cx="77" cy="24" r="0.6" opacity="0.5"/>
+  </g>
+  <use href="#lantern" x="46" y="36"/>
+  <use href="#lantern" x="74" y="32"/>
+  <circle cx="42" cy="16" r="9" fill="#bfeef6" opacity="0.12"/>
+  <circle cx="79" cy="12" r="9" fill="#bfeef6" opacity="0.12"/>
+  <use href="#spirit" x="42" y="15"/>
+  <use href="#spirit" x="79" y="11" transform="rotate(8 79 11)"/>
+  <path d="M102 38 L102.7 40 L104.7 40.7 L102.7 41.4 L102 43.4 L101.3 41.4 L99.3 40.7 L101.3 40 Z M20 22 L20.6 23.6 L22.2 24.2 L20.6 24.8 L20 26.4 L19.4 24.8 L17.8 24.2 L19.4 23.6 Z" fill="#e8f9fb"/>
+  <g fill="#ffd27a">
+    <circle cx="30" cy="44" r="0.8"/>
+    <circle cx="88" cy="46" r="0.7"/>
+    <circle cx="60" cy="28" r="0.7"/>
+  </g>
+  <g fill="#9fe0ee" opacity="0.8">
+    <circle cx="50" cy="20" r="0.7"/>
+    <circle cx="72" cy="10" r="0.6"/>
+    <circle cx="94" cy="22" r="0.8"/>
+  </g>
+</svg>

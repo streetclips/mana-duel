@@ -196,6 +196,21 @@ describe('fx cues: spells and abilities', () => {
     ]);
   });
 
+  it('lets a creature that bites strike its target, which does not strike back', () => {
+    const s = scenario({
+      players: [
+        { hand: [{ card: 'snapjaw_strike', id: 'strike' }], battlefield: ['forest', 'forest', { card: 'mossfin_lurker', id: 'lurker' }] },
+        { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
+      ],
+    });
+    const resolved = passCollecting(cast(s, 'strike', [{ card: 'lurker' }, { card: 'adept' }]), stackEmpty);
+    expect(resolved.cues).toEqual([
+      { kind: 'strike', card: 'lurker', target: { card: 'adept' } },
+      { kind: 'damage', card: 'adept', amount: 3 },
+      { kind: 'dies', player: 1, card: 'adept', next: null },
+    ]);
+  });
+
   it('shows a triggered ability and its damage, but no strike for a creature that only pings', () => {
     let s = scenario({
       players: [

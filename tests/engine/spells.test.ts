@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  EVOLVE_TRIGGER,
   UNDYING_TRIGGER,
   activatedText,
   blockOptions,
@@ -33,6 +34,7 @@ import {
   passTo,
   passToStep,
   pendingOf,
+  playLand,
   resolveStack,
   scenario,
   zoneOf,
@@ -1149,5 +1151,266 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
     expect(describeState(s)).toContain('Test Bear(bear) 3/3');
     s = passToStep(s, 'main1', s.turn + 2);
     expect([getPower(s, 'bear'), getKeywords(s, 'bear')]).toEqual([2, []]);
+  });
+});
+
+describe('Vesperhall: "whenever you gain life", lifelink and life drain', () => {
+  it('Vesper Novice gets a +1/+1 counter each time you gain life', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'penance', id: 'penance' }], battlefield: ['plains', 'swamp', { card: 'vesper_novice', id: 'novice' }] },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'penance', [{ card: 'bear' }]));
+    expect([zoneOf(s, 'bear'), life(s, 0), s.cards.novice?.counters, getPower(s, 'novice')]).toEqual(['graveyard', 22, 1, 2]);
+  });
+
+  it('is not triggered when the opponent gains life', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [{ battlefield: [{ card: 'vesper_novice', id: 'novice' }] }, { hand: [{ card: 'test_heal', id: 'heal' }], battlefield: ['forest'] }],
+    });
+    s = resolveStack(cast(s, 'heal'));
+    expect([life(s, 1), s.cards.novice?.counters]).toEqual([23, 0]);
+  });
+
+  it('lifelink damage dealt at the same time is one life gain, so it triggers once', () => {
+    let s = scenario({
+      players: [
+        {
+          battlefield: [
+            { card: 'chantry_guard', id: 'guard' },
+            { card: 'ghostlit_penitent', id: 'penitent' },
+            { card: 'vesper_novice', id: 'novice' },
+          ],
+        },
+        {},
+      ],
+    });
+    s = finishCombat(attack(s, ['guard', 'penitent']));
+    expect([life(s, 0), life(s, 1), s.cards.novice?.counters]).toEqual([23, 17, 1]);
+  });
+
+  it('Sanguine Chorister drains the opponent whenever you gain life, so Tithe Collector drains twice', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'tithe_collector', id: 'collector' }], battlefield: ['swamp', 'swamp', { card: 'sanguine_chorister', id: 'chorister' }] },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'collector'));
+    expect([life(s, 0), life(s, 1)]).toEqual([21, 18]);
+  });
+
+  it('Vesperhall Matriarch grows when Blood Tithe drains the opponent', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'blood_tithe', id: 'tithe' }], battlefield: ['swamp', 'swamp', 'swamp', { card: 'vesperhall_matriarch', id: 'matriarch' }] },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'tithe'));
+    expect([life(s, 0), life(s, 1), s.players[0].hand.length, s.cards.matriarch?.counters]).toEqual([22, 18, 1, 1]);
+  });
+
+  it('Censer Bearer and Rite of Lanterns create white and black Spirit tokens with flying', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'censer_bearer', id: 'censer' }, { card: 'rite_of_lanterns', id: 'rite' }],
+          battlefield: ['plains', 'plains', 'plains', 'plains', 'plains', 'plains'],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(cast(resolveStack(cast(s, 'censer')), 'rite'));
+    const spirits = tokensOf(s, 0, 'spirit_token');
+    expect(spirits).toHaveLength(3);
+    expect(spirits.map((id) => getKeywords(s, id))).toEqual([['flying'], ['flying'], ['flying']]);
+    expect(getCardDef('spirit_token').colors).toEqual(['W', 'B']);
+  });
+});
+
+describe('Cindermaw: "if an opponent was dealt damage this turn"', () => {
+  it('Blistering Hellion enters with two +1/+1 counters once the opponent was dealt damage this turn, and as a 3/2 before', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'blistering_hellion', id: 'h1' }, { card: 'blistering_hellion', id: 'h2' }, { card: 'bloodfire_bolt', id: 'bolt' }],
+          battlefield: ['mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'swamp', 'swamp', 'swamp'],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'h1'));
+    expect([s.cards.h1?.counters, s.players[1].damagedThisTurn]).toEqual([0, false]);
+    s = resolveStack(cast(s, 'bolt', [{ player: 1 }]));
+    expect([life(s, 1), s.players[1].damagedThisTurn]).toEqual([17, true]);
+    s = pass(pass(cast(s, 'h2')));
+    expect(s.stack.map((item) => item.kind)).toEqual(['trigger']);
+    s = resolveStack(s);
+    expect([s.cards.h2?.counters, getPower(s, 'h2'), getToughness(s, 'h2'), s.cards.h1?.counters]).toEqual([2, 5, 4, 0]);
+  });
+
+  it('losing life is not being dealt damage, and damage to yourself does not count', () => {
+    let s = scenario({
+      players: [
+        {
+          damagedThisTurn: true,
+          hand: [{ card: 'bloodhungry_ghoul', id: 'ghoul' }],
+          battlefield: ['swamp', 'swamp', { card: 'bloodspore_thrall', id: 'thrall' }],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(activate(s, 'thrall'));
+    expect([life(s, 1), s.players[1].damagedThisTurn]).toEqual([19, false]);
+    s = resolveStack(cast(s, 'ghoul'));
+    expect(s.cards.ghoul?.counters).toBe(0);
+  });
+
+  it('combat damage counts, and the wound is forgotten when the next turn begins', () => {
+    let s = scenario({
+      players: [{ hand: [{ card: 'bloodhungry_ghoul', id: 'ghoul' }], battlefield: ['swamp', 'swamp', { card: 'test_bear', id: 'bear' }] }, {}],
+    });
+    s = finishCombat(attack(s, ['bear']));
+    expect([life(s, 1), s.players[1].damagedThisTurn]).toEqual([18, true]);
+    s = resolveStack(cast(s, 'ghoul'));
+    expect([s.cards.ghoul?.counters, getPower(s, 'ghoul'), getToughness(s, 'ghoul')]).toEqual([1, 3, 2]);
+    s = passToStep(s, 'main1', s.turn + 1);
+    expect([s.activePlayer, s.players[1].damagedThisTurn]).toEqual([1, false]);
+  });
+
+  it('Brimstone Skirmisher deals 1 damage to the opponent as it attacks, even when it is blocked', () => {
+    let s = attack(
+      scenario({
+        players: [
+          { hand: [{ card: 'bloodhungry_ghoul', id: 'ghoul' }], battlefield: ['swamp', 'swamp', { card: 'brimstone_skirmisher', id: 'skirmisher' }] },
+          { battlefield: [{ card: 'test_wall', id: 'wall' }] },
+        ],
+      }),
+      ['skirmisher'],
+    );
+    pendingOf(s, 'chooseTargets');
+    s = block(chooseTargets(s, [{ player: 1 }]), [{ blocker: 'wall', attacker: 'skirmisher' }]);
+    s = resolveStack(cast(finishCombat(s), 'ghoul'));
+    expect([life(s, 1), zoneOf(s, 'skirmisher'), s.cards.ghoul?.counters]).toEqual([19, 'battlefield', 1]);
+  });
+
+  it('Splitting Flame still burns the opponent when its creature target is gone', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'splitting_flame', id: 'flame' }], battlefield: ['mountain', 'mountain'] },
+        { hand: [{ card: 'undertow', id: 'undertow' }], battlefield: ['island', 'island', { card: 'test_bear', id: 'bear' }] },
+      ],
+    });
+    s = resolveStack(cast(pass(cast(s, 'flame', [{ card: 'bear' }, { player: 1 }])), 'undertow', [{ card: 'bear' }]));
+    expect([zoneOf(s, 'bear'), life(s, 1), s.players[1].damagedThisTurn]).toEqual(['hand', 18, true]);
+  });
+
+  it('Pyre Ghast deals 2 damage to any target when it dies', () => {
+    let s = scenario({
+      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain', { card: 'pyre_ghast', id: 'ghast' }] }, {}],
+    });
+    s = pass(pass(cast(s, 'snap', [{ card: 'ghast' }])));
+    expect(zoneOf(s, 'ghast')).toBe('graveyard');
+    s = resolveStack(chooseTargets(s, [{ player: 1 }]));
+    expect(life(s, 1)).toBe(18);
+  });
+});
+
+describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
+  it('evolve: a creature entering with greater power or toughness gives a +1/+1 counter, an equal or smaller one does not', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'kelpweaver_druid', id: 'druid' }, { card: 'shoal_hatchling', id: 'second' }, { card: 'mossfin_lurker', id: 'lurker' }],
+          battlefield: ['forest', 'forest', 'forest', 'forest', 'forest', 'forest', { card: 'shoal_hatchling', id: 'first' }],
+        },
+        {},
+      ],
+    });
+    s = pass(pass(cast(s, 'druid')));
+    expect(s.stack.map((item) => (item.kind === 'trigger' ? [item.source, item.ability] : item.kind))).toEqual([['first', EVOLVE_TRIGGER]]);
+    s = resolveStack(s);
+    expect([s.cards.first?.counters, getPower(s, 'first'), getToughness(s, 'first')]).toEqual([1, 2, 2]);
+    s = resolveStack(cast(s, 'second'));
+    expect([s.cards.first?.counters, s.cards.second?.counters]).toEqual([1, 0]);
+    s = resolveStack(cast(s, 'lurker'));
+    expect([s.cards.first?.counters, s.cards.second?.counters]).toEqual([2, 1]);
+  });
+
+  it('evolve ignores creatures that enter under the opponent’s control', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [
+        { battlefield: [{ card: 'shoal_hatchling', id: 'hatchling' }] },
+        { hand: [{ card: 'test_giant', id: 'giant' }], battlefield: ['forest', 'forest', 'forest', 'forest', 'forest'] },
+      ],
+    });
+    s = resolveStack(cast(s, 'giant'));
+    expect([zoneOf(s, 'giant'), s.cards.hatchling?.counters]).toEqual(['battlefield', 0]);
+  });
+
+  it('hexproof: the opponent’s spells cannot target the creature, its controller’s can', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain', { card: 'test_bear', id: 'bear' }] },
+        { hand: [{ card: 'adaptive_bloom', id: 'bloom' }], battlefield: ['forest', 'island', { card: 'mossfin_lurker', id: 'lurker' }] },
+      ],
+    });
+    const snapTargets = getLegalActions(s).flatMap((action) => (action.type === 'cast' && action.card === 'snap' ? action.targets : []));
+    expect(snapTargets).toEqual([{ player: 0 }, { player: 1 }, { card: 'bear' }]);
+    expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] })).toEqual({
+      ok: false,
+      error: 'target 0 (lurker) is not legal',
+    });
+    s = resolveStack(cast(pass(cast(s, 'snap', [{ player: 1 }])), 'bloom', [{ card: 'lurker' }]));
+    expect([s.cards.lurker?.counters, life(s, 1)]).toEqual([1, 18]);
+  });
+
+  it('a creature that gains hexproof in response makes the opponent’s spell lose its target', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'magma_lance', id: 'lance' }], battlefield: ['mountain', 'mountain', 'mountain'] },
+        { hand: [{ card: 'shell_of_the_deep', id: 'shell' }], battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }] },
+      ],
+    });
+    s = resolveStack(cast(pass(cast(s, 'lance', [{ card: 'croc' }])), 'shell', [{ card: 'croc' }]));
+    expect(s.events).toContainEqual({ t: 'fizzle', item: expect.objectContaining({ kind: 'spell', card: 'lance' }) });
+    expect([zoneOf(s, 'croc'), s.cards.croc?.damage, getPower(s, 'croc'), getKeywords(s, 'croc')]).toEqual(['battlefield', 0, 4, ['hexproof']]);
+  });
+
+  it('Snapjaw Strike: your creature deals damage equal to its power and takes none back, deathtouch included', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'snapjaw_strike', id: 'strike' }, { card: 'snapjaw_strike', id: 'strike2' }],
+          battlefield: ['forest', 'forest', 'forest', 'forest', { card: 'mossfin_lurker', id: 'lurker' }, { card: 'moss_viper', id: 'viper' }],
+        },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }, { card: 'test_giant', id: 'giant' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'strike', [{ card: 'lurker' }, { card: 'bear' }]));
+    expect([zoneOf(s, 'bear'), s.cards.lurker?.damage]).toEqual(['graveyard', 0]);
+    expect(s.events).toContainEqual({ t: 'bite', a: 'lurker', b: 'bear' });
+    expect(describeEvent(s, { t: 'damage', source: 'lurker', target: { card: 'bear' }, amount: 3, combat: false }, 0)).toBe(
+      "Your Mossfin Lurker deals 3 damage to AI's Test Bear.",
+    );
+    s = resolveStack(cast(s, 'strike2', [{ card: 'viper' }, { card: 'giant' }]));
+    expect([zoneOf(s, 'giant'), zoneOf(s, 'viper')]).toEqual(['graveyard', 'battlefield']);
+  });
+
+  it('Kelpweaver Druid taps for green or blue', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'riptide_recall', id: 'recall' }, { card: 'forest', id: 'land' }], battlefield: [{ card: 'kelpweaver_druid', id: 'druid' }] },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+      ],
+    });
+    expect(castBlocker(s, 0, 'recall')).toBeNull();
+    s = resolveStack(cast(playLand(s, 'land'), 'recall', [{ card: 'bear' }]));
+    expect([zoneOf(s, 'bear'), s.cards.druid?.tapped]).toEqual(['hand', true]);
   });
 });
