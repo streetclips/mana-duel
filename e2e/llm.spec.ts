@@ -126,7 +126,8 @@ test('an LLM from OpenRouter plays the AI seat, seeing only what the AI may see'
   const decisions = await page.evaluate(() => window.manaDuel.llmDecisions());
   expect(decisions.length).toBeGreaterThan(0);
   expect(decisions[0]).toMatchObject({ source: 'model', model: 'mock/model', reason: 'Playing it safe.', usage: { cost: 0.0002 } });
-  await page.getByTestId('btn-log').click();
+  await page.getByTestId('btn-menu').click();
+  await page.getByTestId('menu-log').click();
   await expect(page.getByTestId('log-panel').locator('li.note').first()).toHaveText('AI thinks: Playing it safe.');
   expect(errors).toEqual([]);
 });

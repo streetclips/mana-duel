@@ -126,7 +126,7 @@ export function DeckPicker({ seat, choice, onChange, onView, onDone }: DeckPicke
         )}
       </div>
       <div class="picker-grid" role="radiogroup" aria-label={title} ref={grid}>
-        {deckOptions(seat).map((id, index) => (
+        {deckOptions().map((id, index) => (
           <button
             key={id}
             type="button"

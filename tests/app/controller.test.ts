@@ -24,6 +24,15 @@ describe('GameController', () => {
     expect(c.log.map((entry) => entry.text)).toEqual(['You go first.', 'You keep 7 cards.', 'AI keeps 7 cards.', 'Turn 1 — your turn.']);
   });
 
+  it('writes each log line in parts that name its cards', () => {
+    const c = controller();
+    c.loadScenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }] }, {}] });
+    c.dispatch({ type: 'playLand', player: 0, card: 'f1' });
+    expect(c.log.at(-1)).toMatchObject({ text: 'You play Forest.', parts: ['You play ', { card: 'f1', name: 'Forest' }, '.'] });
+    c.newGame({ seed: 5, startingPlayer: 0 });
+    expect(c.log.map((entry) => entry.parts)).toEqual([['You go first.']]);
+  });
+
   it('refuses actions for the AI seat or out of turn', () => {
     const c = controller();
     expect(c.dispatch({ type: 'keep', player: 1 })).toEqual({ ok: false, error: 'you can only act for your own seat' });

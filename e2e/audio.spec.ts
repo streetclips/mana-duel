@@ -210,7 +210,7 @@ test('the start screen turns music and sound effects off and on', async ({ page 
 test('the audio pauses while the page is hidden and goes on when it shows again', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=1&aiDelay=0');
-  await page.getByTestId('btn-log').click();
+  await page.getByTestId('btn-menu').click();
   await expect(root(page)).toHaveAttribute('data-audio', 'running');
   await expect.poll(() => notes(page)).toBeGreaterThan(0);
   await setVisibility(page, 'hidden');

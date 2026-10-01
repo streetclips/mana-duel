@@ -84,10 +84,12 @@ export {
   cardSummary,
   countersLabel,
   describeEvent,
+  describeEventParts,
   describeState,
   formatModifier,
   formatPump,
   keywordList,
+  plainText,
   tokenDescription,
   rulesText,
   targetPhrase,
@@ -95,6 +97,7 @@ export {
   triggerText,
   typeLine,
 } from './describe';
+export type { CardMention, TextPart } from './describe';
 export { checkInvariants } from './invariants';
 export { createScenario } from './scenario';
 export type { ScenarioCard, ScenarioEntry, ScenarioPlayer, ScenarioSpec } from './scenario';

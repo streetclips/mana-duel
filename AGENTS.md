@@ -52,7 +52,7 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 `npm run dev` serves http://localhost:5173.
 
 - URL parameters: `seed`, `first=you|ai`, `aiDelay` (ms), `skipMulligan=1`, `autoplay=1` (AI plays both seats),
-  `deck=<id>` (yours), `aiDeck=<id>|random`, `ai=llm` with `model=<openrouter id>` and `effort=minimal|low|medium|high`
+  `deck=<id>|random` (yours), `aiDeck=<id>|random`, `ai=llm` with `model=<openrouter id>` and `effort=minimal|low|medium|high`
   (the LLM plays the AI seat), `autoPass=off|on` (off: you pass by hand wherever you could act; the menu toggle is
   remembered), `theme=dark|light`, `fx=off|slow|<speed>` (animations), `music=on|off` and `sfx=on|off` (over the
   remembered toggles; `off` keeps a browser you drive quiet). Decks default to Emberwild.
@@ -68,8 +68,11 @@ scripts/     sim.ts (headless AI games in every matchup + invariants), cards.ts 
 - DOM hooks (`data-testid`): `card-<cardId>` (plus `data-zone`, `data-def`, `data-tapped`), `player-<0|1>`,
   `life-<0|1>`, `deck-name-<p>`, `prompt`, `phase`, `stack`, `stack-<itemId>` (plus `data-card`, `data-targetable`),
   `hand`, `lands-<p>`, `battlefield-<p>`, `btn-<id>` for bar buttons and `sheet-<actionType>` for card-sheet actions.
+  `btn-menu` opens the menu; `menu-log` opens `log-panel`, where each card a line names is a `log-card-<cardId>` button
+  that opens that card above the log, read-only, with where it is now. The result screen: `game-over`,
+  `game-over-title`, `btn-play-again`, `btn-home` (back to the start screen), `btn-view-log`.
   Start screen: `seat-<p>` (a deck box: `data-deck`, `aria-expanded`) opens `deck-picker` (`data-seat`), which holds
-  `deck-<deckId>` or `opponent-<deckId|random>` radios (`aria-checked`), `deck-detail`, `deck-view-<deckId>` and
+  `deck-<deckId|random>` or `opponent-<deckId|random>` radios (`aria-checked`), `deck-detail`, `deck-view-<deckId>` and
   `btn-picker-done`; each box's `.deck-box[data-open]` tells whether its lid is open. `ai-classic`, `ai-llm`,
   `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
   `llm-notice` (unavailable, `llm-notice-hide` closes it), `game[data-llm]` (`thinking`, `ready`, `unavailable`). Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),

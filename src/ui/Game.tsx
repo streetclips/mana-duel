@@ -22,7 +22,7 @@ import { GhostCard, HandCard, PermanentCard, type CardFlags } from './components
 import { ActionBar, CenterStrip, Lands, PlayerBar } from './components/Board';
 import { DeckViewer } from './components/DeckViewer';
 import { FxLayer } from './components/Fx';
-import { CardSheet, CloseIcon, GameOverModal, LogIcon, LogPanel, Menu, MenuIcon } from './components/Overlays';
+import { CardSheet, CloseIcon, GameOverModal, LogPanel, Menu, MenuIcon } from './components/Overlays';
 import type { AudioToggles } from './components/SoundToggles';
 import {
   actionsForCard,
@@ -381,9 +381,6 @@ export function Game({ controller, audio, onHome }: GameProps) {
       style={cssVars({ '--fx-time': String(fxTime(controller.fxSpeed)) })}
     >
       <div class="top-actions">
-        <button type="button" class="icon-btn" aria-label="Game log" data-testid="btn-log" onClick={() => setLogOpen(true)}>
-          <LogIcon />
-        </button>
         <button type="button" class="icon-btn" aria-label="Menu" data-testid="btn-menu" onClick={() => setMenuOpen(true)}>
           <MenuIcon />
         </button>
@@ -479,6 +476,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
           title={bar.prompt.title}
           detail={bar.prompt.detail}
           onNewGame={() => controller.newGame()}
+          onHome={onHome}
           onLog={() => setLogOpen(true)}
           onClose={() => setGameOverHidden(true)}
         />
@@ -541,7 +539,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
         />
       )}
 
-      {logOpen && <LogPanel entries={controller.log} onClose={() => setLogOpen(false)} />}
+      {logOpen && <LogPanel key={controller.session} s={s} human={human} entries={controller.log} onClose={() => setLogOpen(false)} />}
 
       {decksOpen && decks && (
         <DeckViewer

@@ -1135,7 +1135,7 @@ button {
 }
 
 .side.opponent .player-bar {
-  padding-right: 84px;
+  padding-right: 48px;
 }
 
 .opponent .avatar {
@@ -2365,6 +2365,10 @@ p .pip,
   align-items: center;
 }
 
+.scrim.raised {
+  z-index: 41;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -2622,6 +2626,24 @@ p .pip,
 .log-list li.note {
   color: var(--muted);
   font-style: italic;
+}
+
+.log-card {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.log-card:active {
+  text-decoration-color: currentColor;
 }
 
 .llm-notice {

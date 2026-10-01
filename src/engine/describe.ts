@@ -292,15 +292,67 @@ export function cardName(s: GameState, id: CardId): string {
   return card ? getCardDef(card.def).name : id;
 }
 
-export function cardRef(s: GameState, id: CardId, viewer: PlayerId): string {
+export interface CardMention {
+  card: CardId;
+  name: string;
+}
+
+export type TextPart = string | CardMention;
+
+type TextPiece = TextPart | TextPart[] | number;
+
+export function plainText(parts: readonly TextPart[]): string {
+  return parts.map((part) => (typeof part === 'string' ? part : part.name)).join('');
+}
+
+function line(literals: TemplateStringsArray, ...pieces: TextPiece[]): TextPart[] {
+  const parts: TextPart[] = [];
+  const add = (part: TextPart): void => {
+    const last = parts.at(-1);
+    if (typeof part === 'string' && typeof last === 'string') parts[parts.length - 1] = last + part;
+    else if (part !== '') parts.push(part);
+  };
+  literals.forEach((literal, index) => {
+    add(literal);
+    const piece = pieces[index];
+    if (piece === undefined) return;
+    if (Array.isArray(piece)) piece.forEach(add);
+    else add(typeof piece === 'number' ? String(piece) : piece);
+  });
+  return parts;
+}
+
+function joined(items: (TextPart | TextPart[])[], separator: string): TextPart[] {
+  return items.flatMap((item, index) => [...(index === 0 ? [] : [separator]), ...(Array.isArray(item) ? item : [item])]);
+}
+
+function capitalizeParts(parts: TextPart[]): TextPart[] {
+  const [first, ...rest] = parts;
+  return typeof first === 'string' ? [capitalize(first), ...rest] : parts;
+}
+
+function mention(s: GameState, id: CardId): TextPart {
   const card = s.cards[id];
-  if (!card) return id;
+  return card ? { card: id, name: getCardDef(card.def).name } : id;
+}
+
+function cardRefParts(s: GameState, id: CardId, viewer: PlayerId): TextPart[] {
+  const card = s.cards[id];
+  if (!card) return [id];
   const whose = card.controller === viewer ? 'your' : `${s.players[card.controller].name}'s`;
-  return `${whose} ${getCardDef(card.def).name}`;
+  return line`${whose} ${mention(s, id)}`;
+}
+
+export function cardRef(s: GameState, id: CardId, viewer: PlayerId): string {
+  return plainText(cardRefParts(s, id, viewer));
+}
+
+function targetRefParts(s: GameState, target: Target, viewer: PlayerId): TextPart[] {
+  return isPlayerTarget(target) ? [playerLabel(s, target.player, viewer)] : cardRefParts(s, target.card, viewer);
 }
 
 export function targetRef(s: GameState, target: Target, viewer: PlayerId): string {
-  return isPlayerTarget(target) ? playerLabel(s, target.player, viewer) : cardRef(s, target.card, viewer);
+  return plainText(targetRefParts(s, target, viewer));
 }
 
 function verb(s: GameState, player: PlayerId, viewer: PlayerId, base: string, third?: string): string {
@@ -308,78 +360,84 @@ function verb(s: GameState, player: PlayerId, viewer: PlayerId, base: string, th
   return `${subject} ${player === viewer ? base : (third ?? `${base}s`)}`;
 }
 
-function targetsSuffix(s: GameState, targets: Target[], viewer: PlayerId): string {
-  if (targets.length === 0) return '';
-  return ` targeting ${targets.map((target) => targetRef(s, target, viewer)).join(' and ')}`;
+function targetsSuffix(s: GameState, targets: Target[], viewer: PlayerId): TextPart[] {
+  if (targets.length === 0) return [];
+  return line` targeting ${joined(targets.map((target) => targetRefParts(s, target, viewer)), ' and ')}`;
 }
 
 export function describeEvent(s: GameState, event: GameEvent, viewer: PlayerId): string | null {
+  const parts = describeEventParts(s, event, viewer);
+  return parts && plainText(parts);
+}
+
+export function describeEventParts(s: GameState, event: GameEvent, viewer: PlayerId): TextPart[] | null {
   switch (event.t) {
     case 'start':
-      return `${verb(s, event.startingPlayer, viewer, 'go', 'goes')} first.`;
+      return line`${verb(s, event.startingPlayer, viewer, 'go', 'goes')} first.`;
     case 'mulligan':
-      return `${verb(s, event.player, viewer, 'take')} a mulligan (${event.count}).`;
+      return line`${verb(s, event.player, viewer, 'take')} a mulligan (${event.count}).`;
     case 'keep':
-      return `${verb(s, event.player, viewer, 'keep')} ${event.handSize} cards.`;
+      return line`${verb(s, event.player, viewer, 'keep')} ${event.handSize} cards.`;
     case 'bottom':
-      return `${verb(s, event.player, viewer, 'put')} ${event.count} card${event.count === 1 ? '' : 's'} on the bottom.`;
+      return line`${verb(s, event.player, viewer, 'put')} ${event.count} card${event.count === 1 ? '' : 's'} on the bottom.`;
     case 'turn':
-      return `Turn ${event.turn} — ${event.player === viewer ? 'your turn' : `${s.players[event.player].name}'s turn`}.`;
+      return line`Turn ${event.turn} — ${event.player === viewer ? 'your turn' : `${s.players[event.player].name}'s turn`}.`;
     case 'draw':
-      return event.player === viewer ? `You draw ${cardName(s, event.card)}.` : `${capitalize(playerLabel(s, event.player, viewer))} draws a card.`;
+      return event.player === viewer
+        ? line`You draw ${mention(s, event.card)}.`
+        : line`${capitalize(playerLabel(s, event.player, viewer))} draws a card.`;
     case 'drawEmpty':
-      return `${capitalize(playerLabel(s, event.player, viewer))} can't draw: the library is empty.`;
+      return line`${capitalize(playerLabel(s, event.player, viewer))} can't draw: the library is empty.`;
     case 'land':
-      return `${verb(s, event.player, viewer, 'play')} ${cardName(s, event.card)}.`;
+      return line`${verb(s, event.player, viewer, 'play')} ${mention(s, event.card)}.`;
     case 'cast':
-      return `${verb(s, event.player, viewer, 'cast')} ${cardName(s, event.card)}${targetsSuffix(s, event.targets, viewer)}.`;
+      return line`${verb(s, event.player, viewer, 'cast')} ${mention(s, event.card)}${targetsSuffix(s, event.targets, viewer)}.`;
     case 'activate':
-      return `${verb(s, event.player, viewer, 'activate')} ${cardRef(s, event.card, viewer)}${targetsSuffix(s, event.targets, viewer)}.`;
+      return line`${verb(s, event.player, viewer, 'activate')} ${cardRefParts(s, event.card, viewer)}${targetsSuffix(s, event.targets, viewer)}.`;
     case 'trigger':
-      return `${capitalize(cardRef(s, event.card, viewer))} triggers${targetsSuffix(s, event.targets, viewer)}.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} triggers${targetsSuffix(s, event.targets, viewer)}.`;
     case 'fizzle': {
       const source = event.item.kind === 'spell' ? event.item.card : event.item.source;
-      return `${cardName(s, source)} fizzles: its targets are gone.`;
+      return line`${mention(s, source)} fizzles: its targets are gone.`;
     }
     case 'counter':
-      return `${capitalize(cardRef(s, event.card, viewer))} is countered.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} is countered.`;
     case 'bounce':
-      return `${cardName(s, event.card)} returns to ${event.player === viewer ? 'your' : `${s.players[event.player].name}'s`} hand.`;
+      return line`${mention(s, event.card)} returns to ${event.player === viewer ? 'your' : `${s.players[event.player].name}'s`} hand.`;
     case 'attack':
       if (event.attackers.length === 0) return null;
-      return `${verb(s, event.player, viewer, 'attack')} with ${event.attackers.map((id) => cardName(s, id)).join(', ')}.`;
+      return line`${verb(s, event.player, viewer, 'attack')} with ${joined(event.attackers.map((id) => mention(s, id)), ', ')}.`;
     case 'block':
-      if (event.blocks.length === 0) return `${verb(s, event.player, viewer, "don't", "doesn't")} block.`;
-      return `${verb(s, event.player, viewer, 'block')}: ${event.blocks
-        .map((block) => `${cardName(s, block.blocker)} → ${cardName(s, block.attacker)}`)
-        .join(', ')}.`;
+      if (event.blocks.length === 0) return line`${verb(s, event.player, viewer, "don't", "doesn't")} block.`;
+      return line`${verb(s, event.player, viewer, 'block')}: ${joined(
+        event.blocks.map((block) => line`${mention(s, block.blocker)} → ${mention(s, block.attacker)}`),
+        ', ',
+      )}.`;
     case 'damage':
-      return `${capitalize(cardRef(s, event.source, viewer))} deals ${event.amount} damage to ${targetRef(s, event.target, viewer)}.`;
+      return line`${capitalizeParts(cardRefParts(s, event.source, viewer))} deals ${event.amount} damage to ${targetRefParts(s, event.target, viewer)}.`;
     case 'life':
-      return event.delta > 0
-        ? `${verb(s, event.player, viewer, 'gain')} ${event.delta} life (${event.life}).`
-        : null;
+      return event.delta > 0 ? line`${verb(s, event.player, viewer, 'gain')} ${event.delta} life (${event.life}).` : null;
     case 'loseLife':
-      return `${verb(s, event.player, viewer, 'lose')} ${event.amount} life.`;
+      return line`${verb(s, event.player, viewer, 'lose')} ${event.amount} life.`;
     case 'pump':
-      return `${capitalize(cardRef(s, event.card, viewer))} ${gainsText('gets', event.power, event.toughness, event.keywords)} until end of turn.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} ${gainsText('gets', event.power, event.toughness, event.keywords)} until end of turn.`;
     case 'create':
-      return `${verb(s, event.player, viewer, 'create')} a ${cardName(s, event.card)} token.`;
+      return line`${verb(s, event.player, viewer, 'create')} a ${mention(s, event.card)} token.`;
     case 'return':
-      return `${capitalize(cardRef(s, event.card, viewer))} returns to the battlefield.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} returns to the battlefield.`;
     case 'addCounters':
-      return `${capitalize(cardRef(s, event.card, viewer))} gets ${event.amount === 1 ? 'a +1/+1 counter' : `${event.amount} +1/+1 counters`}.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} gets ${event.amount === 1 ? 'a +1/+1 counter' : `${event.amount} +1/+1 counters`}.`;
     case 'fight':
-      return `${capitalize(cardRef(s, event.a, viewer))} fights ${cardRef(s, event.b, viewer)}.`;
+      return line`${capitalizeParts(cardRefParts(s, event.a, viewer))} fights ${cardRefParts(s, event.b, viewer)}.`;
     case 'dies':
-      return `${capitalize(cardRef(s, event.card, viewer))} dies.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} dies.`;
     case 'discard':
-      return `${verb(s, event.player, viewer, 'discard')} ${cardName(s, event.card)}.`;
+      return line`${verb(s, event.player, viewer, 'discard')} ${mention(s, event.card)}.`;
     case 'concede':
-      return `${verb(s, event.player, viewer, 'concede')}.`;
+      return line`${verb(s, event.player, viewer, 'concede')}.`;
     case 'gameOver':
-      if (event.winner === null) return 'The game is a draw.';
-      return event.winner === viewer ? 'You win!' : `${s.players[event.winner].name} wins.`;
+      if (event.winner === null) return line`The game is a draw.`;
+      return event.winner === viewer ? line`You win!` : line`${s.players[event.winner].name} wins.`;
     case 'resolve':
     case 'enter':
       return null;
@@ -417,7 +475,7 @@ export function describeState(s: GameState, viewer: PlayerId = 0, revealAll = fa
     .map((item) => {
       const source = item.kind === 'spell' ? item.card : item.source;
       const label = item.kind === 'spell' ? cardName(s, source) : `${cardName(s, source)} ability`;
-      return `${label}${targetsSuffix(s, item.targets, viewer)}`;
+      return `${label}${plainText(targetsSuffix(s, item.targets, viewer))}`;
     })
     .join(' ← ');
   lines.push(`stack: ${stack || '—'}`);

@@ -131,8 +131,9 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 
 | Feature | Tests |
 | --- | --- |
-| Playing with taps only: mulligan and bottom, lands, casting with targets and cancel, abilities, attacks, blocks, discards, concession, card sheet, log | `tests/ui/game.test.tsx` · `e2e/game.spec.ts` |
-| Deck selector: your deck box against the AI's; tapping one opens the picker of every deck that seat may play (Random only for the AI's, first), the chosen one described, remembered for the next visit; the game plays that matchup | `tests/ui/game.test.tsx` › deck selection · `tests/ui/deckChoice.test.ts` · `e2e/game.spec.ts` › the deck selector |
+| Playing with taps only: mulligan and bottom, lands, casting with targets and cancel, abilities, attacks, blocks, discards, concession, card sheet, log; the result screen plays again or goes back to the main menu | `tests/ui/game.test.tsx` · `e2e/game.spec.ts` |
+| Game log: opened from the menu or the result screen; every card a line names is a button that opens it above the log, read-only, with where it is now; a card the other player draws is never named | `tests/ui/game.test.tsx` › game log · `tests/engine/spells.test.ts` › event text · `tests/engine/properties.test.ts` · `tests/app/controller.test.ts` · `e2e/game.spec.ts` › the game log |
+| Deck selector: your deck box against the AI's; tapping one opens the picker of every deck, Random first for either seat, the chosen one described, remembered for the next visit; the game plays that matchup, Random drawn when it starts | `tests/ui/game.test.tsx` › deck selection · `tests/ui/deckChoice.test.ts` · `e2e/game.spec.ts` › the deck selector, Random draws a deck |
 | Deck viewer: every card with its count and art, mana curve, card details, opened from the picker and back to it; both decks from the in-game menu | `tests/ui/game.test.tsx` › deck viewer · `tests/ui/deckViewer.test.ts` · `e2e/game.spec.ts` › the deck viewer |
 | Counterspells target a spell by tapping it in the center strip; stack items open their card | `tests/ui/game.test.tsx` › counterspells · `e2e/game.spec.ts` › URL parameters pick the decks |
 | Flash creatures cast from the card sheet in the opponent's turn; +1/+1 counters raise the P/T tag and show in the card sheet | `e2e/game.spec.ts` › Stormglass and Sunmeadow |

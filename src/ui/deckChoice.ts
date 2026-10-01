@@ -11,10 +11,14 @@ const STORAGE_KEY = 'manaDuel.decks';
 
 export const DEFAULT_CHOICE: DeckChoice = { deck: DEFAULT_DECK_ID, opponent: RANDOM_DECK };
 
+function isDeckOption(id: unknown): id is string {
+  return typeof id === 'string' && (id === RANDOM_DECK || hasDeck(id));
+}
+
 export function isDeckChoice(value: unknown): value is DeckChoice {
   if (!value || typeof value !== 'object') return false;
   const { deck, opponent } = value as Record<string, unknown>;
-  return typeof deck === 'string' && hasDeck(deck) && typeof opponent === 'string' && (opponent === RANDOM_DECK || hasDeck(opponent));
+  return isDeckOption(deck) && isDeckOption(opponent);
 }
 
 export function loadDeckChoice(): DeckChoice {
@@ -35,12 +39,12 @@ export function saveDeckChoice(choice: DeckChoice): void {
 }
 
 export function resolveMatchup(choice: DeckChoice, pickRandom: () => string): [string, string] {
-  return [choice.deck, choice.opponent === RANDOM_DECK ? pickRandom() : choice.opponent];
+  const resolve = (id: string): string => (id === RANDOM_DECK ? pickRandom() : id);
+  return [resolve(choice.deck), resolve(choice.opponent)];
 }
 
-export function deckOptions(seat: PlayerId): string[] {
-  const decks = DECK_LIST.map((deck) => deck.id);
-  return seat === 0 ? decks : [RANDOM_DECK, ...decks];
+export function deckOptions(): string[] {
+  return [RANDOM_DECK, ...DECK_LIST.map((deck) => deck.id)];
 }
 
 export function seatDeck(choice: DeckChoice, seat: PlayerId): string {

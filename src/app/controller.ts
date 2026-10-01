@@ -4,10 +4,11 @@ import {
   DEFAULT_DECK_ID,
   createGame,
   createScenario,
-  describeEvent,
+  describeEventParts,
   forcedAction,
   getLegalActions,
   opponent,
+  plainText,
   tryApplyAction,
   type Action,
   type ActionResult,
@@ -18,6 +19,7 @@ import {
   type PlayerId,
   type ScenarioSpec,
   type Step,
+  type TextPart,
 } from '../engine';
 import type { ReasoningEffort } from '../llm/models';
 import type { LlmDecision, LlmPlayer } from '../llm/player';
@@ -30,6 +32,7 @@ export interface LogEntry {
   id: number;
   turn: number;
   text: string;
+  parts: TextPart[];
   event: GameEvent | null;
 }
 
@@ -422,16 +425,16 @@ export class GameController {
 
   private appendNote(text: string): void {
     this.logId += 1;
-    this.log.push({ id: this.logId, turn: this.state.turn, text, event: null });
+    this.log.push({ id: this.logId, turn: this.state.turn, text, parts: [text], event: null });
   }
 
   private appendLog(state: GameState): void {
     for (const event of state.events) {
       if (event.t === 'draw' && state.turn === 0) continue;
-      const text = describeEvent(state, event, this.human);
-      if (!text) continue;
+      const parts = describeEventParts(state, event, this.human);
+      if (!parts) continue;
       this.logId += 1;
-      this.log.push({ id: this.logId, turn: state.turn, text, event });
+      this.log.push({ id: this.logId, turn: state.turn, text: plainText(parts), parts, event });
     }
     if (this.log.length > MAX_LOG) this.log = this.log.slice(-MAX_LOG);
     this.opponentLog.push(...eventLines(state, this.aiSeat));

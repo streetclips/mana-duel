@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import {
   KEYWORD_NAMES,
@@ -14,6 +14,7 @@ import {
   type Action,
   type CardDef,
   type CardId,
+  type CardInstance,
   type GameState,
   type PlayerId,
 } from '../../engine';
@@ -24,13 +25,14 @@ import type { AudioToggles } from './SoundToggles';
 
 interface SheetProps {
   label: string;
+  raised?: boolean;
   onClose: () => void;
   children: ComponentChildren;
 }
 
-export function Sheet({ label, onClose, children }: SheetProps) {
+export function Sheet({ label, raised = false, onClose, children }: SheetProps) {
   return (
-    <div class="scrim" onClick={onClose} data-testid="card-sheet">
+    <div class={`scrim${raised ? ' raised' : ''}`} onClick={onClose} data-testid="card-sheet">
       <div class="sheet" onClick={(event) => event.stopPropagation()} role="dialog" aria-label={label}>
         <div class="sheet-grip" />
         {children}
@@ -119,28 +121,51 @@ function whyNot(s: GameState, id: CardId, human: PlayerId): string | null {
   return reason.charAt(0).toUpperCase() + reason.slice(1);
 }
 
+function battlefieldStatuses(s: GameState, id: CardId, human: PlayerId): Status[] {
+  const card = s.cards[id];
+  if (card?.zone !== 'battlefield') return [];
+  const def = getCardDef(card.def);
+  const statuses: Status[] = [];
+  if (card.tapped) statuses.push({ text: 'Tapped' });
+  if (card.summoningSick && def.types.includes('creature') && !hasKeyword(s, id, 'haste')) {
+    statuses.push({ text: 'Summoning sick' });
+  }
+  if (card.damage > 0) statuses.push({ text: `${card.damage} damage`, tone: 'bad' });
+  if (card.counters > 0) statuses.push({ text: countersLabel(card.counters), tone: 'good' });
+  const pumps = s.effects.filter((effect) => effect.card === id);
+  for (const pump of pumps) {
+    const tone = pump.power < 0 || pump.toughness < 0 ? 'bad' : 'good';
+    statuses.push({ text: `${formatPump(pump.power, pump.toughness, pump.keywords)} this turn`, tone });
+  }
+  if (card.controller !== human) statuses.push({ text: `${s.players[card.controller].name}'s` });
+  return statuses;
+}
+
+function zoneLabel(s: GameState, card: CardInstance, human: PlayerId): string {
+  const whose = card.owner === human ? 'your' : `${s.players[card.owner].name}'s`;
+  switch (card.zone) {
+    case 'library':
+      return `In ${whose} library`;
+    case 'hand':
+      return `In ${whose} hand`;
+    case 'battlefield':
+      return 'On the battlefield';
+    case 'graveyard':
+      return `In ${whose} graveyard`;
+    case 'stack':
+      return 'On the stack';
+    case 'gone':
+      return 'No longer in play';
+  }
+}
+
 export function CardSheet({ s, id, human, actions, onAction, onClose }: CardSheetProps) {
   const card = s.cards[id];
   if (!card) return null;
   const def = getCardDef(card.def);
   const buttons = distinctActions(actions);
   const hidden = card.zone === 'hand' && card.owner !== human;
-  const statuses: Status[] = [];
-  if (card.zone === 'stack') statuses.push({ text: 'On the stack' });
-  if (card.zone === 'battlefield') {
-    if (card.tapped) statuses.push({ text: 'Tapped' });
-    if (card.summoningSick && def.types.includes('creature') && !hasKeyword(s, id, 'haste')) {
-      statuses.push({ text: 'Summoning sick' });
-    }
-    if (card.damage > 0) statuses.push({ text: `${card.damage} damage`, tone: 'bad' });
-    if (card.counters > 0) statuses.push({ text: countersLabel(card.counters), tone: 'good' });
-    const pumps = s.effects.filter((effect) => effect.card === id);
-    for (const pump of pumps) {
-      const tone = pump.power < 0 || pump.toughness < 0 ? 'bad' : 'good';
-      statuses.push({ text: `${formatPump(pump.power, pump.toughness, pump.keywords)} this turn`, tone });
-    }
-    if (card.controller !== human) statuses.push({ text: `${s.players[card.controller].name}'s` });
-  }
+  const statuses: Status[] = [...(card.zone === 'stack' ? [{ text: 'On the stack' }] : []), ...battlefieldStatuses(s, id, human)];
   const note = buttons.length === 0 ? whyNot(s, id, human) : null;
   return (
     <Sheet label={hidden ? 'Hidden card' : def.name} onClose={onClose}>
@@ -165,8 +190,28 @@ export function CardSheet({ s, id, human, actions, onAction, onClose }: CardShee
   );
 }
 
-export function LogPanel({ entries, onClose }: { entries: LogEntry[]; onClose: () => void }) {
+function LogCardSheet({ s, id, human, onClose }: { s: GameState; id: CardId; human: PlayerId; onClose: () => void }) {
+  const card = s.cards[id];
+  if (!card) return null;
+  const def = getCardDef(card.def);
+  const statuses: Status[] = [{ text: zoneLabel(s, card, human) }, ...battlefieldStatuses(s, id, human)];
+  return (
+    <Sheet label={def.name} raised onClose={onClose}>
+      <CardDetail def={def} face={<DetailCard s={s} id={id} />} statuses={statuses} />
+    </Sheet>
+  );
+}
+
+interface LogPanelProps {
+  s: GameState;
+  human: PlayerId;
+  entries: LogEntry[];
+  onClose: () => void;
+}
+
+export function LogPanel({ s, human, entries, onClose }: LogPanelProps) {
   const list = useRef<HTMLOListElement>(null);
+  const [card, setCard] = useState<CardId | null>(null);
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight });
   }, [entries.length]);
@@ -183,11 +228,20 @@ export function LogPanel({ entries, onClose }: { entries: LogEntry[]; onClose: (
         <ol class="log-list" ref={list}>
           {entries.map((entry) => (
             <li key={entry.id} class={entry.event ? (entry.event.t === 'turn' ? 'turn' : '') : 'note'}>
-              {entry.text}
+              {entry.parts.map((part, index) =>
+                typeof part === 'string' ? (
+                  part
+                ) : (
+                  <button key={index} type="button" class="log-card" data-testid={`log-card-${part.card}`} onClick={() => setCard(part.card)}>
+                    {part.name}
+                  </button>
+                ),
+              )}
             </li>
           ))}
         </ol>
       </aside>
+      {card && <LogCardSheet s={s} id={card} human={human} onClose={() => setCard(null)} />}
     </>
   );
 }
@@ -258,11 +312,12 @@ interface GameOverProps {
   title: string;
   detail?: string;
   onNewGame: () => void;
+  onHome: () => void;
   onLog: () => void;
   onClose: () => void;
 }
 
-export function GameOverModal({ s, human, title, detail, onNewGame, onLog, onClose }: GameOverProps) {
+export function GameOverModal({ s, human, title, detail, onNewGame, onHome, onLog, onClose }: GameOverProps) {
   const opponent: PlayerId = human === 0 ? 1 : 0;
   return (
     <div class="scrim center-modal" data-testid="game-over" onClick={onClose}>
@@ -286,7 +341,10 @@ export function GameOverModal({ s, human, title, detail, onNewGame, onLog, onClo
           <button type="button" class="btn" data-testid="btn-play-again" onClick={onNewGame}>
             Play again
           </button>
-          <button type="button" class="btn secondary" onClick={onLog}>
+          <button type="button" class="btn secondary" data-testid="btn-home" onClick={onHome}>
+            Main menu
+          </button>
+          <button type="button" class="btn secondary" data-testid="btn-view-log" onClick={onLog}>
             View log
           </button>
         </div>
@@ -309,14 +367,6 @@ export function CloseIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
       <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-    </svg>
-  );
-}
-
-export function LogIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path d="M4 5h10M4 9h10M4 13h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
     </svg>
   );
 }

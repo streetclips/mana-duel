@@ -65,7 +65,7 @@ describe('deck selection', () => {
     expect(boxOpen(byTestId('seat-0'))).toBe('true');
     expect(boxOpen(byTestId('seat-1'))).toBe('false');
     expect(byTestId('deck-picker').dataset.seat).toBe('0');
-    expect(options()).toEqual(DECK_LIST.map((deck) => `deck-${deck.id}`));
+    expect(options()).toEqual(['deck-random', ...DECK_LIST.map((deck) => `deck-${deck.id}`)]);
     for (const deck of DECK_LIST) expect(byTestId('deck-picker').textContent).toContain(deck.name);
     expect(screen.queryByTestId('ai-classic')).toBeNull();
 
@@ -121,6 +121,24 @@ describe('deck selection', () => {
     expect(controller.autoplay).toBe(true);
   });
 
+  it('draws your deck at random too when you pick Random', () => {
+    const { controller } = setup(undefined, 'start');
+    click(byTestId('seat-0'));
+    click(byTestId('deck-random'));
+    expect(checked('deck-random')).toBe('true');
+    expect(checked('deck-emberwild')).toBe('false');
+    expect(byTestId('seat-0').dataset.deck).toBe('random');
+    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('You: Random');
+    expect(byTestId('deck-detail').textContent).toContain(`A different deck every game: one of the ${DECK_LIST.length}`);
+    click(byTestId('seat-1'));
+    click(byTestId('opponent-duskmire'));
+    click(byTestId('btn-play'));
+    const deck = DECK_LIST.find((candidate) => candidate.id === controller.decks?.[0]);
+    expect(deck).toBeDefined();
+    expect(controller.decks?.[1]).toBe('duskmire');
+    expect(byTestId('deck-name-0').textContent).toContain(deck?.name);
+  });
+
   it('describes the chosen deck, or what Random does', () => {
     setup(undefined, 'start');
     click(byTestId('seat-1'));
@@ -152,6 +170,10 @@ describe('deck selection', () => {
     expect(byTestId('seat-1').dataset.deck).toBe('dawntide');
     click(byTestId('seat-0'));
     expect(checked('deck-duskmire')).toBe('true');
+    click(byTestId('deck-random'));
+    cleanup();
+    setup(undefined, 'start');
+    expect(byTestId('seat-0').dataset.deck).toBe('random');
   });
 
   it('ignores a stored choice that names an unknown deck', () => {
@@ -489,10 +511,97 @@ describe('end of turn and game over', () => {
     expect(controller.state.pending?.kind).toBe('mulligan');
   });
 
-  it('opens the game log', () => {
+  it('goes from the result back to the main menu', () => {
+    const { controller, settle } = setup({ players: [{}, {}] });
+    click(byTestId('btn-menu'));
+    click(byTestId('menu-concede'));
+    expect(byTestId('game-over-title').textContent).toBe('Defeat');
+    click(byTestId('btn-home'));
+    expect(screen.queryByTestId('game')).toBeNull();
+    expect(byTestId('start-screen')).toBeTruthy();
+    expect(controller.busy).toBe(false);
+    click(byTestId('btn-play'));
+    settle();
+    expect(byTestId('prompt').textContent).toBe('Keep your opening hand?');
+    expect(screen.queryByTestId('game-over')).toBeNull();
+  });
+
+  it('opens the log from the result and from the menu, which is the only way in', () => {
     setup({ players: [{ hand: [{ card: 'forest', id: 'f1' }] }, {}] });
     playFromHand('f1', 'sheet-playLand');
-    click(byTestId('btn-log'));
+    expect(screen.queryByTestId('btn-log')).toBeNull();
+    click(byTestId('btn-menu'));
+    click(byTestId('menu-log'));
     expect(byTestId('log-panel').textContent).toContain('You play Forest.');
+    click(within(byTestId('log-panel')).getByRole('button', { name: 'Close log' }));
+    click(byTestId('btn-menu'));
+    click(byTestId('menu-concede'));
+    click(byTestId('btn-view-log'));
+    expect(screen.queryByTestId('game-over')).toBeNull();
+    expect(byTestId('log-panel').textContent).toContain('You concede.');
+  });
+});
+
+describe('game log', () => {
+  function playSnapAtTheElf() {
+    const context = setup({
+      players: [
+        { hand: [{ card: 'mountain', id: 'm' }, { card: 'ember_snap', id: 'snap' }] },
+        { battlefield: [{ card: 'grove_tender', id: 'elf' }] },
+      ],
+    });
+    playFromHand('m', 'sheet-playLand');
+    playFromHand('snap', 'sheet-cast');
+    click(byTestId('card-elf'));
+    context.settle();
+    click(byTestId('btn-menu'));
+    click(byTestId('menu-log'));
+    return context;
+  }
+
+  const logCards = (id: string): HTMLElement[] => within(byTestId('log-panel')).queryAllByTestId(`log-card-${id}`);
+
+  it('makes every card it names a button, in the words of the line', () => {
+    playSnapAtTheElf();
+    const lines = [...byTestId('log-panel').querySelectorAll('li')].map((item) => item.textContent);
+    expect(lines).toContain("You cast Ember Snap targeting AI's Grove Tender.");
+    expect(lines).toContain("Your Ember Snap deals 2 damage to AI's Grove Tender.");
+    expect(lines).toContain("AI's Grove Tender dies.");
+    expect(logCards('snap').map((button) => button.textContent)).toEqual(['Ember Snap', 'Ember Snap']);
+    expect(logCards('elf').map((button) => button.textContent)).toEqual(['Grove Tender', 'Grove Tender', 'Grove Tender']);
+    expect(logCards('m').map((button) => button.tagName)).toEqual(['BUTTON']);
+    const turn = [...byTestId('log-panel').querySelectorAll('li.turn')];
+    expect(turn.length).toBeGreaterThan(0);
+    expect(turn.every((item) => item.querySelector('button') === null)).toBe(true);
+  });
+
+  it('opens a card it names above the log, read-only, with where that card is now', () => {
+    playSnapAtTheElf();
+    click(logCards('elf')[2] as HTMLElement);
+    const sheet = byTestId('card-sheet');
+    expect(sheet.classList.contains('raised')).toBe(true);
+    expect(within(sheet).getByRole('dialog').getAttribute('aria-label')).toBe('Grove Tender');
+    expect(within(sheet).getByRole('heading', { name: 'Grove Tender' })).toBeTruthy();
+    expect(sheet.textContent).toContain('She hums, and the soil answers.');
+    expect([...sheet.querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(["In AI's graveyard"]);
+    expect(within(sheet).queryAllByRole('button')).toEqual([]);
+
+    click(sheet);
+    expect(screen.queryByTestId('card-sheet')).toBeNull();
+    expect(byTestId('log-panel')).toBeTruthy();
+
+    click(logCards('m')[0] as HTMLElement);
+    expect(byTestId('card-sheet').querySelector('.tag')?.textContent).toBe('On the battlefield');
+    click(byTestId('card-sheet'));
+    click(logCards('snap')[0] as HTMLElement);
+    expect([...byTestId('card-sheet').querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(['In your graveyard']);
+  });
+
+  it('closes with its card sheet, and leaves the card sheet of the board alone', () => {
+    playSnapAtTheElf();
+    click(logCards('elf')[0] as HTMLElement);
+    click(within(byTestId('log-panel')).getByRole('button', { name: 'Close log' }));
+    expect(screen.queryByTestId('log-panel')).toBeNull();
+    expect(screen.queryByTestId('card-sheet')).toBeNull();
   });
 });

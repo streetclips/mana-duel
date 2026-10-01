@@ -4,6 +4,9 @@ import {
   applyAction,
   checkInvariants,
   createGame,
+  describeEvent,
+  describeEventParts,
+  getCardDef,
   getLegalActions,
   tryApplyAction,
   type Action,
@@ -86,6 +89,26 @@ describe('engine properties', () => {
         expect(final.pending?.kind, decks.join(' vs ')).toBe('gameOver');
       }
     }
+  });
+
+  it('names the cards of every event as mentions that read as its text, never a card drawn by the other player', () => {
+    let mentions = 0;
+    const check = (s: GameState): void => {
+      for (const event of s.events) {
+        for (const viewer of [0, 1] as const) {
+          const parts = describeEventParts(s, event, viewer);
+          expect(parts?.map((part) => (typeof part === 'string' ? part : part.name)).join('') ?? null).toBe(describeEvent(s, event, viewer));
+          for (const part of parts ?? []) {
+            if (typeof part === 'string') continue;
+            mentions += 1;
+            expect(part.name).toBe(getCardDef(s.cards[part.card]?.def ?? '').name);
+            if (event.t === 'draw') expect(event.player).toBe(viewer);
+          }
+        }
+      }
+    };
+    for (const [index, decks] of MATCHUPS.entries()) check(randomPlayout(index * 10 + 7, check, decks).final);
+    expect(mentions).toBeGreaterThan(1000);
   });
 
   it('reproduces a game exactly from its seed, decks and action list', () => {

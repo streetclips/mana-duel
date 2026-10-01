@@ -47,7 +47,7 @@ describe('an LLM opponent in the controller', () => {
     expect(controller.llmRecords).toMatchObject([{ decision: 'mulligan', source: 'model', model: 'test/scripted', reason: 'Seems right.', turn: 0 }]);
     const log = controller.log.map((entry) => entry.text);
     expect(log.indexOf('AI thinks: Seems right.')).toBe(log.indexOf('AI keeps 7 cards.') - 1);
-    expect(controller.log.find((entry) => entry.text === 'AI thinks: Seems right.')?.event).toBeNull();
+    expect(controller.log.find((entry) => entry.text === 'AI thinks: Seems right.')).toMatchObject({ event: null, parts: ['AI thinks: Seems right.'] });
     expect(controller.lastEventText()).toBe('Turn 1 — your turn.');
   });
 

@@ -145,7 +145,8 @@ describe('a game against the LLM', () => {
     const { controller } = startLlmGame(new ScriptedLlm(DEFAULT_MODEL, thinking));
     fireEvent.click(byTestId('btn-keep'));
     await settled(controller);
-    fireEvent.click(byTestId('btn-log'));
+    fireEvent.click(byTestId('btn-menu'));
+    fireEvent.click(byTestId('menu-log'));
     const note = [...byTestId('log-panel').querySelectorAll('li')].find((item) => item.textContent === 'AI thinks: A fine hand.');
     expect(note?.className).toBe('note');
   });

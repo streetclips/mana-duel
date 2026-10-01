@@ -177,8 +177,8 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
               <summary>How to play</summary>
               <ul>
                 <li>
-                  Tap a deck box to choose your deck or the AI's, or let chance choose the AI's. You both start at 20 life
-                  with 40 cards.
+                  Tap a deck box to choose your deck or the AI's, or leave either to chance. You both start at 20 life with
+                  40 cards.
                 </li>
                 <li>
                   The classic AI plays on its own. Pick LLM to let a language model from OpenRouter make the AI's decisions

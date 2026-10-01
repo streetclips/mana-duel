@@ -58,6 +58,29 @@ test('the deck selector sets up the chosen matchup', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('Random draws a deck for either seat when the game starts, and is remembered', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/');
+  await page.getByTestId('seat-0').click();
+  await expect(page.getByTestId('deck-picker').getByRole('radio').first()).toHaveAttribute('data-testid', 'deck-random');
+  await page.getByTestId('deck-random').click();
+  await expect(page.getByTestId('deck-random')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('seat-0')).toHaveAttribute('data-deck', 'random');
+  await expect(page.getByTestId('deck-detail')).toContainText('A different deck every game');
+  await expectNoHorizontalOverflow(page);
+  await page.getByTestId('btn-picker-done').click();
+  await expect(page.getByTestId('seat-1')).toHaveAttribute('data-deck', 'random');
+  await page.getByTestId('btn-play').click();
+  await expect(page.getByTestId('prompt')).toHaveText('Keep your opening hand?');
+  const matchup = await page.evaluate(() => window.manaDuel.matchup());
+  const names = await page.evaluate(() => Object.fromEntries(window.manaDuel.decks().map((deck) => [deck.id, deck.name])));
+  await expect(page.getByTestId('deck-name-0')).toContainText(names[matchup?.[0] ?? ''] ?? 'none');
+  await expect(page.getByTestId('deck-name-1')).toContainText(names[matchup?.[1] ?? ''] ?? 'none');
+  await page.reload();
+  await expect(page.getByTestId('seat-0')).toHaveAttribute('data-deck', 'random');
+  expect(errors).toEqual([]);
+});
+
 test('the deck viewer shows every card of a deck, with art and details', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
@@ -146,6 +169,45 @@ test('a human turn can be played with taps only', async ({ page }) => {
   await page.getByTestId('btn-end-turn').click();
   await expect(page.getByTestId('phase')).toContainText('Turn 3', { timeout: 20_000 });
   await expect(page.getByTestId('phase')).toContainText('Your turn');
+  expect(errors).toEqual([]);
+});
+
+test('the game log opens from the menu, and the cards it names open above it', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=1&aiDelay=0');
+  await expect(page.getByTestId('btn-menu')).toBeVisible();
+  await expect(page.getByTestId('btn-log')).toHaveCount(0);
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+        { battlefield: [{ card: 'grove_tender', id: 'elf' }] },
+      ],
+    }),
+  );
+  await page.getByTestId('card-snap').click();
+  await page.getByTestId('sheet-cast').click();
+  await page.getByTestId('card-elf').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await page.getByTestId('btn-menu').click();
+  await page.getByTestId('menu-log').click();
+  const log = page.getByTestId('log-panel');
+  await log.evaluate((panel) => Promise.all(panel.getAnimations().map((animation) => animation.finished)));
+  await expect(log).toContainText("You cast Ember Snap targeting AI's Grove Tender.");
+  await expect(log).toContainText("AI's Grove Tender dies.");
+  await expect(log.getByTestId('log-card-elf')).toHaveCount(3);
+  await log.getByTestId('log-card-elf').last().click();
+  const sheet = page.getByTestId('card-sheet');
+  await expect(sheet.getByRole('dialog', { name: 'Grove Tender' })).toBeVisible();
+  await expect(sheet).toContainText("In AI's graveyard");
+  await sheet.getByRole('heading', { name: 'Grove Tender' }).click();
+  await expect(sheet).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await sheet.click({ position: { x: 10, y: 10 } });
+  await expect(sheet).toHaveCount(0);
+  await expect(log).toBeVisible();
+  await log.getByTestId('log-card-snap').first().click();
+  await expect(page.getByTestId('card-sheet')).toContainText('In your graveyard');
   expect(errors).toEqual([]);
 });
 
@@ -307,6 +369,12 @@ test('the AI can finish a whole game and the result is shown', async ({ page }) 
   await expect(page.getByTestId('game-over-title')).toHaveText(/Victory|Defeat|Draw/);
   const log = await page.evaluate(() => window.manaDuel.log());
   expect(log.length).toBeGreaterThan(20);
+  await expectNoHorizontalOverflow(page);
+  await page.getByTestId('btn-home').click();
+  await expect(page.getByTestId('start-screen')).toBeVisible();
+  await expect(page.getByTestId('game')).toHaveCount(0);
+  await page.getByTestId('btn-play').click();
+  await expect(page.getByTestId('prompt')).toHaveText('Keep your opening hand?');
   expect(errors).toEqual([]);
 });
 

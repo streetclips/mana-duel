@@ -15,11 +15,11 @@ npm run build      # static site in dist/, served by `npm run preview`
 docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same site served by nginx, as deployed
 ```
 
-- On the start screen your deck box faces the AI's. Tap one to open it onto every deck and pick another (the AI's
-  may also be random); **Cards** opens the chosen deck with every card, its mana curve and card details. The
+- On the start screen your deck box faces the AI's. Tap one to open it onto every deck and pick another, or
+  Random for either seat; **Cards** opens the chosen deck with every card, its mana curve and card details. The
   in-game menu shows both decks too.
 - Tap a card to read it; the sheet that opens holds its actions (play, cast, activate). Long-press or right-click
-  inspects any card.
+  inspects any card. The game log, in the menu, opens every card it names on a tap.
 - Targets glow when a spell needs one: tap the creature or the player, or the spell in the center strip for a
   counterspell.
 - Attack by tapping your creatures, then **Attack**. Block by tapping your creature, then the attacker it should

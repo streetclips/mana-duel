@@ -7,6 +7,7 @@ import {
   checkInvariants,
   createScenario,
   describeEvent,
+  describeEventParts,
   describeState,
   eligibleAttackers,
   getCardDef,
@@ -259,6 +260,39 @@ describe('other effects', () => {
     expect(zoneOf(s, 'rhino')).toBe('graveyard');
     s = resolveStack(cast(s, 'heal'));
     expect(life(s, 0)).toBe(18);
+  });
+});
+
+describe('event text', () => {
+  const s = scenario({
+    players: [
+      { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: [{ card: 'test_bear', id: 'bear' }, { card: 'timberland_rhino', id: 'rhino' }] },
+      { hand: [{ card: 'forest', id: 'secret' }], battlefield: [{ card: 'grove_tender', id: 'elf' }] },
+    ],
+  });
+  const snap = { card: 'snap', name: 'Ember Snap' };
+  const bear = { card: 'bear', name: 'Test Bear' };
+  const rhino = { card: 'rhino', name: 'Timberland Rhino' };
+  const elf = { card: 'elf', name: 'Grove Tender' };
+
+  it('names each card as a mention of it, in the words of the line', () => {
+    const cast: GameEvent = { t: 'cast', player: 0, card: 'snap', targets: [{ card: 'elf' }] };
+    expect(describeEventParts(s, cast, 0)).toEqual(['You cast ', snap, " targeting AI's ", elf, '.']);
+    expect(describeEvent(s, cast, 0)).toBe("You cast Ember Snap targeting AI's Grove Tender.");
+    expect(describeEventParts(s, { t: 'attack', player: 0, attackers: ['bear', 'rhino'] }, 0)).toEqual(['You attack with ', bear, ', ', rhino, '.']);
+    const blocks = [{ blocker: 'elf', attacker: 'rhino' }];
+    expect(describeEventParts(s, { t: 'block', player: 1, blocks }, 0)).toEqual(['AI blocks: ', elf, ' → ', rhino, '.']);
+    const damage: GameEvent = { t: 'damage', source: 'rhino', target: { player: 1 }, amount: 4, combat: true };
+    expect(describeEventParts(s, damage, 0)).toEqual(['Your ', rhino, ' deals 4 damage to AI.']);
+    expect(describeEventParts(s, { t: 'fight', a: 'bear', b: 'elf' }, 0)).toEqual(['Your ', bear, " fights AI's ", elf, '.']);
+    expect(describeEventParts(s, { t: 'dies', card: 'elf', player: 1 }, 0)).toEqual(["AI's ", elf, ' dies.']);
+  });
+
+  it('keeps a line without cards in one piece, and never names a card the viewer has not seen', () => {
+    expect(describeEventParts(s, { t: 'turn', turn: 3, player: 1 }, 0)).toEqual(["Turn 3 — AI's turn."]);
+    expect(describeEventParts(s, { t: 'draw', player: 1, card: 'secret' }, 0)).toEqual(['AI draws a card.']);
+    expect(describeEventParts(s, { t: 'draw', player: 0, card: 'snap' }, 0)).toEqual(['You draw ', snap, '.']);
+    expect(describeEventParts(s, { t: 'resolve', item: { id: 'x', kind: 'spell', card: 'snap', controller: 0, targets: [] } }, 0)).toBeNull();
   });
 });
 
