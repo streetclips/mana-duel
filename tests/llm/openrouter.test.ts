@@ -56,7 +56,7 @@ function userText(body: ChatRequest): string {
 function pickLand(body: ChatRequest): { reason: string; choice: string } {
   const line = userText(body)
     .split('\n')
-    .find((candidate) => candidate.includes('Play the land'));
+    .find((candidate) => candidate.includes('Jugar la tierra'));
   const id = /^- (\d+):/.exec(line ?? '')?.[1];
   if (!id) throw new Error('no land option in the prompt');
   return { reason: 'Land drop.', choice: id };
@@ -123,7 +123,7 @@ describe('the OpenRouter model', () => {
     const api = fakeOpenRouter({ status: 404, message: 'No endpoints found that can handle the requested parameters. To learn more…' });
     const player = createLlmPlayer({ model: openRouterModel({ model: 'some/old-model', apiKey: 'k', fetch: api.fetch }) });
     await player.decide(mainPhase(), 1);
-    expect(player.unavailable).toBe('OpenRouter 404: no provider of this model accepts the JSON schema (or the thinking effort)');
+    expect(player.unavailable).toBe('OpenRouter 404: ningún proveedor de este modelo acepta el esquema JSON (o el esfuerzo de razonamiento)');
     expect(api.sent).toHaveLength(1);
   });
 });

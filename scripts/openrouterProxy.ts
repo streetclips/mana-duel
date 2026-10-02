@@ -38,7 +38,7 @@ export function openRouterProxy(options: ProxyOptions): Handler {
   const upstream = options.upstream ?? OPENROUTER_UPSTREAM;
   const send = options.fetch ?? fetch;
   return async (req, res) => {
-    if (!sameOrigin(req)) return fail(res, 403, 'The OpenRouter proxy only answers the game served by this dev server.');
+    if (!sameOrigin(req)) return fail(res, 403, 'El proxy de OpenRouter solo responde al juego que sirve este servidor de desarrollo.');
     try {
       const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readBody(req);
       const response = await send(`${upstream}${req.url ?? ''}`, {
@@ -54,7 +54,7 @@ export function openRouterProxy(options: ProxyOptions): Handler {
       res.setHeader('content-type', response.headers.get('content-type') ?? 'application/json');
       res.end(await response.text());
     } catch (error) {
-      fail(res, 502, `OpenRouter is unreachable: ${error instanceof Error ? error.message : String(error)}`);
+      fail(res, 502, `No se puede contactar con OpenRouter: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 }

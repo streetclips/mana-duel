@@ -17,11 +17,11 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
 test('the start screen leads into a game', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Mana Duel' })).toBeVisible();
-  await expect(page.getByTestId('start-screen')).toContainText('Emberwild');
+  await expect(page.getByRole('heading', { name: 'Duelo de Maná' })).toBeVisible();
+  await expect(page.getByTestId('start-screen')).toContainText('Brasalvaje');
   await expectNoHorizontalOverflow(page);
   await page.getByTestId('btn-play').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Keep your opening hand?');
+  await expect(page.getByTestId('prompt')).toHaveText('¿Te quedas con tu mano inicial?');
   await expect(page.getByTestId('hand').getByRole('button')).toHaveCount(7);
   expect(errors).toEqual([]);
 });
@@ -33,7 +33,7 @@ test('the deck selector sets up the chosen matchup', async ({ page }) => {
   await expect(page.getByTestId('seat-1')).toHaveAttribute('data-deck', 'random');
   await page.getByTestId('seat-0').click();
   const picker = page.getByTestId('deck-picker');
-  for (const name of ['Emberwild', 'Dawntide', 'Duskmire', 'Stormglass', 'Sunmeadow', 'Brightforge', 'Mistgrave', 'Gloamwood']) {
+  for (const name of ['Brasalvaje', 'Albamar', 'Fangoscuro', 'Cristormenta', 'Pradosol', 'Forjaluz', 'Brumafosa', 'Selvumbra']) {
     await expect(picker).toContainText(name);
   }
   await page.getByTestId('deck-dawntide').click();
@@ -51,9 +51,9 @@ test('the deck selector sets up the chosen matchup', async ({ page }) => {
   await page.getByTestId('btn-picker-done').click();
   await expect(picker).toHaveCount(0);
   await page.getByTestId('btn-play').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Keep your opening hand?');
-  await expect(page.getByTestId('deck-name-0')).toContainText('Dawntide');
-  await expect(page.getByTestId('deck-name-1')).toContainText('Duskmire');
+  await expect(page.getByTestId('prompt')).toHaveText('¿Te quedas con tu mano inicial?');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Albamar');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Fangoscuro');
   expect(await page.evaluate(() => window.manaDuel.matchup())).toEqual(['dawntide', 'duskmire']);
   expect(errors).toEqual([]);
 });
@@ -66,12 +66,12 @@ test('Random draws a deck for either seat when the game starts, and is remembere
   await page.getByTestId('deck-random').click();
   await expect(page.getByTestId('deck-random')).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByTestId('seat-0')).toHaveAttribute('data-deck', 'random');
-  await expect(page.getByTestId('deck-detail')).toContainText('A different deck every game');
+  await expect(page.getByTestId('deck-detail')).toContainText('Un mazo distinto en cada partida');
   await expectNoHorizontalOverflow(page);
   await page.getByTestId('btn-picker-done').click();
   await expect(page.getByTestId('seat-1')).toHaveAttribute('data-deck', 'random');
   await page.getByTestId('btn-play').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Keep your opening hand?');
+  await expect(page.getByTestId('prompt')).toHaveText('¿Te quedas con tu mano inicial?');
   const matchup = await page.evaluate(() => window.manaDuel.matchup());
   const names = await page.evaluate(() => Object.fromEntries(window.manaDuel.decks().map((deck) => [deck.id, deck.name])));
   await expect(page.getByTestId('deck-name-0')).toContainText(names[matchup?.[0] ?? ''] ?? 'none');
@@ -99,7 +99,7 @@ test('the deck viewer shows every card of a deck, with art and details', async (
   await expect(page.getByTestId('mana-curve')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await page.getByTestId('deck-card-dread_tyrant').click();
-  await expect(page.getByTestId('card-sheet')).toContainText('1 copy in Duskmire');
+  await expect(page.getByTestId('card-sheet')).toContainText('1 copia en Fangoscuro');
   await page.getByTestId('card-sheet').click({ position: { x: 10, y: 10 } });
   await expect(page.getByTestId('card-sheet')).toHaveCount(0);
   await page.getByTestId('btn-deck-close').click();
@@ -125,8 +125,8 @@ test('every deck box shows its featured art in the browser build', async ({ page
 test('URL parameters pick the decks, and a counterspell targets a spell on the stack', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=3&first=you&deck=dawntide&aiDeck=duskmire&aiDelay=0');
-  await expect(page.getByTestId('deck-name-0')).toContainText('Dawntide');
-  await expect(page.getByTestId('deck-name-1')).toContainText('Duskmire');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Albamar');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Fangoscuro');
   await page.getByTestId('btn-menu').click();
   await page.getByTestId('menu-decks').click();
   await expect(page.getByTestId('deck-viewer')).toHaveAttribute('data-deck', 'dawntide');
@@ -143,14 +143,14 @@ test('URL parameters pick the decks, and a counterspell targets a spell on the s
     }),
   );
   await page.evaluate(() => window.manaDuel.settle());
-  await expect(page.getByTestId('btn-resolve')).toHaveText('Let it resolve');
+  await expect(page.getByTestId('btn-resolve')).toHaveText('Dejar que se resuelva');
   await page.getByTestId('card-tide').click();
   await page.getByTestId('sheet-cast').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Choose target spell');
+  await expect(page.getByTestId('prompt')).toHaveText('Elige un hechizo objetivo');
   await page.locator('[data-testid^="stack-"][data-targetable="true"]').click();
   await page.evaluate(() => window.manaDuel.settle());
   expect(await page.evaluate(() => window.manaDuel.state().cards.rhino?.zone)).toBe('graveyard');
-  expect(await page.evaluate(() => window.manaDuel.log())).toContain("AI's Timberland Rhino is countered.");
+  expect(await page.evaluate(() => window.manaDuel.log())).toContain('Se contrarresta Rinoceronte forestal del rival.');
   expect(errors).toEqual([]);
 });
 
@@ -158,7 +158,7 @@ test('a human turn can be played with taps only', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=7&first=you&aiDelay=0');
   await page.getByTestId('btn-keep').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Your main phase');
+  await expect(page.getByTestId('prompt')).toHaveText('Tu fase principal');
 
   const land = page.locator('[data-testid="hand"] [data-def="mountain"]').first();
   const landId = await land.getAttribute('data-card');
@@ -167,8 +167,8 @@ test('a human turn can be played with taps only', async ({ page }) => {
   await expect(page.getByTestId('lands-0').locator(`[data-card="${landId}"]`)).toBeVisible();
 
   await page.getByTestId('btn-end-turn').click();
-  await expect(page.getByTestId('phase')).toContainText('Turn 3', { timeout: 20_000 });
-  await expect(page.getByTestId('phase')).toContainText('Your turn');
+  await expect(page.getByTestId('phase')).toContainText('Turno 3', { timeout: 20_000 });
+  await expect(page.getByTestId('phase')).toContainText('Tu turno');
   expect(errors).toEqual([]);
 });
 
@@ -193,21 +193,21 @@ test('the game log opens from the menu, and the cards it names open above it', a
   await page.getByTestId('menu-log').click();
   const log = page.getByTestId('log-panel');
   await log.evaluate((panel) => Promise.all(panel.getAnimations().map((animation) => animation.finished)));
-  await expect(log).toContainText("You cast Ember Snap targeting AI's Grove Tender.");
-  await expect(log).toContainText("AI's Grove Tender dies.");
+  await expect(log).toContainText('Lanzas Chasquido de brasas sobre Elfa del soto del rival.');
+  await expect(log).toContainText('Muere Elfa del soto del rival.');
   await expect(log.getByTestId('log-card-elf')).toHaveCount(3);
   await log.getByTestId('log-card-elf').last().click();
   const sheet = page.getByTestId('card-sheet');
-  await expect(sheet.getByRole('dialog', { name: 'Grove Tender' })).toBeVisible();
-  await expect(sheet).toContainText("In AI's graveyard");
-  await sheet.getByRole('heading', { name: 'Grove Tender' }).click();
+  await expect(sheet.getByRole('dialog', { name: 'Elfa del soto' })).toBeVisible();
+  await expect(sheet).toContainText('En el cementerio del rival');
+  await sheet.getByRole('heading', { name: 'Elfa del soto' }).click();
   await expect(sheet).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await sheet.click({ position: { x: 10, y: 10 } });
   await expect(sheet).toHaveCount(0);
   await expect(log).toBeVisible();
   await log.getByTestId('log-card-snap').first().click();
-  await expect(page.getByTestId('card-sheet')).toContainText('In your graveyard');
+  await expect(page.getByTestId('card-sheet')).toContainText('En tu cementerio');
   expect(errors).toEqual([]);
 });
 
@@ -220,15 +220,15 @@ test('auto-pass turns off from the URL or from the menu, which remembers it', as
     });
   await page.goto('/?seed=1&aiDelay=0&autoPass=off');
   await aiTurn();
-  await expect(page.getByTestId('prompt')).toHaveText("AI's main phase");
+  await expect(page.getByTestId('prompt')).toHaveText('Fase principal del rival');
   await page.goto('/?seed=1&aiDelay=0');
   await aiTurn();
-  await expect(page.getByTestId('prompt')).toHaveText('Your main phase');
+  await expect(page.getByTestId('prompt')).toHaveText('Tu fase principal');
   await page.getByTestId('btn-menu').click();
   await page.getByTestId('menu-autopass').click();
   await page.reload();
   await aiTurn();
-  await expect(page.getByTestId('prompt')).toHaveText("AI's main phase");
+  await expect(page.getByTestId('prompt')).toHaveText('Fase principal del rival');
   await page.getByTestId('btn-menu').click();
   await expect(page.getByTestId('menu-autopass')).toHaveAttribute('aria-checked', 'false');
   expect(errors).toEqual([]);
@@ -246,11 +246,11 @@ test('spells, targets and combat work from the UI', async ({ page }) => {
   );
   await page.getByTestId('card-snap').click();
   await page.getByTestId('sheet-cast').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Choose any target');
+  await expect(page.getByTestId('prompt')).toHaveText('Elige cualquier objetivo');
   await page.getByTestId('card-elf').click();
   await expect(page.getByTestId('card-elf')).toHaveCount(0);
 
-  await expect(page.getByTestId('prompt')).toHaveText('Choose attackers');
+  await expect(page.getByTestId('prompt')).toHaveText('Elige las atacantes');
   await page.getByTestId('card-rhino').click();
   await page.getByTestId('btn-confirm-attack').click();
   await expect(page.getByTestId('life-1')).toContainText('16');
@@ -260,18 +260,18 @@ test('spells, targets and combat work from the UI', async ({ page }) => {
 test('Stormglass and Sunmeadow: a flash creature in the opponent’s turn, +1/+1 counters on a card', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=stormglass&aiDeck=sunmeadow&aiDelay=0&autoPass=off');
-  await expect(page.getByTestId('deck-name-0')).toContainText('Stormglass');
-  await expect(page.getByTestId('deck-name-1')).toContainText('Sunmeadow');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Cristormenta');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Pradosol');
   await page.evaluate(() => {
     window.manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: [{ card: 'squall_skimmer', id: 'skimmer' }], battlefield: ['island', 'island'] }, {}] });
     window.manaDuel.settle();
   });
-  await expect(page.getByTestId('prompt')).toHaveText("AI's main phase");
+  await expect(page.getByTestId('prompt')).toHaveText('Fase principal del rival');
   await page.getByTestId('card-skimmer').click();
   await page.getByTestId('sheet-cast').click();
   await page.evaluate(() => window.manaDuel.settle());
   await expect(page.getByTestId('battlefield-0').locator('[data-card="skimmer"]')).toBeVisible();
-  expect(await page.evaluate(() => window.manaDuel.log())).toContain('You cast Squall Skimmer.');
+  expect(await page.evaluate(() => window.manaDuel.log())).toContain('Lanzas Ave de la borrasca.');
 
   await page.evaluate(() => {
     window.manaDuel.setAutoPass(true);
@@ -281,12 +281,12 @@ test('Stormglass and Sunmeadow: a flash creature in the opponent’s turn, +1/+1
   });
   await page.getByTestId('card-blossom').click();
   await page.getByTestId('sheet-cast').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Choose target creature');
+  await expect(page.getByTestId('prompt')).toHaveText('Elige una criatura objetivo');
   await page.getByTestId('card-boar').click();
   await page.evaluate(() => window.manaDuel.settle());
   await expect(page.getByTestId('pt-boar')).toHaveText('5/4');
   await page.getByTestId('card-boar').click({ button: 'right' });
-  await expect(page.getByTestId('card-sheet')).toContainText('2 +1/+1 counters');
+  await expect(page.getByTestId('card-sheet')).toContainText('2 contadores +1/+1');
   await expectNoHorizontalOverflow(page);
   expect(errors).toEqual([]);
 });
@@ -318,8 +318,8 @@ test('every card shows art that loads in the browser build, tokens on the battle
 test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the AI forces, an undying creature sacrificed', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=brightforge&aiDeck=mistgrave&aiDelay=0');
-  await expect(page.getByTestId('deck-name-0')).toContainText('Brightforge');
-  await expect(page.getByTestId('deck-name-1')).toContainText('Mistgrave');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Forjaluz');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Brumafosa');
   await page.evaluate(() =>
     window.manaDuel.loadScenario({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] }),
   );
@@ -329,7 +329,7 @@ test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the A
   const soldiers = page.getByTestId('battlefield-0').locator('[data-def="soldier_token"]');
   await expect(soldiers).toHaveCount(2);
   await soldiers.first().click({ button: 'right' });
-  await expect(page.getByTestId('card-sheet')).toContainText('Token Creature — Soldier');
+  await expect(page.getByTestId('card-sheet')).toContainText('Criatura ficha — Soldado');
   await page.getByTestId('card-sheet').click({ position: { x: 10, y: 10 } });
 
   await page.evaluate(() => {
@@ -342,13 +342,13 @@ test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the A
     });
     window.manaDuel.settle();
   });
-  await expect(page.getByTestId('prompt')).toHaveText('Choose 1 card to discard');
-  await expect(page.getByTestId('prompt-detail')).toHaveText('Memory Leech · 0/1 selected');
+  await expect(page.getByTestId('prompt')).toHaveText('Elige 1 carta para descartar');
+  await expect(page.getByTestId('prompt-detail')).toHaveText('Sanguijuela mental · 0/1 elegida');
   await page.getByTestId('card-snap').click();
   await page.getByTestId('btn-confirm-cards').click();
   await page.evaluate(() => window.manaDuel.settle());
   expect(await page.evaluate(() => window.manaDuel.state().cards.snap?.zone)).toBe('graveyard');
-  expect(await page.evaluate(() => window.manaDuel.log())).toContain('You discard Ember Snap.');
+  expect(await page.evaluate(() => window.manaDuel.log())).toContain('Descartas Chasquido de brasas.');
 
   await page.evaluate(() => window.manaDuel.loadScenario({ players: [{ battlefield: [{ card: 'bloodspore_thrall', id: 'thrall' }] }, {}] }));
   await page.getByTestId('card-thrall').click();
@@ -363,8 +363,8 @@ test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the A
 test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain and evolve grow creatures, bloodthirst after a hit', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=vesperhall&aiDeck=deepgrove&aiDelay=0');
-  await expect(page.getByTestId('deck-name-0')).toContainText('Vesperhall');
-  await expect(page.getByTestId('deck-name-1')).toContainText('Deepgrove');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Vesperia');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Sotohondo');
   await page.evaluate(() =>
     window.manaDuel.loadScenario({
       players: [
@@ -375,7 +375,7 @@ test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain an
   );
   await page.getByTestId('card-penance').click();
   await page.getByTestId('sheet-cast').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Choose target creature');
+  await expect(page.getByTestId('prompt')).toHaveText('Elige una criatura objetivo');
   await expect(page.getByTestId('card-druid')).toHaveAttribute('data-targetable', 'true');
   await expect(page.getByTestId('card-lurker')).not.toHaveAttribute('data-targetable', 'true');
   await page.getByTestId('card-druid').click();
@@ -414,7 +414,7 @@ test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain an
   await page.evaluate(() => window.manaDuel.settle());
   await expect(page.getByTestId('pt-hellion')).toHaveText('5/4');
   await page.getByTestId('card-hellion').click({ button: 'right' });
-  await expect(page.getByTestId('card-sheet')).toContainText('2 +1/+1 counters');
+  await expect(page.getByTestId('card-sheet')).toContainText('2 contadores +1/+1');
   await expectNoHorizontalOverflow(page);
   expect(errors).toEqual([]);
 });
@@ -425,7 +425,7 @@ test('the AI can finish a whole game and the result is shown', async ({ page }) 
   const result = await page.evaluate(() => window.manaDuel.playToEnd());
   expect(result?.kind).toBe('gameOver');
   await expect(page.getByTestId('game-over')).toBeVisible();
-  await expect(page.getByTestId('game-over-title')).toHaveText(/Victory|Defeat|Draw/);
+  await expect(page.getByTestId('game-over-title')).toHaveText(/Victoria|Derrota|Empate/);
   const log = await page.evaluate(() => window.manaDuel.log());
   expect(log.length).toBeGreaterThan(20);
   await expectNoHorizontalOverflow(page);
@@ -433,7 +433,7 @@ test('the AI can finish a whole game and the result is shown', async ({ page }) 
   await expect(page.getByTestId('start-screen')).toBeVisible();
   await expect(page.getByTestId('game')).toHaveCount(0);
   await page.getByTestId('btn-play').click();
-  await expect(page.getByTestId('prompt')).toHaveText('Keep your opening hand?');
+  await expect(page.getByTestId('prompt')).toHaveText('¿Te quedas con tu mano inicial?');
   expect(errors).toEqual([]);
 });
 

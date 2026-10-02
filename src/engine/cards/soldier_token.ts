@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const soldierToken: CardDef = {
   id: 'soldier_token',
-  name: 'Soldier',
+  name: 'Soldado',
   types: ['creature'],
-  subtypes: ['Soldier'],
+  subtypes: ['Soldado'],
   token: true,
   colors: ['W'],
   power: 1,

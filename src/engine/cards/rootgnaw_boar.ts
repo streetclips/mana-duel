@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const rootgnawBoar: CardDef = {
   id: 'rootgnaw_boar',
-  name: 'Rootgnaw Boar',
+  name: 'Jabalí roerraíces',
   types: ['creature'],
-  subtypes: ['Boar'],
+  subtypes: ['Jabalí'],
   cost: '{1}{G}',
   power: 1,
   toughness: 2,
   triggers: [{ on: 'allyDies', targets: [], effects: [{ kind: 'addCounters', amount: 1, to: 'self' }] }],
-  flavor: 'It grows fat on what the forest buries.',
+  flavor: 'Engorda con lo que el bosque entierra.',
 };

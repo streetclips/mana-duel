@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const siftTheDepths: CardDef = {
   id: 'sift_the_depths',
-  name: 'Sift the Depths',
+  name: 'Cribar el fondo',
   types: ['instant'],
   cost: '{1}{U}',
   spell: {
@@ -12,5 +12,5 @@ export const siftTheDepths: CardDef = {
       { kind: 'discard', amount: 1 },
     ],
   },
-  flavor: 'Most of what the river keeps is mud. Most.',
+  flavor: 'Casi todo lo que guarda el río es barro. Casi todo.',
 };

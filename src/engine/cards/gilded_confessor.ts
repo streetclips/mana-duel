@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const gildedConfessor: CardDef = {
   id: 'gilded_confessor',
-  name: 'Gilded Confessor',
+  name: 'Confesor dorado',
   types: ['creature'],
-  subtypes: ['Human', 'Cleric'],
+  subtypes: ['Clérigo', 'Humano'],
   cost: '{2}{W}{B}',
   power: 3,
   toughness: 3,
@@ -18,5 +18,5 @@ export const gildedConfessor: CardDef = {
       ],
     },
   ],
-  flavor: 'Confess, and be lighter. Refuse, and be lighter still.',
+  flavor: 'Confiesa y quedarás más ligero. Niégate y quedarás más ligero todavía.',
 };

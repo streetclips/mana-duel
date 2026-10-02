@@ -2,7 +2,8 @@
 
 Each feature lists the automated tests that cover it and, when there is one, its built-in **check**: a
 deterministic scenario that runs on the pure engine, in Node (`tests/app/checks.test.ts`) and in the browser build
-(`e2e/game.spec.ts`). With the game open (`npm run dev`), run any check from the console or Playwright `evaluate`:
+(`e2e/game.spec.ts`). Like the test titles, the table calls cards and decks by the English names their ids keep; the
+game shows them in Spanish, and `docs/CARDS.md` pairs each id with its Spanish name. With the game open (`npm run dev`), run any check from the console or Playwright `evaluate`:
 
 ```js
 manaDuel.runChecks()                 // every check; healthy when no result has ok: false
@@ -158,33 +159,37 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 
 For a human-eyes check on a phone-sized viewport (for example Playwright at 390×844):
 
-1. Open `/`, tap your deck box and pick Dawntide, tap the AI's and pick Duskmire, open **Cards** and tap a card,
-   close it, then **Play vs AI**: both player bars name their deck.
-2. Open `/?seed=7&first=you`, keep the hand, play a land from the card sheet, press **End turn**, and watch the AI
-   play its turn (the center strip narrates each action).
+Every text the game shows is in Spanish, so the steps quote it; cards and decks also give their ids.
+
+1. Open `/`, tap your deck box and pick Albamar (`dawntide`), tap the AI's and pick Fangoscuro (`duskmire`), open
+   **Cartas** and tap a card, close it, then **Jugar contra la IA**: both player bars name their deck.
+2. Open `/?seed=7&first=you`, keep the hand (**Me quedo**), play a land from the card sheet, press
+   **Terminar turno**, and watch the AI play its turn (the center strip narrates each action).
 3. Load a combat position and play it with taps: `manaDuel.loadScenario({ players: [{ hand: ['ember_snap'],
-   battlefield: ['mountain', 'timberland_rhino'] }, { battlefield: ['grove_tender'] }] })`. Cast Ember Snap at the
-   Grove Tender, attack with the Rhino, and see the AI's life drop to 16.
+   battlefield: ['mountain', 'timberland_rhino'] }, { battlefield: ['grove_tender'] }] })`. Cast Chasquido de brasas
+   (`ember_snap`) at the Elfa del soto (`grove_tender`), attack with the Rinoceronte forestal (`timberland_rhino`), and
+   see the AI's life drop to 16.
 4. Counter a spell: `manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: ['turn_the_tide'], battlefield:
    ['island', 'island', 'island'] }, { hand: ['timberland_rhino'], battlefield: ['forest', 'forest', 'forest',
-   'forest'] }] })`, then `manaDuel.settle()`. Cast Turn the Tide and tap the Rhino in the center strip.
+   'forest'] }] })`, then `manaDuel.settle()`. Cast Cambio de marea (`turn_the_tide`) and tap the Rinoceronte
+   forestal in the center strip.
 5. Open `/?seed=3&autoplay=1&aiDelay=60&deck=duskmire&aiDeck=dawntide` to watch a whole AI vs AI game end on the
    result screen.
 6. See a combat animation frame by frame: open `/?seed=1&aiDelay=0` and run `manaDuel.loadScenario({ players: [{
    hand: ['forest'], battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, { life: 4, battlefield: [{ card:
    'grove_tender', id: 'elf' }] }] })`, then in one `evaluate`: `manaDuel.pass(); manaDuel.settle();
    manaDuel.dispatch({ type: 'declareAttackers', player: 0, attackers: ['rhino'] }); manaDuel.settle(); return
-   manaDuel.freezeFx(0.4)`. The screenshot shows the Rhino and the Grove Tender that chump-blocks it meeting over the
-   center strip, a spark on each and −3 beside the AI's life; after `manaDuel.freezeFx(null)` the Grove Tender fades
-   out in its place.
+   manaDuel.freezeFx(0.4)`. The screenshot shows the Rinoceronte forestal and the Elfa del soto that chump-blocks it
+   meeting over the center strip, a spark on each and −3 beside the AI's life; after `manaDuel.freezeFx(null)` the
+   Elfa del soto fades out in its place.
 7. Try the newest decks' mechanics: open `/?seed=2&first=you&deck=brightforge&aiDeck=mistgrave&aiDelay=0`, run
    `manaDuel.loadScenario({ players: [{ hand: ['raise_the_banners'], battlefield: ['plains', 'plains',
-   'forge_cadet'] }, {}] })` and cast Raise the Banners: two Soldier tokens appear and Forge Cadet grows to 3/3. Then
-   run `manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: ['forest', 'ember_snap'] }, { hand:
-   ['memory_leech'], battlefield: ['swamp', 'swamp', 'swamp'] }] })` and `manaDuel.settle()`: the AI casts Memory
-   Leech and the prompt asks you to choose 1 card to discard.
-8. Try the Vesperhall, Cindermaw and Deepgrove mechanics: open `/?seed=2&first=you&deck=cindermaw&aiDeck=deepgrove&aiDelay=0`
+   'forge_cadet'] }, {}] })` and cast Izar banderas: two Soldado tokens appear and Cadete de la forja grows to 3/3.
+   Then run `manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: ['forest', 'ember_snap'] }, { hand:
+   ['memory_leech'], battlefield: ['swamp', 'swamp', 'swamp'] }] })` and `manaDuel.settle()`: the AI casts
+   Sanguijuela mental and the prompt reads "Elige 1 carta para descartar".
+8. Try the Vesperia, Fauceniza and Sotohondo mechanics: open `/?seed=2&first=you&deck=cindermaw&aiDeck=deepgrove&aiDelay=0`
    and run `manaDuel.loadScenario({ players: [{ hand: ['bloodfire_bolt', 'blistering_hellion'], battlefield:
    ['swamp', 'mountain', 'mountain', 'mountain', 'mountain'] }, { battlefield: ['mossfin_lurker'] }] })`. Cast
-   Bloodfire Bolt: the Mossfin Lurker never glows as a target, so aim it at the AI. Then cast Blistering Hellion: it
+   Rayo de sangre: the Pez musgoso never glows as a target, so aim it at the AI. Then cast Infernal abrasador: it
    arrives as a 5/4 with two +1/+1 counters, because the AI was dealt damage this turn.

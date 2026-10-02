@@ -3,7 +3,7 @@ import type { PlayerId } from '../engine';
 import { DeckPicker, Versus } from './components/DeckSelect';
 import { SoundToggles, type AudioToggles } from './components/SoundToggles';
 import type { DeckChoice } from './deckChoice';
-import { REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
+import { EFFORT_LABELS, REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
 import { prefersReducedMotion } from './motion';
 import { llmProblem, type OpponentChoice } from './opponentChoice';
 
@@ -30,12 +30,12 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
   const hint =
     problem ??
     (llm.proxy && !llm.apiKey.trim()
-      ? "The dev server adds its own OPENROUTER_API_KEY, so no key is needed here."
-      : 'Your key stays on this device. Each AI decision is one OpenRouter request, billed to it. A lower thinking effort answers sooner, on models that reason.');
+      ? 'El servidor de desarrollo añade su propia OPENROUTER_API_KEY, así que aquí no hace falta ninguna clave.'
+      : 'Tu clave se queda en este dispositivo. Cada decisión de la IA es una petición a OpenRouter que se cobra a esa clave. Con menos esfuerzo de razonamiento, los modelos que razonan responden antes.');
   return (
     <div class="llm-fields">
       <label class="field">
-        <span>Model</span>
+        <span>Modelo</span>
         <input
           type="text"
           list="llm-models"
@@ -44,7 +44,7 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
           spellcheck={false}
           autocapitalize="off"
           autocomplete="off"
-          placeholder="provider/model"
+          placeholder="proveedor/modelo"
           onInput={(event) => llm.onChoice({ ...llm.choice, model: event.currentTarget.value })}
         />
       </label>
@@ -54,7 +54,7 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
         ))}
       </datalist>
       <label class="field">
-        <span>Thinking effort</span>
+        <span>Esfuerzo de razonamiento</span>
         <select
           data-testid="llm-effort"
           value={llm.choice.effort ?? 'default'}
@@ -63,22 +63,22 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
             llm.onChoice({ ...llm.choice, effort: isReasoningEffort(value) ? value : null });
           }}
         >
-          <option value="default">Model default</option>
+          <option value="default">El del modelo</option>
           {REASONING_EFFORTS.map((effort) => (
             <option key={effort} value={effort}>
-              {effort.charAt(0).toUpperCase() + effort.slice(1)}
+              {EFFORT_LABELS[effort]}
             </option>
           ))}
         </select>
       </label>
       <label class="field">
-        <span>OpenRouter API key</span>
+        <span>Clave de API de OpenRouter</span>
         <input
           type="password"
           data-testid="llm-key"
           value={llm.apiKey}
           autocomplete="off"
-          placeholder={llm.proxy ? 'Optional with the dev server' : 'sk-or-…'}
+          placeholder={llm.proxy ? 'Opcional con el servidor de desarrollo' : 'sk-or-…'}
           onInput={(event) => llm.onApiKey(event.currentTarget.value)}
         />
       </label>
@@ -86,7 +86,7 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
         {hint}{' '}
         {!llm.apiKey.trim() && !llm.proxy && (
           <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">
-            Get a key
+            Consigue una clave
           </a>
         )}
       </p>
@@ -116,18 +116,18 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
   }, [picking]);
 
   const players = [
-    { kind: 'classic', label: 'Classic' },
+    { kind: 'classic', label: 'Clásica' },
     { kind: 'llm', label: 'LLM' },
   ] as const;
-  const names = ['You', llm.choice.kind === 'llm' ? 'AI · LLM' : 'AI'] as const;
+  const names = ['Tú', llm.choice.kind === 'llm' ? 'IA · LLM' : 'IA'] as const;
   return (
     <main class={`start${picking === null ? '' : ' picking'}`} data-testid="start-screen">
       <div class="start-body">
         <header class="start-head">
           <div class="start-title">
             <div>
-              <h1>Mana Duel</h1>
-              <p class="tagline">A minimalist card duel. Tap a deck box to choose, then take on the AI.</p>
+              <h1>Duelo de Maná</h1>
+              <p class="tagline">Un duelo de cartas minimalista. Toca una caja de mazo para elegir y enfréntate a la IA.</p>
             </div>
             {audio && <SoundToggles audio={audio} />}
           </div>
@@ -153,7 +153,7 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
           <>
             <section class="start-section" aria-labelledby="ai-player-label">
               <h2 id="ai-player-label" class="section-label">
-                Who plays the AI
+                Quién controla la IA
               </h2>
               <div class="segmented" role="radiogroup" aria-labelledby="ai-player-label">
                 {players.map((player) => (
@@ -174,23 +174,24 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
             </section>
 
             <details class="rules">
-              <summary>How to play</summary>
+              <summary>Cómo se juega</summary>
               <ul>
                 <li>
-                  Tap a deck box to choose your deck or the AI's, or leave either to chance. You both start at 20 life with
-                  40 cards.
+                  Toca una caja de mazo para elegir tu mazo o el de la IA, o deja cualquiera de los dos al azar. Los dos
+                  empezáis con 20 vidas y 40 cartas.
                 </li>
                 <li>
-                  The classic AI plays on its own. Pick LLM to let a language model from OpenRouter make the AI's decisions
-                  instead: it sees what the AI may see, never your hand, and the classic AI steps in if it fails to answer.
+                  La IA clásica juega por su cuenta. Elige LLM para que un modelo de lenguaje de OpenRouter tome las
+                  decisiones de la IA: ve lo mismo que puede ver la IA, nunca tu mano, y la IA clásica lo sustituye si no
+                  responde.
                 </li>
-                <li>Bring the AI to 0 life to win. Play one land per turn; lands pay for spells automatically.</li>
-                <li>Creatures can't attack the turn they arrive, unless they have haste.</li>
-                <li>Attack with your creatures; the defender picks blockers. Damage happens all at once.</li>
-                <li>Instants, and creatures with flash, can be cast whenever you have priority, even in response to a spell.</li>
-                <li>A counterspell targets a spell on the stack: tap it in the strip between the two sides.</li>
-                <li>Tokens are creatures that cards create; they vanish when they leave the battlefield.</li>
-                <li>Tap a card to see what it does. Long-press or right-click to inspect any card.</li>
+                <li>Deja a la IA a 0 vidas para ganar. Juega una tierra por turno; las tierras pagan los hechizos solas.</li>
+                <li>Las criaturas no pueden atacar el turno en que llegan, salvo que tengan la habilidad de prisa.</li>
+                <li>Ataca con tus criaturas; quien defiende elige las bloqueadoras. Todo el daño se hace a la vez.</li>
+                <li>Los instantáneos y las criaturas con destello se pueden lanzar siempre que tengas la prioridad, incluso en respuesta a un hechizo.</li>
+                <li>Un contrahechizo tiene como objetivo un hechizo de la pila: tócalo en la franja entre los dos lados.</li>
+                <li>Las fichas son criaturas que crean las cartas; desaparecen al salir del campo de batalla.</li>
+                <li>Toca una carta para ver qué hace. Mantenla pulsada o haz clic derecho para examinar cualquier carta.</li>
               </ul>
             </details>
           </>
@@ -199,10 +200,10 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
 
       <div class="start-actions">
         <button type="button" class="btn" data-testid="btn-play" disabled={!!problem} onClick={onPlay}>
-          Play vs AI
+          Jugar contra la IA
         </button>
         <button type="button" class="btn secondary" data-testid="btn-watch" disabled={!!problem} onClick={onWatch}>
-          Watch AI vs AI
+          Ver IA contra IA
         </button>
       </div>
     </main>

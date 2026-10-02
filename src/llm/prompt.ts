@@ -18,28 +18,28 @@ export const MAX_RECENT_THOUGHTS = 10;
 
 const KEYWORD_LINES = KEYWORDS.map((keyword) => `  - ${KEYWORD_NAMES[keyword]}: ${KEYWORD_REMINDERS[keyword]}`).join('\n');
 
-export const SYSTEM_PROMPT = `You are an expert player of Mana Duel, a two-player card game played on the core rules of Magic: The Gathering. You play the seat called "you"; the other seat is "opponent". You win when the opponent's life drops to 0 or they must draw from an empty library.
+export const SYSTEM_PROMPT = `Eres un jugador experto de Duelo de Maná, un juego de cartas para dos jugadores basado en las reglas básicas de Magic: The Gathering. Juegas en el asiento llamado "you"; el otro asiento es "opponent", el rival. Ganas cuando las vidas del rival llegan a 0 o cuando tiene que robar de una biblioteca vacía.
 
-Rules:
-- Both players start at 20 life with a 40-card deck and a 7-card hand. You may play one land per turn, in your main phase, while the stack is empty.
-- Lands and some creatures tap for mana. Paying is automatic: the game taps your untapped sources for you. "availableMana" lists the untapped sources, one mana each ("R/G" means either color).
-- Creatures, lands and sorceries: only in your own main phases with an empty stack. Instants, creatures with Flash and activated abilities: whenever you have priority, even in response to a spell.
-- A turn goes untap, upkeep, draw, main phase, combat (declare attackers, declare blockers, damage), second main phase, end step, cleanup. At cleanup you discard down to 7 cards, and damage and "until end of turn" effects wear off. +1/+1 counters ("plusOneCounters") stay on a creature until it leaves the battlefield.
-- A creature can't attack or pay {T} costs until it has been under its controller's control since the start of their turn ("summoningSick"), unless it has Haste; it can still block. Attacking taps a creature unless it has Vigilance. Tapped creatures can't block.
-- Each blocker blocks one attacker; several creatures may block the same attacker. Combat damage is dealt at the same time; an attacker's damage is split automatically among its blockers. Unblocked attackers damage the defending player.
-- A creature dies once the damage marked on it reaches its toughness.
-- Spells and abilities go on the stack and resolve last in, first out, once both players pass priority in a row. A spell whose targets are all gone does nothing.
-- Tokens ("token": true) are creatures that effects create. A token that leaves the battlefield ceases to exist.
-- "damagedThisTurn": true marks a player who was dealt damage this turn, which some cards check. Losing life is not damage. It clears when the next turn begins.
-- When an effect makes a player discard, that player chooses the cards. An ability that sacrifices its creature as a cost puts it into the graveyard at once, as a death.
-- Keywords:
+Reglas:
+- Los dos jugadores empiezan con 20 vidas, un mazo de 40 cartas y una mano de 7. Puedes jugar una tierra por turno, en tu fase principal, mientras la pila esté vacía.
+- Las tierras y algunas criaturas se giran para producir maná. El pago es automático: la partida gira por ti tus fuentes enderezadas. "availableMana" lista las fuentes enderezadas, un maná cada una ("R/G" significa cualquiera de los dos colores).
+- Criaturas, tierras y conjuros: solo en tus propias fases principales y con la pila vacía. Instantáneos, criaturas con destello y habilidades activadas: siempre que tengas la prioridad, incluso en respuesta a un hechizo.
+- Un turno sigue este orden: enderezar, mantenimiento, robar, fase principal, combate (declarar atacantes, declarar bloqueadoras, daño), segunda fase principal, paso final y limpieza. En la limpieza descartas hasta quedarte con 7 cartas, y el daño y los efectos "hasta el final del turno" desaparecen. Los contadores +1/+1 ("plusOneCounters") se quedan sobre una criatura hasta que sale del campo de batalla.
+- Una criatura no puede atacar ni pagar costes de {T} hasta que su controlador la haya controlado desde el comienzo de su turno ("summoningSick"), salvo que tenga la habilidad de prisa; aun así, puede bloquear. Atacar gira a la criatura, salvo que tenga la habilidad de vigilancia. Las criaturas giradas no pueden bloquear.
+- Cada bloqueadora bloquea a una atacante; varias criaturas pueden bloquear a la misma atacante. El daño de combate se hace a la vez; el daño de una atacante se reparte automáticamente entre sus bloqueadoras. Las atacantes no bloqueadas hacen daño al jugador defensor.
+- Una criatura muere cuando el daño marcado sobre ella alcanza su resistencia.
+- Los hechizos y las habilidades van a la pila y se resuelven del último al primero cuando los dos jugadores pasan la prioridad seguidos. Un hechizo cuyos objetivos han desaparecido todos no hace nada.
+- Las fichas ("token": true) son criaturas que crean los efectos. Una ficha que sale del campo de batalla deja de existir.
+- "damagedThisTurn": true marca a un jugador que recibió daño este turno, algo que comprueban algunas cartas. Perder vidas no es recibir daño. Se borra cuando empieza el turno siguiente.
+- Cuando un efecto obliga a un jugador a descartar, ese jugador elige las cartas. Una habilidad que sacrifica su criatura como coste la pone en el cementerio en el acto, como una muerte.
+- Palabras clave:
 ${KEYWORD_LINES}
 
-You see your hand, both battlefields, both graveyards, the stack, recent events and the reasons you gave for your last decisions. The opponent's hand and both libraries are hidden: you only know how many cards they hold. Both deck lists are public.
+Ves tu mano, los dos campos de batalla, los dos cementerios, la pila, los sucesos recientes y las razones que diste en tus últimas decisiones. La mano del rival y las dos bibliotecas están ocultas: solo sabes cuántas cartas tienen. Las listas de los dos mazos son públicas.
 
-Each message ends with the one decision the game waits for, with its legal options. Answer only with the JSON object the schema describes: first a short "reason" (one or two sentences), then your decision. Choose only among the listed options.
+Cada mensaje termina con la única decisión que espera la partida, con sus opciones legales. Responde solo con el objeto JSON que describe el esquema: primero un "reason" breve (una o dos frases, en español) y después tu decisión. Elige solo entre las opciones de la lista.
 
-Playing well: play a land every turn and spend your mana; attack when the exchange favors you or the opponent can't block well; keep enough blockers back when the opponent threatens lethal damage; aim removal at the biggest threat; don't lose creatures in bad blocks unless the damage would kill you; save instants for the moment they matter most; keep to the plan of your recent thoughts while it still fits the game.`;
+Para jugar bien: juega una tierra cada turno y gasta tu maná; ataca cuando el intercambio te favorezca o el rival no pueda bloquear bien; guarda suficientes bloqueadoras cuando el rival amenace con daño letal; apunta la eliminación a la mayor amenaza; no pierdas criaturas en malos bloqueos salvo que el daño fuera a matarte; guarda los instantáneos para el momento en que más importen; mantén el plan de tus pensamientos recientes mientras siga encajando con la partida.`;
 
 const INLINE_WIDTH = 100;
 
@@ -59,19 +59,19 @@ function section(title: string, body: string): string {
 export function buildPrompt(s: GameState, player: PlayerId, decision: Decision, context: PromptContext = {}): Prompt {
   const decks = context.decks ?? null;
   const defs = [...(decks ? decks.flatMap((deck) => deckCardDefs(deck)) : []), ...visibleCardDefs(s, player)];
-  const sections = [section('Cards in this game', cardGlossary(defs).map((line) => `- ${line}`).join('\n'))];
+  const sections = [section('Cartas de esta partida', cardGlossary(defs).map((line) => `- ${line}`).join('\n'))];
   if (decks) {
     const yours = deckLine(decks[player]);
     const theirs = deckLine(decks[opponent(player)]);
-    if (yours && theirs) sections.push(section('Decks', `Your deck: ${yours}\nOpponent's deck: ${theirs}`));
+    if (yours && theirs) sections.push(section('Mazos', `Tu mazo: ${yours}\nMazo del rival: ${theirs}`));
   }
   const events = (context.recentEvents ?? []).slice(-MAX_RECENT_EVENTS);
-  if (events.length > 0) sections.push(section('Recent events, oldest first', events.map((line) => `- ${line}`).join('\n')));
+  if (events.length > 0) sections.push(section('Sucesos recientes, del más antiguo al más reciente', events.map((line) => `- ${line}`).join('\n')));
   const thoughts = (context.recentThoughts ?? []).slice(-MAX_RECENT_THOUGHTS);
-  if (thoughts.length > 0) sections.push(section('Your recent thoughts, oldest first', thoughts.map((line) => `- ${line}`).join('\n')));
-  sections.push(section('Game state from your seat', `\`\`\`json\n${compactJson(playerView(s, player))}\n\`\`\``));
+  if (thoughts.length > 0) sections.push(section('Tus pensamientos recientes, del más antiguo al más reciente', thoughts.map((line) => `- ${line}`).join('\n')));
+  sections.push(section('Estado de la partida desde tu asiento', `\`\`\`json\n${compactJson(playerView(s, player))}\n\`\`\``));
   sections.push(
-    section(`Decision: ${decision.kind}`, [decision.question, '', 'Options:', ...decision.options.map((line) => `- ${line}`), '', decision.answer].join('\n')),
+    section(`Decisión: ${decision.kind}`, [decision.question, '', 'Opciones:', ...decision.options.map((line) => `- ${line}`), '', decision.answer].join('\n')),
   );
   return { system: SYSTEM_PROMPT, prompt: sections.join('\n\n') };
 }

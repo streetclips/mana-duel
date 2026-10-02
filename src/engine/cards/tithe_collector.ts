@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const titheCollector: CardDef = {
   id: 'tithe_collector',
-  name: 'Tithe Collector',
+  name: 'Diezmero',
   types: ['creature'],
-  subtypes: ['Human', 'Rogue'],
+  subtypes: ['Bribón', 'Humano'],
   cost: '{1}{B}',
   power: 2,
   toughness: 1,
@@ -18,5 +18,5 @@ export const titheCollector: CardDef = {
       ],
     },
   ],
-  flavor: 'The hall takes its due in coin, in blood or in years.',
+  flavor: 'El templo cobra lo suyo en monedas, en sangre o en años.',
 };

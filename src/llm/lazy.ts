@@ -13,7 +13,7 @@ export function lazyLlmPlayer(model: string, load: () => Promise<LlmPlayer>): Ll
       loading ??= load().then(
         (loaded) => (player = loaded),
         (error: unknown) => {
-          failure = `the LLM code did not load (${error instanceof Error ? error.message : String(error)})`;
+          failure = `el código del LLM no se cargó (${error instanceof Error ? error.message : String(error)})`;
           throw error;
         },
       );

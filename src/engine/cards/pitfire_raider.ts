@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const pitfireRaider: CardDef = {
   id: 'pitfire_raider',
-  name: 'Pitfire Raider',
+  name: 'Asaltante ígneo',
   types: ['creature'],
-  subtypes: ['Human', 'Berserker'],
+  subtypes: ['Berserker', 'Humano'],
   cost: '{B}{R}',
   power: 2,
   toughness: 1,
   keywords: ['haste', 'menace'],
-  flavor: 'First through the gate, first to the throat.',
+  flavor: 'El primero en cruzar la puerta, el primero en ir a la garganta.',
 };

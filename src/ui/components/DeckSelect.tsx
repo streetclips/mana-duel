@@ -8,7 +8,7 @@ import { ColorDots } from './DeckViewer';
 export const PICKER_ID = 'deck-picker';
 
 function deckName(id: string): string {
-  return chosenDeck(id)?.name ?? 'Random';
+  return chosenDeck(id)?.name ?? 'Aleatorio';
 }
 
 function ChevronIcon() {
@@ -63,7 +63,7 @@ export function Versus({ choice, picking, names, onPick }: VersusProps) {
     <Seat seat={player} deckId={seatDeck(choice, player)} who={names[player]} active={picking === player} onTap={() => onPick(player)} />
   );
   return (
-    <div class={`versus${picking === null ? '' : ' picking'}`} role="group" aria-label="Matchup" data-testid="versus">
+    <div class={`versus${picking === null ? '' : ' picking'}`} role="group" aria-label="Enfrentamiento" data-testid="versus">
       {seat(0)}
       <span key={`${choice.deck}:${choice.opponent}`} class="vs" aria-hidden="true">
         vs
@@ -85,7 +85,7 @@ export function DeckPicker({ seat, choice, onChange, onView, onDone }: DeckPicke
   const grid = useRef<HTMLDivElement>(null);
   const selected = seatDeck(choice, seat);
   const deck = chosenDeck(selected);
-  const title = seat === 0 ? 'Your deck' : "The AI's deck";
+  const title = seat === 0 ? 'Tu mazo' : 'El mazo de la IA';
 
   useLayoutEffect(() => {
     const list = grid.current;
@@ -100,28 +100,28 @@ export function DeckPicker({ seat, choice, onChange, onView, onDone }: DeckPicke
     <section id={PICKER_ID} class="picker" data-testid="deck-picker" data-seat={seat} aria-label={title}>
       <header class="picker-head">
         <h2 class="section-label">{title}</h2>
-        <span class="picker-count num">{DECK_LIST.length} decks</span>
+        <span class="picker-count num">{DECK_LIST.length} mazos</span>
         <button type="button" class="picker-done" data-testid="btn-picker-done" onClick={onDone}>
-          Done
+          Listo
         </button>
       </header>
       <div class="picker-detail" data-testid="deck-detail" aria-live="polite">
         <div class="picker-detail-text">
           <h3>
-            {deck ? deck.name : 'Random'}
+            {deck ? deck.name : 'Aleatorio'}
             {deck && <ColorDots deck={deck} />}
           </h3>
-          <p>{deck ? deck.description : `A different deck every game: one of the ${DECK_LIST.length}, drawn when the game starts.`}</p>
+          <p>{deck ? deck.description : `Un mazo distinto en cada partida: uno de los ${DECK_LIST.length}, elegido al empezar.`}</p>
         </div>
         {deck && (
           <button
             type="button"
             class="btn secondary"
-            aria-label={`View the ${deck.name} deck`}
+            aria-label={`Ver el mazo ${deck.name}`}
             data-testid={`deck-view-${deck.id}`}
             onClick={() => onView(deck.id)}
           >
-            Cards
+            Cartas
           </button>
         )}
       </div>

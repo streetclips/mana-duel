@@ -13,7 +13,7 @@ function boxTones(deck: DeckDef): Record<`--${string}`, string> {
 }
 
 export function DeckBox({ deck, open, printed = false }: DeckBoxProps) {
-  const name = deck?.name ?? 'Random';
+  const name = deck?.name ?? 'Aleatorio';
   const lit: readonly string[] = deck ? deck.colors : COLORS;
   return (
     <span
@@ -39,7 +39,7 @@ export function DeckBox({ deck, open, printed = false }: DeckBoxProps) {
               <i key={color} class={lit.includes(color) ? 'lit' : undefined} style={cssVars({ '--pip': `var(--mana-${color})` })} />
             ))}
           </span>
-          {printed && <span class="box-brand">Mana Duel</span>}
+          {printed && <span class="box-brand">Duelo de Maná</span>}
           <span class="box-art">{deck ? <img src={cardArtUrl(deck.featured)} alt="" draggable={false} /> : <b>?</b>}</span>
           {printed && <span class="box-name">{name}</span>}
         </span>

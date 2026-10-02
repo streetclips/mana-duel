@@ -5,6 +5,7 @@ import { isPlayerTarget } from './targets';
 import type {
   CardDef,
   CardId,
+  CardType,
   Color,
   Effect,
   EffectTarget,
@@ -20,61 +21,91 @@ import type {
 } from './types';
 
 export const KEYWORD_NAMES: Record<Keyword, string> = {
-  flying: 'Flying',
-  reach: 'Reach',
-  haste: 'Haste',
-  vigilance: 'Vigilance',
-  trample: 'Trample',
-  firstStrike: 'First strike',
-  doubleStrike: 'Double strike',
-  deathtouch: 'Deathtouch',
-  lifelink: 'Lifelink',
-  menace: 'Menace',
-  defender: 'Defender',
-  flash: 'Flash',
-  skulk: 'Skulk',
-  undying: 'Undying',
-  hexproof: 'Hexproof',
-  evolve: 'Evolve',
+  flying: 'Vuela',
+  reach: 'Alcance',
+  haste: 'Prisa',
+  vigilance: 'Vigilancia',
+  trample: 'Arrolla',
+  firstStrike: 'Daña primero',
+  doubleStrike: 'Daña dos veces',
+  deathtouch: 'Toque mortal',
+  lifelink: 'Vínculo vital',
+  menace: 'Amenaza',
+  defender: 'Defensor',
+  flash: 'Destello',
+  skulk: 'Escurridizo',
+  undying: 'Resiliencia',
+  hexproof: 'Antimaleficio',
+  evolve: 'Evolucionar',
+};
+
+const KEYWORD_ABILITIES: Record<Keyword, string> = {
+  flying: 'volar',
+  reach: 'alcance',
+  haste: 'prisa',
+  vigilance: 'vigilancia',
+  trample: 'arrollar',
+  firstStrike: 'dañar primero',
+  doubleStrike: 'dañar dos veces',
+  deathtouch: 'toque mortal',
+  lifelink: 'vínculo vital',
+  menace: 'amenaza',
+  defender: 'defensor',
+  flash: 'destello',
+  skulk: 'escurridizo',
+  undying: 'resiliencia',
+  hexproof: 'antimaleficio',
+  evolve: 'evolucionar',
 };
 
 export const KEYWORD_REMINDERS: Record<Keyword, string> = {
-  flying: "Can't be blocked except by creatures with flying or reach.",
-  reach: 'Can block creatures with flying.',
-  haste: 'Can attack and {T} as soon as it comes under your control.',
-  vigilance: "Attacking doesn't cause it to tap.",
-  trample: 'Combat damage beyond what is lethal to its blockers is dealt to the defending player.',
-  firstStrike: 'Deals combat damage before creatures without first strike.',
-  doubleStrike: 'Deals both first-strike and regular combat damage.',
-  deathtouch: 'Any amount of damage it deals to a creature is enough to destroy it.',
-  lifelink: 'Damage dealt by it also causes its controller to gain that much life.',
-  menace: "Can't be blocked except by two or more creatures.",
-  defender: "Can't attack.",
-  flash: 'You may cast it any time you could cast an instant.',
-  skulk: "Can't be blocked by creatures with greater power.",
-  undying: 'When it dies, if it had no +1/+1 counters on it, it returns to the battlefield with a +1/+1 counter on it.',
-  hexproof: "Can't be the target of spells or abilities your opponents control.",
-  evolve: 'Gets a +1/+1 counter whenever another creature with greater power or toughness enters under your control.',
+  flying: 'No puede ser bloqueada excepto por criaturas con la habilidad de volar o alcance.',
+  reach: 'Puede bloquear criaturas con la habilidad de volar.',
+  haste: 'Puede atacar y {T} tan pronto como esté bajo tu control.',
+  vigilance: 'Atacar no hace que se gire.',
+  trample: 'El daño de combate que supere lo letal para sus bloqueadoras se le hace al jugador defensor.',
+  firstStrike: 'Hace su daño de combate antes que las criaturas sin la habilidad de dañar primero.',
+  doubleStrike: 'Hace tanto daño de combate de dañar primero como daño de combate normal.',
+  deathtouch: 'Cualquier cantidad de daño que haga a una criatura basta para destruirla.',
+  lifelink: 'El daño que hace también hace que su controlador gane esa misma cantidad de vidas.',
+  menace: 'No puede ser bloqueada excepto por dos o más criaturas.',
+  defender: 'No puede atacar.',
+  flash: 'Puedes lanzarla en cualquier momento en que pudieras lanzar un instantáneo.',
+  skulk: 'No puede ser bloqueada por criaturas con mayor fuerza.',
+  undying: 'Cuando muere, si no tenía contadores +1/+1, regresa al campo de batalla con un contador +1/+1.',
+  hexproof: 'No puede ser objetivo de hechizos o habilidades que controlan tus oponentes.',
+  evolve: 'Recibe un contador +1/+1 siempre que otra criatura con más fuerza o más resistencia entre bajo tu control.',
 };
 
 export const STEP_NAMES: Record<Step, string> = {
-  mulligan: 'Opening hand',
-  untap: 'Untap',
-  upkeep: 'Upkeep',
-  draw: 'Draw',
-  main1: 'Main phase',
-  beginCombat: 'Beginning of combat',
-  declareAttackers: 'Declare attackers',
-  declareBlockers: 'Declare blockers',
-  firstStrikeDamage: 'First-strike damage',
-  combatDamage: 'Combat damage',
-  endCombat: 'End of combat',
-  main2: 'Second main phase',
-  end: 'End step',
-  cleanup: 'Cleanup',
+  mulligan: 'Mano inicial',
+  untap: 'Paso de enderezar',
+  upkeep: 'Mantenimiento',
+  draw: 'Paso de robar',
+  main1: 'Fase principal',
+  beginCombat: 'Inicio del combate',
+  declareAttackers: 'Declarar atacantes',
+  declareBlockers: 'Declarar bloqueadoras',
+  firstStrikeDamage: 'Primer daño de combate',
+  combatDamage: 'Daño de combate',
+  endCombat: 'Final del combate',
+  main2: 'Segunda fase principal',
+  end: 'Paso final',
+  cleanup: 'Limpieza',
 };
 
-const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const TYPE_NAMES: Record<CardType, string> = {
+  land: 'Tierra',
+  creature: 'Criatura',
+  instant: 'Instantáneo',
+  sorcery: 'Conjuro',
+};
+
+const SUPERTYPE_NAMES: Record<string, string> = { Basic: 'básica' };
+
+const NUMBER_WORDS = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
+
+const RIVAL = 'el rival';
 
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
@@ -88,24 +119,57 @@ function signed(value: number): string {
   return value >= 0 ? `+${value}` : String(value);
 }
 
+function plural(count: number, one: string, many: string): string {
+  return count === 1 ? one : many;
+}
+
+function startsWithI(word: string): boolean {
+  return /^h?[ií](?![aeiouáéíóú])/i.test(word);
+}
+
+function conjunction(last: string): string {
+  return startsWithI(last) ? 'e' : 'y';
+}
+
+function withA(phrase: string): string {
+  return phrase.startsWith('el ') ? `al ${phrase.slice(3)}` : `a ${phrase}`;
+}
+
 export function formatModifier(power: number, toughness: number): string {
   return `${signed(power)}/${signed(toughness)}`;
 }
 
 export function typeLine(def: CardDef): string {
-  const main = [...(def.token ? ['Token'] : []), ...(def.supertypes ?? []), ...def.types.map(capitalize)].join(' ');
-  return def.subtypes?.length ? `${main} — ${def.subtypes.join(' ')}` : main;
+  const words = [
+    ...def.types.map((type) => TYPE_NAMES[type]),
+    ...(def.token ? ['ficha'] : []),
+    ...(def.supertypes ?? []).map((supertype) => SUPERTYPE_NAMES[supertype] ?? supertype),
+  ];
+  const main = words.map((word, index) => (index === 0 ? word : lowerFirst(word))).join(' ');
+  const subtypes = (def.subtypes ?? []).map((subtype, index) => (index === 0 ? subtype : lowerFirst(subtype))).join(' ');
+  return subtypes ? `${main} — ${subtypes}` : main;
 }
 
-const COLOR_WORDS: Record<Color, string> = { W: 'white', U: 'blue', B: 'black', R: 'red', G: 'green' };
+const COLOR_WORDS: Record<Color, [string, string]> = {
+  W: ['blanca', 'blancas'],
+  U: ['azul', 'azules'],
+  B: ['negra', 'negras'],
+  R: ['roja', 'rojas'],
+  G: ['verde', 'verdes'],
+};
 
 function andList(items: string[]): string {
   if (items.length <= 1) return items.join('');
-  return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
+  const last = items.at(-1) as string;
+  return `${items.slice(0, -1).join(', ')} ${conjunction(last)} ${last}`;
 }
 
 export function keywordList(keywords: readonly Keyword[]): string {
-  return andList(keywords.map((keyword) => lowerFirst(KEYWORD_NAMES[keyword])));
+  return andList(keywords.map((keyword) => KEYWORD_ABILITIES[keyword]));
+}
+
+function abilityPhrase(keywords: readonly Keyword[]): string {
+  return `${plural(keywords.length, 'la habilidad', 'las habilidades')} de ${keywordList(keywords)}`;
 }
 
 export function formatPump(power: number, toughness: number, keywords: readonly Keyword[] = []): string {
@@ -116,28 +180,63 @@ export function formatPump(power: number, toughness: number, keywords: readonly 
 
 export function tokenDescription(defId: string, amount = 1): string {
   const token = getCardDef(defId);
-  const colors = token.colors?.length ? andList(token.colors.map((color) => COLOR_WORDS[color])) : 'colorless';
-  const noun = [...(token.subtypes ?? []), 'creature', amount === 1 ? 'token' : 'tokens'].join(' ');
-  const keywords = token.keywords?.length ? ` with ${keywordList(token.keywords)}` : '';
-  return `${token.power}/${token.toughness} ${colors} ${noun}${keywords}`;
+  const form = amount === 1 ? 0 : 1;
+  const colors = token.colors?.length
+    ? andList(token.colors.map((color) => COLOR_WORDS[color][form]))
+    : plural(amount, 'incolora', 'incoloras');
+  const noun = [plural(amount, 'ficha', 'fichas'), 'de criatura', ...(token.subtypes ?? [])].join(' ');
+  const keywords = token.keywords?.length ? ` con ${abilityPhrase(token.keywords)}` : '';
+  return `${noun} ${colors} ${token.power}/${token.toughness}${keywords}`;
 }
 
 export function targetPhrase(spec: TargetSpec): string {
   switch (spec.kind) {
     case 'any':
-      return 'any target';
+      return 'cualquier objetivo';
     case 'creature': {
-      const noun = spec.tapped ? 'tapped creature' : 'creature';
-      if (spec.controller === 'you') return `target ${noun} you control`;
-      if (spec.controller === 'opponent') return `target ${noun} you don't control`;
-      return `target ${noun}`;
+      const noun = spec.tapped ? 'la criatura girada objetivo' : 'la criatura objetivo';
+      if (spec.controller === 'you') return `${noun} que controlas`;
+      if (spec.controller === 'opponent') return `${noun} que no controlas`;
+      return noun;
     }
     case 'player':
-      if (spec.controller === 'opponent') return 'target opponent';
-      if (spec.controller === 'you') return 'you';
-      return 'target player';
+      if (spec.controller === 'opponent') return 'el oponente objetivo';
+      if (spec.controller === 'you') return 'ti';
+      return 'el jugador objetivo';
     case 'spell':
-      return 'target spell';
+      return 'el hechizo objetivo';
+  }
+}
+
+export function targetChoice(spec: TargetSpec): string {
+  switch (spec.kind) {
+    case 'any':
+      return 'cualquier objetivo';
+    case 'creature': {
+      const noun = spec.tapped ? 'una criatura girada objetivo' : 'una criatura objetivo';
+      if (spec.controller === 'you') return `${noun} que controles`;
+      if (spec.controller === 'opponent') return `${noun} que no controles`;
+      return noun;
+    }
+    case 'player':
+      if (spec.controller === 'opponent') return 'un oponente objetivo';
+      if (spec.controller === 'you') return 'a ti mismo';
+      return 'un jugador objetivo';
+    case 'spell':
+      return 'un hechizo objetivo';
+  }
+}
+
+function repeatedPhrase(spec: TargetSpec): string {
+  switch (spec.kind) {
+    case 'creature':
+      return 'esa criatura';
+    case 'player':
+      return 'ese jugador';
+    case 'spell':
+      return 'ese hechizo';
+    case 'any':
+      return 'ese objetivo';
   }
 }
 
@@ -146,75 +245,96 @@ function countWord(amount: number): string {
 }
 
 function plusCounters(amount: number): string {
-  return amount === 1 ? 'a +1/+1 counter' : `${countWord(amount)} +1/+1 counters`;
+  return amount === 1 ? 'un contador +1/+1' : `${countWord(amount)} contadores +1/+1`;
 }
 
 export function countersLabel(count: number): string {
-  return count === 1 ? '+1/+1 counter' : `${count} +1/+1 counters`;
+  return `${count} ${plural(count, 'contador', 'contadores')} +1/+1`;
 }
 
-function gainsText(verb: 'get' | 'gets', power: number, toughness: number, keywords: readonly Keyword[] = []): string {
-  const gain = verb === 'gets' ? 'gains' : 'gain';
-  if (keywords.length === 0) return `${verb} ${formatModifier(power, toughness)}`;
-  if (power === 0 && toughness === 0) return `${gain} ${keywordList(keywords)}`;
-  return `${verb} ${formatModifier(power, toughness)} and ${gain} ${keywordList(keywords)}`;
+function damagePoints(amount: number): string {
+  return `${amount} ${plural(amount, 'punto', 'puntos')} de daño`;
+}
+
+function lifeAmount(amount: number): string {
+  return `${amount} ${plural(amount, 'vida', 'vidas')}`;
 }
 
 function cardsCount(amount: number): string {
-  return amount === 1 ? 'a card' : `${countWord(amount)} cards`;
+  return amount === 1 ? 'una carta' : `${countWord(amount)} cartas`;
 }
+
+function gainsText(verb: 'obtiene' | 'obtienen', power: number, toughness: number, keywords: readonly Keyword[] = []): string {
+  const gain = verb === 'obtiene' ? 'gana' : 'ganan';
+  if (keywords.length === 0) return `${verb} ${formatModifier(power, toughness)}`;
+  if (power === 0 && toughness === 0) return `${gain} ${abilityPhrase(keywords)}`;
+  return `${verb} ${formatModifier(power, toughness)} y ${gain} ${abilityPhrase(keywords)}`;
+}
+
+interface SelfReference {
+  subject: string;
+  object: string;
+}
+
+type Role = keyof SelfReference;
 
 interface SentenceContext {
   subject: string;
   on?: TriggerEvent;
 }
 
-function effectSentence(effect: Effect, ref: (target: EffectTarget) => string, context: SentenceContext): string {
-  const subject = context.subject;
+const NO_SELF: SelfReference = { subject: '', object: '' };
+
+function withSubject(subject: string, predicate: string): string {
+  return subject ? `${subject} ${predicate}` : predicate;
+}
+
+function effectSentence(effect: Effect, ref: (target: EffectTarget, role: Role) => string, context: SentenceContext): string {
   switch (effect.kind) {
     case 'damage':
-      return `${subject} deals ${effect.amount} damage to ${ref(effect.to)}.`;
+      return withSubject(context.subject, `hace ${damagePoints(effect.amount)} ${withA(ref(effect.to, 'object'))}.`);
     case 'pump':
-      return `${capitalize(ref(effect.to))} ${gainsText('gets', effect.power, effect.toughness, effect.keywords)} until end of turn.`;
+      return withSubject(ref(effect.to, 'subject'), `${gainsText('obtiene', effect.power, effect.toughness, effect.keywords)} hasta el final del turno.`);
     case 'destroy':
-      return `Destroy ${ref(effect.to)}.`;
+      return `Destruye ${ref(effect.to, 'object')}.`;
     case 'bounce':
-      return `Return ${ref(effect.to)} to its owner's hand.`;
+      return `Regresa ${ref(effect.to, 'object')} a la mano de su propietario.`;
     case 'counter':
-      return `Counter ${ref(effect.to)}.`;
+      return `Contrarresta ${ref(effect.to, 'object')}.`;
     case 'draw':
-      return effect.amount === 1 ? 'Draw a card.' : `Draw ${countWord(effect.amount)} cards.`;
+      return `Roba ${cardsCount(effect.amount)}.`;
     case 'gainLife':
-      return `You gain ${effect.amount} life.`;
+      return `Ganas ${lifeAmount(effect.amount)}.`;
     case 'loseLife':
-      return effect.who === 'opponent' ? `Each opponent loses ${effect.amount} life.` : `You lose ${effect.amount} life.`;
+      return effect.who === 'opponent' ? `Cada oponente pierde ${lifeAmount(effect.amount)}.` : `Pierdes ${lifeAmount(effect.amount)}.`;
     case 'fight':
-      return `${capitalize(ref(effect.a))} fights ${ref(effect.b)}.`;
+      return withSubject(ref(effect.a, 'subject'), `lucha contra ${ref(effect.b, 'object')}.`);
     case 'bite':
-      return `${capitalize(ref(effect.a))} deals damage equal to its power to ${ref(effect.b)}.`;
+      return withSubject(ref(effect.a, 'subject'), `hace una cantidad de daño igual a su fuerza ${withA(ref(effect.b, 'object'))}.`);
     case 'pumpTeam':
-      return `Creatures you control ${gainsText('get', effect.power, effect.toughness, effect.keywords)} until end of turn.`;
+      return `Las criaturas que controlas ${gainsText('obtienen', effect.power, effect.toughness, effect.keywords)} hasta el final del turno.`;
     case 'addCounters':
-      return `Put ${plusCounters(effect.amount)} on ${ref(effect.to)}.`;
+      return `Pon ${plusCounters(effect.amount)} sobre ${ref(effect.to, 'object')}.`;
     case 'addCountersTeam':
-      return `Put ${plusCounters(effect.amount)} on each creature you control.`;
+      return `Pon ${plusCounters(effect.amount)} sobre cada criatura que controlas.`;
     case 'createTokens':
-      return `Create ${effect.amount === 1 ? 'a' : countWord(effect.amount)} ${tokenDescription(effect.token, effect.amount)}.`;
+      return `Crea ${effect.amount === 1 ? 'una' : countWord(effect.amount)} ${tokenDescription(effect.token, effect.amount)}.`;
     case 'discard':
-      if (effect.who !== 'opponent') return `Discard ${cardsCount(effect.amount)}.`;
-      if (context.on === 'damagesPlayer') return `That player discards ${cardsCount(effect.amount)}.`;
-      return `Each opponent discards ${cardsCount(effect.amount)}.`;
+      if (effect.who !== 'opponent') return `Descarta ${cardsCount(effect.amount)}.`;
+      if (context.on === 'damagesPlayer') return `Ese jugador descarta ${cardsCount(effect.amount)}.`;
+      return `Cada oponente descarta ${cardsCount(effect.amount)}.`;
     case 'returnToBattlefield':
-      return `Return it to the battlefield under its owner's control with ${plusCounters(effect.counters)} on it.`;
+      return `Regrésala al campo de batalla bajo el control de su propietario con ${plusCounters(effect.counters)}.`;
   }
 }
 
-function sentences(effects: Effect[], specs: TargetSpec[], context: SentenceContext, self: string): string {
+function sentences(effects: Effect[], specs: TargetSpec[], context: SentenceContext, self: SelfReference): string {
   const named = new Set<number>();
-  const ref = (target: EffectTarget): string => {
-    if (target === 'self') return self;
+  const ref = (target: EffectTarget, role: Role): string => {
+    if (target === 'self') return self[role];
     const spec = specs[target];
-    if (!spec || named.has(target)) return 'it';
+    if (!spec) return '';
+    if (named.has(target)) return repeatedPhrase(spec);
     named.add(target);
     return targetPhrase(spec);
   };
@@ -222,44 +342,44 @@ function sentences(effects: Effect[], specs: TargetSpec[], context: SentenceCont
   effects.forEach((effect, index) => {
     const previous = effects[index - 1];
     if (effect.kind === 'damage' && previous?.kind === 'damage' && lines.length > 0) {
-      lines.push(`${(lines.pop() as string).replace(/\.$/, '')} and ${effect.amount} damage to ${ref(effect.to)}.`);
+      lines.push(`${(lines.pop() as string).replace(/\.$/, '')} y ${damagePoints(effect.amount)} ${withA(ref(effect.to, 'object'))}.`);
       return;
     }
-    const text = effectSentence(effect, ref, context);
+    const text = capitalize(effectSentence(effect, ref, context));
     if (effect.kind === 'discard' && effect.who !== 'opponent' && previous?.kind === 'draw' && lines.length > 0) {
-      lines.push(`${(lines.pop() as string).replace(/\.$/, '')}, then ${lowerFirst(text)}`);
+      lines.push(`${(lines.pop() as string).replace(/\.$/, '')} y luego ${lowerFirst(text)}`);
     } else lines.push(text);
   });
   return lines.join(' ');
 }
 
 const TRIGGER_OPENERS: Record<TriggerEvent, string> = {
-  enters: 'When this creature enters',
-  dies: 'When this creature dies',
-  attacks: 'Whenever this creature attacks',
-  spell: 'Whenever you cast an instant or sorcery spell',
-  allyEnters: 'Whenever another creature you control enters',
-  allyDies: 'Whenever another creature you control dies',
-  damagesPlayer: 'Whenever this creature deals combat damage to a player',
-  lifeGain: 'Whenever you gain life',
+  enters: 'Cuando esta criatura entre',
+  dies: 'Cuando esta criatura muera',
+  attacks: 'Siempre que esta criatura ataque',
+  spell: 'Siempre que lances un hechizo de instantáneo o de conjuro',
+  allyEnters: 'Siempre que otra criatura que controlas entre',
+  allyDies: 'Siempre que otra criatura que controlas muera',
+  damagesPlayer: 'Siempre que esta criatura haga daño de combate a un jugador',
+  lifeGain: 'Siempre que ganes vidas',
 };
 
 const TRIGGER_CONDITIONS: Record<TriggerCondition, string> = {
-  opponentDamaged: 'if an opponent was dealt damage this turn',
+  opponentDamaged: 'si un oponente recibió daño este turno',
 };
 
-const SELF_AS_THIS_CREATURE: ReadonlySet<TriggerEvent> = new Set(['allyEnters', 'allyDies', 'lifeGain']);
+const OPENER_NAMES_IT: ReadonlySet<TriggerEvent> = new Set(['enters', 'dies', 'attacks', 'damagesPlayer']);
 
 export function rulesText(def: CardDef): string[] {
   const lines: string[] = [];
   if (def.keywords?.length) {
-    lines.push(def.keywords.map((keyword, i) => (i === 0 ? KEYWORD_NAMES[keyword] : lowerFirst(KEYWORD_NAMES[keyword]))).join(', '));
+    lines.push(`${def.keywords.map((keyword, i) => (i === 0 ? KEYWORD_NAMES[keyword] : lowerFirst(KEYWORD_NAMES[keyword]))).join(', ')}.`);
   }
   if (def.mana?.length) {
-    lines.push(`{T}: Add ${def.mana.map((color) => `{${color}}`).join(' or ')}.`);
+    lines.push(`{T}: Agrega ${def.mana.map((color) => `{${color}}`).join(' o ')}.`);
   }
   if (def.spell) {
-    lines.push(sentences(def.spell.effects, def.spell.targets, { subject: def.name }, 'it'));
+    lines.push(sentences(def.spell.effects, def.spell.targets, { subject: def.name }, NO_SELF));
   }
   (def.triggers ?? []).forEach((_, index) => lines.push(triggerText(def, index)));
   (def.activated ?? []).forEach((_, index) => lines.push(activatedText(def, index)));
@@ -268,16 +388,18 @@ export function rulesText(def: CardDef): string[] {
 
 export function triggerText(def: CardDef, index: number): string {
   if (index === UNDYING_TRIGGER) {
-    return `${TRIGGER_OPENERS.dies}, if it had no +1/+1 counters on it, return it to the battlefield under its owner's control with a +1/+1 counter on it.`;
+    return `${TRIGGER_OPENERS.dies}, si no tenía contadores +1/+1 sobre ella, regrésala al campo de batalla bajo el control de su propietario con un contador +1/+1.`;
   }
   if (index === EVOLVE_TRIGGER) {
-    return `${TRIGGER_OPENERS.allyEnters}, if it has greater power or toughness than this creature, put a +1/+1 counter on this creature.`;
+    return `${TRIGGER_OPENERS.allyEnters}, si la fuerza o la resistencia de esa criatura es mayor que la de esta criatura, pon un contador +1/+1 sobre esta criatura.`;
   }
   const trigger = def.triggers?.[index];
   if (!trigger) return '';
-  const self = SELF_AS_THIS_CREATURE.has(trigger.on) ? 'this creature' : 'it';
+  const self: SelfReference = OPENER_NAMES_IT.has(trigger.on)
+    ? { subject: '', object: 'ella' }
+    : { subject: 'esta criatura', object: 'esta criatura' };
   const condition = trigger.condition ? `${TRIGGER_CONDITIONS[trigger.condition]}, ` : '';
-  return `${TRIGGER_OPENERS[trigger.on]}, ${condition}${lowerFirst(sentences(trigger.effects, trigger.targets, { subject: self, on: trigger.on }, self))}`;
+  return `${TRIGGER_OPENERS[trigger.on]}, ${condition}${lowerFirst(sentences(trigger.effects, trigger.targets, { subject: self.subject, on: trigger.on }, self))}`;
 }
 
 export function activatedText(def: CardDef, index: number): string {
@@ -286,12 +408,12 @@ export function activatedText(def: CardDef, index: number): string {
   const cost = [
     ability.cost && ability.cost !== '{0}' ? ability.cost : '',
     ability.tap ? '{T}' : '',
-    ability.sacrifice ? 'Sacrifice this creature' : '',
+    ability.sacrifice ? 'sacrificar esta criatura' : '',
   ]
     .filter(Boolean)
     .join(', ');
-  const subject = ability.sacrifice ? 'It' : 'This creature';
-  return `${cost}: ${sentences(ability.effects, ability.targets, { subject }, 'this creature')}`;
+  const self: SelfReference = ability.sacrifice ? { subject: '', object: 'esta criatura' } : { subject: 'esta criatura', object: 'esta criatura' };
+  return `${capitalize(cost)}: ${sentences(ability.effects, ability.targets, { subject: self.subject }, self)}`;
 }
 
 export function cardSummary(defId: string): string {
@@ -305,8 +427,8 @@ export function cardSummary(defId: string): string {
   return parts.join(' · ');
 }
 
-export function playerLabel(s: GameState, player: PlayerId, viewer: PlayerId): string {
-  return player === viewer ? 'you' : s.players[player].name;
+function playerLabel(player: PlayerId, viewer: PlayerId): string {
+  return player === viewer ? 'tú' : RIVAL;
 }
 
 export function cardName(s: GameState, id: CardId): string {
@@ -348,6 +470,12 @@ function joined(items: (TextPart | TextPart[])[], separator: string): TextPart[]
   return items.flatMap((item, index) => [...(index === 0 ? [] : [separator]), ...(Array.isArray(item) ? item : [item])]);
 }
 
+function joinedAnd(items: TextPart[][]): TextPart[] {
+  const last = items.at(-1);
+  if (!last || items.length === 1) return last ?? [];
+  return [...joined(items.slice(0, -1), ', '), ` ${conjunction(plainText(last))} `, ...last];
+}
+
 function capitalizeParts(parts: TextPart[]): TextPart[] {
   const [first, ...rest] = parts;
   return typeof first === 'string' ? [capitalize(first), ...rest] : parts;
@@ -361,8 +489,7 @@ function mention(s: GameState, id: CardId): TextPart {
 function cardRefParts(s: GameState, id: CardId, viewer: PlayerId): TextPart[] {
   const card = s.cards[id];
   if (!card) return [id];
-  const whose = card.controller === viewer ? 'your' : `${s.players[card.controller].name}'s`;
-  return line`${whose} ${mention(s, id)}`;
+  return card.controller === viewer ? line`tu ${mention(s, id)}` : line`${mention(s, id)} del rival`;
 }
 
 export function cardRef(s: GameState, id: CardId, viewer: PlayerId): string {
@@ -370,21 +497,32 @@ export function cardRef(s: GameState, id: CardId, viewer: PlayerId): string {
 }
 
 function targetRefParts(s: GameState, target: Target, viewer: PlayerId): TextPart[] {
-  return isPlayerTarget(target) ? [playerLabel(s, target.player, viewer)] : cardRefParts(s, target.card, viewer);
+  return isPlayerTarget(target) ? [playerLabel(target.player, viewer)] : cardRefParts(s, target.card, viewer);
 }
 
 export function targetRef(s: GameState, target: Target, viewer: PlayerId): string {
   return plainText(targetRefParts(s, target, viewer));
 }
 
-function verb(s: GameState, player: PlayerId, viewer: PlayerId, base: string, third?: string): string {
-  const subject = capitalize(playerLabel(s, player, viewer));
-  return `${subject} ${player === viewer ? base : (third ?? `${base}s`)}`;
+function targetObjectParts(s: GameState, target: Target, viewer: PlayerId): TextPart[] {
+  if (isPlayerTarget(target)) return [target.player === viewer ? 'ti' : RIVAL];
+  return cardRefParts(s, target.card, viewer);
+}
+
+function act(player: PlayerId, viewer: PlayerId, second: string, third: string): string {
+  return player === viewer ? capitalize(second) : `El rival ${third}`;
 }
 
 function targetsSuffix(s: GameState, targets: Target[], viewer: PlayerId): TextPart[] {
   if (targets.length === 0) return [];
-  return line` targeting ${joined(targets.map((target) => targetRefParts(s, target, viewer)), ' and ')}`;
+  return line` sobre ${joinedAnd(targets.map((target) => targetObjectParts(s, target, viewer)))}`;
+}
+
+function damageParts(s: GameState, target: Target, amount: number, viewer: PlayerId): TextPart[] {
+  if (isPlayerTarget(target)) {
+    return target.player === viewer ? line`te hace ${damagePoints(amount)}` : line`hace ${damagePoints(amount)} al rival`;
+  }
+  return line`hace ${damagePoints(amount)} a ${cardRefParts(s, target.card, viewer)}`;
 }
 
 export function describeEvent(s: GameState, event: GameEvent, viewer: PlayerId): string | null {
@@ -395,73 +533,76 @@ export function describeEvent(s: GameState, event: GameEvent, viewer: PlayerId):
 export function describeEventParts(s: GameState, event: GameEvent, viewer: PlayerId): TextPart[] | null {
   switch (event.t) {
     case 'start':
-      return line`${verb(s, event.startingPlayer, viewer, 'go', 'goes')} first.`;
+      return event.startingPlayer === viewer ? line`Empiezas tú.` : line`Empieza el rival.`;
     case 'mulligan':
-      return line`${verb(s, event.player, viewer, 'take')} a mulligan (${event.count}).`;
+      return line`${act(event.player, viewer, 'haces', 'hace')} mulligan (${event.count}).`;
     case 'keep':
-      return line`${verb(s, event.player, viewer, 'keep')} ${event.handSize} cards.`;
+      return line`${act(event.player, viewer, 'te quedas', 'se queda')} con ${event.handSize} ${plural(event.handSize, 'carta', 'cartas')}.`;
     case 'bottom':
-      return line`${verb(s, event.player, viewer, 'put')} ${event.count} card${event.count === 1 ? '' : 's'} on the bottom.`;
+      return line`${act(event.player, viewer, 'pones', 'pone')} ${event.count} ${plural(event.count, 'carta', 'cartas')} en el fondo de ${event.player === viewer ? 'tu' : 'su'} biblioteca.`;
     case 'turn':
-      return line`Turn ${event.turn} — ${event.player === viewer ? 'your turn' : `${s.players[event.player].name}'s turn`}.`;
+      return line`Turno ${event.turn} — ${event.player === viewer ? 'tu turno' : 'turno del rival'}.`;
     case 'draw':
-      return event.player === viewer
-        ? line`You draw ${mention(s, event.card)}.`
-        : line`${capitalize(playerLabel(s, event.player, viewer))} draws a card.`;
+      return event.player === viewer ? line`Robas ${mention(s, event.card)}.` : line`El rival roba una carta.`;
     case 'drawEmpty':
-      return line`${capitalize(playerLabel(s, event.player, viewer))} can't draw: the library is empty.`;
+      return event.player === viewer
+        ? line`No puedes robar: tu biblioteca está vacía.`
+        : line`El rival no puede robar: su biblioteca está vacía.`;
     case 'land':
-      return line`${verb(s, event.player, viewer, 'play')} ${mention(s, event.card)}.`;
+      return line`${act(event.player, viewer, 'juegas', 'juega')} ${mention(s, event.card)}.`;
     case 'cast':
-      return line`${verb(s, event.player, viewer, 'cast')} ${mention(s, event.card)}${targetsSuffix(s, event.targets, viewer)}.`;
-    case 'activate':
-      return line`${verb(s, event.player, viewer, 'activate')} ${cardRefParts(s, event.card, viewer)}${targetsSuffix(s, event.targets, viewer)}.`;
+      return line`${act(event.player, viewer, 'lanzas', 'lanza')} ${mention(s, event.card)}${targetsSuffix(s, event.targets, viewer)}.`;
+    case 'activate': {
+      const own = s.cards[event.card]?.controller === event.player;
+      const source = own ? line`${event.player === viewer ? 'tu' : 'su'} ${mention(s, event.card)}` : cardRefParts(s, event.card, viewer);
+      return line`${act(event.player, viewer, 'activas', 'activa')} ${source}${targetsSuffix(s, event.targets, viewer)}.`;
+    }
     case 'trigger':
-      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} triggers${targetsSuffix(s, event.targets, viewer)}.`;
+      return line`Se dispara ${cardRefParts(s, event.card, viewer)}${targetsSuffix(s, event.targets, viewer)}.`;
     case 'fizzle': {
-      const source = event.item.kind === 'spell' ? event.item.card : event.item.source;
-      return line`${mention(s, source)} fizzles: its targets are gone.`;
+      const subject = event.item.kind === 'spell' ? [mention(s, event.item.card)] : line`La habilidad de ${mention(s, event.item.source)}`;
+      return line`${subject} no se resuelve: sus objetivos ya no están.`;
     }
     case 'counter':
-      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} is countered.`;
+      return line`Se contrarresta ${cardRefParts(s, event.card, viewer)}.`;
     case 'bounce':
-      return line`${mention(s, event.card)} returns to ${event.player === viewer ? 'your' : `${s.players[event.player].name}'s`} hand.`;
+      return line`${mention(s, event.card)} regresa a ${event.player === viewer ? 'tu mano' : 'la mano del rival'}.`;
     case 'attack':
       if (event.attackers.length === 0) return null;
-      return line`${verb(s, event.player, viewer, 'attack')} with ${joined(event.attackers.map((id) => mention(s, id)), ', ')}.`;
+      return line`${act(event.player, viewer, 'atacas', 'ataca')} con ${joinedAnd(event.attackers.map((id) => [mention(s, id)]))}.`;
     case 'block':
-      if (event.blocks.length === 0) return line`${verb(s, event.player, viewer, "don't", "doesn't")} block.`;
-      return line`${verb(s, event.player, viewer, 'block')}: ${joined(
+      if (event.blocks.length === 0) return line`${act(event.player, viewer, 'no bloqueas', 'no bloquea')}.`;
+      return line`${act(event.player, viewer, 'bloqueas', 'bloquea')}: ${joined(
         event.blocks.map((block) => line`${mention(s, block.blocker)} → ${mention(s, block.attacker)}`),
         ', ',
       )}.`;
     case 'damage':
-      return line`${capitalizeParts(cardRefParts(s, event.source, viewer))} deals ${event.amount} damage to ${targetRefParts(s, event.target, viewer)}.`;
+      return line`${capitalizeParts(cardRefParts(s, event.source, viewer))} ${damageParts(s, event.target, event.amount, viewer)}.`;
     case 'life':
-      return event.delta > 0 ? line`${verb(s, event.player, viewer, 'gain')} ${event.delta} life (${event.life}).` : null;
+      return event.delta > 0 ? line`${act(event.player, viewer, 'ganas', 'gana')} ${lifeAmount(event.delta)} (${event.life}).` : null;
     case 'loseLife':
-      return line`${verb(s, event.player, viewer, 'lose')} ${event.amount} life.`;
+      return line`${act(event.player, viewer, 'pierdes', 'pierde')} ${lifeAmount(event.amount)}.`;
     case 'pump':
-      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} ${gainsText('gets', event.power, event.toughness, event.keywords)} until end of turn.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} ${gainsText('obtiene', event.power, event.toughness, event.keywords)} hasta el final del turno.`;
     case 'create':
-      return line`${verb(s, event.player, viewer, 'create')} a ${mention(s, event.card)} token.`;
+      return line`${act(event.player, viewer, 'creas', 'crea')} una ficha de ${mention(s, event.card)}.`;
     case 'return':
-      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} returns to the battlefield.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} regresa al campo de batalla.`;
     case 'addCounters':
-      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} gets ${event.amount === 1 ? 'a +1/+1 counter' : `${event.amount} +1/+1 counters`}.`;
+      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} recibe ${event.amount === 1 ? 'un contador +1/+1' : `${event.amount} contadores +1/+1`}.`;
     case 'fight':
-      return line`${capitalizeParts(cardRefParts(s, event.a, viewer))} fights ${cardRefParts(s, event.b, viewer)}.`;
+      return line`${capitalizeParts(cardRefParts(s, event.a, viewer))} lucha contra ${cardRefParts(s, event.b, viewer)}.`;
     case 'bite':
       return null;
     case 'dies':
-      return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} dies.`;
+      return line`Muere ${cardRefParts(s, event.card, viewer)}.`;
     case 'discard':
-      return line`${verb(s, event.player, viewer, 'discard')} ${mention(s, event.card)}.`;
+      return line`${act(event.player, viewer, 'descartas', 'descarta')} ${mention(s, event.card)}.`;
     case 'concede':
-      return line`${verb(s, event.player, viewer, 'concede')}.`;
+      return line`${act(event.player, viewer, 'te rindes', 'se rinde')}.`;
     case 'gameOver':
-      if (event.winner === null) return line`The game is a draw.`;
-      return event.winner === viewer ? line`You win!` : line`${s.players[event.winner].name} wins.`;
+      if (event.winner === null) return line`La partida termina en empate.`;
+      return event.winner === viewer ? line`¡Ganas!` : line`Gana el rival.`;
     case 'resolve':
     case 'enter':
       return null;
@@ -472,41 +613,41 @@ function permanentLabel(s: GameState, id: CardId): string {
   const card = getCard(s, id);
   const def = getCardDef(card.def);
   const flags: string[] = [];
-  if (card.tapped) flags.push('tapped');
-  if (card.summoningSick && isCreatureDef(def)) flags.push('sick');
-  if (card.damage > 0) flags.push(`${card.damage} dmg`);
+  if (card.tapped) flags.push('girada');
+  if (card.summoningSick && isCreatureDef(def)) flags.push('mareo');
+  if (card.damage > 0) flags.push(`${card.damage} de daño`);
   if (card.counters > 0) flags.push(countersLabel(card.counters));
-  if (s.combat?.attackers.includes(id)) flags.push('attacking');
+  if (s.combat?.attackers.includes(id)) flags.push('atacando');
   const block = s.combat?.blocks.find((candidate) => candidate.blocker === id);
-  if (block) flags.push(`blocking ${block.attacker}`);
+  if (block) flags.push(`bloqueando a ${block.attacker}`);
   const stats = isCreatureDef(def) ? ` ${getPower(s, id)}/${getToughness(s, id)}` : '';
   return `${def.name}(${id})${stats}${flags.length ? ` [${flags.join(', ')}]` : ''}`;
 }
 
 export function describeState(s: GameState, viewer: PlayerId = 0, revealAll = false): string {
   const lines: string[] = [];
-  lines.push(`Turn ${s.turn} · ${STEP_NAMES[s.step]} · active: ${s.players[s.activePlayer].name} (p${s.activePlayer})`);
+  lines.push(`Turno ${s.turn} · ${STEP_NAMES[s.step]} · activo: ${s.players[s.activePlayer].name} (p${s.activePlayer})`);
   for (const player of [viewer, viewer === 0 ? 1 : 0] as PlayerId[]) {
     const ps = s.players[player];
     const showHand = revealAll || player === viewer;
-    const hand = showHand ? ps.hand.map((id) => `${cardName(s, id)}(${id})`).join(', ') : `${ps.hand.length} cards`;
-    lines.push(`${ps.name} (p${player}): ${ps.life} life · library ${ps.library.length} · graveyard ${ps.graveyard.length}`);
-    lines.push(`  hand: ${hand || '—'}`);
-    lines.push(`  battlefield: ${ps.battlefield.map((id) => permanentLabel(s, id)).join(', ') || '—'}`);
+    const hand = showHand ? ps.hand.map((id) => `${cardName(s, id)}(${id})`).join(', ') : `${ps.hand.length} cartas`;
+    lines.push(`${ps.name} (p${player}): ${lifeAmount(ps.life)} · biblioteca ${ps.library.length} · cementerio ${ps.graveyard.length}`);
+    lines.push(`  mano: ${hand || '—'}`);
+    lines.push(`  campo de batalla: ${ps.battlefield.map((id) => permanentLabel(s, id)).join(', ') || '—'}`);
   }
   const stack = [...s.stack]
     .reverse()
     .map((item) => {
       const source = item.kind === 'spell' ? item.card : item.source;
-      const label = item.kind === 'spell' ? cardName(s, source) : `${cardName(s, source)} ability`;
+      const label = item.kind === 'spell' ? cardName(s, source) : `habilidad de ${cardName(s, source)}`;
       return `${label}${plainText(targetsSuffix(s, item.targets, viewer))}`;
     })
     .join(' ← ');
-  lines.push(`stack: ${stack || '—'}`);
+  lines.push(`pila: ${stack || '—'}`);
   const pending = s.pending;
   if (pending) {
     const who = pending.kind === 'gameOver' ? '' : ` (${s.players[pending.player].name})`;
-    lines.push(`waiting for: ${pending.kind}${who}`);
+    lines.push(`esperando: ${pending.kind}${who}`);
   }
   return lines.join('\n');
 }

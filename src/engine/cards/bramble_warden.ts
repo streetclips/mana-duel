@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const brambleWarden: CardDef = {
   id: 'bramble_warden',
-  name: 'Bramble Warden',
+  name: 'Guardián de zarzas',
   types: ['creature'],
-  subtypes: ['Plant', 'Warrior'],
+  subtypes: ['Guerrero', 'Planta'],
   cost: '{2}{G}',
   power: 2,
   toughness: 4,
   keywords: ['vigilance'],
-  flavor: 'It marches out at dawn and never leaves the gate.',
+  flavor: 'Sale al alba y nunca se aparta de la puerta.',
 };

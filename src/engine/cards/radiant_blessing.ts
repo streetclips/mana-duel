@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const radiantBlessing: CardDef = {
   id: 'radiant_blessing',
-  name: 'Radiant Blessing',
+  name: 'Bendición radiante',
   types: ['instant'],
   cost: '{W}',
   spell: {
@@ -12,5 +12,5 @@ export const radiantBlessing: CardDef = {
       { kind: 'gainLife', amount: 2 },
     ],
   },
-  flavor: 'Light does not ask who deserves it.',
+  flavor: 'La luz no pregunta quién la merece.',
 };

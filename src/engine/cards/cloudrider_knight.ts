@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const cloudriderKnight: CardDef = {
   id: 'cloudrider_knight',
-  name: 'Cloudrider Knight',
+  name: 'Jinete de nubes',
   types: ['creature'],
-  subtypes: ['Human', 'Knight'],
+  subtypes: ['Caballero', 'Humano'],
   cost: '{3}{W}',
   power: 2,
   toughness: 3,
   keywords: ['flying', 'vigilance'],
-  flavor: 'Her watch has no walls, only horizon.',
+  flavor: 'Su guardia no tiene murallas, solo horizonte.',
 };

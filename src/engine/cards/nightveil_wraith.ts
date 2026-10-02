@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const nightveilWraith: CardDef = {
   id: 'nightveil_wraith',
-  name: 'Nightveil Wraith',
+  name: 'Aparición nocturna',
   types: ['creature'],
-  subtypes: ['Spirit'],
+  subtypes: ['Espíritu'],
   cost: '{3}{B}',
   power: 3,
   toughness: 2,
@@ -16,5 +16,5 @@ export const nightveilWraith: CardDef = {
       effects: [{ kind: 'damage', amount: 2, to: 0 }],
     },
   ],
-  flavor: 'When it fades, it takes something of yours with it.',
+  flavor: 'Cuando se desvanece, se lleva algo tuyo.',
 };

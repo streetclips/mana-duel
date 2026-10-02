@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const bloodTithe: CardDef = {
   id: 'blood_tithe',
-  name: 'Blood Tithe',
+  name: 'Diezmo de sangre',
   types: ['sorcery'],
   cost: '{2}{B}',
   spell: {
@@ -13,5 +13,5 @@ export const bloodTithe: CardDef = {
       { kind: 'draw', amount: 1 },
     ],
   },
-  flavor: 'Pay what you owe, and a little more for the candles.',
+  flavor: 'Paga lo que debes, y un poco más para las velas.',
 };

@@ -46,9 +46,9 @@ describe('an LLM opponent in the controller', () => {
     expect(llm.calls.map((call) => call.state.pending?.kind)).toEqual(['mulligan']);
     expect(controller.llmRecords).toMatchObject([{ decision: 'mulligan', source: 'model', model: 'test/scripted', reason: 'Seems right.', turn: 0 }]);
     const log = controller.log.map((entry) => entry.text);
-    expect(log.indexOf('AI thinks: Seems right.')).toBe(log.indexOf('AI keeps 7 cards.') - 1);
-    expect(controller.log.find((entry) => entry.text === 'AI thinks: Seems right.')).toMatchObject({ event: null, parts: ['AI thinks: Seems right.'] });
-    expect(controller.lastEventText()).toBe('Turn 1 — your turn.');
+    expect(log.indexOf('El rival piensa: Seems right.')).toBe(log.indexOf('El rival se queda con 7 cartas.') - 1);
+    expect(controller.log.find((entry) => entry.text === 'El rival piensa: Seems right.')).toMatchObject({ event: null, parts: ['El rival piensa: Seems right.'] });
+    expect(controller.lastEventText()).toBe('Turno 1 — tu turno.');
   });
 
   it('tells the LLM the decks and the recent events from its own seat', async () => {
@@ -57,7 +57,7 @@ describe('an LLM opponent in the controller', () => {
     controller.dispatch({ type: 'keep', player: 0 });
     await controller.whenIdle();
     expect(llm.calls[0]?.options.decks).toEqual(['dawntide', 'duskmire']);
-    expect(llm.calls[0]?.options.recentEvents).toEqual(['Opponent goes first.', 'Opponent keeps 7 cards.']);
+    expect(llm.calls[0]?.options.recentEvents).toEqual(['Empieza el rival.', 'El rival se queda con 7 cartas.']);
   });
 
   it('never asks the LLM when it has a single choice, but asks wherever it could act', async () => {
@@ -85,12 +85,12 @@ describe('an LLM opponent in the controller', () => {
     expect(llm.calls[0]?.options.recentThoughts).toEqual([]);
     llm.calls[0]?.answer({ action: { type: 'playLand', player: 1, card: 'f' }, reason: 'Land first.' });
     await vi.waitFor(() => expect(llm.calls).toHaveLength(2));
-    expect(llm.calls[1]?.options.recentThoughts).toEqual(['Turn 3 (your turn), Main phase: Land first.']);
-    llm.calls[1]?.answer({ action: { type: 'pass', player: 1 }, source: 'fallback', error: 'no answer within 60 s' });
+    expect(llm.calls[1]?.options.recentThoughts).toEqual(['Turno 3 (tu turno), Fase principal: Land first.']);
+    llm.calls[1]?.answer({ action: { type: 'pass', player: 1 }, source: 'fallback', error: 'sin respuesta en 60 s' });
     await vi.waitFor(() => expect(llm.calls).toHaveLength(3));
     expect(llm.calls[2]?.state.step).toBe('main2');
-    expect(llm.calls[2]?.options.recentThoughts).toEqual(['Turn 3 (your turn), Main phase: Land first.']);
-    expect((await controller.llmPrompt())?.prompt).toContain('## Your recent thoughts, oldest first\n- Turn 3 (your turn), Main phase: Land first.');
+    expect(llm.calls[2]?.options.recentThoughts).toEqual(['Turno 3 (tu turno), Fase principal: Land first.']);
+    expect((await controller.llmPrompt())?.prompt).toContain('## Tus pensamientos recientes, del más antiguo al más reciente\n- Turno 3 (tu turno), Fase principal: Land first.');
   });
 
   it('waits for the answer: settle stops at the LLM’s decision and the game goes on once it comes', async () => {
@@ -144,12 +144,12 @@ describe('an LLM opponent in the controller', () => {
   });
 
   it('says in the log when the classic AI had to decide instead', async () => {
-    const llm = new ScriptedLlm('test/scripted', (s, player) => ({ action: chooseAction(s, player), source: 'fallback', error: 'no answer within 60 s' }));
+    const llm = new ScriptedLlm('test/scripted', (s, player) => ({ action: chooseAction(s, player), source: 'fallback', error: 'sin respuesta en 60 s' }));
     const { controller } = track(setup(llm));
     controller.loadScenario(aiHasAChoice);
     await vi.waitFor(() => expect(llm.calls).toHaveLength(1));
     await controller.whenIdle();
-    expect(controller.log.map((entry) => entry.text)).toContain('The LLM could not decide (no answer within 60 s): the classic AI made this move.');
+    expect(controller.log.map((entry) => entry.text)).toContain('El LLM no pudo decidir (sin respuesta en 60 s): la IA clásica hizo esta jugada.');
   });
 
   it('lets the classic AI play the rest of the game once the LLM is unavailable', async () => {
@@ -163,7 +163,7 @@ describe('an LLM opponent in the controller', () => {
     expect(llm.calls).toHaveLength(1);
     expect(controller.llmUnavailable).toBe('OpenRouter 401: No auth credentials found');
     const notes = controller.log.filter((entry) => entry.event === null).map((entry) => entry.text);
-    expect(notes).toEqual(['The LLM is unavailable (OpenRouter 401: No auth credentials found): the classic AI plays the rest of this game.']);
+    expect(notes).toEqual(['El LLM no está disponible (OpenRouter 401: No auth credentials found): la IA clásica juega el resto de la partida.']);
   });
 
   it('plays a whole game against the classic AI, and the replay reproduces it', async () => {
@@ -204,8 +204,8 @@ describe('an LLM opponent in the controller', () => {
     await vi.waitFor(() => expect(llm.calls).toHaveLength(1));
     const prompt = await api.llmPrompt();
     expect(prompt?.system).toBe(SYSTEM_PROMPT);
-    expect(prompt?.prompt).toContain('## Decision: mulligan');
-    expect(prompt?.prompt).toContain('Your deck: Duskmire');
+    expect(prompt?.prompt).toContain('## Decisión: mulligan');
+    expect(prompt?.prompt).toContain('Tu mazo: Fangoscuro');
     const idle = api.idle();
     llm.calls[0]?.answer({ action: { type: 'keep', player: 1 }, reason: 'Keep.' });
     expect(await idle).toEqual({ kind: 'priority', player: 0 });

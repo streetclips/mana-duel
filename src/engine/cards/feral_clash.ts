@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const feralClash: CardDef = {
   id: 'feral_clash',
-  name: 'Feral Clash',
+  name: 'Choque salvaje',
   types: ['sorcery'],
   cost: '{1}{G}',
   spell: {

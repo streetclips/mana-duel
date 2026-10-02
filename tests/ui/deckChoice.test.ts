@@ -23,7 +23,7 @@ describe('deck choice', () => {
 
   it('names no deck for Random, which is drawn when the game starts', () => {
     expect(chosenDeck(RANDOM_DECK)).toBeNull();
-    expect(chosenDeck('duskmire')?.name).toBe('Duskmire');
+    expect(chosenDeck('duskmire')?.name).toBe('Fangoscuro');
     expect(resolveMatchup({ deck: 'dawntide', opponent: RANDOM_DECK }, () => 'gloamwood')).toEqual(['dawntide', 'gloamwood']);
     expect(resolveMatchup({ deck: RANDOM_DECK, opponent: 'duskmire' }, () => 'gloamwood')).toEqual(['gloamwood', 'duskmire']);
     const draws = ['stormglass', 'mistgrave'];

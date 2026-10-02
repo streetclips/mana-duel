@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const brimstoneSkirmisher: CardDef = {
   id: 'brimstone_skirmisher',
-  name: 'Brimstone Skirmisher',
+  name: 'Hostigador de azufre',
   types: ['creature'],
-  subtypes: ['Goblin', 'Warrior'],
+  subtypes: ['Guerrero', 'Trasgo'],
   cost: '{1}{R}',
   power: 2,
   toughness: 1,
@@ -15,5 +15,5 @@ export const brimstoneSkirmisher: CardDef = {
       effects: [{ kind: 'damage', amount: 1, to: 0 }],
     },
   ],
-  flavor: 'Its war cry is a thrown coal.',
+  flavor: 'Su grito de guerra es una brasa al vuelo.',
 };

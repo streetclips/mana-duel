@@ -13,6 +13,7 @@ import {
   type PlayerId,
   type Target,
 } from '../engine';
+import { EFFORT_LABELS } from '../llm/models';
 import { saveAutoPass } from './autoPassChoice';
 import { cssVars } from './cardInfo';
 import { FxTracker, fxNow, fxTime, fxView, withGhosts, type BattlefieldItem } from './fx';
@@ -360,7 +361,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
   const thinking = controller.busy && decider !== null && (decider !== human || controller.autoplay);
   const gameOver = pending?.kind === 'gameOver';
   const llmModel = controller.opponent.kind === 'llm' ? controller.opponent.model : null;
-  const llmEffort = controller.opponent.kind === 'llm' && controller.opponent.effort ? ` · ${controller.opponent.effort} effort` : '';
+  const llmEffort = controller.opponent.kind === 'llm' && controller.opponent.effort ? ` · esfuerzo ${EFFORT_LABELS[controller.opponent.effort].toLowerCase()}` : '';
   const llmState = llmModel ? (controller.llmUnavailable ? 'unavailable' : controller.llmThinking ? 'thinking' : 'ready') : undefined;
   const thinkerName = s.players[decider ?? opponent].name;
   const thinkerLabel = controller.llmThinking && llmModel ? `${thinkerName} · ${llmModel.split('/').pop()}` : thinkerName;
@@ -381,12 +382,12 @@ export function Game({ controller, audio, onHome }: GameProps) {
       style={cssVars({ '--fx-time': String(fxTime(controller.fxSpeed)) })}
     >
       <div class="top-actions">
-        <button type="button" class="icon-btn" aria-label="Menu" data-testid="btn-menu" onClick={() => setMenuOpen(true)}>
+        <button type="button" class="icon-btn" aria-label="Menú" data-testid="btn-menu" onClick={() => setMenuOpen(true)}>
           <MenuIcon />
         </button>
       </div>
 
-      <section class="side opponent" aria-label={`${s.players[opponent].name}'s side`}>
+      <section class="side opponent" aria-label="Lado del rival">
         <PlayerBar
           s={s}
           player={opponent}
@@ -394,7 +395,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
           deckName={deckName(opponent)}
           tag={
             llmModel
-              ? { text: 'LLM', title: controller.llmUnavailable ? `LLM unavailable: ${controller.llmUnavailable}` : `OpenRouter · ${llmModel}${llmEffort}` }
+              ? { text: 'LLM', title: controller.llmUnavailable ? `LLM no disponible: ${controller.llmUnavailable}` : `OpenRouter · ${llmModel}${llmEffort}` }
               : undefined
           }
           targetable={targeting && targets.has(targetKey({ player: opponent }))}
@@ -416,7 +417,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
         onStackTap={onStackTap}
       />
 
-      <section class="side me" aria-label="Your side">
+      <section class="side me" aria-label="Tu lado">
         {renderSide(human)}
         <Lands s={s} player={human} cardFx={fx.cards} />
         <PlayerBar
@@ -451,8 +452,8 @@ export function Game({ controller, audio, onHome }: GameProps) {
 
       {controller.llmUnavailable && !llmNoticeHidden && (
         <div class="llm-notice" role="status" data-testid="llm-notice">
-          <span data-testid="llm-notice-text">LLM unavailable: {controller.llmUnavailable}. The classic AI is playing.</span>
-          <button type="button" class="icon-btn" aria-label="Hide" data-testid="llm-notice-hide" onClick={() => setLlmNoticeHidden(true)}>
+          <span data-testid="llm-notice-text">LLM no disponible: {controller.llmUnavailable}. Juega la IA clásica.</span>
+          <button type="button" class="icon-btn" aria-label="Ocultar" data-testid="llm-notice-hide" onClick={() => setLlmNoticeHidden(true)}>
             <CloseIcon />
           </button>
         </div>
@@ -545,7 +546,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
         <DeckViewer
           tabs={([human, opponent] as PlayerId[]).map((player) => ({
             key: String(player),
-            label: `${player === human ? 'You' : s.players[player].name} · ${getDeck(decks[player]).name}`,
+            label: `${player === human ? 'Tú' : s.players[player].name} · ${getDeck(decks[player]).name}`,
             deck: getDeck(decks[player]),
           }))}
           onClose={() => setDecksOpen(false)}

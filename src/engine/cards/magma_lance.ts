@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const magmaLance: CardDef = {
   id: 'magma_lance',
-  name: 'Magma Lance',
+  name: 'Lanza de magma',
   types: ['sorcery'],
   cost: '{2}{R}',
   spell: {

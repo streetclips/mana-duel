@@ -32,7 +32,7 @@ describe('lands', () => {
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
     expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f2' })).toEqual({
       ok: false,
-      error: 'you already played a land this turn',
+      error: 'ya has jugado una tierra este turno',
     });
     expect(getLegalActions(s).some((action) => action.type === 'playLand')).toBe(false);
   });
@@ -76,7 +76,7 @@ describe('timing', () => {
     });
     s = pass(s);
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
-    expect(castBlocker(s, 0, 'hound')).toMatch(/main phase/);
+    expect(castBlocker(s, 0, 'hound')).toMatch(/fase principal/);
     expect(castBlocker(s, 0, 'snap')).toBeNull();
     s = cast(s, 'snap', [{ player: 1 }]);
     s = resolveStack(s);
@@ -96,7 +96,7 @@ describe('timing', () => {
     });
     s = pass(cast(s, 'snap', [{ player: 0 }]));
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
-    expect(castBlocker(s, 0, 'falcon')).toMatch(/main phase/);
+    expect(castBlocker(s, 0, 'falcon')).toMatch(/fase principal/);
     expect(castBlocker(s, 0, 'skimmer')).toBeNull();
     s = resolveStack(cast(s, 'skimmer'));
     expect([zoneOf(s, 'skimmer'), zoneOf(s, 'snap'), s.players[0].life]).toEqual(['battlefield', 'graveyard', 18]);
@@ -118,7 +118,7 @@ describe('timing', () => {
       ],
     });
     s = cast(s, 'snap', [{ player: 1 }]);
-    expect(castBlocker(s, 0, 'hound')).toMatch(/empty stack/);
+    expect(castBlocker(s, 0, 'hound')).toMatch(/pila vacía/);
     s = resolveStack(s);
     expect(castBlocker(s, 0, 'hound')).toBeNull();
   });
@@ -239,7 +239,7 @@ describe('summoning sickness', () => {
     const sick = scenario({
       players: [{ hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', sick: true }] }, {}],
     });
-    expect(castBlocker(sick, 0, 'viper')).toBe('not enough mana');
+    expect(castBlocker(sick, 0, 'viper')).toBe('no hay suficiente maná');
     let ready = scenario({
       players: [{ hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', id: 'elf' }] }, {}],
     });
@@ -260,20 +260,20 @@ describe('activated abilities', () => {
     expect(getPower(s, 'dragon')).toBe(5);
     s = resolveStack(activate(s, 'dragon'));
     expect(getPower(s, 'dragon')).toBe(6);
-    expect(activationBlocker(s, 0, 'dragon', 0)).toBe('not enough mana');
+    expect(activationBlocker(s, 0, 'dragon', 0)).toBe('no hay suficiente maná');
     s = passToStep(s, 'main1', s.turn + 1);
     expect(getPower(s, 'dragon')).toBe(4);
   });
 
   it('respects {T} costs and summoning sickness', () => {
     const sick = scenario({ players: [{ battlefield: [{ card: 'test_pinger', id: 'pinger', sick: true }, 'mountain'] }, {}] });
-    expect(activationBlocker(sick, 0, 'pinger', 0)).toBe('that creature has summoning sickness');
+    expect(activationBlocker(sick, 0, 'pinger', 0)).toBe('esa criatura tiene mareo de invocación');
     let s = scenario({ players: [{ battlefield: [{ card: 'test_pinger', id: 'pinger' }, 'mountain'] }, {}] });
     s = activate(s, 'pinger', 0, [{ player: 1 }]);
     expect(s.cards.pinger?.tapped).toBe(true);
     s = resolveStack(s);
     expect(s.players[1].life).toBe(19);
-    expect(activationBlocker(s, 0, 'pinger', 0)).toBe('that permanent is tapped');
+    expect(activationBlocker(s, 0, 'pinger', 0)).toBe('ese permanente está girado');
   });
 });
 

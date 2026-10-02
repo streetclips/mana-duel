@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const thunderheadDjinn: CardDef = {
   id: 'thunderhead_djinn',
-  name: 'Thunderhead Djinn',
+  name: 'Djinn del nubarrón',
   types: ['creature'],
   subtypes: ['Djinn'],
   cost: '{3}{U}{R}',

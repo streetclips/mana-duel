@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const harvestHymn: CardDef = {
   id: 'harvest_hymn',
-  name: 'Harvest Hymn',
+  name: 'Himno de la cosecha',
   types: ['sorcery'],
   cost: '{2}{G}{W}',
   spell: {
@@ -12,5 +12,5 @@ export const harvestHymn: CardDef = {
       { kind: 'gainLife', amount: 2 },
     ],
   },
-  flavor: 'Sing to the fields, and the fields sing back.',
+  flavor: 'Canta a los campos y los campos te devolverán el canto.',
 };

@@ -61,7 +61,7 @@ export function opponentSetup(choice: OpponentChoice): OpponentSetup {
 
 export function llmProblem(choice: OpponentChoice, apiKey: string, proxy: boolean): string | null {
   if (choice.kind !== 'llm') return null;
-  if (!isModelId(choice.model)) return `Enter an OpenRouter model id, like ${DEFAULT_MODEL}.`;
-  if (!apiKey.trim() && !proxy) return 'Enter your OpenRouter API key.';
+  if (!isModelId(choice.model)) return `Escribe el id de un modelo de OpenRouter, como ${DEFAULT_MODEL}.`;
+  if (!apiKey.trim() && !proxy) return 'Escribe tu clave de API de OpenRouter.';
   return null;
 }

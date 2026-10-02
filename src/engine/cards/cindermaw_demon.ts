@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const cindermawDemon: CardDef = {
   id: 'cindermaw_demon',
-  name: 'Cindermaw Demon',
+  name: 'Demonio de ceniza',
   types: ['creature'],
-  subtypes: ['Demon'],
+  subtypes: ['Demonio'],
   cost: '{3}{B}{R}',
   power: 3,
   toughness: 3,
@@ -17,5 +17,5 @@ export const cindermawDemon: CardDef = {
       effects: [{ kind: 'addCounters', amount: 2, to: 'self' }],
     },
   ],
-  flavor: 'It wakes hungry, and it wakes to the smell of blood.',
+  flavor: 'Despierta hambriento, y despierta con el olor de la sangre.',
 };

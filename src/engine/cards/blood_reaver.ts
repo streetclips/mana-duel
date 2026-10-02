@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const bloodReaver: CardDef = {
   id: 'blood_reaver',
-  name: 'Blood Reaver',
+  name: 'Segador de sangre',
   types: ['creature'],
-  subtypes: ['Vampire'],
+  subtypes: ['Vampiro'],
   cost: '{2}{B}{B}',
   power: 3,
   toughness: 2,
   keywords: ['lifelink'],
-  flavor: 'It harvests the living to stay among them.',
+  flavor: 'Siega a los vivos para seguir entre ellos.',
 };

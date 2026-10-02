@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const mistcloakAmbusher: CardDef = {
   id: 'mistcloak_ambusher',
-  name: 'Mistcloak Ambusher',
+  name: 'Emboscadora',
   types: ['creature'],
-  subtypes: ['Human', 'Rogue'],
+  subtypes: ['Bribón', 'Humano'],
   cost: '{2}{U}',
   power: 3,
   toughness: 2,
   keywords: ['flash', 'skulk'],
-  flavor: 'The fog parts. She was always there.',
+  flavor: 'La niebla se abre. Siempre estuvo ahí.',
 };

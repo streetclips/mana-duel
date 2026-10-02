@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const spiritToken: CardDef = {
   id: 'spirit_token',
-  name: 'Spirit',
+  name: 'Espíritu',
   types: ['creature'],
-  subtypes: ['Spirit'],
+  subtypes: ['Espíritu'],
   token: true,
   colors: ['W', 'B'],
   power: 1,

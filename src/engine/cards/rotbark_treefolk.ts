@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const rotbarkTreefolk: CardDef = {
   id: 'rotbark_treefolk',
-  name: 'Rotbark Treefolk',
+  name: 'Árbol podrido',
   types: ['creature'],
-  subtypes: ['Treefolk'],
+  subtypes: ['Pueblo-arbóreo'],
   cost: '{3}{G}',
   power: 2,
   toughness: 3,
   keywords: ['undying'],
-  flavor: "Its heart rotted centuries ago. It hasn't slowed it down.",
+  flavor: 'Su corazón se pudrió hace siglos. No por eso va más despacio.',
 };

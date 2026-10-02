@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const reefshellCrab: CardDef = {
   id: 'reefshell_crab',
-  name: 'Reefshell Crab',
+  name: 'Cangrejo de coral',
   types: ['creature'],
-  subtypes: ['Crab'],
+  subtypes: ['Cangrejo'],
   cost: '{1}{U}',
   power: 0,
   toughness: 4,
   keywords: ['defender'],
-  flavor: 'The tide goes out. The crab does not.',
+  flavor: 'La marea se retira. El cangrejo, no.',
 };

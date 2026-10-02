@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const venomDuel: CardDef = {
   id: 'venom_duel',
-  name: 'Venom Duel',
+  name: 'Duelo de veneno',
   types: ['sorcery'],
   cost: '{1}{B}{G}',
   spell: {
@@ -15,5 +15,5 @@ export const venomDuel: CardDef = {
       { kind: 'fight', a: 0, b: 1 },
     ],
   },
-  flavor: 'In the gloam, even the smallest bite is final.',
+  flavor: 'En la penumbra, hasta el mordisco más pequeño es definitivo.',
 };

@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const packPounce: CardDef = {
   id: 'pack_pounce',
-  name: 'Pack Pounce',
+  name: 'Acometida en manada',
   types: ['sorcery'],
   cost: '{1}{G}',
   spell: {

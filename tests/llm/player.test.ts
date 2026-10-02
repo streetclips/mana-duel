@@ -44,7 +44,7 @@ function authError(): APICallError {
 describe('the LLM player', () => {
   it('sends the rules, the view and every legal option, and plays the option the model picks', async () => {
     const s = mainPhase();
-    const model = mockModel((call) => choose(call, (text) => text.includes('Play the land Forest'), 'A land first.'));
+    const model = mockModel((call) => choose(call, (text) => text.includes('Jugar la tierra Bosque'), 'A land first.'));
     const decision = await createLlmPlayer({ model }).decide(s, 1);
     expect(decision).toMatchObject({
       action: { type: 'playLand', player: 1, card: 'f' },
@@ -58,9 +58,9 @@ describe('the LLM player', () => {
     if (!call) throw new Error('the model was not called');
     const { system, user } = promptText(call);
     expect(system).toBe(SYSTEM_PROMPT);
-    expect(user).toContain('## Game state from your seat');
+    expect(user).toContain('## Estado de la partida desde tu asiento');
     expect(user).toContain('"handSize": 1');
-    expect(user).not.toContain('Crag Dragon');
+    expect(user).not.toContain('Dragón del risco');
     const choice = (schemaOf(call).properties as Record<string, { enum?: string[] }>).choice;
     expect(choice?.enum).toHaveLength(getLegalActions(s).length);
   });
@@ -74,11 +74,11 @@ describe('the LLM player', () => {
   });
 
   it('asks again, saying why, when the answer does not fit the schema', async () => {
-    const model = mockModel((call, index) => (index === 0 ? { reason: 'Hmm.', choice: '99' } : choose(call, (text) => text.startsWith('Pass'))));
+    const model = mockModel((call, index) => (index === 0 ? { reason: 'Hmm.', choice: '99' } : choose(call, (text) => text.startsWith('Pasar'))));
     const decision = await createLlmPlayer({ model }).decide(mainPhase(), 1);
     expect(decision).toMatchObject({ action: { type: 'pass' }, source: 'model', attempts: 2 });
     const retry = promptText(model.doGenerateCalls[1] as (typeof model.doGenerateCalls)[number]).user;
-    expect(retry).toContain('Your previous answer was rejected (the answer did not match the schema');
+    expect(retry).toContain('Tu respuesta anterior fue rechazada (la respuesta no cumplía el esquema');
   });
 
   it('asks again when the answer breaks a rule the schema cannot express', async () => {
@@ -95,7 +95,7 @@ describe('the LLM player', () => {
       ],
     });
     expect(decision.attempts).toBe(2);
-    expect(promptText(model.doGenerateCalls[1] as (typeof model.doGenerateCalls)[number]).user).toContain('menace');
+    expect(promptText(model.doGenerateCalls[1] as (typeof model.doGenerateCalls)[number]).user).toContain('amenaza');
   });
 
   it('lets the classic AI decide when every attempt fails', async () => {
@@ -103,7 +103,7 @@ describe('the LLM player', () => {
     const model = mockModel(() => 'not json at all');
     const decision = await createLlmPlayer({ model, attempts: 3 }).decide(s, 1);
     expect(decision).toMatchObject({ source: 'fallback', attempts: 3, action: chooseAction(s, 1) });
-    expect(decision.error).toContain('the answer did not match the schema');
+    expect(decision.error).toContain('la respuesta no cumplía el esquema');
     expect(model.doGenerateCalls).toHaveLength(3);
   });
 
@@ -127,7 +127,7 @@ describe('the LLM player', () => {
 
   it('keeps trying after a temporary error', async () => {
     const busy = new APICallError({ message: 'Rate limited', url: 'x', requestBodyValues: {}, statusCode: 429, isRetryable: true });
-    const model = mockModel((call, index) => (index === 0 ? busy : choose(call, (text) => text.startsWith('Pass'))));
+    const model = mockModel((call, index) => (index === 0 ? busy : choose(call, (text) => text.startsWith('Pasar'))));
     const player = createLlmPlayer({ model, maxRetries: 0 });
     expect(await player.decide(mainPhase(), 1)).toMatchObject({ source: 'model', attempts: 2 });
     expect(player.unavailable).toBeNull();
@@ -138,7 +138,7 @@ describe('the LLM player', () => {
   it('gives up when the model takes too long', async () => {
     const s = mainPhase();
     const decision = await createLlmPlayer({ model: hangingModel(), timeoutMs: 30 }).decide(s, 1);
-    expect(decision).toMatchObject({ source: 'fallback', error: 'no answer within 30 ms', action: chooseAction(s, 1) });
+    expect(decision).toMatchObject({ source: 'fallback', error: 'sin respuesta en 30 ms', action: chooseAction(s, 1) });
   });
 
   it('stops at once when the game no longer needs the answer', async () => {
@@ -154,9 +154,9 @@ describe('the LLM prompt', () => {
     const s = mainPhase();
     const events = Array.from({ length: 40 }, (_, i) => `Event ${i}.`);
     const { prompt } = buildPrompt(s, 1, decisionFor(s, 1), { decks: ['emberwild', 'duskmire'], recentEvents: events });
-    expect(prompt).toContain('Your deck: Duskmire');
-    expect(prompt).toContain("Opponent's deck: Emberwild");
-    expect(prompt).toContain('- Crag Dragon · {3}{R}{R}');
+    expect(prompt).toContain('Tu mazo: Fangoscuro');
+    expect(prompt).toContain('Mazo del rival: Brasalvaje');
+    expect(prompt).toContain('- Dragón del risco · {3}{R}{R}');
     expect(prompt).toContain('- Event 39.');
     expect(prompt).toContain('- Event 10.');
     expect(prompt).not.toContain('- Event 9.');
@@ -167,11 +167,11 @@ describe('the LLM prompt', () => {
     const decision = decisionFor(s, 1);
     const thoughts = Array.from({ length: 12 }, (_, i) => `Thought ${i}.`);
     const { prompt } = buildPrompt(s, 1, decision, { recentEvents: ['Event.'], recentThoughts: thoughts });
-    expect(prompt).toContain('## Your recent thoughts, oldest first\n- Thought 2.\n');
-    expect(prompt).toContain('- Thought 11.\n\n## Game state from your seat');
+    expect(prompt).toContain('## Tus pensamientos recientes, del más antiguo al más reciente\n- Thought 2.\n');
+    expect(prompt).toContain('- Thought 11.\n\n## Estado de la partida desde tu asiento');
     expect(prompt).not.toContain('- Thought 1.');
-    expect(prompt.indexOf('## Recent events')).toBeLessThan(prompt.indexOf('## Your recent thoughts'));
-    expect(buildPrompt(s, 1, decision, { recentThoughts: [] }).prompt).not.toContain('recent thoughts');
+    expect(prompt.indexOf('## Sucesos recientes')).toBeLessThan(prompt.indexOf('## Tus pensamientos recientes'));
+    expect(buildPrompt(s, 1, decision, { recentThoughts: [] }).prompt).not.toContain('pensamientos recientes');
   });
 
   it('is the same whatever the hidden cards are', () => {
@@ -205,7 +205,7 @@ describe('the LLM prompt', () => {
 
 describe('the lazily loaded LLM player', () => {
   it('loads the LLM code once, on its first decision', async () => {
-    const model = mockModel((call) => choose(call, (text) => text.startsWith('Pass')));
+    const model = mockModel((call) => choose(call, (text) => text.startsWith('Pasar')));
     const load = vi.fn(async () => createLlmPlayer({ model }));
     const player = lazyLlmPlayer('test/model', load);
     expect(player.model).toBe('test/model');
@@ -222,6 +222,6 @@ describe('the lazily loaded LLM player', () => {
       throw new Error('Failed to fetch dynamically imported module');
     });
     await expect(player.decide(mainPhase(), 1)).rejects.toThrow('Failed to fetch');
-    expect(player.unavailable).toBe('the LLM code did not load (Failed to fetch dynamically imported module)');
+    expect(player.unavailable).toBe('el código del LLM no se cargó (Failed to fetch dynamically imported module)');
   });
 });

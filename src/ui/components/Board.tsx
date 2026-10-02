@@ -35,7 +35,7 @@ interface PlayerBarProps {
 export function PlayerBar({ s, player, human, deckName, tag, targetable, aimed, fx, onTap }: PlayerBarProps) {
   const ps = s.players[player];
   const hasPriority = s.pending?.kind === 'priority' && s.pending.player === player;
-  const label = `${ps.name}${tag ? ` (${tag.title})` : ''}: ${ps.life} life, ${ps.hand.length} cards in hand, ${ps.library.length} in library, ${ps.graveyard.length} in graveyard`;
+  const label = `${ps.name}${tag ? ` (${tag.title})` : ''}: ${ps.life} ${ps.life === 1 ? 'vida' : 'vidas'}, ${ps.hand.length} en la mano, ${ps.library.length} en la biblioteca, ${ps.graveyard.length} en el cementerio`;
   return (
     <div class="player-bar">
       <button
@@ -46,11 +46,11 @@ export function PlayerBar({ s, player, human, deckName, tag, targetable, aimed, 
         data-aimed={aimed ? 'true' : undefined}
         data-fx={fx?.kinds.join(' ')}
         data-fx-seq={fx?.seq}
-        aria-label={targetable ? `Target ${ps.name}` : label}
+        aria-label={targetable ? `Objetivo: ${ps.name}` : label}
         onClick={onTap}
       >
         <span class="avatar" aria-hidden="true">
-          {player === human ? 'You' : ps.name.slice(0, 2)}
+          {player === human ? 'Tú' : ps.name.slice(0, 2)}
         </span>
         {fx?.drawn && (
           <span key={fx.drawn.key} class="fx-drawn" data-testid={`fx-drawn-${player}`} data-fx="draw" aria-hidden="true">
@@ -93,12 +93,12 @@ export function PlayerBar({ s, player, human, deckName, tag, targetable, aimed, 
             )}
           </b>
           <span class="num counts" data-testid={`counts-${player}`}>
-            Hand {ps.hand.length} · Deck {ps.library.length} · Grave {ps.graveyard.length}
+            Mano {ps.hand.length} · Mazo {ps.library.length} · Cementerio {ps.graveyard.length}
           </span>
         </span>
       </button>
       <span class="spacer" />
-      {hasPriority && <span class="priority-dot" title="Has priority" aria-label="Has priority" />}
+      {hasPriority && <span class="priority-dot" title="Tiene la prioridad" aria-label="Tiene la prioridad" />}
     </div>
   );
 }
@@ -107,8 +107,8 @@ export function Lands({ s, player, cardFx }: { s: GameState; player: PlayerId; c
   const lands = s.players[player].battlefield.filter((id) => isLand(s, id));
   const untapped = lands.filter((id) => !s.cards[id]?.tapped).length;
   return (
-    <div class="lands" data-testid={`lands-${player}`} aria-label={`${untapped} of ${lands.length} lands untapped`}>
-      {lands.length === 0 && <span class="empty">No lands</span>}
+    <div class="lands" data-testid={`lands-${player}`} aria-label={`${untapped} de ${lands.length} tierras enderezadas`}>
+      {lands.length === 0 && <span class="empty">Sin tierras</span>}
       {lands.map((id) => {
         const def = getCardDef(s.cards[id]?.def ?? '');
         return (
@@ -117,7 +117,7 @@ export function Lands({ s, player, cardFx }: { s: GameState; player: PlayerId; c
             class={`land-pip${s.cards[id]?.tapped ? ' tapped' : ''}`}
             style={cssVars({ '--pip': cardColorVar(def) })}
             data-color={(def.mana ?? []).join('')}
-            title={`${def.name}${s.cards[id]?.tapped ? ' (tapped)' : ''}`}
+            title={`${def.name}${s.cards[id]?.tapped ? ' (girada)' : ''}`}
             data-testid={`card-${id}`}
             data-card={id}
             data-def={def.id}
@@ -134,11 +134,11 @@ export function Lands({ s, player, cardFx }: { s: GameState; player: PlayerId; c
 }
 
 const PHASES: { label: string; steps: Step[] }[] = [
-  { label: 'Beginning', steps: ['untap', 'upkeep', 'draw'] },
-  { label: 'Main', steps: ['main1'] },
-  { label: 'Combat', steps: ['beginCombat', 'declareAttackers', 'declareBlockers', 'firstStrikeDamage', 'combatDamage', 'endCombat'] },
-  { label: 'Main 2', steps: ['main2'] },
-  { label: 'End', steps: ['end', 'cleanup'] },
+  { label: 'Inicio', steps: ['untap', 'upkeep', 'draw'] },
+  { label: 'Principal', steps: ['main1'] },
+  { label: 'Combate', steps: ['beginCombat', 'declareAttackers', 'declareBlockers', 'firstStrikeDamage', 'combatDamage', 'endCombat'] },
+  { label: 'Principal 2', steps: ['main2'] },
+  { label: 'Final', steps: ['end', 'cleanup'] },
 ];
 
 interface CenterStripProps {
@@ -151,25 +151,25 @@ interface CenterStripProps {
   onStackTap: (card: CardId) => void;
 }
 
-function turnOwner(s: GameState, player: PlayerId, human: PlayerId): string {
-  return player === human ? 'Your turn' : `${s.players[player].name}'s turn`;
+function turnOwner(player: PlayerId, human: PlayerId): string {
+  return player === human ? 'Tu turno' : 'Turno del rival';
 }
 
 export function CenterStrip({ s, human, bar, targets, aimed, fx, onStackTap }: CenterStripProps) {
-  const whose = s.turn === 0 ? 'Opening hand' : turnOwner(s, s.activePlayer, human);
+  const whose = s.turn === 0 ? 'Mano inicial' : turnOwner(s.activePlayer, human);
   return (
     <section class="center" aria-live="polite">
       {fx.turn && (
         <div key={fx.turn.key} class="fx-turn" data-testid="fx-turn" data-fx="turn" data-player={fx.turn.player} aria-hidden="true">
           <span>
-            {turnOwner(s, fx.turn.player, human)}
-            <small>Turn {fx.turn.turn}</small>
+            {turnOwner(fx.turn.player, human)}
+            <small>Turno {fx.turn.turn}</small>
           </span>
         </div>
       )}
       <div class="phase-row">
         <span class="phase-label" data-testid="phase">
-          {s.turn > 0 ? `Turn ${s.turn} · ` : ''}
+          {s.turn > 0 ? `Turno ${s.turn} · ` : ''}
           {whose}
           {s.turn > 0 ? ` · ${STEP_NAMES[s.step]}` : ''}
         </span>
@@ -199,8 +199,8 @@ export function CenterStrip({ s, human, bar, targets, aimed, fx, onStackTap }: C
             const aimedAt = item.targets.map((target) => targetRef(s, target, human)).join(', ');
             const targetable = item.kind === 'spell' && !!targets?.has(source);
             const isAimed = item.kind === 'spell' && aimed.has(source);
-            const who = item.controller === human ? 'You' : s.players[item.controller].name;
-            const what = item.kind === 'spell' ? cardName(s, source) : `${cardName(s, source)} ability`;
+            const who = item.controller === human ? 'Tú' : s.players[item.controller].name;
+            const what = item.kind === 'spell' ? cardName(s, source) : `Habilidad de ${cardName(s, source)}`;
             return (
               <button
                 key={item.id}
@@ -212,7 +212,7 @@ export function CenterStrip({ s, human, bar, targets, aimed, fx, onStackTap }: C
                 data-targetable={targetable ? 'true' : undefined}
                 data-aimed={isAimed ? 'true' : undefined}
                 data-fx={fx.stack.get(source)}
-                aria-label={targetable ? `Target ${what}` : `${who}: ${what}${aimedAt ? ` → ${aimedAt}` : ''}`}
+                aria-label={targetable ? `Objetivo: ${what}` : `${who}: ${what}${aimedAt ? ` → ${aimedAt}` : ''}`}
                 onClick={() => onStackTap(source)}
               >
                 <span class="who">{who}</span>

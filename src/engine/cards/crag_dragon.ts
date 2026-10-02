@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const cragDragon: CardDef = {
   id: 'crag_dragon',
-  name: 'Crag Dragon',
+  name: 'Dragón del risco',
   types: ['creature'],
-  subtypes: ['Dragon'],
+  subtypes: ['Dragón'],
   cost: '{3}{R}{R}',
   power: 4,
   toughness: 4,

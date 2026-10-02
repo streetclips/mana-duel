@@ -77,7 +77,7 @@ const BURN: ScenarioSpec = {
 async function blockTheRhino(page: Page): Promise<void> {
   await page.evaluate((spec) => window.manaDuel.loadScenario(spec), COMBAT);
   await page.evaluate(() => window.manaDuel.settle());
-  await expect(page.getByTestId('prompt')).toHaveText('Choose blockers');
+  await expect(page.getByTestId('prompt')).toHaveText('Elige las bloqueadoras');
   await page.getByTestId('card-elf').click();
   await page.getByTestId('btn-confirm-blocks').click();
 }
@@ -128,8 +128,8 @@ test('the opponent’s spell is revealed, pops onto the stack and marks its targ
   await page.evaluate(() => window.manaDuel.settle());
   const reveal = page.getByTestId('fx-reveal');
   await expect(reveal).toHaveAttribute('data-def', 'magma_lance');
-  await expect(reveal).toContainText('AI casts');
-  await expect(reveal).toContainText('→ your Grove Tender');
+  await expect(reveal).toContainText('El rival lanza');
+  await expect(reveal).toContainText('→ tu Elfa del soto');
   await expect(page.getByTestId('card-elf')).toHaveAttribute('data-aimed', 'true');
   await expect(page.locator('[data-testid^="stack-"][data-fx="play"]')).toHaveCount(1);
   expect(await fxAnimationsOf(page, '[data-testid="fx-reveal"]')).toContain('fx-reveal');
@@ -146,8 +146,8 @@ test('life changes pop beside the life total, and a new turn is announced and de
   await expect(page.getByTestId('fx-life-1')).toHaveText('−2');
   expect(await fxAnimationsOf(page, '[data-testid="player-1"]')).toEqual(expect.arrayContaining(['fx-shake', 'fx-float', 'fx-chip']));
   await page.getByTestId('btn-end-turn').click();
-  await expect(page.getByTestId('phase')).toContainText('Your turn', { timeout: 20_000 });
-  await expect(page.getByTestId('fx-turn')).toContainText('Your turn');
+  await expect(page.getByTestId('phase')).toContainText('Tu turno', { timeout: 20_000 });
+  await expect(page.getByTestId('fx-turn')).toContainText('Tu turno');
   await expect(page.getByTestId('card-top')).toHaveAttribute('data-fx', 'draw');
   expect(await page.evaluate(() => window.manaDuel.fx().some((cue) => cue.kind === 'draw' && cue.player === 1))).toBe(true);
   expect(errors).toEqual([]);

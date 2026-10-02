@@ -83,7 +83,7 @@ describe('Ember Snap (instant, any target)', () => {
 
   it('cannot be cast without the right color of mana', () => {
     const s = scenario({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['forest', 'forest'] }, {}] });
-    expect(castBlocker(s, 0, 'snap')).toBe('not enough mana');
+    expect(castBlocker(s, 0, 'snap')).toBe('no hay suficiente maná');
   });
 });
 
@@ -272,28 +272,28 @@ describe('event text', () => {
       { hand: [{ card: 'forest', id: 'secret' }], battlefield: [{ card: 'grove_tender', id: 'elf' }] },
     ],
   });
-  const snap = { card: 'snap', name: 'Ember Snap' };
+  const snap = { card: 'snap', name: 'Chasquido de brasas' };
   const bear = { card: 'bear', name: 'Test Bear' };
-  const rhino = { card: 'rhino', name: 'Timberland Rhino' };
-  const elf = { card: 'elf', name: 'Grove Tender' };
+  const rhino = { card: 'rhino', name: 'Rinoceronte forestal' };
+  const elf = { card: 'elf', name: 'Elfa del soto' };
 
   it('names each card as a mention of it, in the words of the line', () => {
     const cast: GameEvent = { t: 'cast', player: 0, card: 'snap', targets: [{ card: 'elf' }] };
-    expect(describeEventParts(s, cast, 0)).toEqual(['You cast ', snap, " targeting AI's ", elf, '.']);
-    expect(describeEvent(s, cast, 0)).toBe("You cast Ember Snap targeting AI's Grove Tender.");
-    expect(describeEventParts(s, { t: 'attack', player: 0, attackers: ['bear', 'rhino'] }, 0)).toEqual(['You attack with ', bear, ', ', rhino, '.']);
+    expect(describeEventParts(s, cast, 0)).toEqual(['Lanzas ', snap, ' sobre ', elf, ' del rival.']);
+    expect(describeEvent(s, cast, 0)).toBe('Lanzas Chasquido de brasas sobre Elfa del soto del rival.');
+    expect(describeEventParts(s, { t: 'attack', player: 0, attackers: ['bear', 'rhino'] }, 0)).toEqual(['Atacas con ', bear, ' y ', rhino, '.']);
     const blocks = [{ blocker: 'elf', attacker: 'rhino' }];
-    expect(describeEventParts(s, { t: 'block', player: 1, blocks }, 0)).toEqual(['AI blocks: ', elf, ' → ', rhino, '.']);
+    expect(describeEventParts(s, { t: 'block', player: 1, blocks }, 0)).toEqual(['El rival bloquea: ', elf, ' → ', rhino, '.']);
     const damage: GameEvent = { t: 'damage', source: 'rhino', target: { player: 1 }, amount: 4, combat: true };
-    expect(describeEventParts(s, damage, 0)).toEqual(['Your ', rhino, ' deals 4 damage to AI.']);
-    expect(describeEventParts(s, { t: 'fight', a: 'bear', b: 'elf' }, 0)).toEqual(['Your ', bear, " fights AI's ", elf, '.']);
-    expect(describeEventParts(s, { t: 'dies', card: 'elf', player: 1 }, 0)).toEqual(["AI's ", elf, ' dies.']);
+    expect(describeEventParts(s, damage, 0)).toEqual(['Tu ', rhino, ' hace 4 puntos de daño al rival.']);
+    expect(describeEventParts(s, { t: 'fight', a: 'bear', b: 'elf' }, 0)).toEqual(['Tu ', bear, ' lucha contra ', elf, ' del rival.']);
+    expect(describeEventParts(s, { t: 'dies', card: 'elf', player: 1 }, 0)).toEqual(['Muere ', elf, ' del rival.']);
   });
 
   it('keeps a line without cards in one piece, and never names a card the viewer has not seen', () => {
-    expect(describeEventParts(s, { t: 'turn', turn: 3, player: 1 }, 0)).toEqual(["Turn 3 — AI's turn."]);
-    expect(describeEventParts(s, { t: 'draw', player: 1, card: 'secret' }, 0)).toEqual(['AI draws a card.']);
-    expect(describeEventParts(s, { t: 'draw', player: 0, card: 'snap' }, 0)).toEqual(['You draw ', snap, '.']);
+    expect(describeEventParts(s, { t: 'turn', turn: 3, player: 1 }, 0)).toEqual(['Turno 3 — turno del rival.']);
+    expect(describeEventParts(s, { t: 'draw', player: 1, card: 'secret' }, 0)).toEqual(['El rival roba una carta.']);
+    expect(describeEventParts(s, { t: 'draw', player: 0, card: 'snap' }, 0)).toEqual(['Robas ', snap, '.']);
     expect(describeEventParts(s, { t: 'resolve', item: { id: 'x', kind: 'spell', card: 'snap', controller: 0, targets: [] } }, 0)).toBeNull();
   });
 });
@@ -707,8 +707,8 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
     s = pass(cast(s, 'blossom', [{ card: 'bear' }]));
     s = act(s, { type: 'pass', player: 1 });
     expect(s.events).toContainEqual({ t: 'addCounters', card: 'bear', amount: 2 });
-    expect(describeEvent(s, { t: 'addCounters', card: 'bear', amount: 2 }, 0)).toBe('Your Test Bear gets 2 +1/+1 counters.');
-    expect(describeState(s)).toContain('Test Bear(bear) 4/4 [2 +1/+1 counters]');
+    expect(describeEvent(s, { t: 'addCounters', card: 'bear', amount: 2 }, 0)).toBe('Tu Test Bear recibe 2 contadores +1/+1.');
+    expect(describeState(s)).toContain('Test Bear(bear) 4/4 [2 contadores +1/+1]');
     s = passToStep(s, 'main1', s.turn + 2);
     expect([s.cards.bear?.counters, getPower(s, 'bear'), getToughness(s, 'bear')]).toEqual([2, 4, 4]);
     s = resolveStack(cast(s, 'undertow', [{ card: 'bear' }]));
@@ -836,7 +836,7 @@ describe('Brightforge: creature tokens and "whenever another creature you contro
       [1, 1, true],
     ]);
     expect(s.events.filter((event) => event.t === 'create')).toEqual(tokens.map((card) => ({ t: 'create', player: 0, card })));
-    expect(describeEvent(s, { t: 'create', player: 0, card: tokens[0] as string }, 0)).toBe('You create a Soldier token.');
+    expect(describeEvent(s, { t: 'create', player: 0, card: tokens[0] as string }, 0)).toBe('Creas una ficha de Soldado.');
   });
 
   it('a token that dies goes to the graveyard long enough to die, then ceases to exist; so does one returned to hand', () => {
@@ -849,7 +849,7 @@ describe('Brightforge: creature tokens and "whenever another creature you contro
     s = resolveStack(cast(s, 'snap', [{ card: 't1' }]));
     expect(s.events).toContainEqual({ t: 'dies', card: 't1', player: 1 });
     expect([zoneOf(s, 't1'), s.players[1].graveyard]).toEqual(['gone', []]);
-    expect(describeEvent(s, { t: 'dies', card: 't1', player: 1 }, 0)).toBe("AI's Soldier dies.");
+    expect(describeEvent(s, { t: 'dies', card: 't1', player: 1 }, 0)).toBe('Muere Soldado del rival.');
     s = resolveStack(cast(s, 'undertow', [{ card: 't2' }]));
     expect([zoneOf(s, 't2'), s.players[1].hand]).toEqual(['gone', []]);
   });
@@ -947,7 +947,7 @@ describe('Mistgrave: skulk, discards and "whenever this creature deals combat da
     expect(blockOptions(s)).toEqual({ bear: ['thief'] });
     expect(tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'giant', attacker: 'thief' }] })).toEqual({
       ok: false,
-      error: 'giant cannot block thief',
+      error: 'giant no puede bloquear a thief',
     });
     let pumped = scenario({
       players: [
@@ -974,7 +974,7 @@ describe('Mistgrave: skulk, discards and "whenever this creature deals combat da
     ]);
     s = act(s, { type: 'discard', player: 1, cards: ['snap'] });
     expect([zoneOf(s, 'snap'), s.players[1].hand, s.pending]).toEqual(['graveyard', ['f'], { kind: 'priority', player: 0 }]);
-    expect(describeEvent(s, { t: 'discard', player: 1, card: 'snap' }, 0)).toBe('AI discards Ember Snap.');
+    expect(describeEvent(s, { t: 'discard', player: 1, card: 'snap' }, 0)).toBe('El rival descarta Chasquido de brasas.');
   });
 
   it('an effect asks for no more cards than the hand holds, and for none from an empty hand', () => {
@@ -1051,7 +1051,7 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
       2,
       true,
     ]);
-    expect(describeEvent(s, { t: 'return', player: 1, card: 'sprout' }, 0)).toBe("AI's Gravebloom Sprout returns to the battlefield.");
+    expect(describeEvent(s, { t: 'return', player: 1, card: 'sprout' }, 0)).toBe('Retoño de la tumba del rival regresa al campo de batalla.');
     s = resolveStack(cast(s, 's2', [{ card: 'sprout' }]));
     expect([zoneOf(s, 'sprout'), s.stack, s.cards.sprout?.counters]).toEqual(['graveyard', [], 0]);
   });
@@ -1086,7 +1086,7 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
     let s = scenario({ players: [{ battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] }, { battlefield: [{ card: 'test_bear', id: 'bear' }] }] });
     s = resolveStack(activate(s, 'stalker', 0, [{ card: 'bear' }]));
     expect([zoneOf(s, 'stalker'), zoneOf(s, 'bear')]).toEqual(['graveyard', 'graveyard']);
-    expect(activatedText(getCardDef('bonewood_stalker'), 0)).toBe('Sacrifice this creature: Target creature gets -2/-2 until end of turn.');
+    expect(activatedText(getCardDef('bonewood_stalker'), 0)).toBe('Sacrificar esta criatura: La criatura objetivo obtiene -2/-2 hasta el final del turno.');
   });
 
   it('Rotwing Crow drains the opponent for each other creature of yours that dies, one dying at the same time included', () => {
@@ -1147,7 +1147,7 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
     s = resolveStack(cast(s, 'tonic', [{ card: 'bear' }]));
     const pump: GameEvent = { t: 'pump', card: 'bear', power: 1, toughness: 1, keywords: ['deathtouch'] };
     expect([getPower(s, 'bear'), getKeywords(s, 'bear'), s.events]).toEqual([3, ['deathtouch'], expect.arrayContaining([pump])]);
-    expect(describeEvent(s, pump, 0)).toBe('Your Test Bear gets +1/+1 and gains deathtouch until end of turn.');
+    expect(describeEvent(s, pump, 0)).toBe('Tu Test Bear obtiene +1/+1 y gana la habilidad de toque mortal hasta el final del turno.');
     expect(describeState(s)).toContain('Test Bear(bear) 3/3');
     s = passToStep(s, 'main1', s.turn + 2);
     expect([getPower(s, 'bear'), getKeywords(s, 'bear')]).toEqual([2, []]);
@@ -1364,7 +1364,7 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
     expect(snapTargets).toEqual([{ player: 0 }, { player: 1 }, { card: 'bear' }]);
     expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] })).toEqual({
       ok: false,
-      error: 'target 0 (lurker) is not legal',
+      error: 'el objetivo 0 (lurker) no es legal',
     });
     s = resolveStack(cast(pass(cast(s, 'snap', [{ player: 1 }])), 'bloom', [{ card: 'lurker' }]));
     expect([s.cards.lurker?.counters, life(s, 1)]).toEqual([1, 18]);
@@ -1396,7 +1396,7 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
     expect([zoneOf(s, 'bear'), s.cards.lurker?.damage]).toEqual(['graveyard', 0]);
     expect(s.events).toContainEqual({ t: 'bite', a: 'lurker', b: 'bear' });
     expect(describeEvent(s, { t: 'damage', source: 'lurker', target: { card: 'bear' }, amount: 3, combat: false }, 0)).toBe(
-      "Your Mossfin Lurker deals 3 damage to AI's Test Bear.",
+      'Tu Pez musgoso hace 3 puntos de daño a Test Bear del rival.',
     );
     s = resolveStack(cast(s, 'strike2', [{ card: 'viper' }, { card: 'giant' }]));
     expect([zoneOf(s, 'giant'), zoneOf(s, 'viper')]).toEqual(['graveyard', 'battlefield']);

@@ -96,6 +96,7 @@ export {
   plainText,
   tokenDescription,
   rulesText,
+  targetChoice,
   targetPhrase,
   targetRef,
   triggerText,

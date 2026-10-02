@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const sunsteelLancer: CardDef = {
   id: 'sunsteel_lancer',
-  name: 'Sunsteel Lancer',
+  name: 'Lancero de acero',
   types: ['creature'],
-  subtypes: ['Human', 'Knight'],
+  subtypes: ['Caballero', 'Humano'],
   cost: '{R}{W}',
   power: 2,
   toughness: 2,
   keywords: ['firstStrike'],
-  flavor: 'Forged at noon, so the lance remembers the sun.',
+  flavor: 'Forjada a mediodía, para que la lanza recuerde el sol.',
 };

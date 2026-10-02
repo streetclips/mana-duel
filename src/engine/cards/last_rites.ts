@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const lastRites: CardDef = {
   id: 'last_rites',
-  name: 'Last Rites',
+  name: 'Extremaunción',
   types: ['sorcery'],
   cost: '{2}{W}{B}',
   spell: {
@@ -12,5 +12,5 @@ export const lastRites: CardDef = {
       { kind: 'gainLife', amount: 2 },
     ],
   },
-  flavor: 'Every ending is a blessing to someone.',
+  flavor: 'Todo final es una bendición para alguien.',
 };

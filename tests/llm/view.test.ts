@@ -28,28 +28,28 @@ describe('the view of one seat', () => {
   it('shows its own hand but only counts for the opponent’s hand and both libraries', () => {
     const s = secretScenario();
     const view = playerView(s, 1);
-    expect(view.you.hand).toEqual([{ id: 'snap', name: 'Ember Snap' }]);
+    expect(view.you.hand).toEqual([{ id: 'snap', name: 'Chasquido de brasas' }]);
     expect(view.you.handSize).toBe(1);
     expect(view.you.libraryCards).toBe(10);
     expect(view.opponent.hand).toBeUndefined();
     expect(view.opponent.handSize).toBe(2);
     expect(view.opponent.libraryCards).toBe(2);
     const text = JSON.stringify(view);
-    for (const hidden of ['secret', 'Crag Dragon', 'Timberland Rhino']) expect(text).not.toContain(hidden);
+    for (const hidden of ['secret', 'Dragón del risco', 'Rinoceronte forestal']) expect(text).not.toContain(hidden);
     expect(visibleCardDefs(s, 1).sort()).toEqual(['canopy_spider', 'ember_snap', 'forest', 'grove_tender', 'magma_lance', 'mountain']);
   });
 
   it('describes both battlefields, graveyards, life and untapped mana', () => {
     const view = playerView(secretScenario(), 1);
-    expect(view).toMatchObject({ turn: 3, step: 'Main phase', activePlayer: 'you', startingPlayer: 'opponent' });
+    expect(view).toMatchObject({ turn: 3, step: 'Fase principal', activePlayer: 'you', startingPlayer: 'opponent' });
     expect(view.you).toMatchObject({
       life: 17,
-      lands: [{ id: 'm1', name: 'Mountain' }],
-      creatures: [{ id: 'spider', name: 'Canopy Spider', power: 1, toughness: 3, keywords: ['Reach'], damage: 1, summoningSick: true }],
-      graveyard: ['Magma Lance'],
+      lands: [{ id: 'm1', name: 'Montaña' }],
+      creatures: [{ id: 'spider', name: 'Araña del dosel', power: 1, toughness: 3, keywords: ['Alcance'], damage: 1, summoningSick: true }],
+      graveyard: ['Lanza de magma'],
       availableMana: ['R'],
     });
-    expect(view.opponent.lands).toEqual([{ id: 'f0', name: 'Forest', tapped: true }]);
+    expect(view.opponent.lands).toEqual([{ id: 'f0', name: 'Bosque', tapped: true }]);
     expect(view.opponent.availableMana).toEqual(['G']);
   });
 
@@ -67,9 +67,9 @@ describe('the view of one seat', () => {
     s = pass(pass(cast(s, 'surge', [{ card: 'rhino' }])));
     const view = playerView(s, 1);
     expect(view.opponent.creatures).toEqual([
-      { id: 'rhino', name: 'Timberland Rhino', power: 7, toughness: 7, keywords: ['Trample'], untilEndOfTurn: '+3/+3', tapped: true, attacking: true, blockedBy: ['spider'] },
+      { id: 'rhino', name: 'Rinoceronte forestal', power: 7, toughness: 7, keywords: ['Arrolla'], untilEndOfTurn: '+3/+3', tapped: true, attacking: true, blockedBy: ['spider'] },
     ]);
-    expect(view.you.creatures).toEqual([{ id: 'spider', name: 'Canopy Spider', power: 1, toughness: 3, keywords: ['Reach'], blocking: 'rhino' }]);
+    expect(view.you.creatures).toEqual([{ id: 'spider', name: 'Araña del dosel', power: 1, toughness: 3, keywords: ['Alcance'], blocking: 'rhino' }]);
   });
 
   it('counts +1/+1 counters apart from pumps until end of turn', () => {
@@ -94,7 +94,7 @@ describe('the view of one seat', () => {
     });
     s = pass(pass(cast(s, 'charge')));
     expect(playerView(s, 1).opponent.creatures).toEqual([
-      { id: 'soldier', name: 'Soldier', token: true, power: 2, toughness: 1, keywords: ['First strike'], untilEndOfTurn: '+1/+0, first strike' },
+      { id: 'soldier', name: 'Soldado', token: true, power: 2, toughness: 1, keywords: ['Daña primero'], untilEndOfTurn: '+1/+0, dañar primero' },
     ]);
   });
 
@@ -123,19 +123,19 @@ describe('the view of one seat', () => {
     expect(playerView(s, 1).stack).toEqual([
       {
         id: 'snap',
-        name: 'Ember Snap',
-        kind: 'spell',
+        name: 'Chasquido de brasas',
+        kind: 'hechizo',
         controller: 'opponent',
-        text: 'Ember Snap deals 2 damage to any target.',
-        targets: ['your Canopy Spider (spider)'],
+        text: 'Chasquido de brasas hace 2 puntos de daño a cualquier objetivo.',
+        targets: ['tu Araña del dosel (spider)'],
       },
     ]);
-    expect(playerView(s, 0).stack[0]?.targets).toEqual(["opponent's Canopy Spider (spider)"]);
+    expect(playerView(s, 0).stack[0]?.targets).toEqual(['Araña del dosel (spider) del rival']);
   });
 });
 
 describe('recent events of one seat', () => {
-  it('tell its own draws but hide the opponent’s, and call the other seat "Opponent"', () => {
+  it('tell its own draws but hide the opponent’s, and call the other seat "el rival"', () => {
     let s = scenario({ activePlayer: 0, step: 'main2', players: [{}, { library: ['swamp', 'swamp'] }] });
     const seen: [string[], string[]] = [[], []];
     while (!(s.activePlayer === 1 && s.step === 'main1')) {
@@ -143,17 +143,17 @@ describe('recent events of one seat', () => {
       seen[0].push(...eventLines(s, 0));
       seen[1].push(...eventLines(s, 1));
     }
-    expect(seen[1]).toEqual(["Turn 4 — your turn.", 'You draw Swamp.']);
-    expect(seen[0]).toEqual(["Turn 4 — Opponent's turn.", 'Opponent draws a card.']);
+    expect(seen[1]).toEqual(['Turno 4 — tu turno.', 'Robas Pantano.']);
+    expect(seen[0]).toEqual(['Turno 4 — turno del rival.', 'El rival roba una carta.']);
   });
 });
 
 describe('recent thoughts of one seat', () => {
   it('tell when each reason was given, from the viewer’s seat', () => {
     const s = secretScenario();
-    expect(thoughtLine(s, 1, 'Hold Ember Snap.')).toBe('Turn 3 (your turn), Main phase: Hold Ember Snap.');
-    expect(thoughtLine(s, 0, 'Keep the elf back.')).toBe("Turn 3 (opponent's turn), Main phase: Keep the elf back.");
-    expect(thoughtLine(createGame({ seed: 1, startingPlayer: 0 }), 1, 'Two lands, keep.')).toBe('Opening hand: Two lands, keep.');
+    expect(thoughtLine(s, 1, 'Hold Ember Snap.')).toBe('Turno 3 (tu turno), Fase principal: Hold Ember Snap.');
+    expect(thoughtLine(s, 0, 'Keep the elf back.')).toBe('Turno 3 (turno del rival), Fase principal: Keep the elf back.');
+    expect(thoughtLine(createGame({ seed: 1, startingPlayer: 0 }), 1, 'Two lands, keep.')).toBe('Mano inicial: Two lands, keep.');
   });
 });
 
@@ -168,10 +168,10 @@ describe('prompt helpers', () => {
 
   it('list each card once, by name, with its cost, type and text', () => {
     expect(cardGlossary(['swamp', 'ember_snap', 'swamp'])).toEqual([
-      'Ember Snap · {R} · Instant · Ember Snap deals 2 damage to any target.',
-      'Swamp · Basic Land — Swamp · {T}: Add {B}.',
+      'Chasquido de brasas · {R} · Instantáneo · Chasquido de brasas hace 2 puntos de daño a cualquier objetivo.',
+      'Pantano · Tierra básica — Pantano · {T}: Agrega {B}.',
     ]);
-    expect(deckLine('duskmire')).toMatch(/^Duskmire \(.+\): 16 Swamp, 3 Gloom Wisp, /);
+    expect(deckLine('duskmire')).toMatch(/^Fangoscuro \(.+\): 16 Pantano, 3 Voluta sombría, /);
     expect(deckLine('nope')).toBeNull();
   });
 });

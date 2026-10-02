@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const staticJolt: CardDef = {
   id: 'static_jolt',
-  name: 'Static Jolt',
+  name: 'Descarga estática',
   types: ['instant'],
   cost: '{R}',
   spell: {
@@ -12,5 +12,5 @@ export const staticJolt: CardDef = {
       { kind: 'draw', amount: 1 },
     ],
   },
-  flavor: 'A small spark, and a bright idea.',
+  flavor: 'Una chispa pequeña y una idea brillante.',
 };

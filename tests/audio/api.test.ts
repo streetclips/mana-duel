@@ -49,7 +49,7 @@ describe('manaDuel.audio', () => {
     expect(api.audio.themes().map((theme) => theme.id)).toEqual(['title', 'neutral', ...DECK_LIST.map((deck) => deck.id)]);
     expect(api.audio.themes().find((theme) => theme.id === 'emberwild')).toEqual({
       id: 'emberwild',
-      name: 'Emberwild',
+      name: 'Brasalvaje',
       colors: ['R', 'G'],
       key: 'A Aeolian',
       tempo: 108,

@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const gorehornMinotaur: CardDef = {
   id: 'gorehorn_minotaur',
-  name: 'Gorehorn Minotaur',
+  name: 'Minotauro sangriento',
   types: ['creature'],
-  subtypes: ['Minotaur', 'Berserker'],
+  subtypes: ['Berserker', 'Minotauro'],
   cost: '{2}{B}{R}',
   power: 3,
   toughness: 3,
@@ -17,5 +17,5 @@ export const gorehornMinotaur: CardDef = {
       effects: [{ kind: 'addCounters', amount: 1, to: 'self' }],
     },
   ],
-  flavor: 'It follows the screams to the fight.',
+  flavor: 'Sigue los gritos hasta la pelea.',
 };

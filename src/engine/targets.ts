@@ -66,14 +66,14 @@ export function targetCombos(s: GameState, controller: PlayerId, specs: TargetSp
 }
 
 export function targetsError(s: GameState, controller: PlayerId, specs: TargetSpec[], targets: Target[]): string | null {
-  if (!Array.isArray(targets)) return 'targets must be an array';
-  if (targets.length !== specs.length) return `expected ${specs.length} target(s), got ${targets.length}`;
+  if (!Array.isArray(targets)) return 'los objetivos deben ser una lista';
+  if (targets.length !== specs.length) return `número de objetivos incorrecto: ${targets.length} en vez de ${specs.length}`;
   for (let i = 0; i < specs.length; i++) {
     const target = targets[i] as Target;
-    if (!target || typeof target !== 'object') return `target ${i} is malformed`;
-    if (!isLegalTarget(s, controller, specs[i] as TargetSpec, target)) return `target ${i} (${targetKey(target)}) is not legal`;
+    if (!target || typeof target !== 'object') return `el objetivo ${i} está mal formado`;
+    if (!isLegalTarget(s, controller, specs[i] as TargetSpec, target)) return `el objetivo ${i} (${targetKey(target)}) no es legal`;
     for (let j = 0; j < i; j++) {
-      if (sameTarget(targets[j] as Target, target)) return 'the same target cannot be chosen twice';
+      if (sameTarget(targets[j] as Target, target)) return 'no se puede elegir el mismo objetivo dos veces';
     }
   }
   return null;

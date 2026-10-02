@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const adaptiveBloom: CardDef = {
   id: 'adaptive_bloom',
-  name: 'Adaptive Bloom',
+  name: 'Floración adaptativa',
   types: ['instant'],
   cost: '{G}{U}',
   spell: {
@@ -12,5 +12,5 @@ export const adaptiveBloom: CardDef = {
       { kind: 'draw', amount: 1 },
     ],
   },
-  flavor: 'Every change is a lesson, and every lesson a change.',
+  flavor: 'Cada cambio es una lección, y cada lección, un cambio.',
 };

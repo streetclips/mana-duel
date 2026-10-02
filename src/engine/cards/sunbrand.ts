@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const sunbrand: CardDef = {
   id: 'sunbrand',
-  name: 'Sunbrand',
+  name: 'Marca solar',
   types: ['instant'],
   cost: '{1}{R}{W}',
   spell: {
@@ -12,5 +12,5 @@ export const sunbrand: CardDef = {
       { kind: 'gainLife', amount: 3 },
     ],
   },
-  flavor: 'It burns the foe and warms the friend.',
+  flavor: 'Quema al enemigo y reconforta al amigo.',
 };

@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const duskwingBat: CardDef = {
   id: 'duskwing_bat',
-  name: 'Duskwing Bat',
+  name: 'Murciélago del ocaso',
   types: ['creature'],
-  subtypes: ['Bat'],
+  subtypes: ['Murciélago'],
   cost: '{1}{B}',
   power: 1,
   toughness: 1,
   keywords: ['flying', 'lifelink'],
-  flavor: 'Its bite is small. It comes back every night.',
+  flavor: 'Su mordisco es pequeño. Vuelve cada noche.',
 };

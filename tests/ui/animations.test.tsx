@@ -68,7 +68,7 @@ describe('animations of tokens and keyword grants', () => {
     });
     castFromHand('charge');
     settle();
-    expect(byTestId('fx-float-soldier').textContent).toBe('+1/+0, first strike');
+    expect(byTestId('fx-float-soldier').textContent).toBe('+1/+0, dañar primero');
     castFromHand('snap');
     fireEvent.click(byTestId('card-theirs'));
     settle();
@@ -120,8 +120,8 @@ describe('animations of plays', () => {
     const reveal = byTestId('fx-reveal');
     expect(reveal.dataset.def).toBe('magma_lance');
     expect(reveal.dataset.player).toBe('1');
-    expect(reveal.textContent).toContain('AI casts');
-    expect(reveal.textContent).toContain('→ your Grove Tender');
+    expect(reveal.textContent).toContain('El rival lanza');
+    expect(reveal.textContent).toContain('→ tu Elfa del soto');
     expect(byTestId('card-elf').dataset.aimed).toBe('true');
     expect(byTestId(`stack-${controller.state.stack[0]?.id}`).dataset.fx).toBe('play');
   });
@@ -130,7 +130,7 @@ describe('animations of plays', () => {
     const { settle } = setup({ activePlayer: 1, players: [{ hand: ['forest'] }, { hand: [{ card: 'mountain', id: 'land' }] }] });
     settle();
     expect(byTestId('fx-reveal').dataset.def).toBe('mountain');
-    expect(byTestId('fx-reveal').textContent).toContain('AI plays');
+    expect(byTestId('fx-reveal').textContent).toContain('El rival juega');
     expect(fxOf(byTestId('card-land'))).toContain('enter');
   });
 
@@ -158,7 +158,7 @@ describe('animations of plays', () => {
     run(() => fireEvent.click(byTestId(`stack-${controller.state.stack[0]?.id}`)));
     settle();
     expect(byTestId('fx-reveal').dataset.fx).toBe('counter');
-    expect(byTestId('fx-reveal').textContent).toContain('Countered');
+    expect(byTestId('fx-reveal').textContent).toContain('Contrarrestado');
   });
 });
 
@@ -167,7 +167,7 @@ describe('animations of draws and turns', () => {
     const { controller, settle } = setup({ activePlayer: 1, players: [{ library: [{ card: 'forest', id: 'top' }] }, {}] });
     settle();
     expect(controller.state.activePlayer).toBe(0);
-    expect(byTestId('fx-turn').textContent).toContain('Your turn');
+    expect(byTestId('fx-turn').textContent).toContain('Tu turno');
     expect(fxOf(byTestId('card-top'))).toEqual(['draw']);
   });
 

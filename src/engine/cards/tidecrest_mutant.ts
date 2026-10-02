@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const tidecrestMutant: CardDef = {
   id: 'tidecrest_mutant',
-  name: 'Tidecrest Mutant',
+  name: 'Mutante de marea',
   types: ['creature'],
-  subtypes: ['Lizard', 'Mutant'],
+  subtypes: ['Mutante', 'Lagarto'],
   cost: '{G}{U}',
   power: 2,
   toughness: 2,
   keywords: ['evolve', 'hexproof'],
-  flavor: 'Each tide brings it something new to become.',
+  flavor: 'Cada marea le trae algo nuevo en lo que convertirse.',
 };

@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const blisteringHellion: CardDef = {
   id: 'blistering_hellion',
-  name: 'Blistering Hellion',
+  name: 'Infernal abrasador',
   types: ['creature'],
-  subtypes: ['Hellion'],
+  subtypes: ['Infernal'],
   cost: '{2}{R}',
   power: 3,
   toughness: 2,
@@ -16,5 +16,5 @@ export const blisteringHellion: CardDef = {
       effects: [{ kind: 'addCounters', amount: 2, to: 'self' }],
     },
   ],
-  flavor: 'The smell of blood makes it burn hotter.',
+  flavor: 'El olor de la sangre lo hace arder con más fuerza.',
 };

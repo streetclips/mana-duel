@@ -78,6 +78,6 @@ describe('the dev server OpenRouter proxy', () => {
     });
     const response = await fetch(`${base}/chat/completions`, { method: 'POST', headers: { origin: base }, body: '{}' });
     expect(response.status).toBe(502);
-    expect(await response.json()).toEqual({ error: { code: 502, message: 'OpenRouter is unreachable: getaddrinfo ENOTFOUND' } });
+    expect(await response.json()).toEqual({ error: { code: 502, message: 'No se puede contactar con OpenRouter: getaddrinfo ENOTFOUND' } });
   });
 });

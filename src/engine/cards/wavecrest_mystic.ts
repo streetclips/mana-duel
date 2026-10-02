@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const wavecrestMystic: CardDef = {
   id: 'wavecrest_mystic',
-  name: 'Wavecrest Mystic',
+  name: 'Místico marino',
   types: ['creature'],
-  subtypes: ['Merfolk', 'Wizard'],
+  subtypes: ['Hechicero', 'Tritón'],
   cost: '{3}{U}',
   power: 2,
   toughness: 3,

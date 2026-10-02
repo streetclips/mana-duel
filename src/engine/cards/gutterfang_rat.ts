@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const gutterfangRat: CardDef = {
   id: 'gutterfang_rat',
-  name: 'Gutterfang Rat',
+  name: 'Rata de cloaca',
   types: ['creature'],
-  subtypes: ['Rat'],
+  subtypes: ['Rata'],
   cost: '{B}',
   power: 1,
   toughness: 1,
   keywords: ['skulk', 'deathtouch'],
-  flavor: 'It only bites ankles, and it can reach them all.',
+  flavor: 'Solo muerde tobillos, y llega a todos.',
 };

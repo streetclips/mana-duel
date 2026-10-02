@@ -37,12 +37,12 @@ describe('start screen', () => {
     const { settle } = setup(undefined, 'start');
     expect(byTestId('seat-0').dataset.deck).toBe('emberwild');
     expect(byTestId('seat-1').dataset.deck).toBe('random');
-    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('You: Emberwild');
-    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('AI: Random');
+    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('Tú: Brasalvaje');
+    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('IA: Aleatorio');
     expect(screen.queryByTestId('deck-picker')).toBeNull();
     click(byTestId('btn-play'));
     settle();
-    expect(byTestId('prompt').textContent).toBe('Keep your opening hand?');
+    expect(byTestId('prompt').textContent).toBe('¿Te quedas con tu mano inicial?');
     expect(within(byTestId('hand')).getAllByRole('button')).toHaveLength(7);
   });
 });
@@ -96,7 +96,7 @@ describe('deck selection', () => {
     expect(boxOpen(byTestId('deck-dawntide'))).toBe('true');
     expect(boxOpen(byTestId('deck-emberwild'))).toBe('false');
     expect(byTestId('seat-0').dataset.deck).toBe('dawntide');
-    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('You: Dawntide');
+    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('Tú: Albamar');
     expect(byTestId('deck-picker').dataset.seat).toBe('0');
     click(byTestId('seat-1'));
     click(byTestId('opponent-duskmire'));
@@ -105,8 +105,8 @@ describe('deck selection', () => {
     click(byTestId('btn-play'));
     settle();
     expect(controller.decks).toEqual(['dawntide', 'duskmire']);
-    expect(byTestId('deck-name-0').textContent).toContain('Dawntide');
-    expect(byTestId('deck-name-1').textContent).toContain('Duskmire');
+    expect(byTestId('deck-name-0').textContent).toContain('Albamar');
+    expect(byTestId('deck-name-1').textContent).toContain('Fangoscuro');
   });
 
   it('gives the AI a random deck unless one is picked', () => {
@@ -128,8 +128,8 @@ describe('deck selection', () => {
     expect(checked('deck-random')).toBe('true');
     expect(checked('deck-emberwild')).toBe('false');
     expect(byTestId('seat-0').dataset.deck).toBe('random');
-    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('You: Random');
-    expect(byTestId('deck-detail').textContent).toContain(`A different deck every game: one of the ${DECK_LIST.length}`);
+    expect(byTestId('seat-0').getAttribute('aria-label')).toBe('Tú: Aleatorio');
+    expect(byTestId('deck-detail').textContent).toContain(`Un mazo distinto en cada partida: uno de los ${DECK_LIST.length}`);
     click(byTestId('seat-1'));
     click(byTestId('opponent-duskmire'));
     click(byTestId('btn-play'));
@@ -142,10 +142,10 @@ describe('deck selection', () => {
   it('describes the chosen deck, or what Random does', () => {
     setup(undefined, 'start');
     click(byTestId('seat-1'));
-    expect(byTestId('deck-detail').textContent).toContain(`A different deck every game: one of the ${DECK_LIST.length}`);
+    expect(byTestId('deck-detail').textContent).toContain(`Un mazo distinto en cada partida: uno de los ${DECK_LIST.length}`);
     expect(within(byTestId('deck-detail')).queryByRole('button')).toBeNull();
     click(byTestId('opponent-gloamwood'));
-    expect(byTestId('deck-detail').textContent).toContain('Gloamwood');
+    expect(byTestId('deck-detail').textContent).toContain('Selvumbra');
     expect(byTestId('deck-detail').textContent).toContain(DECK_LIST.find((deck) => deck.id === 'gloamwood')?.description);
     expect(byTestId('deck-view-gloamwood')).toBeTruthy();
   });
@@ -153,9 +153,9 @@ describe('deck selection', () => {
   it('shows the LLM on the AI’s seat when it plays', () => {
     setup(undefined, 'start');
     click(byTestId('ai-llm'));
-    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('AI · LLM: Random');
+    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('IA · LLM: Aleatorio');
     click(byTestId('ai-classic'));
-    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('AI: Random');
+    expect(byTestId('seat-1').getAttribute('aria-label')).toBe('IA: Aleatorio');
   });
 
   it('remembers the choice for the next visit', () => {
@@ -199,11 +199,11 @@ describe('deck viewer', () => {
     expect(byTestId('deck-viewer').dataset.deck).toBe('duskmire');
     expect(copies().reduce((sum, count) => sum + count, 0)).toBe(40);
     expect(byTestId('deck-card-swamp').dataset.count).toBe('16');
-    expect(byTestId('deck-stats').textContent).toContain('40 cards');
-    expect(byTestId('mana-curve').getAttribute('aria-label')).toMatch(/^Mana curve of the nonland cards: \d+ costing 1,/);
+    expect(byTestId('deck-stats').textContent).toContain('40 cartas');
+    expect(byTestId('mana-curve').getAttribute('aria-label')).toMatch(/^Curva de maná de las cartas que no son tierras: \d+ de coste 1,/);
     click(byTestId('deck-card-dread_tyrant'));
-    expect(byTestId('card-sheet').textContent).toContain('When this creature enters, you lose 2 life.');
-    expect(byTestId('card-sheet').textContent).toContain('1 copy in Duskmire');
+    expect(byTestId('card-sheet').textContent).toContain('Cuando esta criatura entre, pierdes 2 vidas.');
+    expect(byTestId('card-sheet').textContent).toContain('1 copia en Fangoscuro');
     click(byTestId('card-sheet'));
     expect(screen.queryByTestId('card-sheet')).toBeNull();
     click(byTestId('btn-deck-close'));
@@ -231,7 +231,7 @@ describe('deck viewer', () => {
     expect(byTestId('deck-viewer').dataset.deck).toBe('dawntide');
     click(byTestId('deck-tab-1'));
     expect(byTestId('deck-viewer').dataset.deck).toBe('duskmire');
-    expect(byTestId('deck-tab-1').textContent).toBe('AI · Duskmire');
+    expect(byTestId('deck-tab-1').textContent).toBe('IA · Fangoscuro');
     click(byTestId('btn-deck-close'));
     expect(screen.queryByTestId('deck-viewer')).toBeNull();
   });
@@ -249,22 +249,22 @@ describe('auto-pass', () => {
     const { controller, settle } = setup({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
     click(byTestId('btn-menu'));
     expect(checked('menu-autopass')).toBe('true');
-    expect(byTestId('menu-autopass').textContent).toBe('Auto-pass: on');
+    expect(byTestId('menu-autopass').textContent).toBe('Pase automático: sí');
     click(byTestId('menu-autopass'));
     expect(screen.queryByTestId('menu')).toBeNull();
     expect(controller.autoPass).toBe(false);
     expect(loadAutoPass()).toBe(false);
     settle();
-    expect(byTestId('prompt').textContent).toBe("AI's main phase");
-    expect(byTestId('prompt-detail').textContent).toBe('You can cast instants now');
+    expect(byTestId('prompt').textContent).toBe('Fase principal del rival');
+    expect(byTestId('prompt-detail').textContent).toBe('Ahora puedes lanzar instantáneos');
     click(byTestId('btn-continue'));
     settle();
-    expect(byTestId('prompt').textContent).toBe("AI's second main phase");
+    expect(byTestId('prompt').textContent).toBe('Segunda fase principal del rival');
     click(byTestId('btn-menu'));
     expect(checked('menu-autopass')).toBe('false');
     click(byTestId('menu-autopass'));
     settle();
-    expect(byTestId('prompt').textContent).toBe('Your main phase');
+    expect(byTestId('prompt').textContent).toBe('Tu fase principal');
     expect(loadAutoPass()).toBe(true);
   });
 
@@ -276,7 +276,7 @@ describe('auto-pass', () => {
     click(byTestId('card-hound'));
     click(byTestId('btn-confirm-attack'));
     settle();
-    expect(byTestId('prompt').textContent).toBe('You attack with Ember Hound');
+    expect(byTestId('prompt').textContent).toBe('Atacas con Sabueso de brasas');
   });
 });
 
@@ -285,15 +285,15 @@ describe('opening hand', () => {
     const { settle } = setup();
     click(byTestId('btn-keep'));
     settle();
-    expect(byTestId('phase').textContent).toContain('Turn 1');
-    expect(byTestId('prompt').textContent).toBe('Your main phase');
+    expect(byTestId('phase').textContent).toContain('Turno 1');
+    expect(byTestId('prompt').textContent).toBe('Tu fase principal');
   });
 
   it('puts a card on the bottom after a mulligan', () => {
     const { controller, settle } = setup();
     click(byTestId('btn-mulligan'));
     click(byTestId('btn-keep'));
-    expect(byTestId('prompt').textContent).toBe('Choose 1 card to put on the bottom');
+    expect(byTestId('prompt').textContent).toBe('Elige 1 carta para poner en el fondo');
     expect((byTestId('btn-confirm-cards') as HTMLButtonElement).disabled).toBe(true);
     const first = within(byTestId('hand')).getAllByRole('button')[0] as HTMLElement;
     click(first);
@@ -317,7 +317,7 @@ describe('main phase', () => {
       players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, {}],
     });
     playFromHand('snap', 'sheet-cast');
-    expect(byTestId('prompt').textContent).toBe('Choose any target');
+    expect(byTestId('prompt').textContent).toBe('Elige cualquier objetivo');
     expect(byTestId('player-1').dataset.targetable).toBe('true');
     click(byTestId('player-1'));
     settle();
@@ -330,15 +330,15 @@ describe('main phase', () => {
     });
     playFromHand('snap', 'sheet-cast');
     click(byTestId('btn-cancel'));
-    expect(byTestId('prompt').textContent).toBe('Your main phase');
+    expect(byTestId('prompt').textContent).toBe('Tu fase principal');
     expect(controller.state.stack).toHaveLength(0);
   });
 
   it('explains why a card cannot be played', () => {
     setup({ players: [{ hand: [{ card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest'] }, {}] });
     click(byTestId('card-rhino'));
-    expect(byTestId('card-sheet').textContent).toContain('Not enough mana');
-    expect(byTestId('card-sheet').textContent).toContain('Trample');
+    expect(byTestId('card-sheet').textContent).toContain('No hay suficiente maná');
+    expect(byTestId('card-sheet').textContent).toContain('Arrolla');
   });
 
   it('shows rules text and activates abilities from the battlefield', () => {
@@ -346,7 +346,7 @@ describe('main phase', () => {
       players: [{ battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain'] }, {}],
     });
     click(byTestId('card-dragon'));
-    expect(byTestId('card-sheet').textContent).toContain('This creature gets +1/+0 until end of turn.');
+    expect(byTestId('card-sheet').textContent).toContain('Esta criatura obtiene +1/+0 hasta el final del turno.');
     click(byTestId('sheet-activate'));
     settle();
     expect(controller.state.effects).toHaveLength(1);
@@ -366,14 +366,14 @@ describe('counterspells', () => {
     settle();
     const item = controller.state.stack[0];
     if (!item) throw new Error('the AI was expected to cast its Rhino');
-    expect(byTestId('btn-resolve').textContent).toBe('Let it resolve');
+    expect(byTestId('btn-resolve').textContent).toBe('Dejar que se resuelva');
     playFromHand('tide', 'sheet-cast');
-    expect(byTestId('prompt').textContent).toBe('Choose target spell');
+    expect(byTestId('prompt').textContent).toBe('Elige un hechizo objetivo');
     expect(byTestId(`stack-${item.id}`).dataset.targetable).toBe('true');
     click(byTestId(`stack-${item.id}`));
     settle();
     expect(controller.state.cards.rhino?.zone).toBe('graveyard');
-    expect(controller.log.map((entry) => entry.text)).toContain("AI's Timberland Rhino is countered.");
+    expect(controller.log.map((entry) => entry.text)).toContain('Se contrarresta Rinoceronte forestal del rival.');
   });
 
   it('shows the card behind a stack item when it is tapped outside targeting', () => {
@@ -386,8 +386,8 @@ describe('counterspells', () => {
     });
     settle();
     click(screen.getAllByRole('button').find((element) => element.dataset.card === 'rhino' && element.dataset.testid?.startsWith('stack-')) as HTMLElement);
-    expect(byTestId('card-sheet').textContent).toContain('Timberland Rhino');
-    expect(byTestId('card-sheet').textContent).toContain('On the stack');
+    expect(byTestId('card-sheet').textContent).toContain('Rinoceronte forestal');
+    expect(byTestId('card-sheet').textContent).toContain('En la pila');
   });
 });
 
@@ -409,10 +409,10 @@ describe('combat', () => {
     const { settle } = setup({ players: [{ battlefield: [{ card: 'ember_hound', id: 'hound' }] }, {}] });
     click(byTestId('btn-to-combat'));
     settle();
-    expect(byTestId('prompt').textContent).toBe('Choose attackers');
-    expect(byTestId('btn-confirm-attack').textContent).toBe('No attack');
+    expect(byTestId('prompt').textContent).toBe('Elige las atacantes');
+    expect(byTestId('btn-confirm-attack').textContent).toBe('No atacar');
     click(byTestId('card-hound'));
-    expect(byTestId('btn-confirm-attack').textContent).toBe('Attack (1)');
+    expect(byTestId('btn-confirm-attack').textContent).toBe('Atacar (1)');
     click(byTestId('btn-confirm-attack'));
     settle();
     expect(byTestId('life-1').textContent).toContain('18');
@@ -428,11 +428,11 @@ describe('combat', () => {
     });
     settle();
     if (controller.state.pending?.kind !== 'declareBlockers') throw new Error('the AI was expected to attack');
-    expect(byTestId('prompt').textContent).toBe('Choose blockers');
+    expect(byTestId('prompt').textContent).toBe('Elige las bloqueadoras');
     click(byTestId('card-elf'));
     expect(controller.state.pending.kind).toBe('declareBlockers');
     click(byTestId('card-spider'));
-    expect(byTestId('btn-confirm-blocks').textContent).toBe('Block (1)');
+    expect(byTestId('btn-confirm-blocks').textContent).toBe('Bloquear (1)');
     click(byTestId('btn-confirm-blocks'));
     settle();
     expect(controller.state.cards.spider?.zone).toBe('graveyard');
@@ -449,7 +449,7 @@ describe('tokens, sacrifices and discards', () => {
     expect(tokens).toHaveLength(2);
     expect(within(byTestId('battlefield-0')).getAllByRole('button').filter((button) => button.dataset.def === 'soldier_token')).toHaveLength(2);
     click(byTestId(`card-${tokens[0]}`));
-    expect(byTestId('card-sheet').textContent).toContain('Token Creature — Soldier');
+    expect(byTestId('card-sheet').textContent).toContain('Criatura ficha — Soldado');
   });
 
   it('sacrifices a creature from its card sheet, then asks for the target', () => {
@@ -457,10 +457,10 @@ describe('tokens, sacrifices and discards', () => {
       players: [{ battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] }, { battlefield: [{ card: 'ember_hound', id: 'hound' }] }],
     });
     click(byTestId('card-stalker'));
-    expect(byTestId('card-sheet').textContent).toContain('Sacrifice this creature: Target creature gets -2/-2 until end of turn.');
-    expect(byTestId('sheet-activate').textContent).toBe('Activate Sacrifice: -2/-2');
+    expect(byTestId('card-sheet').textContent).toContain('Sacrificar esta criatura: La criatura objetivo obtiene -2/-2 hasta el final del turno.');
+    expect(byTestId('sheet-activate').textContent).toBe('Activar (sacrificar): -2/-2');
     click(byTestId('sheet-activate'));
-    expect(byTestId('prompt').textContent).toBe('Choose target creature');
+    expect(byTestId('prompt').textContent).toBe('Elige una criatura objetivo');
     click(byTestId('card-hound'));
     settle();
     expect([controller.state.cards.stalker?.zone, controller.state.cards.hound?.zone]).toEqual(['graveyard', 'graveyard']);
@@ -475,13 +475,13 @@ describe('tokens, sacrifices and discards', () => {
     });
     playFromHand('sift', 'sheet-cast');
     settle();
-    expect(byTestId('prompt').textContent).toBe('Choose 1 card to discard');
-    expect(byTestId('prompt-detail').textContent).toBe('Sift the Depths · 0/1 selected');
+    expect(byTestId('prompt').textContent).toBe('Elige 1 carta para descartar');
+    expect(byTestId('prompt-detail').textContent).toBe('Cribar el fondo · 0/1 elegida');
     click(byTestId('card-a'));
     click(byTestId('btn-confirm-cards'));
     settle();
     expect(controller.state.players[0].hand).toEqual(['b']);
-    expect(byTestId('prompt').textContent).toBe('Your main phase');
+    expect(byTestId('prompt').textContent).toBe('Tu fase principal');
   });
 });
 
@@ -493,7 +493,7 @@ describe('end of turn and game over', () => {
     });
     click(byTestId('btn-end-turn'));
     settle();
-    expect(byTestId('prompt').textContent).toBe('Choose 2 cards to discard');
+    expect(byTestId('prompt').textContent).toBe('Elige 2 cartas para descartar');
     click(byTestId('card-f0'));
     click(byTestId('card-f1'));
     click(byTestId('btn-confirm-cards'));
@@ -506,7 +506,7 @@ describe('end of turn and game over', () => {
     const { controller } = setup({ players: [{}, {}] });
     click(byTestId('btn-menu'));
     click(byTestId('menu-concede'));
-    expect(byTestId('game-over-title').textContent).toBe('Defeat');
+    expect(byTestId('game-over-title').textContent).toBe('Derrota');
     click(byTestId('btn-play-again'));
     expect(controller.state.pending?.kind).toBe('mulligan');
   });
@@ -515,14 +515,14 @@ describe('end of turn and game over', () => {
     const { controller, settle } = setup({ players: [{}, {}] });
     click(byTestId('btn-menu'));
     click(byTestId('menu-concede'));
-    expect(byTestId('game-over-title').textContent).toBe('Defeat');
+    expect(byTestId('game-over-title').textContent).toBe('Derrota');
     click(byTestId('btn-home'));
     expect(screen.queryByTestId('game')).toBeNull();
     expect(byTestId('start-screen')).toBeTruthy();
     expect(controller.busy).toBe(false);
     click(byTestId('btn-play'));
     settle();
-    expect(byTestId('prompt').textContent).toBe('Keep your opening hand?');
+    expect(byTestId('prompt').textContent).toBe('¿Te quedas con tu mano inicial?');
     expect(screen.queryByTestId('game-over')).toBeNull();
   });
 
@@ -532,13 +532,13 @@ describe('end of turn and game over', () => {
     expect(screen.queryByTestId('btn-log')).toBeNull();
     click(byTestId('btn-menu'));
     click(byTestId('menu-log'));
-    expect(byTestId('log-panel').textContent).toContain('You play Forest.');
-    click(within(byTestId('log-panel')).getByRole('button', { name: 'Close log' }));
+    expect(byTestId('log-panel').textContent).toContain('Juegas Bosque.');
+    click(within(byTestId('log-panel')).getByRole('button', { name: 'Cerrar el registro' }));
     click(byTestId('btn-menu'));
     click(byTestId('menu-concede'));
     click(byTestId('btn-view-log'));
     expect(screen.queryByTestId('game-over')).toBeNull();
-    expect(byTestId('log-panel').textContent).toContain('You concede.');
+    expect(byTestId('log-panel').textContent).toContain('Te rindes.');
   });
 });
 
@@ -564,11 +564,11 @@ describe('game log', () => {
   it('makes every card it names a button, in the words of the line', () => {
     playSnapAtTheElf();
     const lines = [...byTestId('log-panel').querySelectorAll('li')].map((item) => item.textContent);
-    expect(lines).toContain("You cast Ember Snap targeting AI's Grove Tender.");
-    expect(lines).toContain("Your Ember Snap deals 2 damage to AI's Grove Tender.");
-    expect(lines).toContain("AI's Grove Tender dies.");
-    expect(logCards('snap').map((button) => button.textContent)).toEqual(['Ember Snap', 'Ember Snap']);
-    expect(logCards('elf').map((button) => button.textContent)).toEqual(['Grove Tender', 'Grove Tender', 'Grove Tender']);
+    expect(lines).toContain('Lanzas Chasquido de brasas sobre Elfa del soto del rival.');
+    expect(lines).toContain('Tu Chasquido de brasas hace 2 puntos de daño a Elfa del soto del rival.');
+    expect(lines).toContain('Muere Elfa del soto del rival.');
+    expect(logCards('snap').map((button) => button.textContent)).toEqual(['Chasquido de brasas', 'Chasquido de brasas']);
+    expect(logCards('elf').map((button) => button.textContent)).toEqual(['Elfa del soto', 'Elfa del soto', 'Elfa del soto']);
     expect(logCards('m').map((button) => button.tagName)).toEqual(['BUTTON']);
     const turn = [...byTestId('log-panel').querySelectorAll('li.turn')];
     expect(turn.length).toBeGreaterThan(0);
@@ -580,10 +580,10 @@ describe('game log', () => {
     click(logCards('elf')[2] as HTMLElement);
     const sheet = byTestId('card-sheet');
     expect(sheet.classList.contains('raised')).toBe(true);
-    expect(within(sheet).getByRole('dialog').getAttribute('aria-label')).toBe('Grove Tender');
-    expect(within(sheet).getByRole('heading', { name: 'Grove Tender' })).toBeTruthy();
-    expect(sheet.textContent).toContain('She hums, and the soil answers.');
-    expect([...sheet.querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(["In AI's graveyard"]);
+    expect(within(sheet).getByRole('dialog').getAttribute('aria-label')).toBe('Elfa del soto');
+    expect(within(sheet).getByRole('heading', { name: 'Elfa del soto' })).toBeTruthy();
+    expect(sheet.textContent).toContain('Ella tararea y la tierra responde.');
+    expect([...sheet.querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(['En el cementerio del rival']);
     expect(within(sheet).queryAllByRole('button')).toEqual([]);
 
     click(sheet);
@@ -591,16 +591,16 @@ describe('game log', () => {
     expect(byTestId('log-panel')).toBeTruthy();
 
     click(logCards('m')[0] as HTMLElement);
-    expect(byTestId('card-sheet').querySelector('.tag')?.textContent).toBe('On the battlefield');
+    expect(byTestId('card-sheet').querySelector('.tag')?.textContent).toBe('En el campo de batalla');
     click(byTestId('card-sheet'));
     click(logCards('snap')[0] as HTMLElement);
-    expect([...byTestId('card-sheet').querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(['In your graveyard']);
+    expect([...byTestId('card-sheet').querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(['En tu cementerio']);
   });
 
   it('closes with its card sheet, and leaves the card sheet of the board alone', () => {
     playSnapAtTheElf();
     click(logCards('elf')[0] as HTMLElement);
-    click(within(byTestId('log-panel')).getByRole('button', { name: 'Close log' }));
+    click(within(byTestId('log-panel')).getByRole('button', { name: 'Cerrar el registro' }));
     expect(screen.queryByTestId('log-panel')).toBeNull();
     expect(screen.queryByTestId('card-sheet')).toBeNull();
   });

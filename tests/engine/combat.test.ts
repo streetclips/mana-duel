@@ -100,7 +100,7 @@ describe('declaring blockers', () => {
     });
     s = passTo(attack(s, ['marauder']), 'declareBlockers');
     expect(tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'viper', attacker: 'marauder' }] }))
-      .toEqual({ ok: false, error: "marauder has menace and can't be blocked except by two or more creatures" });
+      .toEqual({ ok: false, error: 'marauder tiene la habilidad de amenaza y no puede ser bloqueada excepto por dos o más criaturas' });
     const legal = getLegalActions(s).map((action) => (action.type === 'declareBlockers' ? action.blocks.length : -1));
     expect(legal.sort()).toEqual([0, 2]);
     s = block(s, [

@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const warrenHare: CardDef = {
   id: 'warren_hare',
-  name: 'Warren Hare',
+  name: 'Liebre del vivar',
   types: ['creature'],
-  subtypes: ['Rabbit'],
+  subtypes: ['Conejo'],
   cost: '{G}',
   power: 1,
   toughness: 1,
@@ -15,5 +15,5 @@ export const warrenHare: CardDef = {
       effects: [{ kind: 'addCounters', amount: 1, to: 0 }],
     },
   ],
-  flavor: 'When one falls, the whole warren grows bolder.',
+  flavor: 'Cuando una cae, toda la madriguera se envalentona.',
 };

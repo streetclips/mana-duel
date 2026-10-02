@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const cinderAdept: CardDef = {
   id: 'cinder_adept',
-  name: 'Cinder Adept',
+  name: 'Adepto del ascua',
   types: ['creature'],
-  subtypes: ['Human', 'Shaman'],
+  subtypes: ['Chamán', 'Humano'],
   cost: '{2}{R}',
   power: 2,
   toughness: 2,

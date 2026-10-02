@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const brightforgeWarlord: CardDef = {
   id: 'brightforge_warlord',
-  name: 'Brightforge Warlord',
+  name: 'Caudillo de forja',
   types: ['creature'],
-  subtypes: ['Human', 'Knight'],
+  subtypes: ['Caballero', 'Humano'],
   cost: '{3}{R}{W}',
   power: 4,
   toughness: 4,
@@ -15,5 +15,5 @@ export const brightforgeWarlord: CardDef = {
       effects: [{ kind: 'pumpTeam', power: 1, toughness: 0, keywords: ['haste'] }],
     },
   ],
-  flavor: 'When the Warlord rides out, the whole forge follows, still glowing.',
+  flavor: 'Cuando el Caudillo sale a cabalgar, toda la forja lo sigue, aún incandescente.',
 };

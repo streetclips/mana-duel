@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const sunbladePaladin: CardDef = {
   id: 'sunblade_paladin',
-  name: 'Sunblade Paladin',
+  name: 'Paladín solar',
   types: ['creature'],
-  subtypes: ['Human', 'Knight'],
+  subtypes: ['Caballero', 'Humano'],
   cost: '{1}{W}{W}',
   power: 2,
   toughness: 1,
   keywords: ['doubleStrike'],
-  flavor: 'One blow for the wrong. One more for good measure.',
+  flavor: 'Un golpe por la ofensa. Otro, por si acaso.',
 };

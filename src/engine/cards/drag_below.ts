@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const dragBelow: CardDef = {
   id: 'drag_below',
-  name: 'Drag Below',
+  name: 'Arrastrar al fondo',
   types: ['instant'],
   cost: '{1}{U}{B}',
   spell: {
@@ -12,5 +12,5 @@ export const dragBelow: CardDef = {
       { kind: 'discard', amount: 1, who: 'opponent' },
     ],
   },
-  flavor: 'The tide takes the body. The mist takes the memory.',
+  flavor: 'La marea se lleva el cuerpo. La niebla, el recuerdo.',
 };

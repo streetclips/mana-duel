@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const gloomsilkSpider: CardDef = {
   id: 'gloomsilk_spider',
-  name: 'Gloomsilk Spider',
+  name: 'Araña sombría',
   types: ['creature'],
-  subtypes: ['Spider'],
+  subtypes: ['Araña'],
   cost: '{2}{G}',
   power: 1,
   toughness: 2,
   keywords: ['reach', 'deathtouch'],
-  flavor: 'It weaves in the dark between the graves.',
+  flavor: 'Teje en la oscuridad entre las tumbas.',
 };

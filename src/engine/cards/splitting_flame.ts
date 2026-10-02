@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const splittingFlame: CardDef = {
   id: 'splitting_flame',
-  name: 'Splitting Flame',
+  name: 'Llama bífida',
   types: ['sorcery'],
   cost: '{1}{R}',
   spell: {
@@ -12,5 +12,5 @@ export const splittingFlame: CardDef = {
       { kind: 'damage', amount: 2, to: 1 },
     ],
   },
-  flavor: 'One spark for the beast, one for its master.',
+  flavor: 'Una chispa para la bestia y otra para su amo.',
 };

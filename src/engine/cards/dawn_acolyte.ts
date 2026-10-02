@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const dawnAcolyte: CardDef = {
   id: 'dawn_acolyte',
-  name: 'Dawn Acolyte',
+  name: 'Acólita del alba',
   types: ['creature'],
-  subtypes: ['Human', 'Cleric'],
+  subtypes: ['Clérigo', 'Humano'],
   cost: '{W}',
   power: 1,
   toughness: 1,
   keywords: ['lifelink'],
-  flavor: 'She carries the first light to whoever needs it most.',
+  flavor: 'Lleva la primera luz a quien más la necesita.',
 };

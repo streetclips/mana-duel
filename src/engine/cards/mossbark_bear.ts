@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const mossbarkBear: CardDef = {
   id: 'mossbark_bear',
-  name: 'Mossbark Bear',
+  name: 'Oso musgoso',
   types: ['creature'],
-  subtypes: ['Bear'],
+  subtypes: ['Oso'],
   cost: '{3}{G}',
   power: 3,
   toughness: 3,

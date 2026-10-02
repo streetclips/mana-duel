@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const soulSiphon: CardDef = {
   id: 'soul_siphon',
-  name: 'Soul Siphon',
+  name: 'Sifón de almas',
   types: ['sorcery'],
   cost: '{2}{B}',
   spell: {
@@ -12,5 +12,5 @@ export const soulSiphon: CardDef = {
       { kind: 'gainLife', amount: 2 },
     ],
   },
-  flavor: 'Your strength, my strength. Mine, now.',
+  flavor: 'Tu fuerza, mi fuerza. Ahora, mía.',
 };

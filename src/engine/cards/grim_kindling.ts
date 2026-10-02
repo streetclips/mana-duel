@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const grimKindling: CardDef = {
   id: 'grim_kindling',
-  name: 'Grim Kindling',
+  name: 'Yesca siniestra',
   types: ['sorcery'],
   cost: '{1}{B}{R}',
   spell: {
@@ -12,5 +12,5 @@ export const grimKindling: CardDef = {
       { kind: 'damage', amount: 1, to: 0 },
     ],
   },
-  flavor: 'Feed the fire your secrets and it whispers back.',
+  flavor: 'Dale al fuego tus secretos y te responderá en susurros.',
 };

@@ -1,14 +1,17 @@
 # Rules
 
 Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its eleven decks need. This page is the
-contract of `src/engine`: what is implemented, and where it deliberately differs from Magic.
+contract of `src/engine`: what is implemented, and where it deliberately differs from Magic. The game shows its cards
+and decks under Spanish names; this page calls them by the English names their ids keep (`docs/CARDS.md` pairs each
+id with its Spanish name).
 
 ## Game
 
 - Two players, 20 life each, seven-card opening hands. Each player brings one of eleven 40-card decks, chosen
-  before the game: Emberwild (red/green), Dawntide (white/blue), Duskmire (black), Stormglass (blue/red),
-  Sunmeadow (green/white), Brightforge (red/white), Mistgrave (blue/black), Gloamwood (black/green), Vesperhall
-  (white/black), Cindermaw (black/red) or Deepgrove (green/blue). Both may bring the same deck.
+  before the game: Emberwild (Brasalvaje, red/green), Dawntide (Albamar, white/blue), Duskmire (Fangoscuro,
+  black), Stormglass (Cristormenta, blue/red), Sunmeadow (Pradosol, green/white), Brightforge (Forjaluz, red/white),
+  Mistgrave (Brumafosa, blue/black), Gloamwood (Selvumbra, black/green), Vesperhall (Vesperia, white/black),
+  Cindermaw (Fauceniza, black/red) or Deepgrove (Sotohondo, green/blue). Both may bring the same deck.
   No nonland card appears in two decks; basic lands may.
 - The starting player comes from a seeded coin flip (or `startingPlayer`). They skip their first draw.
 - London mulligan: shuffle the hand away, draw seven, and once you keep, put one card on the bottom per mulligan.
@@ -148,11 +151,13 @@ The engine always asks. The app answers "pass" for you when:
 - it is the opponent's main phase or end step, your end step, or you just declared your attackers.
 
 It stops for you when the opponent casts something you could answer, when the opponent attacks (before blocks),
-after blockers are declared, and in your main phases — each time only if you have something to play. **End turn**
-passes until your turn is over and skips your attack; it still stops if the opponent casts a spell.
+after blockers are declared, and in your main phases — each time only if you have something to play.
+**Terminar turno** (end turn) passes until your turn is over and skips your attack; it still stops if the opponent
+casts a spell.
 
-**Auto-pass: off** in the menu (remembered in this browser; also `?autoPass=off` and `manaDuel.setAutoPass(false)`)
-keeps only the first rule and End turn: the game stops wherever you could act, in the opponent's turn too.
+**Pase automático: no** (auto-pass off) in the menu (remembered in this browser; also `?autoPass=off` and
+`manaDuel.setAutoPass(false)`) keeps only the first rule and Terminar turno: the game stops wherever you could act,
+in the opponent's turn too.
 
 The AI seat never auto-passes. The classic AI decides at every chance to act; an LLM is asked at every decision
 with more than one legal choice, and a single choice is played without asking it. So the AI gets the windows that

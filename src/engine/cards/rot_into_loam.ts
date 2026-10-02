@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const rotIntoLoam: CardDef = {
   id: 'rot_into_loam',
-  name: 'Rot into Loam',
+  name: 'Volver al mantillo',
   types: ['instant'],
   cost: '{B}{G}',
   spell: {
@@ -12,5 +12,5 @@ export const rotIntoLoam: CardDef = {
       { kind: 'createTokens', token: 'saproling_token', amount: 1 },
     ],
   },
-  flavor: 'Nothing is wasted in the wood. Least of all you.',
+  flavor: 'En la selva nada se desperdicia. Y tú, menos que nada.',
 };

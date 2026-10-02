@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const thorngladeArcher: CardDef = {
   id: 'thornglade_archer',
-  name: 'Thornglade Archer',
+  name: 'Arquero del claro',
   types: ['creature'],
-  subtypes: ['Elf', 'Archer'],
+  subtypes: ['Arquero', 'Elfo'],
   cost: '{2}{G}',
   power: 2,
   toughness: 3,
   keywords: ['reach'],
-  flavor: 'Nothing flies over the glade uninvited.',
+  flavor: 'Nada sobrevuela el claro sin invitación.',
 };

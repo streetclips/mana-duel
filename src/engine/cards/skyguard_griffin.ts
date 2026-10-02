@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const skyguardGriffin: CardDef = {
   id: 'skyguard_griffin',
-  name: 'Skyguard Griffin',
+  name: 'Grifo vigía',
   types: ['creature'],
-  subtypes: ['Griffin'],
+  subtypes: ['Grifo'],
   cost: '{3}{W}',
   power: 2,
   toughness: 3,

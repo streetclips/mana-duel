@@ -2,13 +2,13 @@ import type { CardDef } from '../types';
 
 export const bloodsporeThrall: CardDef = {
   id: 'bloodspore_thrall',
-  name: 'Bloodspore Thrall',
+  name: 'Siervo de esporas',
   types: ['creature'],
-  subtypes: ['Fungus', 'Zombie'],
+  subtypes: ['Zombie', 'Hongo'],
   cost: '{1}{B}',
   power: 1,
   toughness: 1,
   keywords: ['undying'],
   activated: [{ cost: '{0}', sacrifice: true, targets: [], effects: [{ kind: 'loseLife', amount: 1, who: 'opponent' }] }],
-  flavor: 'It bursts, it spreads, it stands up again.',
+  flavor: 'Revienta, se esparce y vuelve a levantarse.',
 };

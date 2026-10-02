@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const brineRebuke: CardDef = {
   id: 'brine_rebuke',
-  name: 'Brine Rebuke',
+  name: 'Reprimenda salobre',
   types: ['instant'],
   cost: '{2}{U}',
   spell: {
@@ -12,5 +12,5 @@ export const brineRebuke: CardDef = {
       { kind: 'draw', amount: 1 },
     ],
   },
-  flavor: 'The sea has opinions about trespassers.',
+  flavor: 'El mar tiene su opinión sobre los intrusos.',
 };

@@ -33,13 +33,13 @@ export function SoundIcon({ off = false }: { off?: boolean }) {
 
 export function SoundToggles({ audio }: { audio: AudioToggles }) {
   return (
-    <div class="sound-toggles" role="group" aria-label="Sound">
+    <div class="sound-toggles" role="group" aria-label="Sonido">
       <button
         type="button"
         class="icon-btn sound-toggle"
         aria-pressed={audio.music}
-        aria-label="Music"
-        title={audio.music ? 'Music on' : 'Music off'}
+        aria-label="Música"
+        title={audio.music ? 'Música activada' : 'Música desactivada'}
         data-testid="btn-music"
         onClick={audio.onToggleMusic}
       >
@@ -49,8 +49,8 @@ export function SoundToggles({ audio }: { audio: AudioToggles }) {
         type="button"
         class="icon-btn sound-toggle"
         aria-pressed={audio.sfx}
-        aria-label="Sound effects"
-        title={audio.sfx ? 'Sound effects on' : 'Sound effects off'}
+        aria-label="Efectos de sonido"
+        title={audio.sfx ? 'Efectos de sonido activados' : 'Efectos de sonido desactivados'}
         data-testid="btn-sfx"
         onClick={audio.onToggleSfx}
       >

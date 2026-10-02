@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const undertideLore: CardDef = {
   id: 'undertide_lore',
-  name: 'Undertide Lore',
+  name: 'Saber bajo la marea',
   types: ['sorcery'],
   cost: '{2}{U}',
   spell: { targets: [], effects: [{ kind: 'draw', amount: 2 }] },
-  flavor: 'The deep keeps its secrets in the roots of the grove.',
+  flavor: 'El abismo guarda sus secretos en las raíces de la arboleda.',
 };

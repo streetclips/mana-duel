@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const bloodhungryGhoul: CardDef = {
   id: 'bloodhungry_ghoul',
-  name: 'Bloodhungry Ghoul',
+  name: 'Necrófago ávido',
   types: ['creature'],
   subtypes: ['Zombie'],
   cost: '{1}{B}',
@@ -16,5 +16,5 @@ export const bloodhungryGhoul: CardDef = {
       effects: [{ kind: 'addCounters', amount: 1, to: 'self' }],
     },
   ],
-  flavor: 'It can smell a wound from three valleys away.',
+  flavor: 'Huele una herida a tres valles de distancia.',
 };

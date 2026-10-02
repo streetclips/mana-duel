@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const glassreefSentinel: CardDef = {
   id: 'glassreef_sentinel',
-  name: 'Glassreef Sentinel',
+  name: 'Centinela de vidrio',
   types: ['creature'],
-  subtypes: ['Merfolk', 'Soldier'],
+  subtypes: ['Soldado', 'Tritón'],
   cost: '{2}{U}',
   power: 1,
   toughness: 4,
   keywords: ['flash'],
-  flavor: 'You never see the reef until your hull is on it.',
+  flavor: 'Nunca ves el arrecife hasta que tu casco está encima.',
 };

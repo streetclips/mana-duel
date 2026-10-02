@@ -3,11 +3,12 @@ import { cardColorVar, cssVars } from '../cardInfo';
 import type { FxView, RevealFx } from '../fx';
 import { MiniFace, fxDelay } from './Card';
 
-function revealCaption(s: GameState, human: PlayerId, reveal: RevealFx): string {
-  if (reveal.kind === 'counter') return 'Countered';
-  if (reveal.kind === 'fizzle') return 'Fizzles';
-  const verb = reveal.via === 'land' ? 'play' : 'cast';
-  return reveal.player === human ? `You ${verb}` : `${s.players[reveal.player].name} ${verb}s`;
+function revealCaption(human: PlayerId, reveal: RevealFx): string {
+  if (reveal.kind === 'counter') return 'Contrarrestado';
+  if (reveal.kind === 'fizzle') return 'Sin efecto';
+  const land = reveal.via === 'land';
+  if (reveal.player === human) return land ? 'Juegas' : 'Lanzas';
+  return land ? 'El rival juega' : 'El rival lanza';
 }
 
 function Reveal({ s, human, reveal }: { s: GameState; human: PlayerId; reveal: RevealFx }) {
@@ -22,7 +23,7 @@ function Reveal({ s, human, reveal }: { s: GameState; human: PlayerId; reveal: R
       data-def={reveal.def}
       data-player={reveal.player}
     >
-      <span class="fx-reveal-caption">{revealCaption(s, human, reveal)}</span>
+      <span class="fx-reveal-caption">{revealCaption(human, reveal)}</span>
       <div
         class={`card mini fx-reveal-card${def.types.includes('land') ? ' land' : ''}`}
         style={cssVars({ '--card-color': cardColorVar(def) })}

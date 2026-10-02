@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const bonewoodStalker: CardDef = {
   id: 'bonewood_stalker',
-  name: 'Bonewood Stalker',
+  name: 'Acosador óseo',
   types: ['creature'],
-  subtypes: ['Zombie', 'Beast'],
+  subtypes: ['Bestia', 'Zombie'],
   cost: '{2}{B}',
   power: 2,
   toughness: 2,
@@ -16,5 +16,5 @@ export const bonewoodStalker: CardDef = {
       effects: [{ kind: 'pump', power: -2, toughness: -2, to: 0 }],
     },
   ],
-  flavor: 'It will gladly fall apart if it takes you with it.',
+  flavor: 'Se deshará con gusto si te lleva consigo.',
 };

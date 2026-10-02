@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const nightsBargain: CardDef = {
   id: 'nights_bargain',
-  name: "Night's Bargain",
+  name: 'Pacto nocturno',
   types: ['sorcery'],
   cost: '{1}{B}',
   spell: {
@@ -12,5 +12,5 @@ export const nightsBargain: CardDef = {
       { kind: 'loseLife', amount: 2 },
     ],
   },
-  flavor: 'The price is always paid in the morning.',
+  flavor: 'El precio siempre se paga por la mañana.',
 };

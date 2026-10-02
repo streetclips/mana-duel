@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const reefwingFledgling: CardDef = {
   id: 'reefwing_fledgling',
-  name: 'Reefwing Fledgling',
+  name: 'Polluelo coralino',
   types: ['creature'],
-  subtypes: ['Bird'],
+  subtypes: ['Ave'],
   cost: '{1}{U}',
   power: 1,
   toughness: 1,
   keywords: ['flying', 'evolve'],
-  flavor: 'It learns to fly from whatever passes overhead.',
+  flavor: 'Aprende a volar de todo lo que pasa por encima.',
 };

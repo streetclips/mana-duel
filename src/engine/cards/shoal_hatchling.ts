@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const shoalHatchling: CardDef = {
   id: 'shoal_hatchling',
-  name: 'Shoal Hatchling',
+  name: 'Cría del bajío',
   types: ['creature'],
-  subtypes: ['Frog'],
+  subtypes: ['Rana'],
   cost: '{G}',
   power: 1,
   toughness: 1,
   keywords: ['evolve'],
-  flavor: 'It eats whatever it can catch, and it can catch more every day.',
+  flavor: 'Come todo lo que puede atrapar, y cada día atrapa más.',
 };

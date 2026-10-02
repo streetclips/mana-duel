@@ -75,14 +75,14 @@ function clip(text: string): string {
 export function describeFailure(error: unknown): string {
   const api = apiErrorOf(error);
   if (api?.statusCode === 404 && /no endpoints found/i.test(api.message)) {
-    return 'OpenRouter 404: no provider of this model accepts the JSON schema (or the thinking effort)';
+    return 'OpenRouter 404: ningún proveedor de este modelo acepta el esquema JSON (o el esfuerzo de razonamiento)';
   }
   if (api) return clip(`OpenRouter ${api.statusCode ?? 'error'}: ${api.message}`);
   if (NoObjectGeneratedError.isInstance(error)) {
     const cause = error.cause instanceof Error ? `: ${error.cause.message}` : '';
-    return clip(`the answer did not match the schema${cause}`);
+    return clip(`la respuesta no cumplía el esquema${cause}`);
   }
-  if (error instanceof DecisionError) return clip(`illegal answer: ${error.message}`);
+  if (error instanceof DecisionError) return clip(`respuesta ilegal: ${error.message}`);
   return clip(error instanceof Error ? error.message : String(error));
 }
 
@@ -112,7 +112,7 @@ function deadline(ms: number, parent?: AbortSignal): Deadline {
   let expired = false;
   const timer = setTimeout(() => {
     expired = true;
-    controller.abort(new Error(`no answer within ${durationText(ms)}`));
+    controller.abort(new Error(`sin respuesta en ${durationText(ms)}`));
   }, ms);
   const forward = (): void => controller.abort(parent?.reason);
   if (parent?.aborted) forward();
@@ -130,7 +130,7 @@ function deadline(ms: number, parent?: AbortSignal): Deadline {
 function abortError(signal: AbortSignal): Error {
   const reason: unknown = signal.reason;
   if (reason instanceof Error) return reason;
-  const error = new Error('the decision was cancelled');
+  const error = new Error('se canceló la decisión');
   error.name = 'AbortError';
   return error;
 }
@@ -173,7 +173,7 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
               output: Output.object({
                 schema: decision.schema,
                 name: 'decision',
-                description: `Your answer to the "${decision.kind}" decision.`,
+                description: `Tu respuesta a la decisión "${decision.kind}".`,
               }),
               system: prompt.system,
               prompt: prompt.prompt + feedback,
@@ -195,7 +195,7 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
           } catch (failure) {
             if (decideOptions.signal?.aborted) throw abortError(decideOptions.signal);
             if (limit.expired()) {
-              error = `no answer within ${durationText(timeoutMs)}`;
+              error = `sin respuesta en ${durationText(timeoutMs)}`;
               break;
             }
             error = describeFailure(failure);
@@ -204,7 +204,7 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
               break;
             }
             if (isAnswerFailure(failure)) {
-              feedback = `\n\nYour previous answer was rejected (${error}). Answer again, choosing only among the listed options.`;
+              feedback = `\n\nTu respuesta anterior fue rechazada (${error}). Responde otra vez y elige solo entre las opciones de la lista.`;
             }
           }
         }

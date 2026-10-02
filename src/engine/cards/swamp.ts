@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const swamp: CardDef = {
   id: 'swamp',
-  name: 'Swamp',
+  name: 'Pantano',
   types: ['land'],
   supertypes: ['Basic'],
-  subtypes: ['Swamp'],
+  subtypes: ['Pantano'],
   mana: ['B'],
 };

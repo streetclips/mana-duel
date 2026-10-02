@@ -17,8 +17,8 @@ export interface DeckDef {
 
 export const EMBERWILD: DeckDef = {
   id: 'emberwild',
-  name: 'Emberwild',
-  description: 'Red and green: fast attackers, burn, reach and big tramplers.',
+  name: 'Brasalvaje',
+  description: 'Rojo y verde: atacantes rápidos, daño directo, alcance y grandes criaturas que arrollan.',
   colors: ['R', 'G'],
   featured: 'crag_dragon',
   cards: [
@@ -45,8 +45,8 @@ export const EMBERWILD: DeckDef = {
 
 export const DAWNTIDE: DeckDef = {
   id: 'dawntide',
-  name: 'Dawntide',
-  description: 'White and blue: flyers, lifelink and counterspells.',
+  name: 'Albamar',
+  description: 'Blanco y azul: criaturas voladoras, vínculo vital y contrahechizos.',
   colors: ['W', 'U'],
   featured: 'aurora_seraph',
   cards: [
@@ -71,8 +71,8 @@ export const DAWNTIDE: DeckDef = {
 
 export const DUSKMIRE: DeckDef = {
   id: 'duskmire',
-  name: 'Duskmire',
-  description: 'Black: deathtouch, removal and life drain; its dead bite back.',
+  name: 'Fangoscuro',
+  description: 'Negro: toque mortal, eliminación y drenaje de vidas; sus muertos devuelven el golpe.',
   colors: ['B'],
   featured: 'dread_tyrant',
   cards: [
@@ -96,8 +96,8 @@ export const DUSKMIRE: DeckDef = {
 
 export const STORMGLASS: DeckDef = {
   id: 'stormglass',
-  name: 'Stormglass',
-  description: 'Blue and red: flash, burn and card draw; every instant and sorcery powers up its creatures.',
+  name: 'Cristormenta',
+  description: 'Azul y rojo: destello, daño directo y robo de cartas; cada instantáneo y cada conjuro potencian a sus criaturas.',
   colors: ['U', 'R'],
   featured: 'stormglass_drake',
   cards: [
@@ -121,8 +121,8 @@ export const STORMGLASS: DeckDef = {
 
 export const SUNMEADOW: DeckDef = {
   id: 'sunmeadow',
-  name: 'Sunmeadow',
-  description: 'Green and white: an army that grows with +1/+1 counters, team-wide pumps and life gain.',
+  name: 'Pradosol',
+  description: 'Verde y blanco: un ejército que crece con contadores +1/+1, refuerzos para todas sus criaturas y ganancia de vidas.',
   colors: ['G', 'W'],
   featured: 'sunantler_monarch',
   cards: [
@@ -147,8 +147,8 @@ export const SUNMEADOW: DeckDef = {
 
 export const BRIGHTFORGE: DeckDef = {
   id: 'brightforge',
-  name: 'Brightforge',
-  description: 'Red and white: creature tokens, first strike and haste; the army grows with every soldier.',
+  name: 'Forjaluz',
+  description: 'Rojo y blanco: fichas de criatura, dañar primero y prisa; el ejército crece con cada soldado.',
   colors: ['R', 'W'],
   featured: 'brightforge_warlord',
   cards: [
@@ -173,8 +173,8 @@ export const BRIGHTFORGE: DeckDef = {
 
 export const MISTGRAVE: DeckDef = {
   id: 'mistgrave',
-  name: 'Mistgrave',
-  description: "Blue and black: skulking creatures slip past bigger blockers and strip the opponent's hand.",
+  name: 'Brumafosa',
+  description: 'Azul y negro: criaturas escurridizas que esquivan a bloqueadoras más grandes y vacían la mano del rival.',
   colors: ['U', 'B'],
   featured: 'mistgrave_revenant',
   cards: [
@@ -198,8 +198,8 @@ export const MISTGRAVE: DeckDef = {
 
 export const GLOAMWOOD: DeckDef = {
   id: 'gloamwood',
-  name: 'Gloamwood',
-  description: 'Black and green: undying, sacrifice and deathtouch; every death feeds the wood.',
+  name: 'Selvumbra',
+  description: 'Negro y verde: resiliencia, sacrificio y toque mortal; cada muerte alimenta la selva.',
   colors: ['B', 'G'],
   featured: 'gloamwood_elder',
   cards: [
@@ -223,8 +223,8 @@ export const GLOAMWOOD: DeckDef = {
 
 export const VESPERHALL: DeckDef = {
   id: 'vesperhall',
-  name: 'Vesperhall',
-  description: 'White and black: lifelink and life drain; every life it gains feeds its faithful and bleeds the opponent.',
+  name: 'Vesperia',
+  description: 'Blanco y negro: vínculo vital y drenaje de vidas; cada vida que gana fortalece a sus fieles y desangra al rival.',
   colors: ['W', 'B'],
   featured: 'vesperhall_matriarch',
   cards: [
@@ -250,8 +250,8 @@ export const VESPERHALL: DeckDef = {
 
 export const CINDERMAW: DeckDef = {
   id: 'cindermaw',
-  name: 'Cindermaw',
-  description: 'Black and red: haste, menace and burn; once the opponent bleeds, its bloodthirsty creatures arrive bigger.',
+  name: 'Fauceniza',
+  description: 'Negro y rojo: prisa, amenaza y daño directo; en cuanto el rival sangra, sus criaturas sedientas de sangre llegan más grandes.',
   colors: ['B', 'R'],
   featured: 'cindermaw_demon',
   cards: [
@@ -276,8 +276,8 @@ export const CINDERMAW: DeckDef = {
 
 export const DEEPGROVE: DeckDef = {
   id: 'deepgrove',
-  name: 'Deepgrove',
-  description: "Green and blue: evolving creatures grow with every bigger arrival, and hexproof giants shrug off the opponent's spells.",
+  name: 'Sotohondo',
+  description: 'Verde y azul: criaturas que evolucionan con cada llegada más grande y gigantes con antimaleficio que ignoran los hechizos del rival.',
   colors: ['G', 'U'],
   featured: 'deepgrove_leviathan',
   cards: [

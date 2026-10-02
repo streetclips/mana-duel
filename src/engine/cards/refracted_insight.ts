@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const refractedInsight: CardDef = {
   id: 'refracted_insight',
-  name: 'Refracted Insight',
+  name: 'Visión refractada',
   types: ['instant'],
   cost: '{2}{U}{R}',
   spell: {
@@ -12,5 +12,5 @@ export const refractedInsight: CardDef = {
       { kind: 'damage', amount: 1, to: 0 },
     ],
   },
-  flavor: 'One beam of thought, split into answers and sparks.',
+  flavor: 'Un rayo de pensamiento, dividido en respuestas y chispas.',
 };

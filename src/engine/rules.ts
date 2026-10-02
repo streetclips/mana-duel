@@ -18,23 +18,23 @@ export function canActAtSorcerySpeed(s: GameState, player: PlayerId): boolean {
 
 export function landPlayError(s: GameState, player: PlayerId, cardId: CardId): string | null {
   const card = s.cards[cardId];
-  if (!card || card.zone !== 'hand' || card.owner !== player) return 'that card is not in your hand';
-  if (!isLandDef(getCardDef(card.def))) return 'that card is not a land';
-  if (!canActAtSorcerySpeed(s, player)) return 'lands can only be played during your main phase with an empty stack';
-  if (s.players[player].landsPlayedThisTurn >= 1) return 'you already played a land this turn';
+  if (!card || card.zone !== 'hand' || card.owner !== player) return 'esa carta no está en tu mano';
+  if (!isLandDef(getCardDef(card.def))) return 'esa carta no es una tierra';
+  if (!canActAtSorcerySpeed(s, player)) return 'las tierras solo se pueden jugar en tu fase principal con la pila vacía';
+  if (s.players[player].landsPlayedThisTurn >= 1) return 'ya has jugado una tierra este turno';
   return null;
 }
 
 export function castBlocker(s: GameState, player: PlayerId, cardId: CardId): string | null {
   const card = s.cards[cardId];
-  if (!card || card.zone !== 'hand' || card.owner !== player) return 'that card is not in your hand';
+  if (!card || card.zone !== 'hand' || card.owner !== player) return 'esa carta no está en tu mano';
   const def = getCardDef(card.def);
-  if (isLandDef(def)) return 'lands are played, not cast';
-  if (!hasPriority(s, player)) return 'you do not have priority';
+  if (isLandDef(def)) return 'las tierras se juegan, no se lanzan';
+  if (!hasPriority(s, player)) return 'no tienes la prioridad';
   if (!isInstantDef(def) && !hasFlashDef(def) && !canActAtSorcerySpeed(s, player)) {
-    return 'this can only be cast during your main phase with an empty stack';
+    return 'esto solo se puede lanzar en tu fase principal con la pila vacía';
   }
-  if (!findPayment(s, player, getCost(card.def), { excludeFromDemand: cardId })) return 'not enough mana';
+  if (!findPayment(s, player, getCost(card.def), { excludeFromDemand: cardId })) return 'no hay suficiente maná';
   return null;
 }
 
@@ -46,18 +46,18 @@ export function castError(s: GameState, player: PlayerId, cardId: CardId, target
 
 export function activationBlocker(s: GameState, player: PlayerId, cardId: CardId, abilityIndex: number): string | null {
   const card = s.cards[cardId];
-  if (!card || card.zone !== 'battlefield' || card.controller !== player) return 'you do not control that permanent';
+  if (!card || card.zone !== 'battlefield' || card.controller !== player) return 'no controlas ese permanente';
   const ability = defOf(s, cardId).activated?.[abilityIndex];
-  if (!ability) return 'that permanent has no such ability';
-  if (!hasPriority(s, player)) return 'you do not have priority';
+  if (!ability) return 'ese permanente no tiene esa habilidad';
+  if (!hasPriority(s, player)) return 'no tienes la prioridad';
   if (ability.tap) {
-    if (getCard(s, cardId).tapped) return 'that permanent is tapped';
-    if (!isReadyToTap(s, cardId)) return 'that creature has summoning sickness';
+    if (getCard(s, cardId).tapped) return 'ese permanente está girado';
+    if (!isReadyToTap(s, cardId)) return 'esa criatura tiene mareo de invocación';
   }
   const payment = findPayment(s, player, parseCost(ability.cost), {
     excludeSource: ability.tap ? cardId : undefined,
   });
-  if (!payment) return 'not enough mana';
+  if (!payment) return 'no hay suficiente maná';
   return null;
 }
 

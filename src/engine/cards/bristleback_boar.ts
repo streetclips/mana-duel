@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const bristlebackBoar: CardDef = {
   id: 'bristleback_boar',
-  name: 'Bristleback Boar',
+  name: 'Jabalí erizado',
   types: ['creature'],
-  subtypes: ['Boar'],
+  subtypes: ['Jabalí'],
   cost: '{1}{G}',
   power: 3,
   toughness: 2,
   keywords: ['trample'],
-  flavor: 'It has never once walked around anything.',
+  flavor: 'Jamás ha rodeado nada.',
 };

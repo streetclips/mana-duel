@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const bloomcallerDruid: CardDef = {
   id: 'bloomcaller_druid',
-  name: 'Bloomcaller Druid',
+  name: 'Druida llamaflores',
   types: ['creature'],
-  subtypes: ['Elf', 'Druid'],
+  subtypes: ['Druida', 'Elfo'],
   cost: '{1}{G}',
   power: 1,
   toughness: 1,
@@ -15,5 +15,5 @@ export const bloomcallerDruid: CardDef = {
       effects: [{ kind: 'addCounters', amount: 1, to: 0 }],
     },
   ],
-  flavor: 'Where she sings, even the weary grow tall.',
+  flavor: 'Donde ella canta, hasta los cansados crecen.',
 };

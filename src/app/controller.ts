@@ -170,8 +170,8 @@ export class GameController {
       skipMulligans: options.skipMulligans ?? false,
       startingPlayer: options.startingPlayer,
       players: [
-        { name: 'You', deck: decks[0] },
-        { name: 'AI', deck: decks[1] },
+        { name: 'Tú', deck: decks[0] },
+        { name: 'IA', deck: decks[1] },
       ],
     };
   }
@@ -321,8 +321,8 @@ export class GameController {
   }
 
   dispatch(action: Action): ActionResult {
-    if (action.player !== this.human) return { ok: false, error: 'you can only act for your own seat' };
-    if (action.type !== 'concede' && !this.isHumanTurnToDecide()) return { ok: false, error: 'it is not your decision' };
+    if (action.player !== this.human) return { ok: false, error: 'solo puedes actuar por tu propio asiento' };
+    if (action.type !== 'concede' && !this.isHumanTurnToDecide()) return { ok: false, error: 'no te toca decidir' };
     return this.apply(action);
   }
 
@@ -401,12 +401,11 @@ export class GameController {
   }
 
   private noteFor(decision: LlmDecision): string | undefined {
-    const name = this.state.players[this.aiSeat].name;
-    if (decision.source === 'model') return decision.reason ? `${name} thinks: ${decision.reason}` : undefined;
+    if (decision.source === 'model') return decision.reason ? `El rival piensa: ${decision.reason}` : undefined;
     if (decision.source !== 'fallback') return undefined;
     return this.llmUnavailable
-      ? `The LLM is unavailable (${this.llmUnavailable}): the classic AI plays the rest of this game.`
-      : `The LLM could not decide (${decision.error ?? 'unknown error'}): the classic AI made this move.`;
+      ? `El LLM no está disponible (${this.llmUnavailable}): la IA clásica juega el resto de la partida.`
+      : `El LLM no pudo decidir (${decision.error ?? 'error desconocido'}): la IA clásica hizo esta jugada.`;
   }
 
   private recordFx(cues: FxCue[]): void {

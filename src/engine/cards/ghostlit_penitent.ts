@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const ghostlitPenitent: CardDef = {
   id: 'ghostlit_penitent',
-  name: 'Ghostlit Penitent',
+  name: 'Penitente fantasmal',
   types: ['creature'],
-  subtypes: ['Spirit', 'Cleric'],
+  subtypes: ['Clérigo', 'Espíritu'],
   cost: '{W}{B}',
   power: 1,
   toughness: 1,
   keywords: ['flying', 'lifelink'],
-  flavor: 'It still kneels at vespers, a century after its last breath.',
+  flavor: 'Aún se arrodilla en vísperas, un siglo después de su último aliento.',
 };

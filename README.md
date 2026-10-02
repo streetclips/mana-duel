@@ -1,11 +1,14 @@
 # Mana Duel
 
-A minimalist, mobile-first card duel built on the rules of Magic: The Gathering. Eleven decks — **Emberwild** (red
-and green), **Dawntide** (white and blue), **Duskmire** (black), **Stormglass** (blue and red), **Sunmeadow** (green
-and white), **Brightforge** (red and white), **Mistgrave** (blue and black), **Gloamwood** (black and green),
-**Vesperhall** (white and black), **Cindermaw** (black and red) and **Deepgrove** (green and blue) — and one
-opponent that plays by the same rules and never looks at your hand: the built-in AI, or a language model of your
-choice through OpenRouter.
+A minimalist, mobile-first card duel built on the rules of Magic: The Gathering, played in Spanish: its screen
+title is *Duelo de Maná*, and every text it writes — cards, decks, buttons, prompts, the log, refusals, and the prompt
+of the LLM opponent — is Spanish. Eleven decks — **Brasalvaje** (`emberwild`, red and green), **Albamar**
+(`dawntide`, white and blue), **Fangoscuro** (`duskmire`, black), **Cristormenta** (`stormglass`, blue and red),
+**Pradosol** (`sunmeadow`, green and white), **Forjaluz** (`brightforge`, red and white), **Brumafosa** (`mistgrave`,
+blue and black), **Selvumbra** (`gloamwood`, black and green), **Vesperia** (`vesperhall`, white and black),
+**Fauceniza** (`cindermaw`, black and red) and **Sotohondo** (`deepgrove`, green and blue) — and one opponent that
+plays by the same rules and never looks at your hand: the built-in AI, or a language model of your choice through
+OpenRouter. Ids, of decks and cards alike, keep the English names: `?deck=dawntide` picks Albamar.
 
 ## Play
 
@@ -17,18 +20,19 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 ```
 
 - On the start screen your deck box faces the AI's. Tap one to open it onto every deck and pick another, or
-  Random for either seat; **Cards** opens the chosen deck with every card, its mana curve and card details. The
-  in-game menu shows both decks too.
+  *Aleatorio* for either seat; **Cartas** opens the chosen deck with every card, its mana curve and card details.
+  The in-game menu shows both decks too.
 - Tap a card to read it; the sheet that opens holds its actions (play, cast, activate). Long-press or right-click
   inspects any card. The game log, in the menu, opens every card it names on a tap.
 - Targets glow when a spell needs one: tap the creature or the player, or the spell in the center strip for a
   counterspell.
-- Attack by tapping your creatures, then **Attack**. Block by tapping your creature, then the attacker it should
+- Attack by tapping your creatures, then **Atacar**. Block by tapping your creature, then the attacker it should
   stop. Numbered badges pair attackers with their blockers.
-- Priority passes by itself while there is nothing to decide; **End turn** skips straight to the opponent. Turn
-  **Auto-pass** off in the menu to stop wherever you could act, the opponent's turn included, as the AI does.
-- **Watch AI vs AI** on the start screen lets the AI play both seats.
-- **Who plays the AI**: *Classic*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
+- Priority passes by itself while there is nothing to decide; **Terminar turno** skips straight to the opponent.
+  Turn **Pase automático** off in the menu to stop wherever you could act, the opponent's turn included, as the AI
+  does.
+- **Ver IA contra IA** on the start screen lets the AI play both seats.
+- **Quién controla la IA**: *Clásica*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
   and your API key (kept in this browser only). The model picks every move among the legal ones, the log shows its
   reasoning and its next prompts recall it; when it fails to answer, the classic AI moves for it. With
   `OPENROUTER_API_KEY` set in the shell or in `.env.local`, `npm run dev` adds the key on the server and no key needs
@@ -69,11 +73,13 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 - **Audio** (`src/audio`): a generative score, one theme per color combination and four moods that follow the game,
   scheduled ahead of the audio clock, and a sound for every animation cue, each built from layers of synthesized
   tones and noise. Tests read what plays and render every sound offline.
-- **Cards**: 163 cards — 154 that belong to a single deck (16 in Emberwild, 15 in Vesperhall, 14 each in Dawntide,
-  Duskmire, Sunmeadow, Brightforge, Cindermaw and Deepgrove, 13 each in Stormglass, Mistgrave and Gloamwood), the
-  five basic lands, which any deck may use, and four tokens that cards create (Soldier, Elemental, Saproling,
-  Spirit) — each with its own SVG illustration in `public/cards/`, listed in [`docs/CARDS.md`](docs/CARDS.md)
-  (generated from the definitions).
+- **Cards**: 163 cards — 154 that belong to a single deck (16 in Brasalvaje, 15 in Vesperia, 14 each in Albamar,
+  Fangoscuro, Pradosol, Forjaluz, Fauceniza and Sotohondo, 13 each in Cristormenta, Brumafosa and Selvumbra), the
+  five basic lands, which any deck may use, and four tokens that cards create (Soldado, Elemental, Saprolín,
+  Espíritu) — each with its own SVG illustration in `public/cards/`, listed in [`docs/CARDS.md`](docs/CARDS.md)
+  (generated from the definitions). Their Spanish names, types and rules text follow the official Spanish
+  terminology of Magic (*Vuela*, *Arrolla*, *Resiliencia*, «Crea una ficha de criatura Soldado blanca 1/1»), and each
+  name fits the two lines of a card on the battlefield.
 
 ## Testing and verification
 

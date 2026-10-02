@@ -67,7 +67,7 @@ export interface SideView {
 }
 
 export interface StackEntryView extends CardRefView {
-  kind: 'spell' | 'triggered ability' | 'activated ability';
+  kind: 'hechizo' | 'habilidad disparada' | 'habilidad activada';
   controller: Side;
   text?: string;
   targets: string[];
@@ -99,15 +99,16 @@ function visibleTo(s: GameState, id: CardId, viewer: PlayerId): boolean {
 }
 
 export function cardLabel(s: GameState, id: CardId, viewer: PlayerId): string {
-  if (!visibleTo(s, id, viewer)) return 'a card that is no longer in play';
+  if (!visibleTo(s, id, viewer)) return 'una carta que ya no está en juego';
   const card = getCard(s, id);
   const name = getCardDef(card.def).name;
-  if (card.zone === 'stack') return `${card.controller === viewer ? 'your' : "opponent's"} spell ${name} (${id})`;
-  return `${card.controller === viewer ? 'your' : "opponent's"} ${name} (${id})`;
+  const mine = card.controller === viewer;
+  if (card.zone === 'stack') return mine ? `tu hechizo ${name} (${id})` : `el hechizo ${name} (${id}) del rival`;
+  return mine ? `tu ${name} (${id})` : `${name} (${id}) del rival`;
 }
 
 export function targetLabel(s: GameState, target: Target, viewer: PlayerId): string {
-  if (isPlayerTarget(target)) return target.player === viewer ? 'you' : 'opponent';
+  if (isPlayerTarget(target)) return target.player === viewer ? 'tú' : 'el rival';
   return cardLabel(s, target.card, viewer);
 }
 
@@ -167,7 +168,7 @@ function stackEntry(s: GameState, item: StackItem, viewer: PlayerId): StackEntry
   const entry: StackEntryView = {
     id: source,
     name: def.name,
-    kind: item.kind === 'spell' ? 'spell' : item.kind === 'trigger' ? 'triggered ability' : 'activated ability',
+    kind: item.kind === 'spell' ? 'hechizo' : item.kind === 'trigger' ? 'habilidad disparada' : 'habilidad activada',
     controller: sideOf(viewer, item.controller),
     targets: item.targets.map((target) => targetLabel(s, target, viewer)),
   };
@@ -213,22 +214,16 @@ export function deckCardDefs(deckId: string): string[] {
   return hasDeck(deckId) ? getDeck(deckId).cards.map((entry) => entry.card) : [];
 }
 
-function withSeatNames(s: GameState, viewer: PlayerId): GameState {
-  const players = s.players.map((player) => ({ ...player, name: player.id === viewer ? 'You' : 'Opponent' }));
-  return { ...s, players: players as GameState['players'] };
-}
-
 export function thoughtLine(s: GameState, viewer: PlayerId, reason: string): string {
   if (s.step === 'mulligan') return `${STEP_NAMES.mulligan}: ${reason}`;
-  return `Turn ${s.turn} (${s.activePlayer === viewer ? 'your' : "opponent's"} turn), ${STEP_NAMES[s.step]}: ${reason}`;
+  return `Turno ${s.turn} (${s.activePlayer === viewer ? 'tu turno' : 'turno del rival'}), ${STEP_NAMES[s.step]}: ${reason}`;
 }
 
 export function eventLines(s: GameState, viewer: PlayerId): string[] {
-  const named = withSeatNames(s, viewer);
   const lines: string[] = [];
   for (const event of s.events) {
     if (event.t === 'draw' && s.turn === 0) continue;
-    const text = describeEvent(named, event, viewer);
+    const text = describeEvent(s, event, viewer);
     if (text) lines.push(text);
   }
   return lines;

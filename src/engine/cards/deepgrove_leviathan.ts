@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const deepgroveLeviathan: CardDef = {
   id: 'deepgrove_leviathan',
-  name: 'Deepgrove Leviathan',
+  name: 'Leviatán del fondo',
   types: ['creature'],
-  subtypes: ['Leviathan'],
+  subtypes: ['Leviatán'],
   cost: '{4}{G}{U}',
   power: 5,
   toughness: 5,
   keywords: ['trample', 'hexproof'],
-  flavor: 'The grove grows on its back. The deep is its home. The shore is its hunting ground.',
+  flavor: 'La arboleda crece sobre su lomo. El abismo es su hogar. La orilla, su coto de caza.',
 };

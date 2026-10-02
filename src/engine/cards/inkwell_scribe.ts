@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const inkwellScribe: CardDef = {
   id: 'inkwell_scribe',
-  name: 'Inkwell Scribe',
+  name: 'Escriba de tinta',
   types: ['creature'],
-  subtypes: ['Human', 'Wizard'],
+  subtypes: ['Hechicero', 'Humano'],
   cost: '{1}{U}',
   power: 1,
   toughness: 3,
@@ -18,5 +18,5 @@ export const inkwellScribe: CardDef = {
       ],
     },
   ],
-  flavor: "She writes down everything, then drowns the pages she doesn't need.",
+  flavor: 'Lo apunta todo y luego ahoga las páginas que no necesita.',
 };

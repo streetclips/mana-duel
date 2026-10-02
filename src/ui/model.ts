@@ -10,7 +10,7 @@ import {
   sameTarget,
   stackItemSource,
   targetKey,
-  targetPhrase,
+  targetChoice,
   targetRef,
   triggeredAbility,
   type Action,
@@ -217,11 +217,11 @@ function describeStackTop(s: GameState, human: PlayerId): string | null {
   const top = s.stack.at(-1);
   if (!top) return null;
   const source = stackItemSource(top);
-  const who = top.controller === human ? 'You' : s.players[top.controller].name;
-  const verb = top.kind === 'spell' ? (top.controller === human ? 'cast' : 'casts') : top.controller === human ? 'activated' : 'uses';
-  const what = top.kind === 'spell' ? cardName(s, source) : `${cardName(s, source)}'s ability`;
+  const mine = top.controller === human;
+  const verb = top.kind === 'spell' ? (mine ? 'Lanzas' : 'El rival lanza') : mine ? 'Usas' : 'El rival usa';
+  const what = top.kind === 'spell' ? cardName(s, source) : `la habilidad de ${cardName(s, source)}`;
   const targets = top.targets.length ? ` → ${top.targets.map((target) => targetRef(s, target, human)).join(', ')}` : '';
-  return `${who} ${verb} ${what}${targets}`;
+  return `${verb} ${what}${targets}`;
 }
 
 export interface BarModel {
@@ -245,33 +245,32 @@ export function barModel(
   if (!pending) return { prompt: { title: '' }, buttons: [] };
 
   if (pending.kind === 'gameOver') {
-    const title = pending.winner === null ? 'Draw' : pending.winner === human ? 'Victory' : 'Defeat';
+    const title = pending.winner === null ? 'Empate' : pending.winner === human ? 'Victoria' : 'Derrota';
     return {
       prompt: { title, detail: gameOverDetail(s, human) },
-      buttons: [{ id: 'new-game', label: 'New game', command: { kind: 'newGame' }, tone: 'primary' }],
+      buttons: [{ id: 'new-game', label: 'Nueva partida', command: { kind: 'newGame' }, tone: 'primary' }],
     };
   }
 
   if (pending.player !== human) {
-    const opponent = s.players[pending.player].name;
     const detail =
       pending.kind === 'declareBlockers'
-        ? `${opponent} is choosing blockers…`
+        ? 'El rival está eligiendo bloqueadoras…'
         : pending.kind === 'declareAttackers'
-          ? `${opponent} is deciding how to attack…`
+          ? 'El rival está decidiendo cómo atacar…'
           : pending.kind === 'mulligan'
-            ? `${opponent} is looking at its opening hand…`
-            : describeStackTop(s, human) ?? recent ?? `${opponent} is thinking…`;
-    return { prompt: { title: busy ? `${opponent}'s move` : 'Waiting', detail }, buttons: [] };
+            ? 'El rival está mirando su mano inicial…'
+            : describeStackTop(s, human) ?? recent ?? 'El rival está pensando…';
+    return { prompt: { title: busy ? 'Juega el rival' : 'Esperando', detail }, buttons: [] };
   }
 
   if (interaction.kind === 'target' || interaction.kind === 'triggerTarget') {
     const info = targetSpecsFor(s, interaction);
     const spec = info?.specs[interaction.chosen.length];
-    const title = `Choose ${spec ? targetPhrase(spec) : 'a target'}`;
-    const detail = info ? `for ${cardName(s, info.source)}` : undefined;
+    const title = `Elige ${spec ? targetChoice(spec) : 'un objetivo'}`;
+    const detail = info ? `para ${cardName(s, info.source)}` : undefined;
     const buttons: UiButton[] =
-      interaction.kind === 'target' ? [{ id: 'cancel', label: 'Cancel', command: { kind: 'cancel' }, tone: 'secondary' }] : [];
+      interaction.kind === 'target' ? [{ id: 'cancel', label: 'Cancelar', command: { kind: 'cancel' }, tone: 'secondary' }] : [];
     return { prompt: { title, detail }, buttons };
   }
 
@@ -282,11 +281,11 @@ export function barModel(
       const size = ps.hand.length - ps.mulligans;
       return {
         prompt: {
-          title: ps.mulligans === 0 ? 'Keep your opening hand?' : `Keep ${size} cards?`,
-          detail: `${lands} land${lands === 1 ? '' : 's'} in hand${ps.mulligans ? ` · you will put ${ps.mulligans} on the bottom` : ''}`,
+          title: ps.mulligans === 0 ? '¿Te quedas con tu mano inicial?' : `¿Te quedas con ${size} cartas?`,
+          detail: `${lands} ${lands === 1 ? 'tierra' : 'tierras'} en la mano${ps.mulligans ? ` · pondrás ${ps.mulligans} en el fondo de tu biblioteca` : ''}`,
         },
         buttons: [
-          { id: 'keep', label: 'Keep', command: { kind: 'dispatch', action: { type: 'keep', player: human } }, tone: 'primary' },
+          { id: 'keep', label: 'Me quedo', command: { kind: 'dispatch', action: { type: 'keep', player: human } }, tone: 'primary' },
           ...(ps.mulligans < 6
             ? [
                 {
@@ -303,7 +302,7 @@ export function barModel(
     case 'bottom':
     case 'discard': {
       const chosen = interaction.kind === 'select' ? interaction.cards : [];
-      const verb = pending.kind === 'bottom' ? 'put on the bottom' : 'discard';
+      const verb = pending.kind === 'bottom' ? 'poner en el fondo' : 'descartar';
       const action: Action =
         pending.kind === 'bottom'
           ? { type: 'bottom', player: human, cards: chosen }
@@ -311,13 +310,13 @@ export function barModel(
       const cause = pending.kind === 'discard' && pending.source ? `${cardName(s, pending.source)} · ` : '';
       return {
         prompt: {
-          title: `Choose ${pending.count} card${pending.count === 1 ? '' : 's'} to ${verb}`,
-          detail: `${cause}${chosen.length}/${pending.count} selected`,
+          title: `Elige ${pending.count} ${pending.count === 1 ? 'carta' : 'cartas'} para ${verb}`,
+          detail: `${cause}${chosen.length}/${pending.count} ${pending.count === 1 ? 'elegida' : 'elegidas'}`,
         },
         buttons: [
           {
             id: 'confirm-cards',
-            label: pending.kind === 'bottom' ? 'Put on bottom' : 'Discard',
+            label: pending.kind === 'bottom' ? 'Poner en el fondo' : 'Descartar',
             command: { kind: 'dispatch', action },
             disabled: chosen.length !== pending.count,
             tone: 'primary',
@@ -331,7 +330,7 @@ export function barModel(
       const buttons: UiButton[] = [
         {
           id: 'confirm-attack',
-          label: attackers.length ? `Attack (${attackers.length})` : 'No attack',
+          label: attackers.length ? `Atacar (${attackers.length})` : 'No atacar',
           command: { kind: 'dispatch', action: { type: 'declareAttackers', player: human, attackers } },
           tone: 'primary',
         },
@@ -339,12 +338,12 @@ export function barModel(
       if (eligible.length > 1 && attackers.length < eligible.length) {
         buttons.push({
           id: 'attack-all',
-          label: 'All',
+          label: 'Todas',
           command: { kind: 'setInteraction', interaction: { kind: 'attack', attackers: [...eligible] } },
           tone: 'secondary',
         });
       }
-      return { prompt: { title: 'Choose attackers', detail: 'Tap creatures to attack with them' }, buttons };
+      return { prompt: { title: 'Elige las atacantes', detail: 'Toca las criaturas con las que quieras atacar' }, buttons };
     }
     case 'declareBlockers': {
       const blocks = interaction.kind === 'block' ? interaction.blocks : [];
@@ -352,14 +351,14 @@ export function barModel(
       const attackers = s.combat?.attackers ?? [];
       const detail =
         interaction.kind === 'block' && interaction.blocker
-          ? `Now tap the attacker ${cardName(s, interaction.blocker)} should block`
-          : error ?? `${s.players[s.activePlayer].name} attacks with ${attackers.map((id) => cardName(s, id)).join(', ')}. Tap your creature, then an attacker`;
+          ? `Ahora toca la atacante que debe bloquear ${cardName(s, interaction.blocker)}`
+          : error ?? `El rival ataca con ${attackers.map((id) => cardName(s, id)).join(', ')}. Toca tu criatura y luego una atacante`;
       return {
-        prompt: { title: 'Choose blockers', detail },
+        prompt: { title: 'Elige las bloqueadoras', detail },
         buttons: [
           {
             id: 'confirm-blocks',
-            label: blocks.length ? `Block (${blocks.length})` : 'No blocks',
+            label: blocks.length ? `Bloquear (${blocks.length})` : 'No bloquear',
             command: { kind: 'dispatch', action: { type: 'declareBlockers', player: human, blocks } },
             disabled: error !== null,
             tone: 'primary',
@@ -368,7 +367,7 @@ export function barModel(
       };
     }
     case 'chooseTargets':
-      return { prompt: { title: 'Choose a target' }, buttons: [] };
+      return { prompt: { title: 'Elige un objetivo' }, buttons: [] };
     case 'priority':
       return priorityBar(s, human, pass);
   }
@@ -378,14 +377,14 @@ function priorityBar(s: GameState, human: PlayerId, pass: Action): BarModel {
   const top = s.stack.at(-1);
   if (top && top.controller !== human) {
     return {
-      prompt: { title: describeStackTop(s, human) ?? 'Respond?', detail: 'Cast an instant in response, or let it resolve' },
-      buttons: [{ id: 'resolve', label: 'Let it resolve', command: { kind: 'dispatch', action: pass }, tone: 'primary' }],
+      prompt: { title: describeStackTop(s, human) ?? '¿Respondes?', detail: 'Lanza un instantáneo en respuesta o deja que se resuelva' },
+      buttons: [{ id: 'resolve', label: 'Dejar que se resuelva', command: { kind: 'dispatch', action: pass }, tone: 'primary' }],
     };
   }
   if (top) {
     return {
-      prompt: { title: describeStackTop(s, human) ?? 'Waiting', detail: 'Pass to let it resolve' },
-      buttons: [{ id: 'resolve', label: 'Resolve', command: { kind: 'dispatch', action: pass }, tone: 'primary' }],
+      prompt: { title: describeStackTop(s, human) ?? 'Esperando', detail: 'Pasa para que se resuelva' },
+      buttons: [{ id: 'resolve', label: 'Resolver', command: { kind: 'dispatch', action: pass }, tone: 'primary' }],
     };
   }
   const myTurn = s.activePlayer === human;
@@ -393,35 +392,34 @@ function priorityBar(s: GameState, human: PlayerId, pass: Action): BarModel {
     const canAttackNow = s.players[human].battlefield.some((id) => canAttack(s, id));
     const buttons: UiButton[] = canAttackNow
       ? [
-          { id: 'to-combat', label: 'To combat', command: { kind: 'dispatch', action: pass }, tone: 'primary' },
-          { id: 'end-turn', label: 'End turn', command: { kind: 'endTurn' }, tone: 'secondary' },
+          { id: 'to-combat', label: 'Al combate', command: { kind: 'dispatch', action: pass }, tone: 'primary' },
+          { id: 'end-turn', label: 'Terminar turno', command: { kind: 'endTurn' }, tone: 'secondary' },
         ]
-      : [{ id: 'end-turn', label: 'End turn', command: { kind: 'endTurn' }, tone: 'primary' }];
-    return { prompt: { title: 'Your main phase', detail: mainPhaseHint(s) }, buttons };
+      : [{ id: 'end-turn', label: 'Terminar turno', command: { kind: 'endTurn' }, tone: 'primary' }];
+    return { prompt: { title: 'Tu fase principal', detail: mainPhaseHint(s) }, buttons };
   }
   if (myTurn && s.step === 'main2') {
     return {
-      prompt: { title: 'Your second main phase', detail: mainPhaseHint(s) },
-      buttons: [{ id: 'end-turn', label: 'End turn', command: { kind: 'endTurn' }, tone: 'primary' }],
+      prompt: { title: 'Tu segunda fase principal', detail: mainPhaseHint(s) },
+      buttons: [{ id: 'end-turn', label: 'Terminar turno', command: { kind: 'endTurn' }, tone: 'primary' }],
     };
   }
   const attackers = s.combat?.attackers ?? [];
   const names = attackers.map((id) => cardName(s, id)).join(', ');
-  const active = s.players[s.activePlayer].name;
-  const step = STEP_NAMES[s.step].toLowerCase();
-  let prompt: Prompt = { title: myTurn ? `Your ${step}` : `${active}'s ${step}`, detail: 'You can cast instants now' };
+  const step = STEP_NAMES[s.step];
+  let prompt: Prompt = { title: myTurn ? `Tu ${step.toLowerCase()}` : `${step} del rival`, detail: 'Ahora puedes lanzar instantáneos' };
   if (s.step === 'declareAttackers') {
-    prompt = { title: `${myTurn ? 'You attack' : `${active} attacks`} with ${names}`, detail: 'Cast an instant before blocks, or continue' };
+    prompt = { title: `${myTurn ? 'Atacas' : 'El rival ataca'} con ${names}`, detail: 'Lanza un instantáneo antes de los bloqueos o continúa' };
   } else if (s.step === 'declareBlockers') {
     const blocked = s.combat?.blocks.length ?? 0;
     prompt = {
-      title: blocked ? 'Blockers declared' : 'No blockers',
-      detail: 'Last chance for combat tricks before damage',
+      title: blocked ? 'Bloqueadoras declaradas' : 'Sin bloqueadoras',
+      detail: 'Última oportunidad para trucos de combate antes del daño',
     };
   }
   return {
     prompt,
-    buttons: [{ id: 'continue', label: 'Continue', command: { kind: 'dispatch', action: pass }, tone: 'primary' }],
+    buttons: [{ id: 'continue', label: 'Continuar', command: { kind: 'dispatch', action: pass }, tone: 'primary' }],
   };
 }
 
@@ -429,26 +427,27 @@ function mainPhaseHint(s: GameState): string {
   const actions = getLegalActions(s);
   const land = actions.some((action) => action.type === 'playLand');
   const spell = actions.some((action) => action.type === 'cast' || action.type === 'activate');
-  if (land && spell) return 'Play a land, cast spells';
-  if (land) return 'You can play a land';
-  if (spell) return 'You can cast spells';
-  return 'Nothing left to play';
+  if (land && spell) return 'Juega una tierra, lanza hechizos';
+  if (land) return 'Puedes jugar una tierra';
+  if (spell) return 'Puedes lanzar hechizos';
+  return 'No te queda nada por jugar';
 }
 
 function gameOverDetail(s: GameState, human: PlayerId): string {
   const pending = s.pending;
   if (pending?.kind !== 'gameOver') return '';
   const loser = pending.winner === null ? null : pending.winner === 0 ? 1 : 0;
-  const who = loser === null ? '' : loser === human ? 'You' : s.players[loser].name;
+  const mine = loser === human;
   switch (pending.reason) {
     case 'life':
-      return loser === null ? 'Both players fell to 0 life' : `${who} reached 0 life on turn ${s.turn}`;
+      if (loser === null) return 'Los dos jugadores llegaron a 0 vidas';
+      return `${mine ? 'Llegaste' : 'El rival llegó'} a 0 vidas en el turno ${s.turn}`;
     case 'decked':
-      return `${who} tried to draw from an empty library`;
+      return mine ? 'Intentaste robar de una biblioteca vacía' : 'El rival intentó robar de una biblioteca vacía';
     case 'concede':
-      return `${who} conceded`;
+      return mine ? 'Te rendiste' : 'El rival se rindió';
     case 'turnLimit':
-      return 'The turn limit was reached';
+      return 'Se alcanzó el límite de turnos';
   }
 }
 

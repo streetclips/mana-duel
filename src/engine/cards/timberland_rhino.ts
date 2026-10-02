@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const timberlandRhino: CardDef = {
   id: 'timberland_rhino',
-  name: 'Timberland Rhino',
+  name: 'Rinoceronte forestal',
   types: ['creature'],
-  subtypes: ['Rhino'],
+  subtypes: ['Rinoceronte'],
   cost: '{2}{G}{G}',
   power: 4,
   toughness: 4,
   keywords: ['trample'],
-  flavor: 'Paths are for things that stop.',
+  flavor: 'Los caminos son para los que se detienen.',
 };

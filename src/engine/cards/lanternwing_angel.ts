@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const lanternwingAngel: CardDef = {
   id: 'lanternwing_angel',
-  name: 'Lanternwing Angel',
+  name: 'Ángel alafarol',
   types: ['creature'],
-  subtypes: ['Angel'],
+  subtypes: ['Ángel'],
   cost: '{3}{W}',
   power: 2,
   toughness: 2,
   keywords: ['flying', 'lifelink'],
-  flavor: "She carries the hall's lantern so the dead can find their way home.",
+  flavor: 'Lleva el farol del templo para que los muertos encuentren el camino a casa.',
 };

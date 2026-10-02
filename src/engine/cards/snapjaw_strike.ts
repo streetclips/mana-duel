@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const snapjawStrike: CardDef = {
   id: 'snapjaw_strike',
-  name: 'Snapjaw Strike',
+  name: 'Dentellada',
   types: ['sorcery'],
   cost: '{1}{G}',
   spell: {
@@ -12,5 +12,5 @@ export const snapjawStrike: CardDef = {
     ],
     effects: [{ kind: 'bite', a: 0, b: 1 }],
   },
-  flavor: 'One bite. That is all the river ever needs.',
+  flavor: 'Un mordisco. Es todo lo que el río necesita.',
 };

@@ -88,15 +88,15 @@ interface CardSheetProps {
 }
 
 function actionLabel(s: GameState, action: Action): string {
-  if (action.type === 'playLand') return `Play ${getCardDef(s.cards[action.card]?.def ?? '').name}`;
-  if (action.type === 'cast') return `Cast ${getCardDef(s.cards[action.card]?.def ?? '').name}`;
+  if (action.type === 'playLand') return `Jugar ${getCardDef(s.cards[action.card]?.def ?? '').name}`;
+  if (action.type === 'cast') return `Lanzar ${getCardDef(s.cards[action.card]?.def ?? '').name}`;
   if (action.type === 'activate') {
     const ability = getCardDef(s.cards[action.card]?.def ?? '').activated?.[action.ability];
-    if (!ability) return 'Activate';
-    const cost = [ability.cost === '{0}' ? '' : ability.cost, ability.tap ? '{T}' : '', ability.sacrifice ? 'Sacrifice' : '']
+    if (!ability) return 'Activar';
+    const cost = [ability.cost === '{0}' ? '' : ability.cost, ability.tap ? '{T}' : '', ability.sacrifice ? 'sacrificar' : '']
       .filter(Boolean)
       .join(', ');
-    return `Activate ${cost}: ${ability.effects.map(effectHint).join(', ')}`;
+    return `Activar (${cost}): ${ability.effects.map(effectHint).join(', ')}`;
   }
   return action.type;
 }
@@ -117,7 +117,7 @@ function whyNot(s: GameState, id: CardId, human: PlayerId): string | null {
   if (card.zone !== 'hand' || card.owner !== human) return null;
   const def = getCardDef(card.def);
   const reason = def.types.includes('land') ? landPlayError(s, human, id) : castBlocker(s, human, id);
-  if (!reason) return def.types.includes('land') ? null : 'No legal targets right now';
+  if (!reason) return def.types.includes('land') ? null : 'Ahora no hay objetivos legales';
   return reason.charAt(0).toUpperCase() + reason.slice(1);
 }
 
@@ -126,36 +126,36 @@ function battlefieldStatuses(s: GameState, id: CardId, human: PlayerId): Status[
   if (card?.zone !== 'battlefield') return [];
   const def = getCardDef(card.def);
   const statuses: Status[] = [];
-  if (card.tapped) statuses.push({ text: 'Tapped' });
+  if (card.tapped) statuses.push({ text: 'Girada' });
   if (card.summoningSick && def.types.includes('creature') && !hasKeyword(s, id, 'haste')) {
-    statuses.push({ text: 'Summoning sick' });
+    statuses.push({ text: 'Mareo de invocación' });
   }
-  if (card.damage > 0) statuses.push({ text: `${card.damage} damage`, tone: 'bad' });
+  if (card.damage > 0) statuses.push({ text: `${card.damage} de daño`, tone: 'bad' });
   if (card.counters > 0) statuses.push({ text: countersLabel(card.counters), tone: 'good' });
   const pumps = s.effects.filter((effect) => effect.card === id);
   for (const pump of pumps) {
     const tone = pump.power < 0 || pump.toughness < 0 ? 'bad' : 'good';
-    statuses.push({ text: `${formatPump(pump.power, pump.toughness, pump.keywords)} this turn`, tone });
+    statuses.push({ text: `${formatPump(pump.power, pump.toughness, pump.keywords)} este turno`, tone });
   }
-  if (card.controller !== human) statuses.push({ text: `${s.players[card.controller].name}'s` });
+  if (card.controller !== human) statuses.push({ text: 'Del rival' });
   return statuses;
 }
 
-function zoneLabel(s: GameState, card: CardInstance, human: PlayerId): string {
-  const whose = card.owner === human ? 'your' : `${s.players[card.owner].name}'s`;
+function zoneLabel(card: CardInstance, human: PlayerId): string {
+  const mine = card.owner === human;
   switch (card.zone) {
     case 'library':
-      return `In ${whose} library`;
+      return mine ? 'En tu biblioteca' : 'En la biblioteca del rival';
     case 'hand':
-      return `In ${whose} hand`;
+      return mine ? 'En tu mano' : 'En la mano del rival';
     case 'battlefield':
-      return 'On the battlefield';
+      return 'En el campo de batalla';
     case 'graveyard':
-      return `In ${whose} graveyard`;
+      return mine ? 'En tu cementerio' : 'En el cementerio del rival';
     case 'stack':
-      return 'On the stack';
+      return 'En la pila';
     case 'gone':
-      return 'No longer in play';
+      return 'Ya no está en juego';
   }
 }
 
@@ -165,10 +165,10 @@ export function CardSheet({ s, id, human, actions, onAction, onClose }: CardShee
   const def = getCardDef(card.def);
   const buttons = distinctActions(actions);
   const hidden = card.zone === 'hand' && card.owner !== human;
-  const statuses: Status[] = [...(card.zone === 'stack' ? [{ text: 'On the stack' }] : []), ...battlefieldStatuses(s, id, human)];
+  const statuses: Status[] = [...(card.zone === 'stack' ? [{ text: 'En la pila' }] : []), ...battlefieldStatuses(s, id, human)];
   const note = buttons.length === 0 ? whyNot(s, id, human) : null;
   return (
-    <Sheet label={hidden ? 'Hidden card' : def.name} onClose={onClose}>
+    <Sheet label={hidden ? 'Carta oculta' : def.name} onClose={onClose}>
       <CardDetail def={def} face={<DetailCard s={s} id={id} />} statuses={statuses} />
       {buttons.length > 0 && (
         <div class="sheet-actions">
@@ -194,7 +194,7 @@ function LogCardSheet({ s, id, human, onClose }: { s: GameState; id: CardId; hum
   const card = s.cards[id];
   if (!card) return null;
   const def = getCardDef(card.def);
-  const statuses: Status[] = [{ text: zoneLabel(s, card, human) }, ...battlefieldStatuses(s, id, human)];
+  const statuses: Status[] = [{ text: zoneLabel(card, human) }, ...battlefieldStatuses(s, id, human)];
   return (
     <Sheet label={def.name} raised onClose={onClose}>
       <CardDetail def={def} face={<DetailCard s={s} id={id} />} statuses={statuses} />
@@ -218,10 +218,10 @@ export function LogPanel({ s, human, entries, onClose }: LogPanelProps) {
   return (
     <>
       <div class="scrim clear" onClick={onClose} />
-      <aside class="log-panel" data-testid="log-panel" aria-label="Game log">
+      <aside class="log-panel" data-testid="log-panel" aria-label="Registro de la partida">
         <header>
-          <h2>Game log</h2>
-          <button type="button" class="icon-btn" aria-label="Close log" onClick={onClose}>
+          <h2>Registro de la partida</h2>
+          <button type="button" class="icon-btn" aria-label="Cerrar el registro" onClick={onClose}>
             <CloseIcon />
           </button>
         </header>
@@ -267,38 +267,38 @@ export function Menu({ gameOver, fast, autoPass, audio, onNewGame, onConcede, on
       <div class="scrim clear" onClick={onClose} />
       <div class="popover" role="menu" data-testid="menu">
         <button type="button" role="menuitem" data-testid="menu-log" onClick={onLog}>
-          Game log
+          Registro de la partida
         </button>
         {onDecks && (
           <button type="button" role="menuitem" data-testid="menu-decks" onClick={onDecks}>
-            Decks
+            Mazos
           </button>
         )}
         <button type="button" role="menuitem" data-testid="menu-speed" onClick={onToggleSpeed}>
-          AI speed: {fast ? 'fast' : 'normal'}
+          Velocidad de la IA: {fast ? 'rápida' : 'normal'}
         </button>
         <button type="button" role="menuitemcheckbox" aria-checked={autoPass} data-testid="menu-autopass" onClick={onToggleAutoPass}>
-          Auto-pass: {autoPass ? 'on' : 'off'}
+          Pase automático: {autoPass ? 'sí' : 'no'}
         </button>
         {audio && (
           <>
             <button type="button" role="menuitemcheckbox" aria-checked={audio.music} data-testid="menu-music" onClick={audio.onToggleMusic}>
-              Music: {audio.music ? 'on' : 'off'}
+              Música: {audio.music ? 'sí' : 'no'}
             </button>
             <button type="button" role="menuitemcheckbox" aria-checked={audio.sfx} data-testid="menu-sfx" onClick={audio.onToggleSfx}>
-              Sound effects: {audio.sfx ? 'on' : 'off'}
+              Efectos de sonido: {audio.sfx ? 'sí' : 'no'}
             </button>
           </>
         )}
         <button type="button" role="menuitem" data-testid="menu-new-game" onClick={onNewGame}>
-          New game
+          Nueva partida
         </button>
         <button type="button" role="menuitem" data-testid="menu-home" onClick={onHome}>
-          Main menu
+          Menú principal
         </button>
         {!gameOver && (
           <button type="button" role="menuitem" class="danger" data-testid="menu-concede" onClick={onConcede}>
-            Concede
+            Rendirse
           </button>
         )}
       </div>
@@ -327,25 +327,25 @@ export function GameOverModal({ s, human, title, detail, onNewGame, onHome, onLo
         <div class="stats">
           <span>
             <b class="num">{s.turn}</b>
-            {s.turn === 1 ? 'turn' : 'turns'}
+            {s.turn === 1 ? 'turno' : 'turnos'}
           </span>
           <span>
-            <b class="num">{s.players[human].life}</b>your life
+            <b class="num">{s.players[human].life}</b>tus vidas
           </span>
           <span>
             <b class="num">{s.players[opponent].life}</b>
-            {s.players[opponent].name} life
+            vidas del rival
           </span>
         </div>
         <div class="sheet-actions">
           <button type="button" class="btn" data-testid="btn-play-again" onClick={onNewGame}>
-            Play again
+            Jugar otra vez
           </button>
           <button type="button" class="btn secondary" data-testid="btn-home" onClick={onHome}>
-            Main menu
+            Menú principal
           </button>
           <button type="button" class="btn secondary" data-testid="btn-view-log" onClick={onLog}>
-            View log
+            Ver el registro
           </button>
         </div>
       </div>

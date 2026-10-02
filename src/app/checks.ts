@@ -169,7 +169,7 @@ export const CHECKS: Check[] = [
       s = play(s, [{ type: 'playLand', player: 0, card: 'f1' }]);
       return first(
         expectValue(zone(s, 'f1'), 'battlefield', 'first land'),
-        refused(s, { type: 'playLand', player: 0, card: 'f2' }, 'you already played a land this turn'),
+        refused(s, { type: 'playLand', player: 0, card: 'f2' }, 'ya has jugado una tierra este turno'),
       );
     },
   },
@@ -184,7 +184,7 @@ export const CHECKS: Check[] = [
         ],
       });
       s = play(s, [{ type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] }]);
-      return refused(s, { type: 'cast', player: 0, card: 'hound', targets: [] }, 'this can only be cast during your main phase with an empty stack');
+      return refused(s, { type: 'cast', player: 0, card: 'hound', targets: [] }, 'esto solo se puede lanzar en tu fase principal con la pila vacía');
     },
   },
   {
@@ -218,8 +218,8 @@ export const CHECKS: Check[] = [
         players: [{ hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', sick: true }] }, {}],
       });
       return first(
-        refused(wrongColor, { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] }, 'not enough mana'),
-        refused(sickElf, { type: 'cast', player: 0, card: 'viper', targets: [] }, 'not enough mana'),
+        refused(wrongColor, { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] }, 'no hay suficiente maná'),
+        refused(sickElf, { type: 'cast', player: 0, card: 'viper', targets: [] }, 'no hay suficiente maná'),
       );
     },
   },
@@ -264,11 +264,11 @@ export const CHECKS: Check[] = [
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['drake', 'marauder'] }]));
       return first(
-        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'drake' }] }, 'elf cannot block drake'),
+        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'drake' }] }, 'elf no puede bloquear a drake'),
         refused(
           s,
           { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'marauder' }] },
-          "marauder has menace and can't be blocked except by two or more creatures",
+          'marauder tiene la habilidad de amenaza y no puede ser bloqueada excepto por dos o más criaturas',
         ),
         tryApplyAction(s, {
           type: 'declareBlockers',
@@ -441,7 +441,7 @@ export const CHECKS: Check[] = [
         s = passUntil(s, (state) => state.stack.length === 0);
       }
       const pumped = getPower(s, 'dragon');
-      const refusal = refused(s, { type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] }, 'not enough mana');
+      const refusal = refused(s, { type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] }, 'no hay suficiente maná');
       return first(expectValue(pumped, 6, 'power after two activations'), refusal);
     },
   },
@@ -610,7 +610,7 @@ export const CHECKS: Check[] = [
       const after = resolve(play(s, [{ type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'tapped' }] }]));
       return first(
         expectValue(targets, [{ card: 'tapped' }], 'legal targets'),
-        refused(s, { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] }, 'target 0 (untapped) is not legal'),
+        refused(s, { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] }, 'el objetivo 0 (untapped) no es legal'),
         expectValue(zone(after, 'tapped'), 'graveyard', 'tapped rhino'),
       );
     },
@@ -685,7 +685,7 @@ export const CHECKS: Check[] = [
         { type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] },
         { type: 'pass', player: 1 },
       ]);
-      const falcon = refused(s, { type: 'cast', player: 0, card: 'falcon', targets: [] }, 'this can only be cast during your main phase with an empty stack');
+      const falcon = refused(s, { type: 'cast', player: 0, card: 'falcon', targets: [] }, 'esto solo se puede lanzar en tu fase principal con la pila vacía');
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'skimmer', targets: [] }]));
       return first(
         falcon,
@@ -882,7 +882,7 @@ export const CHECKS: Check[] = [
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['thief'] }]));
       return first(
         expectValue(blockOptions(s), { squire: ['thief'] }, 'blockers for Fogslip Thief'),
-        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'thief' }] }, 'rhino cannot block thief'),
+        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'thief' }] }, 'rhino no puede bloquear a thief'),
       );
     },
   },
@@ -1047,7 +1047,7 @@ export const CHECKS: Check[] = [
         ]),
       );
       return first(
-        refused(snap, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] }, 'target 0 (lurker) is not legal'),
+        refused(snap, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] }, 'el objetivo 0 (lurker) no es legal'),
         expectValue([zone(lance, 'croc'), zone(lance, 'lance'), getKeywords(lance, 'croc')], ['battlefield', 'graveyard', ['hexproof']], 'after Magma Lance'),
       );
     },

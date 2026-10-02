@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const sanguineChorister: CardDef = {
   id: 'sanguine_chorister',
-  name: 'Sanguine Chorister',
+  name: 'Corista sanguínea',
   types: ['creature'],
-  subtypes: ['Vampire', 'Cleric'],
+  subtypes: ['Clérigo', 'Vampiro'],
   cost: '{1}{W}{B}',
   power: 2,
   toughness: 2,
   triggers: [{ on: 'lifeGain', targets: [], effects: [{ kind: 'loseLife', amount: 1, who: 'opponent' }] }],
-  flavor: 'Her hymn is sweet to the faithful and ruinous to everyone else.',
+  flavor: 'Su himno es dulce para los fieles y ruinoso para todos los demás.',
 };

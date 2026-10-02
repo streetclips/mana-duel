@@ -40,8 +40,8 @@ describe('sound settings', () => {
     const { audio } = setup();
     fireEvent.click(byTestId('btn-menu'));
     expect(checked('menu-music')).toBe('true');
-    expect(byTestId('menu-music').textContent).toBe('Music: on');
-    expect(byTestId('menu-sfx').textContent).toBe('Sound effects: on');
+    expect(byTestId('menu-music').textContent).toBe('Música: sí');
+    expect(byTestId('menu-sfx').textContent).toBe('Efectos de sonido: sí');
     fireEvent.click(byTestId('menu-music'));
     expect(screen.queryByTestId('menu')).toBeNull();
     expect(audio.music).toBe(false);
@@ -58,7 +58,7 @@ describe('sound settings', () => {
   it('toggle from the start screen, pressed while on', () => {
     const { audio } = setup('start');
     expect([pressed('btn-music'), pressed('btn-sfx')]).toEqual(['true', 'true']);
-    expect(byTestId('btn-music').getAttribute('aria-label')).toBe('Music');
+    expect(byTestId('btn-music').getAttribute('aria-label')).toBe('Música');
     fireEvent.click(byTestId('btn-music'));
     expect(pressed('btn-music')).toBe('false');
     expect(audio.music).toBe(false);

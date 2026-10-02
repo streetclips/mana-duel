@@ -115,11 +115,11 @@ test('an LLM from OpenRouter plays the AI seat, seeing only what the AI may see'
   expect(first.headers.authorization).toBe('Bearer sk-or-e2e');
   expect(first.body.model).toBe('mock/model');
   expect(first.body.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'decision', strict: true } });
-  expect(textOf(first.body, 'system')).toContain('You play the seat called "you"');
+  expect(textOf(first.body, 'system')).toContain('Juegas en el asiento llamado "you"');
   const hand = await page.evaluate(() => window.manaDuel.state().players[0].hand);
   for (const request of sent) {
     const prompt = textOf(request.body, 'user');
-    expect(prompt).toContain('## Game state from your seat');
+    expect(prompt).toContain('## Estado de la partida desde tu asiento');
     for (const id of hand) expect(prompt).not.toMatch(new RegExp(`\\b${id}\\b`));
   }
 
@@ -128,7 +128,7 @@ test('an LLM from OpenRouter plays the AI seat, seeing only what the AI may see'
   expect(decisions[0]).toMatchObject({ source: 'model', model: 'mock/model', reason: 'Playing it safe.', usage: { cost: 0.0002 } });
   await page.getByTestId('btn-menu').click();
   await page.getByTestId('menu-log').click();
-  await expect(page.getByTestId('log-panel').locator('li.note').first()).toHaveText('AI thinks: Playing it safe.');
+  await expect(page.getByTestId('log-panel').locator('li.note').first()).toHaveText('El rival piensa: Playing it safe.');
   expect(errors).toEqual([]);
 });
 
@@ -138,10 +138,10 @@ test('the classic AI takes over when OpenRouter refuses the key', async ({ page 
   await page.addInitScript(() => localStorage.setItem('manaDuel.openrouterKey', 'sk-or-revoked'));
   await page.goto('/?ai=llm&model=mock/model&seed=4&first=ai&aiDelay=0');
   await expect(page.getByTestId('llm-notice-text')).toHaveText(
-    'LLM unavailable: OpenRouter 401: No auth credentials found. The classic AI is playing.',
+    'LLM no disponible: OpenRouter 401: No auth credentials found. Juega la IA clásica.',
   );
   await expect(page.getByTestId('game')).toHaveAttribute('data-llm', 'unavailable');
-  await expect(page.getByTestId('prompt')).toHaveText('Keep your opening hand?');
+  await expect(page.getByTestId('prompt')).toHaveText('¿Te quedas con tu mano inicial?');
   await page.getByTestId('llm-notice-hide').click();
   await expect(page.getByTestId('llm-notice')).toHaveCount(0);
   await page.getByTestId('btn-keep').click();

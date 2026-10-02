@@ -106,7 +106,7 @@ const COLOR_MUSIC: Record<Color, ColorMusic> = {
 
 export const TITLE_THEME: Theme = {
   id: 'title',
-  name: 'Mana Duel',
+  name: 'Duelo de Maná',
   colors: [],
   tempo: 80,
   root: 53,
@@ -119,7 +119,7 @@ export const TITLE_THEME: Theme = {
 
 export const NEUTRAL_THEME: Theme = {
   id: 'neutral',
-  name: 'Colorless',
+  name: 'Incoloro',
   colors: [],
   tempo: 90,
   root: 57,

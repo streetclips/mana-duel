@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const duskmireShade: CardDef = {
   id: 'duskmire_shade',
-  name: 'Duskmire Shade',
+  name: 'Sombra de cieno',
   types: ['creature'],
-  subtypes: ['Shade'],
+  subtypes: ['Sombra'],
   cost: '{2}{B}',
   power: 1,
   toughness: 1,
@@ -15,5 +15,5 @@ export const duskmireShade: CardDef = {
       effects: [{ kind: 'pump', power: 1, toughness: 1, to: 'self' }],
     },
   ],
-  flavor: 'The darker the night, the larger it grows.',
+  flavor: 'Cuanto más oscura es la noche, más crece.',
 };

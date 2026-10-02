@@ -21,24 +21,24 @@ describe('GameController', () => {
     c.settle();
     expect(c.state.turn).toBe(1);
     expect(c.state.pending).toEqual({ kind: 'priority', player: 0 });
-    expect(c.log.map((entry) => entry.text)).toEqual(['You go first.', 'You keep 7 cards.', 'AI keeps 7 cards.', 'Turn 1 — your turn.']);
+    expect(c.log.map((entry) => entry.text)).toEqual(['Empiezas tú.', 'Te quedas con 7 cartas.', 'El rival se queda con 7 cartas.', 'Turno 1 — tu turno.']);
   });
 
   it('writes each log line in parts that name its cards', () => {
     const c = controller();
     c.loadScenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }] }, {}] });
     c.dispatch({ type: 'playLand', player: 0, card: 'f1' });
-    expect(c.log.at(-1)).toMatchObject({ text: 'You play Forest.', parts: ['You play ', { card: 'f1', name: 'Forest' }, '.'] });
+    expect(c.log.at(-1)).toMatchObject({ text: 'Juegas Bosque.', parts: ['Juegas ', { card: 'f1', name: 'Bosque' }, '.'] });
     c.newGame({ seed: 5, startingPlayer: 0 });
-    expect(c.log.map((entry) => entry.parts)).toEqual([['You go first.']]);
+    expect(c.log.map((entry) => entry.parts)).toEqual([['Empiezas tú.']]);
   });
 
   it('refuses actions for the AI seat or out of turn', () => {
     const c = controller();
-    expect(c.dispatch({ type: 'keep', player: 1 })).toEqual({ ok: false, error: 'you can only act for your own seat' });
+    expect(c.dispatch({ type: 'keep', player: 1 })).toEqual({ ok: false, error: 'solo puedes actuar por tu propio asiento' });
     c.dispatch({ type: 'keep', player: 0 });
     expect(c.state.pending).toEqual({ kind: 'mulligan', player: 1 });
-    expect(c.dispatch({ type: 'pass', player: 0 })).toEqual({ ok: false, error: 'it is not your decision' });
+    expect(c.dispatch({ type: 'pass', player: 0 })).toEqual({ ok: false, error: 'no te toca decidir' });
     expect(c.legalActions()).toEqual([]);
   });
 
@@ -162,15 +162,15 @@ const MANUAL = { endTurnRequested: false, autoPass: false };
 describe('auto-pass', () => {
   it('passes when there is nothing to do', () => {
     const s = createScenario({ players: [{}, {}] });
-    expect(autoPassReason(s, 0, AUTO)).toBe('nothing to do');
-    expect(autoPassReason(s, 0, MANUAL)).toBe('nothing to do');
+    expect(autoPassReason(s, 0, AUTO)).toBe('no hay nada que hacer');
+    expect(autoPassReason(s, 0, MANUAL)).toBe('no hay nada que hacer');
   });
 
   it('stops for the human’s own main phase when something can be played', () => {
     const s = createScenario({ players: [{ hand: ['forest'] }, {}] });
     expect(autoPassReason(s, 0, AUTO)).toBeNull();
-    expect(autoPassReason(s, 0, { ...AUTO, endTurnRequested: true })).toBe('ending the turn');
-    expect(autoPassReason(s, 0, { ...MANUAL, endTurnRequested: true })).toBe('ending the turn');
+    expect(autoPassReason(s, 0, { ...AUTO, endTurnRequested: true })).toBe('terminando el turno');
+    expect(autoPassReason(s, 0, { ...MANUAL, endTurnRequested: true })).toBe('terminando el turno');
   });
 
   it('stops to let the human respond to an opponent’s spell', () => {
@@ -191,7 +191,7 @@ describe('auto-pass', () => {
     let s = createScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
     s = applyAction(s, { type: 'pass', player: 1 });
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
-    expect(autoPassReason(s, 0, AUTO)).toBe("opponent's main phase");
+    expect(autoPassReason(s, 0, AUTO)).toBe('fase principal del rival');
     expect(autoPassReason(s, 0, MANUAL)).toBeNull();
   });
 
@@ -201,7 +201,7 @@ describe('auto-pass', () => {
     });
     s = applyAction(s, { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] });
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
-    expect(autoPassReason(s, 0, AUTO)).toBe('let your own spell resolve');
+    expect(autoPassReason(s, 0, AUTO)).toBe('deja que se resuelva tu propio hechizo');
     expect(autoPassReason(s, 0, MANUAL)).toBeNull();
   });
 
@@ -234,7 +234,7 @@ describe('test API', () => {
     expect(api.legalActions().map((action) => action.type)).toEqual(['keep', 'mulligan']);
     expect(api.dispatch({ type: 'keep', player: 0 })).toEqual({ ok: true, pending: { kind: 'mulligan', player: 1 } });
     expect(api.settle()).toEqual({ kind: 'priority', player: 0 });
-    expect(api.describe()).toContain('Turn 1');
+    expect(api.describe()).toContain('Turno 1');
     expect(api.cards().map((card) => card.id)).toContain('crag_dragon');
     expect(api.decks().map((deck) => [deck.id, deck.size])).toEqual([
       ['emberwild', 40],
@@ -249,7 +249,7 @@ describe('test API', () => {
       ['cindermaw', 40],
       ['deepgrove', 40],
     ]);
-    expect(api.decks()[2]?.cards).toContainEqual({ id: 'swamp', name: 'Swamp', count: 16 });
+    expect(api.decks()[2]?.cards).toContainEqual({ id: 'swamp', name: 'Pantano', count: 16 });
     expect(api.matchup()).toEqual(['emberwild', 'emberwild']);
     api.newGame({ decks: ['dawntide', 'duskmire'] });
     expect(api.matchup()).toEqual(['dawntide', 'duskmire']);

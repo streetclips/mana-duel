@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const graveHexer: CardDef = {
   id: 'grave_hexer',
-  name: 'Grave Hexer',
+  name: 'Brujo de tumbas',
   types: ['creature'],
-  subtypes: ['Human', 'Warlock'],
+  subtypes: ['Brujo', 'Humano'],
   cost: '{2}{B}',
   power: 2,
   toughness: 2,

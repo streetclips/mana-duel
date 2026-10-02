@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const squallSkimmer: CardDef = {
   id: 'squall_skimmer',
-  name: 'Squall Skimmer',
+  name: 'Ave de la borrasca',
   types: ['creature'],
-  subtypes: ['Bird'],
+  subtypes: ['Ave'],
   cost: '{1}{U}',
   power: 2,
   toughness: 1,
   keywords: ['flash', 'flying'],
-  flavor: 'Sailors say it is born in the first gust of every storm.',
+  flavor: 'Los marineros dicen que nace en la primera ráfaga de cada tormenta.',
 };

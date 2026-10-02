@@ -14,23 +14,40 @@ import {
 } from '../engine';
 
 export const SHORT_KEYWORDS: Record<Keyword, string> = {
-  flying: 'Flying',
-  reach: 'Reach',
-  haste: 'Haste',
-  vigilance: 'Vigilance',
-  trample: 'Trample',
-  firstStrike: '1st strike',
-  doubleStrike: '2× strike',
-  deathtouch: 'Deathtouch',
-  lifelink: 'Lifelink',
-  menace: 'Menace',
-  defender: 'Defender',
-  flash: 'Flash',
-  skulk: 'Skulk',
-  undying: 'Undying',
-  hexproof: 'Hexproof',
-  evolve: 'Evolve',
+  flying: 'Vuela',
+  reach: 'Alcance',
+  haste: 'Prisa',
+  vigilance: 'Vigilancia',
+  trample: 'Arrolla',
+  firstStrike: 'Daña 1.º',
+  doubleStrike: 'Daña 2×',
+  deathtouch: 'Toque mortal',
+  lifelink: 'Vínculo vital',
+  menace: 'Amenaza',
+  defender: 'Defensor',
+  flash: 'Destello',
+  skulk: 'Escurridizo',
+  undying: 'Resiliencia',
+  hexproof: 'Antimaleficio',
+  evolve: 'Evolucionar',
 };
+
+const MANA_NAMES: Record<string, string> = { W: 'blanco', U: 'azul', B: 'negro', R: 'rojo', G: 'verde' };
+
+export function manaName(symbol: string): string {
+  if (symbol === 'T') return 'girar';
+  if (/^\d+$/.test(symbol)) return `${symbol} genérico`;
+  return MANA_NAMES[symbol] ?? symbol;
+}
+
+function pluralName(name: string): string {
+  if (/[aeiouáéíóú]$/i.test(name)) return `${name}s`;
+  return `${name.replace(/[áéíóú](?=[a-z]$)/i, (vowel) => vowel.normalize('NFD').charAt(0))}es`;
+}
+
+function lives(amount: number): string {
+  return amount === 1 ? 'vida' : 'vidas';
+}
 
 export function cardColors(def: CardDef): Color[] {
   if (def.types.includes('land')) return def.mana ?? [];
@@ -58,58 +75,60 @@ export function cardColorVar(def: CardDef): string {
 export function effectHint(effect: Effect): string {
   switch (effect.kind) {
     case 'damage':
-      return `${effect.amount} dmg`;
+      return `${effect.amount} de daño`;
     case 'pump':
       return pumpHint(effect.power, effect.toughness, effect.keywords);
     case 'destroy':
-      return 'destroy';
+      return 'destruir';
     case 'bounce':
-      return 'bounce';
+      return 'a la mano';
     case 'counter':
-      return 'counter';
+      return 'contrarrestar';
     case 'draw':
-      return `draw ${effect.amount}`;
+      return `robar ${effect.amount}`;
     case 'gainLife':
-      return `+${effect.amount} life`;
+      return `+${effect.amount} ${lives(effect.amount)}`;
     case 'loseLife':
-      return effect.who === 'opponent' ? `opp -${effect.amount} life` : `-${effect.amount} life`;
+      return effect.who === 'opponent' ? `rival -${effect.amount} ${lives(effect.amount)}` : `-${effect.amount} ${lives(effect.amount)}`;
     case 'fight':
-      return 'fight';
+      return 'luchar';
     case 'bite':
-      return 'bite';
+      return 'morder';
     case 'pumpTeam':
-      return `team ${pumpHint(effect.power, effect.toughness, effect.keywords)}`;
+      return `todas ${pumpHint(effect.power, effect.toughness, effect.keywords)}`;
     case 'addCounters':
-      return `+${effect.amount} counter${effect.amount === 1 ? '' : 's'}`;
+      return `+${effect.amount} ${effect.amount === 1 ? 'contador' : 'contadores'}`;
     case 'addCountersTeam':
-      return `team +${effect.amount} counter${effect.amount === 1 ? '' : 's'}`;
-    case 'createTokens':
-      return `+${effect.amount} ${getCardDef(effect.token).name}${effect.amount === 1 ? '' : 's'}`;
+      return `todas +${effect.amount} ${effect.amount === 1 ? 'contador' : 'contadores'}`;
+    case 'createTokens': {
+      const name = getCardDef(effect.token).name;
+      return `+${effect.amount} ${effect.amount === 1 ? name : pluralName(name)}`;
+    }
     case 'discard':
-      return effect.who === 'opponent' ? `opp discards ${effect.amount}` : `discard ${effect.amount}`;
+      return effect.who === 'opponent' ? `rival descarta ${effect.amount}` : `descartar ${effect.amount}`;
     case 'returnToBattlefield':
-      return 'returns';
+      return 'regresa';
   }
 }
 
 const TRIGGER_HINTS: Record<TriggerEvent, string> = {
-  enters: 'Enters',
-  dies: 'Dies',
-  attacks: 'Attacks',
-  spell: 'Spell',
-  allyEnters: 'Ally enters',
-  allyDies: 'Ally dies',
-  damagesPlayer: 'Hits',
-  lifeGain: 'Gain life',
+  enters: 'Entra',
+  dies: 'Muere',
+  attacks: 'Ataca',
+  spell: 'Hechizo',
+  allyEnters: 'Otra entra',
+  allyDies: 'Otra muere',
+  damagesPlayer: 'Golpea',
+  lifeGain: 'Ganas vidas',
 };
 
 const CONDITION_HINTS: Record<TriggerCondition, string> = {
-  opponentDamaged: 'Bloodthirst',
+  opponentDamaged: 'Sed de sangre',
 };
 
 export function activatedCost(ability: ActivatedAbility): string {
   const cost = ability.cost === '{0}' ? '' : ability.cost.replace(/[{}]/g, '');
-  return [ability.tap ? 'T' : '', ability.sacrifice ? 'Sac' : '', cost].filter(Boolean).join(',');
+  return [ability.tap ? 'T' : '', ability.sacrifice ? 'Sacr.' : '', cost].filter(Boolean).join(',');
 }
 
 export function shortText(defId: string): string {

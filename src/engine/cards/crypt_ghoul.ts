@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const cryptGhoul: CardDef = {
   id: 'crypt_ghoul',
-  name: 'Crypt Ghoul',
+  name: 'Gul de la cripta',
   types: ['creature'],
   subtypes: ['Zombie'],
   cost: '{2}{B}',

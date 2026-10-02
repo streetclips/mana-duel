@@ -30,7 +30,7 @@ describe('a decision among the legal actions', () => {
     const decision = decisionFor(s, 1);
     expect(decision.kind).toBe('priority');
     expect(decision.options).toHaveLength(legal.length);
-    expect(decision.options[0]).toMatch(/^1: Pass priority/);
+    expect(decision.options[0]).toMatch(/^1: Pasar la prioridad/);
     legal.forEach((action, index) => {
       expect(decision.toAction({ reason, choice: String(index + 1) })).toEqual(action);
     });
@@ -40,12 +40,12 @@ describe('a decision among the legal actions', () => {
   it('describes each option from the deciding seat', () => {
     const s = mainPhase();
     const text = decisionFor(s, 1).options.join('\n');
-    expect(text).toContain('Play the land Forest (f)');
-    expect(text).toContain("Cast Ember Snap (snap) for {R} targeting opponent's Grove Tender (elf)");
-    expect(text).toContain('Cast Ember Snap (snap) for {R} targeting opponent');
-    expect(text).toContain('Activate your Crag Dragon (dragon): "{R}: This creature gets +1/+0 until end of turn."');
+    expect(text).toContain('Jugar la tierra Bosque (f)');
+    expect(text).toContain('Lanzar Chasquido de brasas (snap) por {R} sobre Elfa del soto (elf) del rival');
+    expect(text).toContain('Lanzar Chasquido de brasas (snap) por {R} sobre el rival');
+    expect(text).toContain('Activar tu Dragón del risco (dragon): "{R}: Esta criatura obtiene +1/+0 hasta el final del turno."');
     expect(describeAction(s, { type: 'pass', player: 1 }, 1)).toBe(
-      'Pass priority: do nothing now; once both players pass, the game moves on to Beginning of combat',
+      'Pasar la prioridad: no haces nada ahora; cuando los dos jugadores pasen, la partida avanza a: Inicio del combate',
     );
   });
 
@@ -54,14 +54,14 @@ describe('a decision among the legal actions', () => {
     const decision = decisionFor(s, 1);
     expect(decision.kind).toBe('mulligan');
     expect(decision.options).toEqual([
-      '1: Keep this 7-card hand',
-      '2: Mulligan: shuffle this hand away, draw a new hand of 7 and put 1 card on the bottom',
+      '1: Quedarte con esta mano de 7 cartas',
+      '2: Mulligan: barajar esta mano, robar una mano nueva de 7 y poner 1 carta en el fondo',
     ]);
     expect(decision.toAction({ reason, choice: '2' })).toEqual({ type: 'mulligan', player: 1 });
   });
 
   it('refuses to decide for the wrong seat', () => {
-    expect(() => decisionFor(mainPhase(), 0)).toThrow('player 0 is not the one deciding');
+    expect(() => decisionFor(mainPhase(), 0)).toThrow('no le toca decidir al jugador 0');
   });
 });
 
@@ -76,7 +76,7 @@ describe('combat decisions', () => {
     );
     const decision = decisionFor(s, 1);
     expect(Object.keys(fieldsOf(decision, 'attack'))).toEqual(['h1', 'rhino']);
-    expect(decision.question).toContain('Canopy Spider 1/3, Reach');
+    expect(decision.question).toContain('Araña del dosel 1/3, Alcance');
     expect(decision.toAction({ reason, attack: { h1: false, rhino: true } })).toEqual({ type: 'declareAttackers', player: 1, attackers: ['rhino'] });
   });
 
@@ -122,7 +122,7 @@ describe('combat decisions', () => {
     );
     const decision = decisionFor(s, 1);
     expect(() => decision.toAction({ reason, blocks: { s1: 'marauder', s2: 'none' } })).toThrow(DecisionError);
-    expect(() => decision.toAction({ reason, blocks: { s1: 'marauder', s2: 'none' } })).toThrow(/menace/);
+    expect(() => decision.toAction({ reason, blocks: { s1: 'marauder', s2: 'none' } })).toThrow(/amenaza/);
     expect(decision.toAction({ reason, blocks: { s1: 'marauder', s2: 'marauder' } })).toMatchObject({ type: 'declareBlockers' });
   });
 });
@@ -136,7 +136,7 @@ describe('choosing cards', () => {
     expect(decision.kind).toBe('bottom');
     const [first, second, third] = s.players[1].hand as [string, string, string];
     expect(decision.toAction({ reason, cards: [first, second] })).toEqual({ type: 'bottom', player: 1, cards: [first, second] });
-    expect(() => decision.toAction({ reason, cards: [first, first] })).toThrow('choose exactly 2 different cards from your hand, not 1');
+    expect(() => decision.toAction({ reason, cards: [first, first] })).toThrow('elige exactamente 2 cartas distintas de tu mano, no 1');
     expect(() => decision.toAction({ reason, cards: [first, second, third] })).toThrow(DecisionError);
   });
 
@@ -151,7 +151,7 @@ describe('choosing cards', () => {
     );
     const decision = decisionFor(s, 1);
     expect(decision.kind).toBe('discard');
-    expect(decision.answer).toBe('Answer with "cards": exactly 2 card ids from the list.');
+    expect(decision.answer).toBe('Responde con "cards": exactamente 2 ids de carta de la lista.');
     expect(decision.options).toHaveLength(9);
   });
 
@@ -169,7 +169,7 @@ describe('choosing cards', () => {
       'discard',
     );
     const decision = decisionFor(s, 1);
-    expect(decision.question).toBe("Your opponent's Memory Leech makes you discard 1 card: choose which.");
+    expect(decision.question).toBe('Sanguijuela mental del rival te obliga a descartar 1 carta: elige cuáles.');
     expect(decision.toAction({ reason, cards: ['snap'] })).toEqual({ type: 'discard', player: 1, cards: ['snap'] });
   });
 });

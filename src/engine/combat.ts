@@ -53,32 +53,32 @@ export function blockOptions(s: GameState): Record<CardId, CardId[]> {
 }
 
 export function attackersError(s: GameState, attackers: unknown): string | null {
-  if (!Array.isArray(attackers)) return 'attackers must be an array';
+  if (!Array.isArray(attackers)) return 'las atacantes deben ser una lista';
   const seen = new Set<string>();
   for (const id of attackers) {
-    if (typeof id !== 'string') return 'attackers must be card ids';
-    if (seen.has(id)) return `${id} was declared twice`;
+    if (typeof id !== 'string') return 'las atacantes deben ser ids de carta';
+    if (seen.has(id)) return `${id} se declaró dos veces`;
     seen.add(id);
-    if (!canAttack(s, id)) return `${id} cannot attack`;
+    if (!canAttack(s, id)) return `${id} no puede atacar`;
   }
   return null;
 }
 
 export function blocksError(s: GameState, blocks: unknown): string | null {
-  if (!Array.isArray(blocks)) return 'blocks must be an array';
+  if (!Array.isArray(blocks)) return 'los bloqueos deben ser una lista';
   const combat = s.combat;
-  if (!combat) return 'there is no combat';
+  if (!combat) return 'no hay combate';
   const blockers = new Set<string>();
   for (const block of blocks as Block[]) {
-    if (!block || typeof block.blocker !== 'string' || typeof block.attacker !== 'string') return 'malformed block';
-    if (blockers.has(block.blocker)) return `${block.blocker} can only block one attacker`;
+    if (!block || typeof block.blocker !== 'string' || typeof block.attacker !== 'string') return 'bloqueo mal formado';
+    if (blockers.has(block.blocker)) return `${block.blocker} solo puede bloquear a una atacante`;
     blockers.add(block.blocker);
-    if (!canBlockAttacker(s, block.blocker, block.attacker)) return `${block.blocker} cannot block ${block.attacker}`;
+    if (!canBlockAttacker(s, block.blocker, block.attacker)) return `${block.blocker} no puede bloquear a ${block.attacker}`;
   }
   for (const attacker of combat.attackers) {
     if (!hasKeyword(s, attacker, 'menace')) continue;
     const count = (blocks as Block[]).filter((block) => block.attacker === attacker).length;
-    if (count === 1) return `${attacker} has menace and can't be blocked except by two or more creatures`;
+    if (count === 1) return `${attacker} tiene la habilidad de amenaza y no puede ser bloqueada excepto por dos o más criaturas`;
   }
   return null;
 }

@@ -2,7 +2,7 @@ import type { CardDef } from '../types';
 
 export const penance: CardDef = {
   id: 'penance',
-  name: 'Penance',
+  name: 'Penitencia',
   types: ['instant'],
   cost: '{W}{B}',
   spell: {
@@ -12,5 +12,5 @@ export const penance: CardDef = {
       { kind: 'gainLife', amount: 2 },
     ],
   },
-  flavor: 'The hall forgives. The hall also collects.',
+  flavor: 'El templo perdona. El templo también cobra.',
 };

@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const scorchfangHound: CardDef = {
   id: 'scorchfang_hound',
-  name: 'Scorchfang Hound',
+  name: 'Sabueso calcinador',
   types: ['creature'],
-  subtypes: ['Hound'],
+  subtypes: ['Sabueso'],
   cost: '{3}{R}',
   power: 3,
   toughness: 2,
@@ -16,5 +16,5 @@ export const scorchfangHound: CardDef = {
       effects: [{ kind: 'damage', amount: 1, to: 0 }],
     },
   ],
-  flavor: 'It leaves a trail of burning pawprints straight to your door.',
+  flavor: 'Deja un rastro de huellas ardientes hasta tu puerta.',
 };

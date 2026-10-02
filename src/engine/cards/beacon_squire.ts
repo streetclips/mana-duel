@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const beaconSquire: CardDef = {
   id: 'beacon_squire',
-  name: 'Beacon Squire',
+  name: 'Escudero del faro',
   types: ['creature'],
-  subtypes: ['Human', 'Soldier'],
+  subtypes: ['Soldado', 'Humano'],
   cost: '{1}{W}',
   power: 2,
   toughness: 2,
   keywords: ['vigilance'],
-  flavor: 'Someone has to be awake when the dawn comes.',
+  flavor: 'Alguien tiene que estar despierto cuando llegue el alba.',
 };

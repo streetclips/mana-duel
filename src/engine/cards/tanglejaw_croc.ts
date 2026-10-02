@@ -2,9 +2,9 @@ import type { CardDef } from '../types';
 
 export const tanglejawCroc: CardDef = {
   id: 'tanglejaw_croc',
-  name: 'Tanglejaw Croc',
+  name: 'Cocodrilo de algas',
   types: ['creature'],
-  subtypes: ['Crocodile'],
+  subtypes: ['Cocodrilo'],
   cost: '{2}{G}{U}',
   power: 3,
   toughness: 3,
@@ -15,5 +15,5 @@ export const tanglejawCroc: CardDef = {
       effects: [{ kind: 'bounce', to: 0 }],
     },
   ],
-  flavor: "The river gives back what it doesn't want.",
+  flavor: 'El río devuelve lo que no quiere.',
 };

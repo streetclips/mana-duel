@@ -2,12 +2,12 @@ import type { CardDef } from '../types';
 
 export const chantryGuard: CardDef = {
   id: 'chantry_guard',
-  name: 'Chantry Guard',
+  name: 'Guardia de capilla',
   types: ['creature'],
-  subtypes: ['Human', 'Soldier'],
+  subtypes: ['Soldado', 'Humano'],
   cost: '{1}{W}',
   power: 2,
   toughness: 1,
   keywords: ['lifelink'],
-  flavor: 'She guards the doors at dusk, and the doors guard her.',
+  flavor: 'Guarda las puertas al anochecer, y las puertas la guardan a ella.',
 };

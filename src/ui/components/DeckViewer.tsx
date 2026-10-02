@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { deckSize, getCardDef, getCost, manaValue, type CardDef, type DeckDef, type DeckEntry } from '../../engine';
-import { cardColorVar, cssVars } from '../cardInfo';
+import { cardColorVar, cssVars, manaName } from '../cardInfo';
 import { DetailFace, MiniFace } from './Card';
 import { CardDetail, CloseIcon, Sheet } from './Overlays';
 
@@ -44,9 +44,9 @@ export function deckGroups(deck: DeckDef): DeckGroup[] {
     return def.types.includes('creature') ? 'creature' : 'spell';
   };
   return [
-    { title: 'Creatures', entries: byCost(deck.cards.filter((entry) => kind(entry) === 'creature')) },
-    { title: 'Instants and sorceries', entries: byCost(deck.cards.filter((entry) => kind(entry) === 'spell')) },
-    { title: 'Lands', entries: deck.cards.filter((entry) => kind(entry) === 'land') },
+    { title: 'Criaturas', entries: byCost(deck.cards.filter((entry) => kind(entry) === 'creature')) },
+    { title: 'Instantáneos y conjuros', entries: byCost(deck.cards.filter((entry) => kind(entry) === 'spell')) },
+    { title: 'Tierras', entries: deck.cards.filter((entry) => kind(entry) === 'land') },
   ].filter((group) => group.entries.length > 0);
 }
 
@@ -63,13 +63,13 @@ export function manaCurve(deck: DeckDef): number[] {
 function ManaCurve({ deck }: { deck: DeckDef }) {
   const curve = manaCurve(deck);
   const max = Math.max(1, ...curve);
-  const summary = curve.map((count, index) => `${count} costing ${CURVE_LABELS[index]}`).join(', ');
+  const summary = curve.map((count, index) => `${count} de coste ${CURVE_LABELS[index]}`).join(', ');
   return (
-    <figure class="curve" data-testid="mana-curve" aria-label={`Mana curve of the nonland cards: ${summary}`}>
-      <figcaption>Mana curve</figcaption>
+    <figure class="curve" data-testid="mana-curve" aria-label={`Curva de maná de las cartas que no son tierras: ${summary}`}>
+      <figcaption>Curva de maná</figcaption>
       <div class="curve-plot" aria-hidden="true">
         {curve.map((count, index) => (
-          <div key={CURVE_LABELS[index]} class="curve-col" title={`${count} card${count === 1 ? '' : 's'} costing ${CURVE_LABELS[index]}`}>
+          <div key={CURVE_LABELS[index]} class="curve-col" title={`${count} ${count === 1 ? 'carta' : 'cartas'} de coste ${CURVE_LABELS[index]}`}>
             <span class="curve-value num">{count}</span>
             <span class="curve-bar" style={{ height: `${Math.round((count / max) * CURVE_HEIGHT)}px` }} />
           </div>
@@ -86,7 +86,7 @@ function ManaCurve({ deck }: { deck: DeckDef }) {
 
 export function ColorDots({ deck }: { deck: DeckDef }) {
   return (
-    <span class="mana-dots" aria-label={`Colors: ${deck.colors.join(' ')}`}>
+    <span class="mana-dots" aria-label={`Colores: ${deck.colors.map(manaName).join(' y ')}`}>
       {deck.colors.map((color) => (
         <span key={color} style={cssVars({ '--dot': `var(--mana-${color})` })} />
       ))}
@@ -99,7 +99,7 @@ function DeckStats({ deck }: { deck: DeckDef }) {
   const count = (title: string): number => countOf(groups.find((group) => group.title === title)?.entries ?? []);
   return (
     <p class="deck-stats num" data-testid="deck-stats">
-      {deckSize(deck)} cards · {count('Creatures')} creatures · {count('Instants and sorceries')} spells · {count('Lands')} lands
+      {deckSize(deck)} cartas · {count('Criaturas')} criaturas · {count('Instantáneos y conjuros')} hechizos · {count('Tierras')} tierras
     </p>
   );
 }
@@ -132,13 +132,13 @@ export function DeckViewer({ tabs, initial, onClose }: DeckViewerProps) {
   const inspectedEntry = inspected ? deck.cards.find((entry) => entry.card === inspected) : undefined;
 
   return (
-    <div class="deck-viewer" role="dialog" aria-label={`${deck.name} deck`} data-testid="deck-viewer" data-deck={deck.id}>
+    <div class="deck-viewer" role="dialog" aria-label={`Mazo ${deck.name}`} data-testid="deck-viewer" data-deck={deck.id}>
       <header class="deck-viewer-bar">
-        <button type="button" class="icon-btn" aria-label="Close deck" data-testid="btn-deck-close" onClick={onClose}>
+        <button type="button" class="icon-btn" aria-label="Cerrar el mazo" data-testid="btn-deck-close" onClick={onClose}>
           <CloseIcon />
         </button>
         {tabs.length > 1 ? (
-          <div class="segmented" role="tablist" aria-label="Decks in this game">
+          <div class="segmented" role="tablist" aria-label="Mazos de esta partida">
             {tabs.map((candidate) => (
               <button
                 key={candidate.key}
@@ -157,7 +157,7 @@ export function DeckViewer({ tabs, initial, onClose }: DeckViewerProps) {
             ))}
           </div>
         ) : (
-          <span class="deck-viewer-title">Deck</span>
+          <span class="deck-viewer-title">Mazo</span>
         )}
       </header>
 
@@ -192,7 +192,7 @@ export function DeckViewer({ tabs, initial, onClose }: DeckViewerProps) {
           <CardDetail
             def={getCardDef(inspectedEntry.card)}
             face={<DetailFace def={getCardDef(inspectedEntry.card)} />}
-            statuses={[{ text: `${inspectedEntry.count} ${inspectedEntry.count === 1 ? 'copy' : 'copies'} in ${deck.name}` }]}
+            statuses={[{ text: `${inspectedEntry.count} ${inspectedEntry.count === 1 ? 'copia' : 'copias'} en ${deck.name}` }]}
           />
         </Sheet>
       )}
