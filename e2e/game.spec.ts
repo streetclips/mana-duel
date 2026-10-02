@@ -315,6 +315,62 @@ test('every card shows art that loads in the browser build, tokens on the battle
   expect(errors).toEqual([]);
 });
 
+test('every card name fits two lines in hand, and ability pills fit their cards on the battlefield', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=1&aiDelay=0');
+  const cards = await page.evaluate(() => {
+    const cards = window.manaDuel
+      .cards()
+      .filter((card) => !card.token)
+      .map((card) => card.id);
+    window.manaDuel.loadScenario({
+      players: [
+        {
+          hand: cards,
+          battlefield: [
+            { card: 'crag_dragon', id: 'dragon' },
+            { card: 'grove_tender', id: 'elf' },
+            { card: 'kelpweaver_druid', id: 'druid', tapped: true },
+            { card: 'duskmire_shade', id: 'shade' },
+            'mountain',
+          ],
+        },
+        {
+          battlefield: [
+            { card: 'bloodspore_thrall', id: 'thrall' },
+            { card: 'bonewood_stalker', id: 'stalker' },
+          ],
+        },
+      ],
+    });
+    return cards;
+  });
+  const overflowingNames = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('[data-testid="hand"] .card .name')]
+      .filter((name) => name.scrollHeight > name.clientHeight + 1)
+      .map((name) => name.textContent),
+  );
+  expect(overflowingNames).toEqual([]);
+  await expect(page.getByTestId('hand').locator('.card .name')).toHaveCount(cards.length);
+  const pills = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('.permanent .ability')].map((pill) => {
+      const box = pill.getBoundingClientRect();
+      const card = (pill.closest('.card') as HTMLElement).getBoundingClientRect();
+      const inside = box.left >= card.left - 0.5 && box.right <= card.right + 0.5 && box.top >= card.top - 0.5 && box.bottom <= card.bottom + 0.5;
+      return { pill: pill.dataset.testid, inside, fits: pill.scrollWidth <= pill.clientWidth + 1 };
+    }),
+  );
+  expect(pills.map((pill) => pill.pill).sort()).toEqual(
+    ['ability-dragon-0', 'ability-druid-mana', 'ability-elf-mana', 'ability-shade-0', 'ability-stalker-0', 'ability-thrall-0'].sort(),
+  );
+  expect(pills.filter((pill) => !pill.inside || !pill.fits)).toEqual([]);
+  await expect(page.getByTestId('ability-dragon-0')).toHaveAttribute('data-usable', 'true');
+  await expect(page.getByTestId('ability-shade-0')).not.toHaveAttribute('data-usable');
+  await expect(page.getByTestId('ability-druid-mana')).toHaveAttribute('data-spent', 'true');
+  await expectNoHorizontalOverflow(page);
+  expect(errors).toEqual([]);
+});
+
 test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the AI forces, an undying creature sacrificed', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=brightforge&aiDeck=mistgrave&aiDelay=0');

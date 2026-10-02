@@ -24,6 +24,9 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   The in-game menu shows both decks too.
 - Tap a card to read it; the sheet that opens holds its actions (play, cast, activate). Long-press or right-click
   inspects any card. The game log, in the menu, opens every card it names on a tap.
+- On the battlefield a card is its art, with icons for its keywords and for a trigger still to come, and a pill with
+  the cost and effect of each ability you activate (`T: +G`, `R: +1/+0`, `Sacr.: -2/-2`), lit while you can use it.
+  In hand, its name and text sit over the art.
 - Targets glow when a spell needs one: tap the creature or the player, or the spell in the center strip for a
   counterspell.
 - Attack by tapping your creatures, then **Atacar**. Block by tapping your creature, then the attacker it should
@@ -79,7 +82,7 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   Espíritu) — each with its own SVG illustration in `public/cards/`, listed in [`docs/CARDS.md`](docs/CARDS.md)
   (generated from the definitions). Their Spanish names, types and rules text follow the official Spanish
   terminology of Magic (*Vuela*, *Arrolla*, *Resiliencia*, «Crea una ficha de criatura Soldado blanca 1/1»), and each
-  name fits the two lines of a card on the battlefield.
+  name fits the two lines of a card in hand.
 
 ## Testing and verification
 

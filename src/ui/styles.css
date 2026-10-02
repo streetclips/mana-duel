@@ -1359,7 +1359,7 @@ button {
   position: absolute;
   left: 0;
   top: 0;
-  padding: calc(7px * var(--s, 1)) calc(6px * var(--s, 1)) calc(5px * var(--s, 1));
+  container-type: inline-size;
 }
 
 .slot.tapped .permanent {
@@ -1376,22 +1376,6 @@ button {
   -webkit-box-orient: vertical;
   overflow: hidden;
   letter-spacing: -0.005em;
-}
-
-.card .name.long {
-  font-size: 9px;
-}
-
-.card .kw {
-  margin-top: 4px;
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--muted);
-  line-height: 1.25;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .card .art {
@@ -1438,38 +1422,197 @@ button {
   color: var(--bad);
 }
 
-.permanent .name {
-  font-size: calc(10.5px * var(--s, 1));
+.permanent,
+.mini {
+  padding: 0;
+  border-color: transparent;
+  background: #2b2723;
+  color: #fff;
 }
 
-.permanent .name.long {
-  font-size: calc(9px * var(--s, 1));
+.permanent::before,
+.mini::before {
+  inset: 0;
+  height: auto;
+  z-index: 4;
+  border-radius: inherit;
+  background: none;
+  box-shadow: inset 0 0 0 calc(2px * var(--s, 1)) var(--card-color, var(--mana-C));
+  pointer-events: none;
 }
 
-.permanent .kw {
-  font-size: calc(9px * var(--s, 1));
-  margin-top: calc(4px * var(--s, 1));
+.permanent .art,
+.mini .art {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  background: none;
 }
 
-.permanent .art {
-  margin: calc(5px * var(--s, 1)) calc(-6px * var(--s, 1)) calc(-5px * var(--s, 1));
+.icon {
+  display: block;
+  flex: none;
+  width: calc(16px * var(--s, 1));
+  height: calc(16px * var(--s, 1));
+  color: #fff;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.icon-disc {
+  fill: rgba(21, 18, 15, 0.82);
+}
+
+.icon-ring {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 0.9;
+}
+
+.icon-glyph {
+  fill: currentColor;
+}
+
+.permanent .icons {
+  position: absolute;
+  z-index: 2;
+  top: calc(6px * var(--s, 1));
+  left: calc(5px * var(--s, 1));
+  display: flex;
+  flex-direction: column;
+  gap: calc(2px * var(--s, 1));
+}
+
+.abilities {
+  position: absolute;
+  z-index: 3;
+  left: calc(3px * var(--s, 1));
+  right: calc(3px * var(--s, 1));
+  bottom: calc(25px * var(--s, 1));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(2px * var(--s, 1));
+}
+
+.ability {
+  max-width: 100%;
+  padding: calc(3.8px * var(--s, 1)) calc(4.5px * var(--s, 1));
+  border-radius: calc(9px * var(--s, 1));
+  background: rgba(21, 18, 15, 0.84);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: calc(8.5px * var(--s, 1));
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.ability .cost {
+  white-space: nowrap;
+}
+
+.ability.symbol-led {
+  display: flex;
+  align-items: center;
+  column-gap: calc(3px * var(--s, 1));
+  padding: calc(2.5px * var(--s, 1)) calc(6px * var(--s, 1)) calc(2.5px * var(--s, 1)) calc(2.5px * var(--s, 1));
+}
+
+.ability.symbol-led .cost,
+.ability.symbol-led .effect {
+  display: flex;
+  align-items: center;
+}
+
+.ability.symbol-led .effect {
+  gap: calc(1px * var(--s, 1));
+}
+
+.ability .cost > .pip:last-of-type:not(.tap) {
+  margin-right: calc(-1px * var(--s, 1));
+}
+
+.ability .pip {
+  width: calc(12px * var(--s, 1));
+  height: calc(12px * var(--s, 1));
+  font-size: calc(7.5px * var(--s, 1));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+.ability .pip.tap {
+  background: #fff;
+  color: #15120f;
+}
+
+.ability[data-usable='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 calc(1.5px * var(--s, 1)) var(--target),
+    0 0 calc(9px * var(--s, 1)) color-mix(in srgb, var(--target) 75%, transparent);
+}
+
+.ability[data-usable='true'] .pip {
+  box-shadow: none;
+}
+
+.ability[data-usable='true'] .pip.tap {
+  background: var(--ink-2);
+  color: var(--surface);
+}
+
+.ability[data-spent='true'] {
+  opacity: 0.5;
+}
+
+@container (max-width: 62px) {
+  .abilities {
+    left: calc(2px * var(--s, 1));
+    right: calc(2px * var(--s, 1));
+  }
+
+  .ability {
+    padding: calc(2.9px * var(--s, 1)) calc(4px * var(--s, 1));
+    font-size: calc(7.5px * var(--s, 1));
+  }
+
+  .ability.symbol-led {
+    flex-wrap: wrap;
+    padding: calc(2px * var(--s, 1)) calc(4px * var(--s, 1)) calc(2px * var(--s, 1)) calc(2px * var(--s, 1));
+  }
+
+  .ability .pip {
+    width: calc(10.5px * var(--s, 1));
+    height: calc(10.5px * var(--s, 1));
+    font-size: calc(6.5px * var(--s, 1));
+  }
 }
 
 .permanent .pt {
-  font-size: calc(15px * var(--s, 1));
-  padding: 0 calc(5px * var(--s, 1)) 0 calc(6px * var(--s, 1));
-  border-top-left-radius: calc(7px * var(--s, 1));
+  right: calc(4px * var(--s, 1));
+  bottom: calc(4px * var(--s, 1));
+  z-index: 3;
+  padding: 0 calc(5px * var(--s, 1));
+  border-radius: calc(6px * var(--s, 1));
+  font-size: calc(14px * var(--s, 1));
+  line-height: 1.15;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.42);
 }
 
 .card .sick {
   position: absolute;
-  left: calc(5px * var(--s, 1));
-  bottom: calc(5px * var(--s, 1));
+  z-index: 3;
+  left: calc(6px * var(--s, 1));
+  bottom: calc(7px * var(--s, 1));
   width: calc(9px * var(--s, 1));
   height: calc(9px * var(--s, 1));
   border-radius: 50%;
-  border: calc(2px * var(--s, 1)) solid var(--muted);
-  background: var(--surface);
+  border: calc(2px * var(--s, 1)) solid #fff;
+  background: rgba(0, 0, 0, 0.38);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
 
 .card.playable {
@@ -1525,6 +1668,7 @@ button {
 
 .badge {
   position: absolute;
+  z-index: 3;
   top: 7px;
   right: 5px;
   min-width: 17px;
@@ -1548,6 +1692,7 @@ button {
 
 .flash {
   position: absolute;
+  z-index: 5;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
@@ -2007,7 +2152,6 @@ p .pip,
   width: var(--hand-w);
   height: var(--hand-h);
   flex: none;
-  padding: 7px 7px 6px;
 }
 
 .hand-card + .hand-card {
@@ -2015,36 +2159,66 @@ p .pip,
 }
 
 .mini .cost {
+  position: absolute;
+  z-index: 2;
+  top: 6px;
+  left: 6px;
   display: flex;
-  justify-content: flex-start;
-  min-height: 13px;
-  margin-bottom: 4px;
+}
+
+.mini .cost .pip {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.mini .caption {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 18px 6px 6px;
+  background: linear-gradient(to top, rgba(16, 14, 12, 0.9) 0%, rgba(16, 14, 12, 0.76) 55%, rgba(16, 14, 12, 0) 100%);
 }
 
 .mini .pt {
-  right: auto;
-  left: 0;
-  padding: 0 6px;
-  border-radius: 0 7px 0 0;
+  position: static;
+  margin-bottom: 3px;
+  padding: 0 5px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.42);
 }
 
 .mini .name {
-  font-size: 11.5px;
+  max-width: 100%;
+  font-size: 10.5px;
+  line-height: 1.12;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
 }
 
 .mini .text {
-  font-size: 8.5px;
-  line-height: 1.2;
-  color: var(--ink-2);
-  margin-top: 3px;
+  max-width: 100%;
+  margin-top: 2px;
+  font-size: 8px;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.8);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.mini .art {
-  margin: 5px -7px -6px;
+.mini .text .icon {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  margin-right: 2px;
+  vertical-align: middle;
 }
 
 .hand-card.playable {
@@ -2057,10 +2231,6 @@ p .pip,
 
 .hand-card.selected {
   transform: translateY(-14px);
-}
-
-.mini.land {
-  background: color-mix(in srgb, var(--card-color) 10%, var(--surface));
 }
 
 .hand-back {
@@ -2811,19 +2981,21 @@ p .pip,
 .deck-card {
   width: 100%;
   aspect-ratio: 5 / 7;
-  padding: 7px 7px 6px;
 }
 
 .deck-card .copies {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  padding: 0 6px 0 6px;
+  z-index: 3;
+  top: 5px;
+  right: 5px;
+  padding: 0 6px;
+  border-radius: 999px;
   background: var(--surface);
-  border-top-left-radius: 7px;
-  font-size: 13px;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.42);
+  font-size: 12px;
   font-weight: 750;
-  line-height: 1.15;
+  line-height: 1.3;
   letter-spacing: -0.02em;
 }
 
@@ -2904,7 +3076,6 @@ p .pip,
 .fx-reveal-card {
   width: 92px;
   height: 128px;
-  padding: 7px 7px 6px;
   cursor: default;
   box-shadow: var(--shadow-lift);
 }
@@ -2987,6 +3158,9 @@ p .pip,
   .fx-reveal-card {
     width: 74px;
     height: 104px;
+  }
+  .mini .name {
+    font-size: 9.5px;
   }
 }
 

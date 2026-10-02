@@ -404,6 +404,85 @@ describe('card art', () => {
   });
 });
 
+describe('card faces', () => {
+  const iconsOf = (element: HTMLElement, selector: string): string[] =>
+    [...element.querySelectorAll(`${selector} .icon`)].map((icon) => icon.getAttribute('data-icon') ?? '');
+
+  it('show keyword icons and ability pills on the battlefield, and a trigger icon only while it can still happen', () => {
+    setup({
+      players: [
+        {
+          battlefield: [
+            { card: 'crag_dragon', id: 'dragon' },
+            { card: 'grove_tender', id: 'elf' },
+            { card: 'cinder_adept', id: 'adept' },
+          ],
+        },
+        { battlefield: [{ card: 'rotwing_crow', id: 'crow' }, { card: 'bloodspore_thrall', id: 'thrall' }] },
+      ],
+    });
+    expect(iconsOf(byTestId('card-dragon'), '.icons')).toEqual(['flying']);
+    expect(iconsOf(byTestId('card-elf'), '.icons')).toEqual([]);
+    expect(iconsOf(byTestId('card-adept'), '.icons')).toEqual([]);
+    expect(iconsOf(byTestId('card-crow'), '.icons')).toEqual(['flying', 'trigger']);
+    expect(iconsOf(byTestId('card-thrall'), '.icons')).toEqual(['undying']);
+    expect(byTestId('ability-dragon-0').textContent).toBe('R: +1/+0');
+    expect(byTestId('ability-elf-mana').textContent).toBe('T: +G');
+    expect(byTestId('ability-thrall-0').textContent).toBe('Sacr.: rival -1\u00a0vida');
+    expect(byTestId('card-adept').querySelector('.ability')).toBeNull();
+  });
+
+  it('light an ability pill up only while you can pay it', () => {
+    const { settle } = setup({ players: [{ battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain'] }, {}] });
+    expect(byTestId('ability-dragon-0').dataset.usable).toBe('true');
+    click(byTestId('card-dragon'));
+    click(byTestId('sheet-activate'));
+    settle();
+    expect(byTestId('pt-dragon').textContent).toBe('5/4');
+    expect(byTestId('ability-dragon-0').dataset.usable).toBeUndefined();
+  });
+
+  it('dim the mana pill of a creature that is tapped or summoning sick', () => {
+    setup({
+      players: [
+        {
+          battlefield: [
+            { card: 'grove_tender', id: 'elf' },
+            { card: 'kelpweaver_druid', id: 'druid', tapped: true },
+            { card: 'grove_tender', id: 'newcomer', sick: true },
+          ],
+        },
+        {},
+      ],
+    });
+    expect(byTestId('ability-elf-mana').dataset.spent).toBeUndefined();
+    expect(byTestId('ability-druid-mana').dataset.spent).toBe('true');
+    expect(byTestId('ability-druid-mana').textContent).toBe('T: +G/U');
+    expect(byTestId('ability-newcomer-mana').dataset.spent).toBe('true');
+  });
+
+  it('show a keyword granted until end of turn', () => {
+    const { settle } = setup({
+      players: [{ hand: [{ card: 'nightshade_tonic', id: 'tonic' }], battlefield: [{ card: 'grove_tender', id: 'elf' }, 'forest', 'forest'] }, {}],
+    });
+    expect(iconsOf(byTestId('card-elf'), '.icons')).toEqual([]);
+    playFromHand('tonic', 'sheet-cast');
+    click(byTestId('card-elf'));
+    settle();
+    expect(iconsOf(byTestId('card-elf'), '.icons')).toEqual(['deathtouch']);
+  });
+
+  it('write in hand the printed keywords as icons before the rest of the text', () => {
+    setup({ players: [{ hand: [{ card: 'crag_dragon', id: 'dragon' }, { card: 'ember_snap', id: 'snap' }] }, {}] });
+    const dragon = byTestId('card-dragon');
+    expect(dragon.querySelector('.name')?.textContent).toBe('Dragón del risco');
+    expect(iconsOf(dragon, '.text')).toEqual(['flying']);
+    expect(dragon.querySelector('.text')?.textContent).toContain('R: +1/+0');
+    expect(iconsOf(byTestId('card-snap'), '.text')).toEqual([]);
+    expect(byTestId('card-snap').querySelector('.text')?.textContent).toContain('Chasquido de brasas hace 2 puntos de daño');
+  });
+});
+
 describe('combat', () => {
   it('declares attackers by tapping creatures', () => {
     const { settle } = setup({ players: [{ battlefield: [{ card: 'ember_hound', id: 'hound' }] }, {}] });

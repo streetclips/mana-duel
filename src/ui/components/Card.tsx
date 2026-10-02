@@ -1,21 +1,27 @@
-import type { ComponentChildren, CSSProperties } from 'preact';
+import { Fragment, type ComponentChildren, type CSSProperties } from 'preact';
 import {
   costSymbols,
   countersLabel,
   getCardDef,
   getCost,
+  getKeywords,
   getPower,
   getToughness,
   hasKeyword,
+  isReadyToTap,
+  parseCost,
   rulesText,
   typeLine,
+  type ActivatedAbility,
   type CardDef,
   type CardId,
   type GameState,
+  type Keyword,
 } from '../../engine';
-import { cardArtUrl, cardColorVar, cssVars, hasLongWord, manaName, shortText } from '../cardInfo';
+import { abilityHints, cardArtUrl, cardColorVar, cssVars, effectHint, lastingTriggers, manaName, triggerHint } from '../cardInfo';
 import type { CardFx, GhostFx } from '../fx';
 import { usePress } from '../useController';
+import { CardIcon } from './KeywordIcon';
 
 export function CardArt({ defId }: { defId: string }) {
   return (
@@ -80,6 +86,7 @@ export interface CardFlags {
   blocking?: boolean;
   dim?: boolean;
   aimed?: boolean;
+  usable?: number[];
   badge?: { kind: 'attack' | 'block'; value: number };
 }
 
@@ -123,6 +130,91 @@ function FxOverlays({ id, fx }: { id: CardId; fx?: CardFx }) {
         </span>
       )}
     </>
+  );
+}
+
+function CardIcons({ def, keywords }: { def: CardDef; keywords: readonly Keyword[] }) {
+  const lasting = lastingTriggers(def);
+  if (keywords.length === 0 && lasting.length === 0) return null;
+  return (
+    <span class="icons" aria-hidden="true">
+      {keywords.map((keyword) => (
+        <CardIcon key={keyword} name={keyword} />
+      ))}
+      {lasting.length > 0 && <CardIcon name="trigger" title={lasting.map(triggerHint).join(' · ')} />}
+    </span>
+  );
+}
+
+function leadsWithSymbol(ability: ActivatedAbility): boolean {
+  return Boolean(ability.tap) || (!ability.sacrifice && ability.cost !== '{0}');
+}
+
+function AbilityCost({ ability }: { ability: ActivatedAbility }) {
+  const parts: ComponentChildren[] = [];
+  if (ability.tap) parts.push(<ManaSymbol symbol="T" />);
+  if (ability.sacrifice) parts.push('Sacr.');
+  if (ability.cost !== '{0}') parts.push(costSymbols(parseCost(ability.cost)).map((symbol, index) => <ManaSymbol key={index} symbol={symbol} />));
+  return (
+    <span class="cost">
+      {parts.map((part, index) => (
+        <Fragment key={index}>
+          {index > 0 && ', '}
+          {part}
+        </Fragment>
+      ))}
+      :
+    </span>
+  );
+}
+
+function abilityEffect(ability: ActivatedAbility): string {
+  return ability.effects
+    .map(effectHint)
+    .join(', ')
+    .replace(/(\d) /g, '$1\u00a0');
+}
+
+interface AbilityPillsProps {
+  def: CardDef;
+  id?: CardId;
+  usable?: readonly number[];
+  manaSpent?: boolean;
+}
+
+function AbilityPills({ def, id, usable = [], manaSpent = false }: AbilityPillsProps) {
+  const mana = def.types.includes('creature') ? (def.mana ?? []) : [];
+  const activated = def.activated ?? [];
+  if (mana.length === 0 && activated.length === 0) return null;
+  return (
+    <span class="abilities" aria-hidden="true">
+      {mana.length > 0 && (
+        <span class="ability symbol-led" data-testid={id && `ability-${id}-mana`} data-spent={manaSpent ? 'true' : undefined}>
+          <span class="cost">
+            <ManaSymbol symbol="T" />:
+          </span>{' '}
+          <span class="effect">
+            +
+            {mana.map((color, index) => (
+              <Fragment key={color}>
+                {index > 0 && '/'}
+                <ManaSymbol symbol={color} />
+              </Fragment>
+            ))}
+          </span>
+        </span>
+      )}
+      {activated.map((ability, index) => (
+        <span
+          key={index}
+          class={`ability${leadsWithSymbol(ability) ? ' symbol-led' : ''}`}
+          data-testid={id && `ability-${id}-${index}`}
+          data-usable={usable.includes(index) ? 'true' : undefined}
+        >
+          <AbilityCost ability={ability} /> <span class="effect">{abilityEffect(ability)}</span>
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -195,9 +287,9 @@ export function PermanentCard({ s, id, flags, fx, onTap, onInspect }: PermanentP
         aria-pressed={flags.selected ? 'true' : undefined}
         {...press}
       >
-        <span class={`name${hasLongWord(def.name) ? ' long' : ''}`}>{def.name}</span>
-        <span class="kw">{shortText(def.id)}</span>
         <CardArt defId={def.id} />
+        <CardIcons def={def} keywords={getKeywords(s, id)} />
+        <AbilityPills def={def} id={id} usable={flags.usable} manaSpent={card.tapped || !isReadyToTap(s, id)} />
         {def.types.includes('creature') && <PowerToughness s={s} id={id} />}
         {sick && <span class="sick" title="Mareo de invocación" />}
         {flags.badge && <span class={`badge ${flags.badge.kind}`}>{flags.badge.value}</span>}
@@ -229,9 +321,9 @@ export function GhostCard({ ghost, fx, rise }: GhostProps) {
       aria-hidden="true"
     >
       <div class="card permanent" style={cssVars({ '--card-color': cardColorVar(def) })}>
-        <span class={`name${hasLongWord(def.name) ? ' long' : ''}`}>{def.name}</span>
-        <span class="kw">{shortText(def.id)}</span>
         <CardArt defId={def.id} />
+        <CardIcons def={def} keywords={def.keywords ?? []} />
+        <AbilityPills def={def} />
         {def.types.includes('creature') && (
           <span class="pt num">
             {def.power}/{def.toughness}
@@ -254,23 +346,31 @@ interface HandCardProps {
 }
 
 export function MiniFace({ def }: { def: CardDef }) {
-  const isLand = def.types.includes('land');
-  const text = isLand ? rulesText(def).join(' ') : shortText(def.id) || rulesText(def).join(' ');
+  const isCreature = def.types.includes('creature');
+  const keywords = isCreature ? (def.keywords ?? []) : [];
+  const text = isCreature ? abilityHints(def.id).join(' · ') : rulesText(def).join(' ');
   return (
     <>
+      <CardArt defId={def.id} />
       <span class="cost">
         <ManaCost defId={def.id} />
       </span>
-      <span class="name">{def.name}</span>
-      <span class="text">
-        <RulesLine text={text} />
+      <span class="caption">
+        {isCreature && (
+          <span class="pt num">
+            {def.power}/{def.toughness}
+          </span>
+        )}
+        <span class="name">{def.name}</span>
+        {(keywords.length > 0 || text) && (
+          <span class="text">
+            {keywords.map((keyword) => (
+              <CardIcon key={keyword} name={keyword} />
+            ))}
+            <RulesLine text={text} />
+          </span>
+        )}
       </span>
-      <CardArt defId={def.id} />
-      {def.types.includes('creature') && (
-        <span class="pt num">
-          {def.power}/{def.toughness}
-        </span>
-      )}
     </>
   );
 }

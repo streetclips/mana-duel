@@ -11,6 +11,7 @@ import {
   type Keyword,
   type TriggerCondition,
   type TriggerEvent,
+  type TriggeredAbility,
 } from '../engine';
 
 export const SHORT_KEYWORDS: Record<Keyword, string> = {
@@ -131,16 +132,22 @@ export function activatedCost(ability: ActivatedAbility): string {
   return [ability.tap ? 'T' : '', ability.sacrifice ? 'Sacr.' : '', cost].filter(Boolean).join(',');
 }
 
-export function shortText(defId: string): string {
+export function triggerHint(trigger: TriggeredAbility): string {
+  const hint = trigger.condition ? CONDITION_HINTS[trigger.condition] : TRIGGER_HINTS[trigger.on];
+  return `${hint}: ${trigger.effects.map(effectHint).join(', ')}`;
+}
+
+export function abilityHints(defId: string): string[] {
   const def = getCardDef(defId);
-  const parts: string[] = (def.keywords ?? []).map((keyword) => SHORT_KEYWORDS[keyword]);
+  const parts: string[] = [];
   if (def.mana?.length && def.types.includes('creature')) parts.push(`T: +${def.mana.join('/')}`);
-  for (const trigger of def.triggers ?? []) {
-    const hint = trigger.condition ? CONDITION_HINTS[trigger.condition] : TRIGGER_HINTS[trigger.on];
-    parts.push(`${hint}: ${trigger.effects.map(effectHint).join(', ')}`);
-  }
+  for (const trigger of def.triggers ?? []) parts.push(triggerHint(trigger));
   for (const ability of def.activated ?? []) parts.push(`${activatedCost(ability)}: ${ability.effects.map(effectHint).join(', ')}`);
-  return parts.join(' · ');
+  return parts;
+}
+
+export function lastingTriggers(def: CardDef): TriggeredAbility[] {
+  return (def.triggers ?? []).filter((trigger) => trigger.on !== 'enters');
 }
 
 export function cardArtUrl(defId: string): string {
@@ -149,8 +156,4 @@ export function cardArtUrl(defId: string): string {
 
 export function cssVars(vars: Record<`--${string}`, string>): CSSProperties {
   return vars as CSSProperties;
-}
-
-export function hasLongWord(name: string): boolean {
-  return name.split(' ').some((word) => word.length >= 10);
 }

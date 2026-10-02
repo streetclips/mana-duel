@@ -204,6 +204,16 @@ export function Game({ controller, audio, onHome }: GameProps) {
     return ids;
   }, [actions]);
 
+  const usable = useMemo(() => {
+    const abilities = new Map<CardId, number[]>();
+    for (const action of actions) {
+      if (action.type !== 'activate') continue;
+      const indices = abilities.get(action.card) ?? [];
+      if (!indices.includes(action.ability)) abilities.set(action.card, [...indices, action.ability]);
+    }
+    return abilities;
+  }, [actions]);
+
   const send = (action: Action): void => {
     const result = controller.dispatch(action);
     if (!result.ok) setToast(capitalize(result.error));
@@ -324,6 +334,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
       if (!mine && selectedBlocker && blockChoices[selectedBlocker]?.includes(id)) flags.targetable = true;
     } else if (mine && playable.has(id)) {
       flags.playable = true;
+      flags.usable = usable.get(id);
     }
     return flags;
   };
