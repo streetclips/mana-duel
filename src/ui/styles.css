@@ -2120,7 +2120,7 @@ button {
   color: #fff;
   background: var(--pip, var(--mana-C));
   flex: none;
-  vertical-align: -2px;
+  vertical-align: middle;
   font-style: normal;
 }
 
@@ -2152,6 +2152,7 @@ p .pip,
   width: var(--hand-w);
   height: var(--hand-h);
   flex: none;
+  isolation: isolate;
 }
 
 .hand-card + .hand-card {

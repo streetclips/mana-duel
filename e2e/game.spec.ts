@@ -371,6 +371,75 @@ test('every card name fits two lines in hand, and ability pills fit their cards 
   expect(errors).toEqual([]);
 });
 
+test('each card in a crowded hand lies over the one before it, playable or not', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=1&aiDelay=0&fx=off');
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [
+        {
+          hand: [
+            { card: 'island', id: 'island1' },
+            { card: 'mistcloak_ambusher', id: 'ambusher' },
+            { card: 'island', id: 'island2' },
+            { card: 'inkwell_scribe', id: 'scribe' },
+            { card: 'choking_mist', id: 'mist' },
+            { card: 'swamp', id: 'swamp1' },
+            { card: 'swamp', id: 'swamp2' },
+          ],
+        },
+        {},
+      ],
+    }),
+  );
+  await expect(page.getByTestId('card-ambusher')).not.toHaveAttribute('data-playable');
+  await expect(page.getByTestId('card-island2')).toHaveAttribute('data-playable', 'true');
+  const overlaps = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll<HTMLElement>('[data-testid="hand"] .hand-card')];
+    return cards.flatMap((card, index) => {
+      const previous = cards[index - 1];
+      if (!previous) return [];
+      const before = previous.getBoundingClientRect();
+      const box = card.getBoundingClientRect();
+      const x = (box.left + before.right) / 2;
+      const hits = [0.15, 0.5, 0.9].map((height) => document.elementFromPoint(x, box.top + box.height * height)?.closest<HTMLElement>('.hand-card')?.dataset.card);
+      return [{ card: card.dataset.card, overlap: before.right - box.left, hits }];
+    });
+  });
+  expect(overlaps.map((pair) => pair.card)).toEqual(['ambusher', 'island2', 'scribe', 'mist', 'swamp1', 'swamp2']);
+  for (const pair of overlaps) {
+    expect(pair.overlap).toBeGreaterThan(0);
+    expect(pair.hits).toEqual([pair.card, pair.card, pair.card]);
+  }
+  expect(errors).toEqual([]);
+});
+
+test('mana symbols sit centred on the lowercase letters of the text around them, in hand and in the card sheet', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=1&aiDelay=0&fx=off');
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [{ hand: [{ card: 'swamp', id: 'swamp' }], battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain'] }, {}],
+    }),
+  );
+  await page.getByTestId('card-dragon').click();
+  await expect(page.getByTestId('sheet-activate')).toBeVisible();
+  const symbols = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('[data-testid="hand"] .text .pip, .detail-info .pip, .sheet-actions .pip')].map((pip) => {
+      const lowercase = document.createElement('span');
+      lowercase.style.cssText = 'display: inline-block; width: 0; height: 1ex';
+      pip.after(lowercase);
+      const middle = lowercase.getBoundingClientRect();
+      lowercase.remove();
+      const box = pip.getBoundingClientRect();
+      return { place: pip.closest('.text, .detail-info, .sheet-actions')?.className, offCentre: Math.abs(box.top + box.bottom - middle.top - middle.bottom) / 2 };
+    }),
+  );
+  expect(symbols.map((symbol) => symbol.place)).toEqual(['text', 'text', 'detail-info', 'sheet-actions']);
+  expect(symbols.filter((symbol) => symbol.offCentre > 0.5)).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the AI forces, an undying creature sacrificed', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=brightforge&aiDeck=mistgrave&aiDelay=0');
