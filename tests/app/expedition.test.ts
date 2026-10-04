@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { spellPool } from '../../src/app/cardPool';
+import { MAX_COPIES, spellPool } from '../../src/app/cardPool';
 import { GameController } from '../../src/app/controller';
 import {
   DUELS,
   EXPEDITION_DECK_ID,
-  MAX_COPIES,
   OFFERS,
   RELICS,
   RIVAL_HAND,

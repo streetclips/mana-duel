@@ -16,6 +16,7 @@ import {
   tryApplyAction,
   typeLine,
   type Action,
+  type DeckDef,
   type GameState,
   type PendingDecision,
   type ScenarioSpec,
@@ -33,6 +34,8 @@ import {
 import type { Prompt } from '../llm/prompt';
 import { CHECKS, runChecks, type CheckResult } from './checks';
 import type { ControllerOptions, GameController, LlmRecord, OpponentSetup, Replay } from './controller';
+import type { DeckDraft } from './deckBuilding';
+import { DeckLibrary } from './deckLibrary';
 import type { ExpeditionRun, RelicId } from './expedition';
 import { ExpeditionController } from './expeditionController';
 import type { FxCue } from './fx';
@@ -49,7 +52,7 @@ export interface EngineApi {
   play(state: GameState, actions: Action[]): GameState;
 }
 
-export const API_VERSION = '1.6';
+export const API_VERSION = '1.7';
 
 export interface DeckSummary {
   id: string;
@@ -57,8 +60,19 @@ export interface DeckSummary {
   colors: string[];
   description: string;
   size: number;
+  custom: boolean;
+  playable: boolean;
   cards: { id: string; name: string; count: number }[];
 }
+
+export interface DeckInput {
+  id?: string;
+  name: string;
+  featured?: string;
+  cards: { card: string; count: number }[];
+}
+
+export type DeckResult = { ok: true; deck: DeckSummary; problems: string[] } | { ok: false; error: string };
 
 export type ApiResult = { ok: true; pending: PendingDecision | null } | { ok: false; error: string };
 
@@ -69,6 +83,7 @@ export interface UiHooks {
   audio?: GameAudio;
   expedition?: ExpeditionController;
   showExpedition?: () => void;
+  library?: DeckLibrary;
 }
 
 export type ExpeditionResult = { ok: true; run: ExpeditionRun | null } | { ok: false; error: string };
@@ -142,6 +157,8 @@ export interface ManaDuelApi {
   log(): string[];
   cards(): { id: string; name: string; type: string; cost: string | null; text: string[]; token: boolean }[];
   decks(): DeckSummary[];
+  saveDeck(deck: DeckInput): DeckResult;
+  deleteDeck(id: string): boolean;
   matchup(): [string, string] | null;
   opponent(): OpponentSetup;
   llmDecisions(): LlmRecord[];
@@ -173,7 +190,9 @@ const HELP = `window.manaDuel — automation API
   opponent()            who plays the AI seat: {kind: 'classic'} or {kind: 'llm', model}
   llmDecisions()        the LLM's recent decisions: action, source (model | fallback), reason, error, ms, usage
   await llmPrompt()     the exact {system, prompt} the LLM gets for the AI's pending decision, else null
-  decks()               the decks you can pick: id, name, colors, card list
+  decks()               the decks you can pick: id, name, colors, card list; custom ones (yours) with playable
+  saveDeck({id?, name, cards: [{card, count}], featured?})   saves one of your decks; {ok, deck, problems}
+  deleteDeck(id)        removes one of your decks
   matchup()             deck ids in play, [yours, AI's] (null for a loaded scenario)
   loadScenario(spec)    build a position: {activePlayer, step, players:[{hand, battlefield, library, life}, {...}]}
   replay() / loadReplay(replay)
@@ -202,6 +221,25 @@ const HELP = `window.manaDuel — automation API
 
 function toApiResult(result: { ok: true; state: GameState } | { ok: false; error: string }): ApiResult {
   return result.ok ? { ok: true, pending: result.state.pending } : result;
+}
+
+function summary(deck: DeckDef, custom: boolean, problems: string[]): DeckSummary {
+  return {
+    id: deck.id,
+    name: deck.name,
+    colors: [...deck.colors],
+    description: deck.description,
+    size: deckSize(deck),
+    custom,
+    playable: problems.length === 0,
+    cards: deck.cards.map((entry) => ({ id: entry.card, name: getCardDef(entry.card).name, count: entry.count })),
+  };
+}
+
+function withCustomDecks(options: ControllerOptions, library: DeckLibrary): ControllerOptions {
+  if (!options.decks) return options;
+  const [mine, theirs] = options.decks.map((spec) => (typeof spec === 'string' ? (library.get(spec) ?? spec) : spec));
+  return mine !== undefined && theirs !== undefined ? { ...options, decks: [mine, theirs] } : options;
 }
 
 function expeditionApi(expedition: ExpeditionController, show: () => void, showGame: () => void): ExpeditionApi {
@@ -234,6 +272,7 @@ function expeditionApi(expedition: ExpeditionController, show: () => void, showG
 }
 
 export function createTestApi(controller: GameController, showGame: () => void, ui: UiHooks = NO_UI): ManaDuelApi {
+  const library = ui.library ?? new DeckLibrary();
   return {
     version: API_VERSION,
     help: () => HELP,
@@ -246,7 +285,7 @@ export function createTestApi(controller: GameController, showGame: () => void, 
     endTurn: () => toApiResult(controller.endTurn()),
     concede: () => toApiResult(controller.concede()),
     newGame: (options = {}) => {
-      controller.newGame(options);
+      controller.newGame(withCustomDecks(options, library));
       showGame();
     },
     loadScenario: (spec) => {
@@ -290,15 +329,22 @@ export function createTestApi(controller: GameController, showGame: () => void, 
       allCardDefs()
         .filter((def) => !def.id.startsWith('test_'))
         .map((def) => ({ id: def.id, name: def.name, type: typeLine(def), cost: def.cost ?? null, text: rulesText(def), token: def.token === true })),
-    decks: () =>
-      DECK_LIST.map((deck) => ({
-        id: deck.id,
-        name: deck.name,
-        colors: [...deck.colors],
-        description: deck.description,
-        size: deckSize(deck),
-        cards: deck.cards.map((entry) => ({ id: entry.card, name: getCardDef(entry.card).name, count: entry.count })),
-      })),
+    decks: () => [...DECK_LIST.map((deck) => summary(deck, false, [])), ...library.decks.map((deck) => summary(deck, true, library.problems(deck)))],
+    saveDeck: (input) => {
+      try {
+        const draft: DeckDraft = { id: input.id ?? null, name: input.name, featured: input.featured ?? null, cards: input.cards.map((entry) => ({ ...entry })) };
+        const deck = library.save(draft);
+        const problems = library.problems(deck);
+        return { ok: true, deck: summary(deck, true, problems), problems };
+      } catch (error) {
+        return { ok: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    },
+    deleteDeck: (id) => {
+      if (!library.get(id)) return false;
+      library.remove(id);
+      return true;
+    },
     matchup: () => controller.matchupIds(),
     opponent: () => structuredClone(controller.opponent),
     llmDecisions: () => structuredClone(controller.llmRecords),

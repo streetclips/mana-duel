@@ -20,12 +20,14 @@ import { DetailFace, MiniFace } from './components/Card';
 import { DeckBox } from './components/DeckBox';
 import { DeckOption } from './components/DeckSelect';
 import { ColorDots, DeckViewer, deckGroups } from './components/DeckViewer';
-import { BackIcon, CheckIcon, CrownIcon, RelicIcon } from './components/ExpeditionIcons';
+import { CheckIcon, CrownIcon, RelicIcon } from './components/ModeIcons';
 import { CardDetail, Sheet } from './components/Overlays';
+import { ScreenBar } from './components/ScreenBar';
 import { useSubscription } from './useController';
 
 interface ExpeditionScreenProps {
   expedition: ExpeditionController;
+  customs?: readonly DeckDef[];
   initialDeck: string;
   problem: string | null;
   onFight: () => void;
@@ -92,24 +94,6 @@ function cardsWord(count: number): string {
   return `${count} ${count === 1 ? 'carta' : 'cartas'}`;
 }
 
-interface ScreenBarProps {
-  title: string;
-  detail?: string;
-  onBack: () => void;
-}
-
-function ScreenBar({ title, detail, onBack }: ScreenBarProps) {
-  return (
-    <header class="screen-bar">
-      <button type="button" class="icon-btn" aria-label="Volver al menú principal" data-testid="btn-expedition-back" onClick={onBack}>
-        <BackIcon />
-      </button>
-      <h1>{title}</h1>
-      {detail && <span class="screen-bar-detail num">{detail}</span>}
-    </header>
-  );
-}
-
 function RelicList({ relics }: { relics: readonly RelicId[] }) {
   if (relics.length === 0) {
     return <p class="run-note">Sin reliquias todavía: ganarás una cada {countWord(RELIC_EVERY)} victorias.</p>;
@@ -133,14 +117,15 @@ function RelicList({ relics }: { relics: readonly RelicId[] }) {
 }
 
 interface NewRunProps {
+  decks: readonly DeckDef[];
   initialDeck: string;
   onStart: (deck: DeckDef) => void;
   onView: (deck: DeckDef) => void;
 }
 
-function NewRun({ initialDeck, onStart, onView }: NewRunProps) {
-  const [selected, setSelected] = useState(hasDeck(initialDeck) ? initialDeck : (DECK_LIST[0]?.id ?? ''));
-  const deck = getDeck(selected);
+function NewRun({ decks, initialDeck, onStart, onView }: NewRunProps) {
+  const [selected, setSelected] = useState(initialDeck);
+  const deck = decks.find((candidate) => candidate.id === selected) ?? decks[0] ?? getDeck(DECK_LIST[0]?.id ?? '');
   return (
     <>
       <div class="expedition-body" data-testid="expedition-new">
@@ -150,7 +135,7 @@ function NewRun({ initialDeck, onStart, onView }: NewRunProps) {
         <section class="picker run-picker" aria-label="Tu mazo inicial">
           <header class="picker-head">
             <h2 class="section-label">Tu mazo inicial</h2>
-            <span class="picker-count num">{DECK_LIST.length} mazos</span>
+            <span class="picker-count num">{decks.length} mazos</span>
           </header>
           <div class="picker-detail" data-testid="deck-detail">
             <div class="picker-detail-text">
@@ -165,12 +150,12 @@ function NewRun({ initialDeck, onStart, onView }: NewRunProps) {
             </button>
           </div>
           <div class="picker-grid" role="radiogroup" aria-label="Tu mazo inicial">
-            {DECK_LIST.map((candidate, index) => (
+            {decks.map((candidate, index) => (
               <DeckOption
                 key={candidate.id}
                 deck={candidate}
                 index={index}
-                checked={candidate.id === selected}
+                checked={candidate.id === deck.id}
                 testId={`expedition-deck-${candidate.id}`}
                 onSelect={() => setSelected(candidate.id)}
               />
@@ -534,7 +519,7 @@ function RunResult({ run, onNew, onHome, onView }: RunResultProps) {
   );
 }
 
-export function ExpeditionScreen({ expedition, initialDeck, problem, onFight, onHome }: ExpeditionScreenProps) {
+export function ExpeditionScreen({ expedition, customs = [], initialDeck, problem, onFight, onHome }: ExpeditionScreenProps) {
   useSubscription(expedition);
   const run = expedition.run;
   const [choosing, setChoosing] = useState(false);
@@ -547,6 +532,7 @@ export function ExpeditionScreen({ expedition, initialDeck, problem, onFight, on
   if (fresh) {
     body = (
       <NewRun
+        decks={[...DECK_LIST, ...customs]}
         initialDeck={run?.base.id ?? initialDeck}
         onView={setViewing}
         onStart={(deck) => {
@@ -579,7 +565,7 @@ export function ExpeditionScreen({ expedition, initialDeck, problem, onFight, on
   const detail = fresh || !run ? undefined : `${run.wins}/${run.rivals.length}`;
   return (
     <main class="expedition" data-testid="expedition" data-stage={stage}>
-      <ScreenBar title="Expedición" detail={detail} onBack={onHome} />
+      <ScreenBar title="Expedición" detail={detail} backLabel="Volver al menú principal" backTestId="btn-expedition-back" onBack={onHome} />
       {body}
       {confirming && run && (
         <div class="scrim center-modal" data-testid="expedition-abandon" onClick={() => setConfirming(false)}>

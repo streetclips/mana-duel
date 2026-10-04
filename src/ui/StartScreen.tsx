@@ -1,7 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
-import type { PlayerId } from '../engine';
+import type { ComponentChildren } from 'preact';
+import type { DeckDef, PlayerId } from '../engine';
 import { DeckPicker, Versus } from './components/DeckSelect';
-import { ChevronRightIcon, MapIcon } from './components/ExpeditionIcons';
+import { CardsIcon, ChevronRightIcon, MapIcon } from './components/ModeIcons';
 import { SoundToggles, type AudioToggles } from './components/SoundToggles';
 import type { DeckChoice } from './deckChoice';
 import { EFFORT_LABELS, REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
@@ -30,7 +31,9 @@ interface StartScreenProps {
   onWatch: () => void;
   llm: LlmSettings;
   audio?: AudioToggles;
+  customs?: readonly DeckDef[];
   expedition?: ModeEntry;
+  myDecks?: ModeEntry;
 }
 
 function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null }) {
@@ -101,12 +104,18 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
   );
 }
 
-function ModeRow({ testId, title, status, onOpen }: { testId: string; title: string; status: string; onOpen: () => void }) {
+interface ModeRowProps {
+  testId: string;
+  title: string;
+  icon: ComponentChildren;
+  entry: ModeEntry;
+}
+
+function ModeRow({ testId, title, icon, entry }: ModeRowProps) {
+  const { status, onOpen } = entry;
   return (
     <button type="button" class="mode-row" data-testid={testId} onClick={onOpen}>
-      <span class="mode-icon">
-        <MapIcon />
-      </span>
+      <span class="mode-icon">{icon}</span>
       <span class="mode-text">
         <b>{title}</b>
         <span data-testid={`${testId}-status`}>{status}</span>
@@ -116,7 +125,7 @@ function ModeRow({ testId, title, status, onOpen }: { testId: string; title: str
   );
 }
 
-export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, audio, expedition }: StartScreenProps) {
+export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, audio, customs = [], expedition, myDecks }: StartScreenProps) {
   const [picking, setPicking] = useState<PlayerId | null>(null);
   const matchup = useRef<HTMLDivElement>(null);
   const lastTop = useRef<number | null>(null);
@@ -156,11 +165,12 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
         </header>
 
         <div class="matchup" ref={matchup}>
-          <Versus choice={choice} picking={picking} names={names} onPick={(seat) => pick(picking === seat ? null : seat)} />
+          <Versus choice={choice} customs={customs} picking={picking} names={names} onPick={(seat) => pick(picking === seat ? null : seat)} />
           {picking !== null && (
             <DeckPicker
               seat={picking}
               choice={choice}
+              customs={customs}
               onChange={onChange}
               onView={onView}
               onDone={() => {
@@ -195,12 +205,13 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
               {llm.choice.kind === 'llm' && <LlmFields llm={llm} problem={problem} />}
             </section>
 
-            {expedition && (
+            {(expedition || myDecks) && (
               <section class="start-section modes" aria-labelledby="modes-label">
                 <h2 id="modes-label" class="section-label">
                   Más modos
                 </h2>
-                <ModeRow testId="btn-expedition" title="Expedición" status={expedition.status} onOpen={expedition.onOpen} />
+                {expedition && <ModeRow testId="btn-expedition" title="Expedición" icon={<MapIcon />} entry={expedition} />}
+                {myDecks && <ModeRow testId="btn-my-decks" title="Mis mazos" icon={<CardsIcon />} entry={myDecks} />}
               </section>
             )}
 
@@ -227,6 +238,7 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
                   En la Expedición encadenas siete duelos con el mismo mazo: cada victoria te da una carta nueva y cada tres, una
                   reliquia. Una derrota la termina.
                 </li>
+                <li>En Mis mazos construyes tus propios mazos con todas las cartas del juego, para ti o para la IA.</li>
               </ul>
             </details>
           </>

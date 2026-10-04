@@ -1,3 +1,4 @@
+import { Fragment } from 'preact';
 import { useLayoutEffect, useRef } from 'preact/hooks';
 import { DECK_LIST, type DeckDef, type PlayerId } from '../../engine';
 import { chosenDeck, deckOptions, seatDeck, withSeatDeck, type DeckChoice } from '../deckChoice';
@@ -7,8 +8,8 @@ import { ColorDots } from './DeckViewer';
 
 export const PICKER_ID = 'deck-picker';
 
-function deckName(id: string): string {
-  return chosenDeck(id)?.name ?? 'Aleatorio';
+function deckName(id: string, customs: readonly DeckDef[]): string {
+  return chosenDeck(id, customs)?.name ?? 'Aleatorio';
 }
 
 function ChevronIcon() {
@@ -22,29 +23,30 @@ function ChevronIcon() {
 interface SeatProps {
   seat: PlayerId;
   deckId: string;
+  customs: readonly DeckDef[];
   who: string;
   active: boolean;
   onTap: () => void;
 }
 
-function Seat({ seat, deckId, who, active, onTap }: SeatProps) {
+function Seat({ seat, deckId, customs, who, active, onTap }: SeatProps) {
   return (
     <button
       type="button"
       class={`seat seat-${seat}${active ? ' active' : ''}`}
       data-testid={`seat-${seat}`}
       data-deck={deckId}
-      aria-label={`${who}: ${deckName(deckId)}`}
+      aria-label={`${who}: ${deckName(deckId, customs)}`}
       aria-expanded={active}
       aria-controls={active ? PICKER_ID : undefined}
       onClick={onTap}
     >
       <span class="seat-box">
-        <DeckBox key={deckId} deck={chosenDeck(deckId)} open={active} printed />
+        <DeckBox key={deckId} deck={chosenDeck(deckId, customs)} open={active} printed />
       </span>
       <span class="seat-who">{who}</span>
       <span class="seat-deck">
-        {deckName(deckId)}
+        {deckName(deckId, customs)}
         <ChevronIcon />
       </span>
     </button>
@@ -53,14 +55,22 @@ function Seat({ seat, deckId, who, active, onTap }: SeatProps) {
 
 interface VersusProps {
   choice: DeckChoice;
+  customs?: readonly DeckDef[];
   picking: PlayerId | null;
   names: readonly [string, string];
   onPick: (seat: PlayerId) => void;
 }
 
-export function Versus({ choice, picking, names, onPick }: VersusProps) {
+export function Versus({ choice, customs = [], picking, names, onPick }: VersusProps) {
   const seat = (player: PlayerId) => (
-    <Seat seat={player} deckId={seatDeck(choice, player)} who={names[player]} active={picking === player} onTap={() => onPick(player)} />
+    <Seat
+      seat={player}
+      deckId={seatDeck(choice, player)}
+      customs={customs}
+      who={names[player]}
+      active={picking === player}
+      onTap={() => onPick(player)}
+    />
   );
   return (
     <div class={`versus${picking === null ? '' : ' picking'}`} role="group" aria-label="Enfrentamiento" data-testid="versus">
@@ -101,15 +111,17 @@ export function DeckOption({ deck, index, checked, testId, onSelect }: DeckOptio
 interface DeckPickerProps {
   seat: PlayerId;
   choice: DeckChoice;
+  customs?: readonly DeckDef[];
   onChange: (choice: DeckChoice) => void;
   onView: (deckId: string) => void;
   onDone: () => void;
 }
 
-export function DeckPicker({ seat, choice, onChange, onView, onDone }: DeckPickerProps) {
+export function DeckPicker({ seat, choice, customs = [], onChange, onView, onDone }: DeckPickerProps) {
   const grid = useRef<HTMLDivElement>(null);
   const selected = seatDeck(choice, seat);
-  const deck = chosenDeck(selected);
+  const deck = chosenDeck(selected, customs);
+  const options = deckOptions(customs);
   const title = seat === 0 ? 'Tu mazo' : 'El mazo de la IA';
 
   useLayoutEffect(() => {
@@ -125,7 +137,7 @@ export function DeckPicker({ seat, choice, onChange, onView, onDone }: DeckPicke
     <section id={PICKER_ID} class="picker" data-testid="deck-picker" data-seat={seat} aria-label={title}>
       <header class="picker-head">
         <h2 class="section-label">{title}</h2>
-        <span class="picker-count num">{DECK_LIST.length} mazos</span>
+        <span class="picker-count num">{options.length - 1} mazos</span>
         <button type="button" class="picker-done" data-testid="btn-picker-done" onClick={onDone}>
           Listo
         </button>
@@ -151,15 +163,21 @@ export function DeckPicker({ seat, choice, onChange, onView, onDone }: DeckPicke
         )}
       </div>
       <div class="picker-grid" role="radiogroup" aria-label={title} ref={grid}>
-        {deckOptions().map((id, index) => (
-          <DeckOption
-            key={id}
-            deck={chosenDeck(id)}
-            index={index}
-            checked={id === selected}
-            testId={seat === 0 ? `deck-${id}` : `opponent-${id}`}
-            onSelect={() => onChange(withSeatDeck(choice, seat, id))}
-          />
+        {options.map((id, index) => (
+          <Fragment key={id}>
+            {id === customs[0]?.id && (
+              <h3 class="picker-group" data-testid="picker-custom">
+                Mis mazos
+              </h3>
+            )}
+            <DeckOption
+              deck={chosenDeck(id, customs)}
+              index={index}
+              checked={id === selected}
+              testId={seat === 0 ? `deck-${id}` : `opponent-${id}`}
+              onSelect={() => onChange(withSeatDeck(choice, seat, id))}
+            />
+          </Fragment>
         ))}
       </div>
     </section>

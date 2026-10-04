@@ -1,8 +1,8 @@
 # Game modes
 
-Besides a single duel against the AI, Mana Duel has modes that span several games. Each one keeps its state in the
-browser (`localStorage`) and plays its games through the same `GameController`, so every game of a mode is an
-ordinary duel: the same engine, AI or LLM opponent, animations, log and replays.
+Besides a single duel against the AI, Mana Duel has modes that span several games, and decks of your own. Each one
+keeps its state in the browser (`localStorage`) and plays its games through the same `GameController`, so every game
+of a mode is an ordinary duel: the same engine, AI or LLM opponent, animations, log and replays.
 
 ## Expedition
 
@@ -72,10 +72,42 @@ a run winnable.
 ### Extending
 
 - A relic: its id in `RelicId`, an entry in `RELICS` (Spanish name and text), its perk in `playerPerks` (or the
-  starting player in `startDuel`), its icon in `src/ui/components/ExpeditionIcons.tsx`, and its case in
+  starting player in `startDuel`), its icon in `src/ui/components/ModeIcons.tsx`, and its case in
   `tests/app/expedition.test.ts` › turns relics into perks.
 - More duels: `DUELS`, with one entry per duel in `RIVAL_LIFE` and `RIVAL_HAND`; relics come every `RELIC_EVERY` wins.
 - A deck a run may start from or face: every deck of `DECK_LIST` already is.
 
 Tests: `tests/app/expedition.test.ts` (the run and its controller), `tests/ui/expedition.test.tsx` (the screens),
 `e2e/expedition.spec.ts` (a whole flow, a reward, a reload in the middle of a duel).
+
+## My decks
+
+Decks of your own, built from every card of the fourteen decks and saved in the browser. A deck that can be played
+appears after the fourteen in both seats' pickers, under *Mis mazos*, and among the decks an Expedition can start
+from; the AI plays it like any other.
+
+```
+src/app/deckBuilding.ts      drafts and the rules of a deck: limits, problems, notes, colors, box art, basic lands
+src/app/deckLibrary.ts       the decks you saved: ids, names, which can be played
+src/ui/DecksScreen.tsx       your decks, a copy of a deck of the game, a new empty deck, deleting one
+src/ui/components/DeckBuilder.tsx   the builder, for any pool of cards and limits
+src/ui/deckLibraryStore.ts   the decks in localStorage under manaDuel.customDecks
+```
+
+- **Rules**: at least 40 cards and at most 60, up to four copies of each card but the basic lands, which have no
+  limit; any card of the fourteen decks, no tokens. A deck that breaks a rule can still be saved, as *incompleto*, and
+  stays out of the pickers until it is fixed. The builder lists what breaks a rule and, as notes, a land count outside
+  14-20 and a color that no card of the deck can pay.
+- **A deck**: its colors are those of its spells (of its lands when it has none), its box shows the card you put on it
+  or else its most expensive spell, and its description counts its creatures, spells and lands. Ids are `mine-<n>`;
+  names have at most 22 characters, and a new deck gets the first free *Mi mazo*, *Mi mazo 2*…
+- **The builder** shows the deck by type with a stepper per card, the pool with a search and filters by color and type,
+  the count, the colors and the mana curve. *Completar con tierras básicas* adds the basics that bring the deck to 40,
+  shared as the colored mana symbols of its spells. Leaving with changes asks first.
+- **A choice that names a deck that is gone** (deleted, or no longer playable) falls back to Emberwild for your seat
+  and Random for the AI's; a stored choice that names an unknown deck is dropped whole when the game opens.
+
+Tests: `tests/app/deckBuilding.test.ts` (the rules, the library, the automation API), `tests/ui/decks.test.tsx` and
+`tests/ui/deckChoice.test.ts` (the screens and the pickers), `e2e/decks.spec.ts` (a deck built on the phone and played,
+a copy that survives a reload and starts an Expedition).
+

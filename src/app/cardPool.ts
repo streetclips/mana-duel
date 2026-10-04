@@ -1,5 +1,7 @@
 import { DECK_LIST, cardColors, getCardDef, type Color } from '../engine';
 
+export const MAX_COPIES = 4;
+
 export function poolCards(): string[] {
   const ids = new Set<string>();
   for (const deck of DECK_LIST) for (const entry of deck.cards) ids.add(entry.card);

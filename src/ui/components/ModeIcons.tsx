@@ -71,3 +71,36 @@ export function CrownIcon() {
     </svg>
   );
 }
+
+export function CardsIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+      <rect x="6.2" y="2.6" width="9.4" height="13" rx="1.6" transform="rotate(8 10.9 9.1)" />
+      <rect x="3.6" y="4.4" width="9.4" height="13" rx="1.6" fill="var(--surface-2)" />
+    </svg>
+  );
+}
+
+export function PlusIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+      <path d="M7 2.5v9M2.5 7h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+  );
+}
+
+export function MinusIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+      <path d="M2.5 7h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+  );
+}
+
+export function TrashIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3.5 5h11M7.2 5V3.4h3.6V5M5 5l.7 9.6h6.6L13 5M7.6 7.6v4.6M10.4 7.6v4.6" />
+    </svg>
+  );
+}

@@ -60,7 +60,7 @@ export function manaCurve(deck: DeckDef): number[] {
   return buckets;
 }
 
-function ManaCurve({ deck }: { deck: DeckDef }) {
+export function ManaCurve({ deck }: { deck: DeckDef }) {
   const curve = manaCurve(deck);
   const max = Math.max(1, ...curve);
   const summary = curve.map((count, index) => `${count} de coste ${CURVE_LABELS[index]}`).join(', ');
@@ -94,7 +94,7 @@ export function ColorDots({ deck }: { deck: DeckDef }) {
   );
 }
 
-function DeckStats({ deck }: { deck: DeckDef }) {
+export function DeckStats({ deck }: { deck: DeckDef }) {
   const groups = deckGroups(deck);
   const count = (title: string): number => countOf(groups.find((group) => group.title === title)?.entries ?? []);
   return (

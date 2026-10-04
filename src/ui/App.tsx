@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { randomDeckId, type GameController } from '../app/controller';
+import { DeckLibrary } from '../app/deckLibrary';
 import { ExpeditionController } from '../app/expeditionController';
 import type { GameAudio } from '../audio';
-import { getDeck, hasDeck } from '../engine';
 import { SUGGESTED_MODELS, type ModelInfo } from '../llm/models';
 import { saveAudioChoice } from './audioChoice';
 import { DeckViewer } from './components/DeckViewer';
 import type { AudioToggles } from './components/SoundToggles';
-import { loadDeckChoice, resolveMatchup, saveDeckChoice, type DeckChoice } from './deckChoice';
+import { chosenDeck, knownChoice, loadDeckChoice, resolveMatchup, saveDeckChoice, type DeckChoice } from './deckChoice';
+import { DecksScreen, myDecksStatus } from './DecksScreen';
 import { ExpeditionScreen, duelBadge, duelOutcome, expeditionStatus } from './ExpeditionScreen';
 import { Game, type ExpeditionDuelView } from './Game';
 import {
@@ -22,7 +23,7 @@ import {
 import { StartScreen } from './StartScreen';
 import { useControllerSession, useSubscription } from './useController';
 
-export type Screen = 'start' | 'game' | 'expedition';
+export type Screen = 'start' | 'game' | 'expedition' | 'decks';
 
 interface AppProps {
   controller: GameController;
@@ -32,6 +33,7 @@ interface AppProps {
   loadModels?: () => Promise<ModelInfo[]>;
   audio?: GameAudio;
   expedition?: ExpeditionController;
+  library?: DeckLibrary;
 }
 
 function audioToggles(audio: GameAudio | undefined): AudioToggles | undefined {
@@ -50,13 +52,26 @@ function audioToggles(audio: GameAudio | undefined): AudioToggles | undefined {
   };
 }
 
-export function App({ controller, initialScreen, onReady, llmProxy = false, loadModels, audio, expedition: expeditionProp }: AppProps) {
+export function App({
+  controller,
+  initialScreen,
+  onReady,
+  llmProxy = false,
+  loadModels,
+  audio,
+  expedition: expeditionProp,
+  library: libraryProp,
+}: AppProps) {
   const [screen, setScreen] = useState<Screen>(initialScreen);
   const expedition = useMemo(() => expeditionProp ?? new ExpeditionController(controller), [expeditionProp, controller]);
   useEffect(() => (expeditionProp ? undefined : () => expedition.dispose()), [expedition, expeditionProp]);
   useSubscription(expedition);
   useControllerSession(controller);
-  const [choice, setChoice] = useState<DeckChoice>(loadDeckChoice);
+  const library = useMemo(() => libraryProp ?? new DeckLibrary(), [libraryProp]);
+  useSubscription(library);
+  const customs = library.playable();
+  const [storedChoice, setChoice] = useState<DeckChoice>(() => loadDeckChoice(library.playable()));
+  const choice = knownChoice(storedChoice, customs);
   const [opponent, setOpponent] = useState<OpponentChoice>(loadOpponentChoice);
   const [apiKey, setApiKey] = useState<string>(loadApiKey);
   const [catalog, setCatalog] = useState<string[] | null>(null);
@@ -101,7 +116,7 @@ export function App({ controller, initialScreen, onReady, llmProxy = false, load
   };
 
   const play = (autoplay: boolean): void => {
-    controller.newGame({ autoplay, decks: resolveMatchup(choice, randomDeckId), opponent: opponentSetup(opponent) });
+    controller.newGame({ autoplay, decks: resolveMatchup(choice, randomDeckId, customs), opponent: opponentSetup(opponent) });
     setViewing(null);
     setScreen('game');
   };
@@ -124,10 +139,13 @@ export function App({ controller, initialScreen, onReady, llmProxy = false, load
     } else setScreen('start');
   };
 
+  if (screen === 'decks') return <DecksScreen library={library} onHome={() => setScreen('start')} />;
+
   if (screen === 'expedition') {
     return (
       <ExpeditionScreen
         expedition={expedition}
+        customs={customs}
         initialDeck={choice.deck}
         problem={problem}
         onFight={fightExpedition}
@@ -137,7 +155,7 @@ export function App({ controller, initialScreen, onReady, llmProxy = false, load
   }
 
   if (screen === 'start') {
-    const viewed = viewing && hasDeck(viewing) ? getDeck(viewing) : null;
+    const viewed = viewing ? chosenDeck(viewing, customs) : null;
     const models = [...new Set([...SUGGESTED_MODELS, ...(catalog ?? [])])];
     return (
       <>
@@ -149,7 +167,9 @@ export function App({ controller, initialScreen, onReady, llmProxy = false, load
           onWatch={() => play(true)}
           llm={{ choice: opponent, apiKey, proxy: llmProxy, models, onChoice: changeOpponent, onApiKey: changeKey }}
           audio={toggles}
+          customs={customs}
           expedition={{ status: expeditionStatus(expedition.run), onOpen: () => setScreen('expedition') }}
+          myDecks={{ status: myDecksStatus(library), onOpen: () => setScreen('decks') }}
         />
         {viewed && (
           <DeckViewer tabs={[{ key: viewed.id, label: viewed.name, deck: viewed }]} onClose={() => setViewing(null)} />

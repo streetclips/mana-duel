@@ -40,6 +40,10 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   boss. Each win lets you take one of three cards into your deck, every third win a relic that lasts the whole run,
   and a single defeat ends it. The run and the duel in progress are saved in the browser, so a reload picks the duel
   up where it was. Details in [`docs/MODES.md`](docs/MODES.md).
+- **Mis mazos**, under *Más modos*: build your own decks from every card of the game, from nothing or from a copy of
+  one of the fourteen, with a search, filters by color and type, the mana curve, warnings about lands and colors and
+  a button that completes the deck with basic lands. A deck of 40 to 60 cards with up to four copies of each card
+  (basic lands aside) appears in both seats' pickers and can start an Expedition.
 - **Quién controla la IA**: *Clásica*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
   and your API key (kept in this browser only). The model picks every move among the legal ones, the log shows its
   reasoning and its next prompts recall it; when it fails to answer, the classic AI moves for it. With
@@ -77,8 +81,8 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   a game uses it, and the tests run it offline against mocked models.
 - **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, a deck selector of 3D deck boxes that
   open, a deck viewer, light
-  and dark themes, a game log, the Expedition mode, animations driven by cues that tests and agents can read, and an
-  automation API on `window.manaDuel`.
+  and dark themes, a game log, the Expedition mode, a deck builder, animations driven by cues that tests and agents
+  can read, and an automation API on `window.manaDuel`.
 - **Audio** (`src/audio`): a generative score, one theme per color combination and four moods that follow the game,
   scheduled ahead of the audio clock, and a sound for every animation cue, each built from layers of synthesized
   tones and noise. Tests read what plays and render every sound offline.
@@ -115,11 +119,12 @@ src/
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
 ├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy
 ├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks, expedition,
-│             expeditionController, cardPool
+│             expeditionController, cardPool, deckBuilding, deckLibrary
 ├── audio/    music (themes and moods), cues (a sound per cue), synth, engine, director, render, sounds, gate
-└── ui/       App, StartScreen (deck and AI selector), Game, ExpeditionScreen, model (interaction logic), deckChoice,
-              opponentChoice, autoPassChoice, audioChoice, expeditionStore, fx and motion (animations), components/
-              (Board, Card, DeckBox, DeckSelect, DeckViewer, ExpeditionIcons, Fx, Overlays, SoundToggles), styles.css
+└── ui/       App, StartScreen (deck and AI selector), Game, ExpeditionScreen, DecksScreen, model (interaction
+              logic), deckChoice, opponentChoice, autoPassChoice, audioChoice, expeditionStore, deckLibraryStore, fx
+              and motion (animations), components/ (Board, Card, DeckBox, DeckBuilder, DeckSelect, DeckViewer, Fx,
+              ModeIcons, Overlays, ScreenBar, SoundToggles), styles.css
 public/cards/ one SVG illustration per card, named <id>.svg
 tests/        engine/ ai/ llm/ app/ ui/ audio/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
 e2e/          Playwright specs

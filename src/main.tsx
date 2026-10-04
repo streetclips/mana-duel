@@ -1,15 +1,17 @@
 import { render } from 'preact';
 import { GameController, randomDeckId, type LlmFactory, type OpponentSetup } from './app/controller';
+import { DeckLibrary } from './app/deckLibrary';
 import { ExpeditionController } from './app/expeditionController';
 import { createTestApi, type ManaDuelApi } from './app/testApi';
 import { GameAudio, bindAudioDataset } from './audio';
-import { DEFAULT_DECK_ID, hasDeck } from './engine';
+import { DEFAULT_DECK_ID, hasDeck, type DeckSpec } from './engine';
 import { lazyLlmPlayer } from './llm/lazy';
 import { DEFAULT_MODEL, fetchModels, isModelId, isReasoningEffort } from './llm/models';
 import { App, type Screen } from './ui/App';
 import { audioChoiceFrom, loadAudioChoice } from './ui/audioChoice';
 import { loadAutoPass } from './ui/autoPassChoice';
 import { RANDOM_DECK } from './ui/deckChoice';
+import { localDeckStore } from './ui/deckLibraryStore';
 import { localRunStore } from './ui/expeditionStore';
 import { freezeFx } from './ui/motion';
 import { loadApiKey, loadOpponentChoice } from './ui/opponentChoice';
@@ -30,10 +32,13 @@ const numberParam = (name: string): number | undefined => {
 const theme = params.get('theme');
 if (theme === 'dark' || theme === 'light') document.documentElement.dataset.theme = theme;
 
-const deckParam = (name: string): string => {
+const library = new DeckLibrary(localDeckStore);
+
+const deckParam = (name: string): DeckSpec => {
   const value = params.get(name);
   if (value === RANDOM_DECK) return randomDeckId();
-  return value && hasDeck(value) ? value : DEFAULT_DECK_ID;
+  if (!value) return DEFAULT_DECK_ID;
+  return hasDeck(value) ? value : (library.playable().find((deck) => deck.id === value) ?? DEFAULT_DECK_ID);
 };
 
 const fxParam = params.get('fx');
@@ -96,6 +101,7 @@ window.manaDuel = createTestApi(controller, () => show('game'), {
   audio,
   expedition,
   showExpedition: () => show('expedition'),
+  library,
 });
 
 const root = document.getElementById('app');
@@ -111,6 +117,7 @@ render(
     loadModels={fetchModels}
     audio={audio}
     expedition={expedition}
+    library={library}
   />,
   root,
 );

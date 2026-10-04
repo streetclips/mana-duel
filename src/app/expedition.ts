@@ -15,14 +15,13 @@ import {
   type PlayerId,
   type RngHolder,
 } from '../engine';
-import { isLandCard, spellPool } from './cardPool';
+import { MAX_COPIES, isLandCard, spellPool } from './cardPool';
 import type { Matchup, Perks, Replay, SeatPerks } from './controller';
 
 export const EXPEDITION_DECK_ID = 'expedition';
 export const DUELS = 7;
 export const RELIC_EVERY = 3;
 export const OFFERS = 3;
-export const MAX_COPIES = 4;
 export const RIVAL_LIFE: readonly number[] = [14, 16, 16, 18, 20, 22, 24];
 export const RIVAL_HAND: readonly number[] = [6, 6, 7, 7, 7, 7, 8];
 
