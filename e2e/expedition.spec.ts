@@ -36,7 +36,7 @@ test('an expedition starts from the start screen, and a defeat ends it', async (
   await expect(page.getByTestId('menu-new-game')).toHaveCount(0);
   await page.getByTestId('menu-concede').click();
   await expect(page.getByTestId('game-over')).toContainText('La expedición termina aquí.');
-  await page.getByTestId('btn-expedition-continue').click();
+  await page.getByTestId('btn-mode-continue').click();
   await expect(page.getByTestId('expedition-result')).toHaveAttribute('data-result', 'lost');
   await expectNoHorizontalOverflow(page);
   await page.getByTestId('btn-expedition-home').click();
@@ -59,7 +59,7 @@ test('a won duel brings a card into the expedition deck', async ({ page }) => {
   expect(seed).not.toBeNull();
   await expect(page.getByTestId('game-over-title')).toHaveText('Victoria');
   await expect(page.getByTestId('game-over')).toContainText('Duelo 1 de 7 superado');
-  await page.getByTestId('btn-expedition-continue').click();
+  await page.getByTestId('btn-mode-continue').click();
   await expect(page.getByTestId('expedition')).toHaveAttribute('data-stage', 'card');
   await expectNoHorizontalOverflow(page);
   const offer = page.getByTestId('expedition-reward').getByRole('radio').first();

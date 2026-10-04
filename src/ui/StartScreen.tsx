@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import type { DeckDef, PlayerId } from '../engine';
 import { DeckPicker, Versus } from './components/DeckSelect';
-import { CardsIcon, ChevronRightIcon, MapIcon } from './components/ModeIcons';
+import { CardsIcon, ChevronRightIcon, MapIcon, PackIcon } from './components/ModeIcons';
 import { SoundToggles, type AudioToggles } from './components/SoundToggles';
 import type { DeckChoice } from './deckChoice';
 import { EFFORT_LABELS, REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
@@ -33,6 +33,7 @@ interface StartScreenProps {
   audio?: AudioToggles;
   customs?: readonly DeckDef[];
   expedition?: ModeEntry;
+  draft?: ModeEntry;
   myDecks?: ModeEntry;
 }
 
@@ -125,7 +126,7 @@ function ModeRow({ testId, title, icon, entry }: ModeRowProps) {
   );
 }
 
-export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, audio, customs = [], expedition, myDecks }: StartScreenProps) {
+export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, audio, customs = [], expedition, draft, myDecks }: StartScreenProps) {
   const [picking, setPicking] = useState<PlayerId | null>(null);
   const matchup = useRef<HTMLDivElement>(null);
   const lastTop = useRef<number | null>(null);
@@ -205,12 +206,13 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
               {llm.choice.kind === 'llm' && <LlmFields llm={llm} problem={problem} />}
             </section>
 
-            {(expedition || myDecks) && (
+            {(expedition || draft || myDecks) && (
               <section class="start-section modes" aria-labelledby="modes-label">
                 <h2 id="modes-label" class="section-label">
                   Más modos
                 </h2>
                 {expedition && <ModeRow testId="btn-expedition" title="Expedición" icon={<MapIcon />} entry={expedition} />}
+                {draft && <ModeRow testId="btn-draft" title="Draft" icon={<PackIcon />} entry={draft} />}
                 {myDecks && <ModeRow testId="btn-my-decks" title="Mis mazos" icon={<CardsIcon />} entry={myDecks} />}
               </section>
             )}
@@ -238,6 +240,7 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
                   En la Expedición encadenas siete duelos con el mismo mazo: cada victoria te da una carta nueva y cada tres, una
                   reliquia. Una derrota la termina.
                 </li>
+                <li>En el Draft eliges cartas de sobres al azar, o abres seis en el Sellado, y juegas al mejor de tres con tu mazo.</li>
                 <li>En Mis mazos construyes tus propios mazos con todas las cartas del juego, para ti o para la IA.</li>
               </ul>
             </details>

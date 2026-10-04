@@ -330,12 +330,13 @@ interface GameOverProps {
   detail?: string;
   onNewGame: () => void;
   onHome: () => void;
+  continueLabel?: string;
   onContinue?: () => void;
   onLog: () => void;
   onClose: () => void;
 }
 
-export function GameOverModal({ s, human, title, detail, onNewGame, onHome, onContinue, onLog, onClose }: GameOverProps) {
+export function GameOverModal({ s, human, title, detail, onNewGame, onHome, continueLabel, onContinue, onLog, onClose }: GameOverProps) {
   const opponent: PlayerId = human === 0 ? 1 : 0;
   return (
     <div class="scrim center-modal" data-testid="game-over" onClick={onClose}>
@@ -357,8 +358,8 @@ export function GameOverModal({ s, human, title, detail, onNewGame, onHome, onCo
         </div>
         <div class="sheet-actions">
           {onContinue ? (
-            <button type="button" class="btn" data-testid="btn-expedition-continue" onClick={onContinue}>
-              Continuar la expedición
+            <button type="button" class="btn" data-testid="btn-mode-continue" onClick={onContinue}>
+              {continueLabel}
             </button>
           ) : (
             <>

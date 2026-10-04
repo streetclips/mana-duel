@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { randomDeckId, type GameController } from '../app/controller';
 import { DeckLibrary } from '../app/deckLibrary';
+import { DraftController } from '../app/draftController';
 import { ExpeditionController } from '../app/expeditionController';
 import type { GameAudio } from '../audio';
 import { SUGGESTED_MODELS, type ModelInfo } from '../llm/models';
@@ -9,8 +10,9 @@ import { DeckViewer } from './components/DeckViewer';
 import type { AudioToggles } from './components/SoundToggles';
 import { chosenDeck, knownChoice, loadDeckChoice, resolveMatchup, saveDeckChoice, type DeckChoice } from './deckChoice';
 import { DecksScreen, myDecksStatus } from './DecksScreen';
+import { DraftScreen, draftStatus, gameBadge, gameOutcome } from './DraftScreen';
 import { ExpeditionScreen, duelBadge, duelOutcome, expeditionStatus } from './ExpeditionScreen';
-import { Game, type ExpeditionDuelView } from './Game';
+import { Game, type ModeView } from './Game';
 import {
   llmProblem,
   loadApiKey,
@@ -23,7 +25,7 @@ import {
 import { StartScreen } from './StartScreen';
 import { useControllerSession, useSubscription } from './useController';
 
-export type Screen = 'start' | 'game' | 'expedition' | 'decks';
+export type Screen = 'start' | 'game' | 'expedition' | 'decks' | 'draft';
 
 interface AppProps {
   controller: GameController;
@@ -33,6 +35,7 @@ interface AppProps {
   loadModels?: () => Promise<ModelInfo[]>;
   audio?: GameAudio;
   expedition?: ExpeditionController;
+  draft?: DraftController;
   library?: DeckLibrary;
 }
 
@@ -60,12 +63,16 @@ export function App({
   loadModels,
   audio,
   expedition: expeditionProp,
+  draft: draftProp,
   library: libraryProp,
 }: AppProps) {
   const [screen, setScreen] = useState<Screen>(initialScreen);
   const expedition = useMemo(() => expeditionProp ?? new ExpeditionController(controller), [expeditionProp, controller]);
   useEffect(() => (expeditionProp ? undefined : () => expedition.dispose()), [expedition, expeditionProp]);
   useSubscription(expedition);
+  const draft = useMemo(() => draftProp ?? new DraftController(controller), [draftProp, controller]);
+  useEffect(() => (draftProp ? undefined : () => draft.dispose()), [draft, draftProp]);
+  useSubscription(draft);
   useControllerSession(controller);
   const library = useMemo(() => libraryProp ?? new DeckLibrary(), [libraryProp]);
   useSubscription(library);
@@ -130,16 +137,29 @@ export function App({
     setScreen('game');
   };
 
+  const playDraft = (): void => {
+    draft.play(opponentSetup(opponent));
+    setViewing(null);
+    setScreen('game');
+  };
+
   const leaveGame = (): void => {
     controller.pause();
     controller.setAutoplay(false);
     if (expedition.currentDuel) {
       expedition.flush();
       setScreen('expedition');
+    } else if (draft.currentGame) {
+      draft.flush();
+      setScreen('draft');
     } else setScreen('start');
   };
 
   if (screen === 'decks') return <DecksScreen library={library} onHome={() => setScreen('start')} />;
+
+  if (screen === 'draft') {
+    return <DraftScreen draft={draft} library={library} problem={problem} onPlay={playDraft} onHome={() => setScreen('start')} />;
+  }
 
   if (screen === 'expedition') {
     return (
@@ -169,6 +189,7 @@ export function App({
           audio={toggles}
           customs={customs}
           expedition={{ status: expeditionStatus(expedition.run), onOpen: () => setScreen('expedition') }}
+          draft={{ status: draftStatus(draft.run), onOpen: () => setScreen('draft') }}
           myDecks={{ status: myDecksStatus(library), onOpen: () => setScreen('decks') }}
         />
         {viewed && (
@@ -178,8 +199,18 @@ export function App({
     );
   }
   const duel = expedition.currentDuel;
-  const duelView: ExpeditionDuelView | undefined = duel
-    ? { badge: duelBadge(duel.number, duel.total, duel.boss), outcome: duelOutcome(duel), onContinue: leaveGame }
-    : undefined;
-  return <Game controller={controller} audio={toggles} expedition={duelView} onHome={leaveGame} />;
+  const draftGame = draft.currentGame;
+  let mode: ModeView | undefined;
+  if (duel) {
+    mode = {
+      badge: duelBadge(duel.number, duel.total, duel.boss),
+      outcome: duelOutcome(duel),
+      continueLabel: 'Continuar la expedición',
+      homeLabel: 'Volver a la expedición',
+      onContinue: leaveGame,
+    };
+  } else if (draftGame) {
+    mode = { badge: gameBadge(draftGame), outcome: gameOutcome(draftGame), continueLabel: 'Continuar el draft', homeLabel: 'Volver al draft', onContinue: leaveGame };
+  }
+  return <Game controller={controller} audio={toggles} mode={mode} onHome={leaveGame} />;
 }

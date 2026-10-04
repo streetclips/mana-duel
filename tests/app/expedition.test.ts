@@ -23,7 +23,8 @@ import {
   swapCard,
   type ExpeditionRun,
 } from '../../src/app/expedition';
-import { ExpeditionController, SAVE_DELAY_MS, type RunStore } from '../../src/app/expeditionController';
+import { SAVE_DELAY_MS } from '../../src/app/duelTracker';
+import { ExpeditionController, type RunStore } from '../../src/app/expeditionController';
 import { createTestApi } from '../../src/app/testApi';
 import { DECK_LIST, cardColors, getCardDef, getDeck, resolveDeck, type DeckDef } from '../../src/engine';
 

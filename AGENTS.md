@@ -2,7 +2,8 @@
 
 Minimalist, mobile-first card duel on the rules of Magic: The Gathering, played in Spanish: fourteen decks, one per
 pair of colors, black, red and green alone, and one of all five colors, and a human against an AI: the classic one,
-or an OpenRouter model through the AI SDK, one duel at a time or seven in a row in the Expedition.
+or an OpenRouter model through the AI SDK, one duel at a time, seven in a row in the Expedition, or a best of three
+with cards from packs in the Draft.
 TypeScript, Preact, Vite; Vitest and Playwright.
 
 ## Layout
@@ -12,11 +13,12 @@ src/engine/  rules: pure functions over a serializable GameState ◄──┐
 src/ai/      chooseAction(state, player) via engine rollouts ───────┤ all read the engine
 src/llm/     LLM player: seat view, legal moves as a zod schema ────┘
 src/app/     GameController (decks per seat, AI timers, async LLM seat, auto-pass, log, fx cues, replay),
-             Expedition runs (expedition.ts, pure; ExpeditionController plays and saves them), your own decks
-             (deckBuilding.ts, DeckLibrary), window.manaDuel, feature checks
+             modes: Expedition runs and Draft runs (expedition.ts, draft.ts, pure; their controllers follow their
+             games with DuelTracker and save them), your own decks (deckBuilding.ts, DeckLibrary),
+             window.manaDuel, feature checks
 src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with a deck box
-             per seat that opens onto the deck picker, deck viewer, Expedition screen, your decks and the deck
-             builder; card art from public/cards/; animations of the fx cues (fx.ts, motion.ts)
+             per seat that opens onto the deck picker, deck viewer, the Expedition and Draft screens, your decks
+             and the deck builder; card art from public/cards/; animations of the fx cues (fx.ts, motion.ts)
 src/audio/   music and sound effects synthesized with Web Audio: a theme per deck whose mood follows the game, a
              sound per fx cue; GameAudio starts on the first tap
 tests/       Vitest: engine, ai, llm, app, ui (happy-dom), audio (fake AudioContext) e2e/  Playwright on the
@@ -67,8 +69,9 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `replay()`, `runChecks()`, `fx(since)` for the animation cues of recent actions, `opponent()`, `llmDecisions()`,
   `await llmPrompt()` (what the LLM gets now), `audio.*` for the music and sounds (`audio.played(fxSeq)` lists the
   sounds of the actions after it), `expedition.*` to drive a run (`start({ deck, seed })`, `fight()`, `state()`,
-  `chooseCard(id)`, `swapCard(id)`, `chooseRelic(id)`), `saveDeck({ name, cards })` and `deleteDeck(id)` for your
-  decks, and `engine.*` for pure engine calls.
+  `chooseCard(id)`, `swapCard(id)`, `chooseRelic(id)`), `draft.*` to drive a draft (`start({ format, seed })`,
+  `pick(id)`, `saveDeck()`, `play()`, `state()`), `saveDeck({ name, cards })` and `deleteDeck(id)` for your decks,
+  and `engine.*` for pure engine calls.
 - DOM hooks (`data-testid`): `card-<cardId>` (plus `data-zone`, `data-def`, `data-tapped`; on the battlefield it
   holds its keyword icons `.icon[data-icon]`, `trigger` for a trigger that can still happen, and the pills
   `ability-<cardId>-<n>`, with `data-usable` while you can activate it, and `ability-<cardId>-mana`, with
@@ -89,8 +92,12 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `btn-expedition-start`, `expedition-floor-<n>` (`data-state`, `data-deck`), `btn-expedition-fight`,
   `btn-expedition-deck`, `run-deck-size`, `relic-<id>`, `reward-card-<defId>`, `btn-reward-take`, `btn-reward-skip`,
   `swap-card-<defId>`, `btn-swap-confirm`, `btn-swap-add`, `relic-option-<id>`, `btn-relic-take`, `expedition-result`
-  (`data-result`), `btn-expedition-new`; in its duels `duel-badge-1`, and the result screen offers
-  `btn-expedition-continue` instead of `btn-play-again`. Your decks: `btn-my-decks` (start screen) opens
+  (`data-result`), `btn-expedition-new`. Draft: `btn-draft` (start screen) opens `draft` (`data-stage`: `new`,
+  `picking`, `building`, `match`, `done`), with `draft-format-<draft|sealed>`, `btn-draft-start`, `draft-card-<defId>`,
+  `btn-draft-pick`, `draft-pick-count`, `btn-draft-picks`, `btn-draft-build`, `draft-score`, `btn-draft-play`,
+  `btn-draft-edit`, `draft-result-title`, `btn-draft-save`, `btn-draft-ai-deck`, `btn-draft-new`, `btn-draft-abandon`.
+  In a mode's game the rival's bar shows `duel-badge-1`, and the result screen and the bar continue the mode with
+  `btn-mode-continue` and `btn-mode-next` instead of `btn-play-again`. Your decks: `btn-my-decks` (start screen) opens
   `decks-screen`, with `my-deck-<id>` (`data-playable`), `btn-edit-<id>`, `btn-delete-<id>` (`btn-delete-yes`),
   `copy-<deckId>` and `btn-new-deck`, which open `deck-builder` (`data-tab`): `builder-name`, `btn-builder-save`,
   `btn-builder-back` (`builder-leave` asks first), `builder-count`, `builder-problems`, `builder-tab-deck|pool`,
@@ -122,9 +129,9 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   touching `src/llm` or the controller's AI seat.
 - `docs/AUDIO.md` — music and sound effects: themes per color, moods, the sound of each fx cue, mix, test hooks; read
   it before touching `src/audio` or giving a cue a sound.
-- `docs/MODES.md` — the Expedition (rivals and their tuning, rewards, relics, the saved run and duel) and your own
-  decks (rules, builder, library); read it before touching `src/app/expedition*.ts`, `src/app/deck*.ts`, their
-  screens, or a relic.
+- `docs/MODES.md` — the Expedition (rivals and their tuning, rewards, relics), the Draft (packs, the AI's picks and
+  decks, the match), your own decks (rules, builder, library) and how a mode follows its games; read it before
+  touching `src/app/expedition*.ts`, `draft*.ts`, `deck*.ts`, `duelTracker.ts`, their screens, or a relic.
 
 ## Extending
 

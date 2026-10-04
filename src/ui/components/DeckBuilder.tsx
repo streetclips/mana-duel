@@ -15,7 +15,7 @@ import {
   type Allowance,
   type DeckDraft,
 } from '../../app/deckBuilding';
-import { COLORS, cardColors, getCardDef, getCost, manaValue, type CardDef, type Color } from '../../engine';
+import { COLORS, cardColors, getCardDef, getCost, manaValue, type CardDef, type Color, type DeckEntry } from '../../engine';
 import { cardColorVar, cssVars, manaName } from '../cardInfo';
 import { DetailFace, MiniFace } from './Card';
 import { DeckBox } from './DeckBox';
@@ -39,6 +39,8 @@ interface DeckBuilderProps {
   pool: readonly Allowance[];
   title: string;
   saveLabel?: string;
+  requireValid?: boolean;
+  suggest?: () => DeckEntry[];
   onSave: (draft: DeckDraft) => void;
   onClose: () => void;
 }
@@ -93,7 +95,7 @@ function BuilderTile({ def, count, max, addable, testId, onAdd, onRemove, onInsp
   );
 }
 
-export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', onSave, onClose }: DeckBuilderProps) {
+export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requireValid = false, suggest, onSave, onClose }: DeckBuilderProps) {
   const [draft, setDraft] = useState<DeckDraft>(initial);
   const [tab, setTab] = useState<Tab>(initial.cards.length > 0 ? 'deck' : 'pool');
   const [colors, setColors] = useState<Color[]>([]);
@@ -160,7 +162,13 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', onSav
         backTestId="btn-builder-back"
         onBack={leave}
       >
-        <button type="button" class="btn builder-save" data-testid="btn-builder-save" disabled={!draft.name.trim()} onClick={() => onSave(draft)}>
+        <button
+          type="button"
+          class="btn builder-save"
+          data-testid="btn-builder-save"
+          disabled={!draft.name.trim() || (requireValid && problems.length > 0)}
+          onClick={() => onSave(draft)}
+        >
           {saveLabel}
         </button>
       </ScreenBar>
@@ -206,6 +214,16 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', onSav
       <div class="builder-body">
         {tab === 'deck' ? (
           <>
+            {suggest && (
+              <button
+                type="button"
+                class="btn secondary builder-fill"
+                data-testid="btn-builder-suggest"
+                onClick={() => setDraft((current) => ({ ...current, cards: suggest() }))}
+              >
+                Sugerir un mazo
+              </button>
+            )}
             {size < MIN_DECK && deck.colors.length > 0 && (
               <button
                 type="button"

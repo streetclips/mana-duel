@@ -17,6 +17,9 @@ import {
 } from '../engine';
 import { MAX_COPIES, isLandCard, spellPool } from './cardPool';
 import type { Matchup, Perks, Replay, SeatPerks } from './controller';
+import type { DuelResult } from './duelTracker';
+
+export type { DuelResult };
 
 export const EXPEDITION_DECK_ID = 'expedition';
 export const DUELS = 7;
@@ -56,8 +59,6 @@ export interface Rival {
   openingHand: number;
   boss: boolean;
 }
-
-export type DuelResult = 'won' | 'lost' | 'draw';
 
 export interface DuelRecord {
   rival: string;

@@ -1,5 +1,6 @@
 import type { DeckDef } from '../engine';
-import { randomSeed, type GameController, type OpponentSetup } from './controller';
+import { randomSeed, type GameController, type OpponentSetup, type Replay } from './controller';
+import { DuelTracker, type DuelResult } from './duelTracker';
 import {
   chooseCard,
   chooseRelic,
@@ -11,7 +12,6 @@ import {
   startDuel,
   swapCard,
   withDuel,
-  type DuelResult,
   type ExpeditionRun,
   type RelicId,
 } from './expedition';
@@ -22,8 +22,6 @@ export interface RunStore {
 }
 
 export const NO_STORE: RunStore = { load: () => null, save: () => undefined };
-
-export const SAVE_DELAY_MS = 500;
 
 export interface DuelInfo {
   number: number;
@@ -37,13 +35,9 @@ type Listener = () => void;
 
 export class ExpeditionController {
   run: ExpeditionRun | null;
-  private duelSession: number | null = null;
-  private recordedSession: number | null = null;
-  private savedActions = -1;
-  private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private duelInfo: DuelInfo | null = null;
   private listeners = new Set<Listener>();
-  private readonly stopWatching: () => void;
+  private readonly tracker: DuelTracker;
 
   constructor(
     private readonly game: GameController,
@@ -51,11 +45,11 @@ export class ExpeditionController {
   ) {
     const stored = store.load();
     this.run = isExpeditionRun(stored) ? stored : null;
-    this.stopWatching = game.subscribe(() => this.watch());
+    this.tracker = new DuelTracker(game, { save: (replay) => this.saveDuel(replay), end: (result, turns) => this.endDuel(result, turns) });
   }
 
   get inDuel(): boolean {
-    return this.duelSession !== null && this.duelSession === this.game.session;
+    return this.tracker.following;
   }
 
   get currentDuel(): DuelInfo | null {
@@ -68,29 +62,23 @@ export class ExpeditionController {
   }
 
   dispose(): void {
-    this.cancelSave();
-    this.stopWatching();
+    this.tracker.dispose();
     this.listeners.clear();
   }
 
   flush(): void {
-    this.cancelSave();
-    const run = this.run;
-    if (!run || !this.following(run) || run.duel?.actions.length === this.game.state.actionCount) return;
-    this.update(withDuel(run, this.game.getReplay()));
+    this.tracker.flush();
   }
 
   start(base: DeckDef, seed: number = randomSeed()): ExpeditionRun {
     const run = createRun(base, seed);
-    this.cancelSave();
-    this.duelSession = null;
+    this.tracker.forget();
     this.update(run);
     return run;
   }
 
   abandon(): void {
-    this.cancelSave();
-    this.duelSession = null;
+    this.tracker.forget();
     this.update(null);
   }
 
@@ -123,43 +111,25 @@ export class ExpeditionController {
   private follow(run: ExpeditionRun): void {
     const rival = currentRival(run);
     this.duelInfo = rival ? { number: run.wins + 1, total: run.rivals.length, rival: rival.deck, boss: rival.boss, result: null } : null;
-    this.duelSession = this.game.session;
-    this.recordedSession = null;
-    this.savedActions = this.game.state.actionCount;
     this.update(run);
-    this.watch();
+    this.tracker.follow();
+  }
+
+  private saveDuel(replay: Replay): void {
+    const run = this.run;
+    if (run?.stage.kind === 'duel') this.update(withDuel(run, replay));
+  }
+
+  private endDuel(result: DuelResult, turns: number): void {
+    const run = this.run;
+    if (run?.stage.kind !== 'duel' || !currentRival(run)) return;
+    if (this.duelInfo) this.duelInfo = { ...this.duelInfo, result };
+    this.update(recordDuel(run, result, turns));
   }
 
   private require(): ExpeditionRun {
     if (!this.run) throw new Error('there is no expedition under way');
     return this.run;
-  }
-
-  private following(run: ExpeditionRun): boolean {
-    return this.inDuel && this.recordedSession !== this.game.session && run.stage.kind === 'duel' && currentRival(run) !== null;
-  }
-
-  private watch(): void {
-    const run = this.run;
-    if (!run || !this.following(run)) return;
-    const s = this.game.state;
-    const pending = s.pending;
-    if (pending?.kind === 'gameOver') {
-      this.cancelSave();
-      this.recordedSession = this.game.session;
-      const result: DuelResult = pending.winner === null ? 'draw' : pending.winner === this.game.human ? 'won' : 'lost';
-      if (this.duelInfo) this.duelInfo = { ...this.duelInfo, result };
-      this.update(recordDuel(run, result, s.turn));
-      return;
-    }
-    if (s.actionCount === this.savedActions) return;
-    this.savedActions = s.actionCount;
-    this.saveTimer ??= setTimeout(() => this.flush(), SAVE_DELAY_MS);
-  }
-
-  private cancelSave(): void {
-    if (this.saveTimer !== null) clearTimeout(this.saveTimer);
-    this.saveTimer = null;
   }
 
   private update(run: ExpeditionRun | null): void {

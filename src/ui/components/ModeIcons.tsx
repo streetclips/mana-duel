@@ -104,3 +104,12 @@ export function TrashIcon() {
     </svg>
   );
 }
+
+export function PackIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4.5 3.2h11l-1 2 1 2v9.6h-11V7.2l1-2z" />
+      <path d="M4.5 7.2h11M7.6 11.2l2.4-1.8 2.4 1.8-2.4 3.2z" />
+    </svg>
+  );
+}

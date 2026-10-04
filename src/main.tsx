@@ -1,6 +1,7 @@
 import { render } from 'preact';
 import { GameController, randomDeckId, type LlmFactory, type OpponentSetup } from './app/controller';
 import { DeckLibrary } from './app/deckLibrary';
+import { DraftController } from './app/draftController';
 import { ExpeditionController } from './app/expeditionController';
 import { createTestApi, type ManaDuelApi } from './app/testApi';
 import { GameAudio, bindAudioDataset } from './audio';
@@ -12,6 +13,7 @@ import { audioChoiceFrom, loadAudioChoice } from './ui/audioChoice';
 import { loadAutoPass } from './ui/autoPassChoice';
 import { RANDOM_DECK } from './ui/deckChoice';
 import { localDeckStore } from './ui/deckLibraryStore';
+import { localDraftStore } from './ui/draftStore';
 import { localRunStore } from './ui/expeditionStore';
 import { freezeFx } from './ui/motion';
 import { loadApiKey, loadOpponentChoice } from './ui/opponentChoice';
@@ -89,10 +91,14 @@ audio.listen(window);
 bindAudioDataset(audio, document.documentElement);
 
 const expedition = new ExpeditionController(controller, localRunStore);
-const saveExpedition = (): void => expedition.flush();
-window.addEventListener('pagehide', saveExpedition);
+const draft = new DraftController(controller, localDraftStore);
+const saveModes = (): void => {
+  expedition.flush();
+  draft.flush();
+};
+window.addEventListener('pagehide', saveModes);
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') saveExpedition();
+  if (document.visibilityState === 'hidden') saveModes();
 });
 
 let show = (_screen: Screen): void => undefined;
@@ -101,6 +107,8 @@ window.manaDuel = createTestApi(controller, () => show('game'), {
   audio,
   expedition,
   showExpedition: () => show('expedition'),
+  draft,
+  showDraft: () => show('draft'),
   library,
 });
 
@@ -117,6 +125,7 @@ render(
     loadModels={fetchModels}
     audio={audio}
     expedition={expedition}
+    draft={draft}
     library={library}
   />,
   root,

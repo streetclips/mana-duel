@@ -4,6 +4,14 @@ Besides a single duel against the AI, Mana Duel has modes that span several game
 keeps its state in the browser (`localStorage`) and plays its games through the same `GameController`, so every game
 of a mode is an ordinary duel: the same engine, AI or LLM opponent, animations, log and replays.
 
+A mode follows the game it starts with a `DuelTracker` (`src/app/duelTracker.ts`): by session, so a new game, a
+scenario or a replay loaded meanwhile is never recorded as the mode's result. It saves the game in progress as its
+replay half a second after each action, when the page is hidden and when you leave the game, and records the result
+once. In the game, the mode puts a badge on the rival's bar (`duel-badge-1`), takes *Nueva partida* out of the menu,
+whose *Menú principal* goes back to the mode instead, and the result screen and the bar continue the mode
+(`btn-mode-continue`, `btn-mode-next`). Each mode passes its games their starting player: a replay of a game whose
+starting player came from the engine's own coin flip does not reproduce the shuffles after it.
+
 ## Expedition
 
 Seven duels in a row with one deck. Each rival is a little stronger than the one before; every win improves the deck,
@@ -61,13 +69,8 @@ a run winnable.
 
 ### The saved run
 
-- The run is saved on every change and checked when it is read (`isExpeditionRun`); a run it cannot read is dropped.
-- The duel in progress is saved as its replay half a second after each action, when the page is hidden and when you
-  leave the game; **Continuar el duelo** loads it again exactly where it was. The run passes each duel its starting
-  player: a replay of a game whose starting player came from the engine's own coin flip does not reproduce the
-  shuffles after it.
-- The run's duel is followed by session: a new game, a scenario or a replay loaded meanwhile is never recorded as the
-  run's result.
+The run is saved on every change and checked when it is read (`isExpeditionRun`); a run it cannot read is dropped.
+The duel in progress is saved with it, and **Continuar el duelo** loads it again exactly where it was.
 
 ### Extending
 
@@ -110,4 +113,36 @@ src/ui/deckLibraryStore.ts   the decks in localStorage under manaDuel.customDeck
 Tests: `tests/app/deckBuilding.test.ts` (the rules, the library, the automation API), `tests/ui/decks.test.tsx` and
 `tests/ui/deckChoice.test.ts` (the screens and the pickers), `e2e/decks.spec.ts` (a deck built on the phone and played,
 a copy that survives a reload and starts an Expedition).
+
+## Draft and sealed
+
+New cards every time: cards from random packs, a deck built from them and the basic lands, and a match against the
+AI's own deck, best of three games.
+
+```
+src/app/draft.ts            the run, pure: packs, picks, ratings, the AI's picks and decks, the match
+src/app/draftController.ts  plays the match's games in the GameController, records them, saves the run
+src/ui/DraftScreen.tsx      format, picks, building with the deck builder, the match, the result
+src/ui/draftStore.ts        the run in localStorage under manaDuel.draft
+```
+
+1. **Format**: *Draft contra la IA*, three rounds of a pack of twelve for each of you: you pick a card from yours, the
+   AI from its own at the same time, and you swap packs until both are empty; 36 cards each. *Sellado*: six packs of
+   twelve for each, opened at once. A pack holds twelve different cards of the fourteen decks, basic lands aside.
+2. **Building**: the deck builder of *My decks* with your picks, each as many times as you took it, and
+   the basic lands without limit. It opens on a suggested deck, and *Sugerir un mazo* brings it back; **Listo** takes
+   only a deck that can be played. The deck can change between games.
+3. **Match**: your deck (id `draft`) against the AI's (`draft-ai`, *Draft de la IA*), best of three: a coin flip from
+   the run's seed picks who starts the first game, the loser of each game starts the next, and a draw counts for
+   nobody. At the end you can see the AI's deck and save yours into your decks.
+
+The AI rates a card by what it does for its cost (`cardRating`: power and toughness, keywords, abilities, and what a
+spell's effects are worth, removal and card draw above all), picks the best one, and after five picks prefers cards of
+its two best colors. It builds by taking the 23 best spells of the pair of colors that adds up to most, up to two
+more lands when the pair falls short, then the best cards of one more color, and the basic lands that bring the deck
+to 40 in the share of its colored mana symbols (`autoBuild`); your suggested deck is built the same way.
+
+Tests: `tests/app/draft.test.ts` (packs, picks, ratings, building, the match, the controller, the automation API),
+`tests/ui/draft.test.tsx` (the screens and the games), `e2e/draft.spec.ts` (a sealed match played to the end, picks
+by tap that survive a reload).
 

@@ -43,18 +43,18 @@ import {
 } from './model';
 import { useControllerVersion } from './useController';
 
-const CONTINUE_EXPEDITION: UiButton = { id: 'continue-expedition', label: 'Continuar la expedición', command: { kind: 'newGame' }, tone: 'primary' };
-
-export interface ExpeditionDuelView {
+export interface ModeView {
   badge: string;
   outcome: string | null;
+  continueLabel: string;
+  homeLabel: string;
   onContinue: () => void;
 }
 
 interface GameProps {
   controller: GameController;
   audio?: AudioToggles;
-  expedition?: ExpeditionDuelView;
+  mode?: ModeView;
   onHome: () => void;
 }
 
@@ -136,7 +136,7 @@ function Battlefield({ s, player, items, children }: BattlefieldProps) {
   );
 }
 
-export function Game({ controller, audio, expedition, onHome }: GameProps) {
+export function Game({ controller, audio, mode, onHome }: GameProps) {
   useControllerVersion(controller);
   const s = controller.state;
   const human = controller.human;
@@ -184,7 +184,8 @@ export function Game({ controller, audio, expedition, onHome }: GameProps) {
   const actions = useMemo(() => controller.legalActions(), [s, controller.autoplay]);
   const targets = useMemo(() => selectableTargets(actions, current), [actions, current]);
   const plainBar = barModel(s, human, current, controller.busy, controller.lastEventText());
-  const bar = expedition && pending?.kind === 'gameOver' ? { ...plainBar, buttons: [CONTINUE_EXPEDITION] } : plainBar;
+  const continueButton: UiButton | null = mode ? { id: 'mode-next', label: mode.continueLabel, command: { kind: 'newGame' }, tone: 'primary' } : null;
+  const bar = continueButton && pending?.kind === 'gameOver' ? { ...plainBar, buttons: [continueButton] } : plainBar;
   const hand = s.players[human].hand;
   const overlap = useHandOverlap(hand.length);
 
@@ -244,7 +245,7 @@ export function Game({ controller, audio, expedition, onHome }: GameProps) {
         setInteraction(interactionFor(s, human));
         return;
       case 'newGame':
-        if (expedition) expedition.onContinue();
+        if (mode) mode.onContinue();
         else controller.newGame();
         return;
       case 'setInteraction':
@@ -416,7 +417,7 @@ export function Game({ controller, audio, expedition, onHome }: GameProps) {
           player={opponent}
           human={human}
           deckName={deckName(opponent)}
-          badge={expedition?.badge}
+          badge={mode?.badge}
           tag={
             llmModel
               ? { text: 'LLM', title: controller.llmUnavailable ? `LLM no disponible: ${controller.llmUnavailable}` : `OpenRouter · ${llmModel}${llmEffort}` }
@@ -499,10 +500,11 @@ export function Game({ controller, audio, expedition, onHome }: GameProps) {
           s={s}
           human={human}
           title={bar.prompt.title}
-          detail={expedition?.outcome ?? bar.prompt.detail}
+          detail={mode?.outcome ?? bar.prompt.detail}
           onNewGame={() => controller.newGame()}
           onHome={onHome}
-          onContinue={expedition?.onContinue}
+          continueLabel={mode?.continueLabel}
+          onContinue={mode?.onContinue}
           onLog={() => setLogOpen(true)}
           onClose={() => setGameOverHidden(true)}
         />
@@ -550,7 +552,7 @@ export function Game({ controller, audio, expedition, onHome }: GameProps) {
             controller.setAutoPass(on);
           }}
           onNewGame={
-            expedition
+            mode
               ? undefined
               : () => {
                   setMenuOpen(false);
@@ -561,7 +563,7 @@ export function Game({ controller, audio, expedition, onHome }: GameProps) {
             setMenuOpen(false);
             onHome();
           }}
-          homeLabel={expedition ? 'Volver a la expedición' : undefined}
+          homeLabel={mode?.homeLabel}
           onConcede={() => {
             setMenuOpen(false);
             controller.concede();

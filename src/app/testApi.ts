@@ -36,6 +36,8 @@ import { CHECKS, runChecks, type CheckResult } from './checks';
 import type { ControllerOptions, GameController, LlmRecord, OpponentSetup, Replay } from './controller';
 import type { DeckDraft } from './deckBuilding';
 import { DeckLibrary } from './deckLibrary';
+import { suggestedDeck, type DraftFormat, type DraftRun } from './draft';
+import { DraftController } from './draftController';
 import type { ExpeditionRun, RelicId } from './expedition';
 import { ExpeditionController } from './expeditionController';
 import type { FxCue } from './fx';
@@ -52,7 +54,7 @@ export interface EngineApi {
   play(state: GameState, actions: Action[]): GameState;
 }
 
-export const API_VERSION = '1.7';
+export const API_VERSION = '1.8';
 
 export interface DeckSummary {
   id: string;
@@ -83,7 +85,21 @@ export interface UiHooks {
   audio?: GameAudio;
   expedition?: ExpeditionController;
   showExpedition?: () => void;
+  draft?: DraftController;
+  showDraft?: () => void;
   library?: DeckLibrary;
+}
+
+export type DraftResult = { ok: true; run: DraftRun | null } | { ok: false; error: string };
+
+export interface DraftApi {
+  state(): DraftRun | null;
+  start(options?: { format?: DraftFormat; seed?: number }): DraftResult;
+  pick(card: string): DraftResult;
+  saveDeck(cards?: { card: string; count: number }[]): DraftResult;
+  play(): DraftResult;
+  abandon(): void;
+  show(): void;
 }
 
 export type ExpeditionResult = { ok: true; run: ExpeditionRun | null } | { ok: false; error: string };
@@ -167,6 +183,7 @@ export interface ManaDuelApi {
   runChecks(ids?: string[]): CheckResult[];
   audio: AudioApi;
   expedition: ExpeditionApi;
+  draft: DraftApi;
   engine: EngineApi;
 }
 
@@ -217,6 +234,11 @@ const HELP = `window.manaDuel — automation API
   expedition.fight()    the run's next duel, or the saved one where it was, shown in the game
   expedition.chooseCard(id | null), swapCard(id | null), chooseRelic(id), abandon(), show()
                         each answer is {ok, run} or {ok: false, error}
+  draft.state()         the draft or sealed run: packs, picks, decks, wins, stage, saved game; null without one
+  draft.start({format: 'draft' | 'sealed', seed})   a new run, shown on its screen
+  draft.pick(id)        your pick from packs[0] (the AI picks from packs[1] at the same time)
+  draft.saveDeck(cards?)  your deck from your picks and basic lands; omitted, the suggested one
+  draft.play()          the match's next game, or the saved one where it was, shown in the game; draft.abandon(), show()
   engine.*              pure engine: createScenario, applyAction, play(state, actions), chooseAction...`;
 
 function toApiResult(result: { ok: true; state: GameState } | { ok: false; error: string }): ApiResult {
@@ -240,6 +262,39 @@ function withCustomDecks(options: ControllerOptions, library: DeckLibrary): Cont
   if (!options.decks) return options;
   const [mine, theirs] = options.decks.map((spec) => (typeof spec === 'string' ? (library.get(spec) ?? spec) : spec));
   return mine !== undefined && theirs !== undefined ? { ...options, decks: [mine, theirs] } : options;
+}
+
+function draftApi(draft: DraftController, show: () => void, showGame: () => void): DraftApi {
+  const attempt = (act: () => void): DraftResult => {
+    try {
+      act();
+      return { ok: true, run: structuredClone(draft.run) };
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  };
+  return {
+    state: () => structuredClone(draft.run),
+    start: (options = {}) =>
+      attempt(() => {
+        draft.start(options.format ?? 'draft', options.seed);
+        show();
+      }),
+    pick: (card) => attempt(() => draft.pick(card)),
+    saveDeck: (cards) =>
+      attempt(() => {
+        const run = draft.run;
+        if (!run) throw new Error('there is no draft under way');
+        draft.saveDeck({ id: null, name: run.name, featured: run.featured, cards: cards ?? suggestedDeck(run) });
+      }),
+    play: () =>
+      attempt(() => {
+        draft.play();
+        showGame();
+      }),
+    abandon: () => draft.abandon(),
+    show,
+  };
 }
 
 function expeditionApi(expedition: ExpeditionController, show: () => void, showGame: () => void): ExpeditionApi {
@@ -353,6 +408,7 @@ export function createTestApi(controller: GameController, showGame: () => void, 
     runChecks: (ids) => runChecks(ids),
     audio: audioApi(ui.audio ?? new GameAudio({ createContext: null })),
     expedition: expeditionApi(ui.expedition ?? new ExpeditionController(controller), ui.showExpedition ?? (() => undefined), showGame),
+    draft: draftApi(ui.draft ?? new DraftController(controller), ui.showDraft ?? (() => undefined), showGame),
     engine: {
       createGame,
       createScenario,

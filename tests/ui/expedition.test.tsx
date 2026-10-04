@@ -139,8 +139,8 @@ describe('an expedition duel', () => {
     expect(byTestId('game-over-title').textContent).toBe('Derrota');
     expect(byTestId('game-over').textContent).toContain('La expedición termina aquí.');
     expect(screen.queryByTestId('btn-play-again')).toBeNull();
-    expect(byTestId('btn-continue-expedition').textContent).toBe('Continuar la expedición');
-    click(byTestId('btn-expedition-continue'));
+    expect(byTestId('btn-mode-next').textContent).toBe('Continuar la expedición');
+    click(byTestId('btn-mode-continue'));
     expect(byTestId('expedition-result').dataset.result).toBe('lost');
     expect(byTestId('expedition-result-title').textContent).toBe('Fin de la expedición');
     expect(byTestId('expedition-result').textContent).toContain('Caíste en el duelo 1 de 7');
