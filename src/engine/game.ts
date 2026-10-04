@@ -202,7 +202,8 @@ export function createGame(options: GameOptions = {}): GameState {
       placeStartingPermanent(s, player, def, `c${counter}`);
     }
   }
-  s.startingPlayer = options.startingPlayer ?? (random(s) < 0.5 ? 0 : 1);
+  const coin: PlayerId = random(s) < 0.5 ? 0 : 1;
+  s.startingPlayer = options.startingPlayer ?? coin;
   s.activePlayer = s.startingPlayer;
   s.events.push({ t: 'start', startingPlayer: s.startingPlayer });
   drawCards(s, s.startingPlayer, openingHandSize(s, s.startingPlayer));

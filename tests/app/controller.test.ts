@@ -98,6 +98,16 @@ describe('GameController', () => {
     expect(other.state).toEqual(c.state);
   });
 
+  it('exports a replay that reproduces a game the coin flip started, shuffles included', () => {
+    const c = new GameController({ seed: 21, aiDelayMs: 0 });
+    c.settle();
+    expect(c.dispatch({ type: 'mulligan', player: 0 })).toMatchObject({ ok: true });
+    c.settle();
+    const other = controller();
+    expect(other.loadReplay(c.getReplay())).toMatchObject({ ok: true });
+    expect(other.state).toEqual(c.state);
+  });
+
   it('can concede at any moment', () => {
     const c = controller();
     c.concede();

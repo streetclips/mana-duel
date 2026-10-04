@@ -9,8 +9,7 @@ scenario or a replay loaded meanwhile is never recorded as the mode's result. It
 replay half a second after each action, when the page is hidden and when you leave the game, and records the result
 once. In the game, the mode puts a badge on the rival's bar (`duel-badge-1`), takes *Nueva partida* out of the menu,
 whose *Menú principal* goes back to the mode instead, and the result screen and the bar continue the mode
-(`btn-mode-continue`, `btn-mode-next`). Each mode passes its games their starting player: a replay of a game whose
-starting player came from the engine's own coin flip does not reproduce the shuffles after it.
+(`btn-mode-continue`, `btn-mode-next`).
 
 ## Expedition
 

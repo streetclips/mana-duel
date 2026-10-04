@@ -492,13 +492,19 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F25',
-    title: 'Replays: seed plus actions reproduces the game exactly',
+    title: 'Replays: seed plus actions reproduces the game exactly, with or without its starting player',
     run: () => {
       const game = aiGame(12);
       if (game.problem) return game.problem;
-      let replay = createGame({ seed: 12 });
-      for (const action of game.actions) replay = applyAction(replay, action);
-      return expectValue(JSON.stringify(replay) === JSON.stringify(game.state), true, 'replayed state matches');
+      const replayed = (startingPlayer?: PlayerId): boolean => {
+        let replay = createGame({ seed: 12, startingPlayer });
+        for (const action of game.actions) replay = applyAction(replay, action);
+        return JSON.stringify(replay) === JSON.stringify(game.state);
+      };
+      return first(
+        expectValue(replayed(), true, 'replayed state matches'),
+        expectValue(replayed(game.state.startingPlayer), true, 'replayed state with its starting player matches'),
+      );
     },
   },
   {
