@@ -70,7 +70,7 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F22 | Cleanup: discard to seven, damage and pumps wear off | `tests/engine/turn.test.ts` › turn structure |
 | F23 | Game over: 0 life, empty library, concession, turn limit | `tests/engine/gameover.test.ts` |
 | F24 | Every listed action is legal; bad input is refused with a reason and changes nothing | `tests/engine/properties.test.ts` |
-| F25 | Replays: seed plus actions reproduces a game exactly | `tests/engine/properties.test.ts` · `tests/app/controller.test.ts` |
+| F25 | Replays: seed plus actions reproduces a game exactly, with or without its starting player | `tests/engine/properties.test.ts` · `tests/engine/setup.test.ts` › game setup · `tests/app/controller.test.ts` › GameController |
 | F26 | Invariants after every action (one zone per card, clean state off the battlefield) | `tests/engine/properties.test.ts` · `npm run sim` |
 | F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all 196 matchups by default) |
 

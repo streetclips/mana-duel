@@ -40,6 +40,16 @@ describe('game setup', () => {
     expect(createGame({ seed: 3, startingPlayer: 0 }).startingPlayer).toBe(0);
   });
 
+  it('deals the same game when given the starting player its coin flip picks', () => {
+    const picked = new Set<number>();
+    for (let seed = 1; seed <= 20; seed++) {
+      const flipped = createGame({ seed });
+      picked.add(flipped.startingPlayer);
+      expect(createGame({ seed, startingPlayer: flipped.startingPlayer })).toEqual(flipped);
+    }
+    expect(picked.size).toBe(2);
+  });
+
   it('starts turn 1 once both players keep, and the starting player skips the first draw', () => {
     const s = keepBoth(createGame({ seed: 11, startingPlayer: 0 }));
     expect(s.turn).toBe(1);

@@ -14,7 +14,8 @@ id with its Spanish name).
   Cindermaw (Fauceniza, black/red), Deepgrove (Sotohondo, green/blue), Flamecrest (Crestafuego, red), Wildland
   (Tierrabrava, green) or Crossroads (Encrucijada, all five colors). Both may bring the same deck.
   No nonland card appears in two decks; basic lands may.
-- The starting player comes from a seeded coin flip (or `startingPlayer`). They skip their first draw.
+- The starting player comes from a seeded coin flip (or `startingPlayer`). They skip their first draw. The coin is
+  flipped even when `startingPlayer` is given, so a game replays from its seed and the starting player it had.
 - London mulligan: shuffle the hand away, draw seven, and once you keep, put one card on the bottom per mulligan.
   The starting player decides first. At most six mulligans.
 - You lose at 0 life or less, when you draw from an empty library, or when you concede. If both players lose at
