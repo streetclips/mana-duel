@@ -1,5 +1,6 @@
 import { render } from 'preact';
 import { GameController, randomDeckId, type LlmFactory, type OpponentSetup } from './app/controller';
+import { ExpeditionController } from './app/expeditionController';
 import { createTestApi, type ManaDuelApi } from './app/testApi';
 import { GameAudio, bindAudioDataset } from './audio';
 import { DEFAULT_DECK_ID, hasDeck } from './engine';
@@ -9,6 +10,7 @@ import { App, type Screen } from './ui/App';
 import { audioChoiceFrom, loadAudioChoice } from './ui/audioChoice';
 import { loadAutoPass } from './ui/autoPassChoice';
 import { RANDOM_DECK } from './ui/deckChoice';
+import { localRunStore } from './ui/expeditionStore';
 import { freezeFx } from './ui/motion';
 import { loadApiKey, loadOpponentChoice } from './ui/opponentChoice';
 import './ui/styles.css';
@@ -81,8 +83,20 @@ audio.attach(controller);
 audio.listen(window);
 bindAudioDataset(audio, document.documentElement);
 
-let showGame = (): void => undefined;
-window.manaDuel = createTestApi(controller, () => showGame(), { freezeFx, audio });
+const expedition = new ExpeditionController(controller, localRunStore);
+const saveExpedition = (): void => expedition.flush();
+window.addEventListener('pagehide', saveExpedition);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveExpedition();
+});
+
+let show = (_screen: Screen): void => undefined;
+window.manaDuel = createTestApi(controller, () => show('game'), {
+  freezeFx,
+  audio,
+  expedition,
+  showExpedition: () => show('expedition'),
+});
 
 const root = document.getElementById('app');
 if (!root) throw new Error('Missing #app element');
@@ -90,12 +104,13 @@ render(
   <App
     controller={controller}
     initialScreen={initialScreen}
-    onReady={(show) => {
-      showGame = show;
+    onReady={(next) => {
+      show = next;
     }}
     llmProxy={proxyUrl !== null}
     loadModels={fetchModels}
     audio={audio}
+    expedition={expedition}
   />,
   root,
 );

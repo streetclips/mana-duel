@@ -5,7 +5,7 @@ import {
   blockOptions,
   canAttack,
   creaturesOf,
-  getDeck,
+  resolveDeck,
   targetKey,
   type Action,
   type CardId,
@@ -38,13 +38,23 @@ import {
   toggleAttacker,
   toggleSelected,
   type Interaction,
+  type UiButton,
   type UiCommand,
 } from './model';
 import { useControllerVersion } from './useController';
 
+const CONTINUE_EXPEDITION: UiButton = { id: 'continue-expedition', label: 'Continuar la expedición', command: { kind: 'newGame' }, tone: 'primary' };
+
+export interface ExpeditionDuelView {
+  badge: string;
+  outcome: string | null;
+  onContinue: () => void;
+}
+
 interface GameProps {
   controller: GameController;
   audio?: AudioToggles;
+  expedition?: ExpeditionDuelView;
   onHome: () => void;
 }
 
@@ -126,7 +136,7 @@ function Battlefield({ s, player, items, children }: BattlefieldProps) {
   );
 }
 
-export function Game({ controller, audio, onHome }: GameProps) {
+export function Game({ controller, audio, expedition, onHome }: GameProps) {
   useControllerVersion(controller);
   const s = controller.state;
   const human = controller.human;
@@ -173,7 +183,8 @@ export function Game({ controller, audio, onHome }: GameProps) {
   const current = isCompatible(s, human, interaction) ? interaction : interactionFor(s, human);
   const actions = useMemo(() => controller.legalActions(), [s, controller.autoplay]);
   const targets = useMemo(() => selectableTargets(actions, current), [actions, current]);
-  const bar = barModel(s, human, current, controller.busy, controller.lastEventText());
+  const plainBar = barModel(s, human, current, controller.busy, controller.lastEventText());
+  const bar = expedition && pending?.kind === 'gameOver' ? { ...plainBar, buttons: [CONTINUE_EXPEDITION] } : plainBar;
   const hand = s.players[human].hand;
   const overlap = useHandOverlap(hand.length);
 
@@ -233,7 +244,8 @@ export function Game({ controller, audio, onHome }: GameProps) {
         setInteraction(interactionFor(s, human));
         return;
       case 'newGame':
-        controller.newGame();
+        if (expedition) expedition.onContinue();
+        else controller.newGame();
         return;
       case 'setInteraction':
         setInteraction(command.interaction);
@@ -299,7 +311,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
   };
 
   const decks = controller.decks;
-  const deckName = (player: PlayerId): string | undefined => (decks ? getDeck(decks[player]).name : undefined);
+  const deckName = (player: PlayerId): string | undefined => (decks ? resolveDeck(decks[player]).name : undefined);
 
   const attackNumbers = combatNumbers(s, current.kind === 'block' ? current.blocks : (s.combat?.blocks ?? []));
   const blockChoices = current.kind === 'block' ? blockOptions(s) : {};
@@ -404,6 +416,7 @@ export function Game({ controller, audio, onHome }: GameProps) {
           player={opponent}
           human={human}
           deckName={deckName(opponent)}
+          badge={expedition?.badge}
           tag={
             llmModel
               ? { text: 'LLM', title: controller.llmUnavailable ? `LLM no disponible: ${controller.llmUnavailable}` : `OpenRouter · ${llmModel}${llmEffort}` }
@@ -486,9 +499,10 @@ export function Game({ controller, audio, onHome }: GameProps) {
           s={s}
           human={human}
           title={bar.prompt.title}
-          detail={bar.prompt.detail}
+          detail={expedition?.outcome ?? bar.prompt.detail}
           onNewGame={() => controller.newGame()}
           onHome={onHome}
+          onContinue={expedition?.onContinue}
           onLog={() => setLogOpen(true)}
           onClose={() => setGameOverHidden(true)}
         />
@@ -535,14 +549,19 @@ export function Game({ controller, audio, onHome }: GameProps) {
             setMenuOpen(false);
             controller.setAutoPass(on);
           }}
-          onNewGame={() => {
-            setMenuOpen(false);
-            controller.newGame();
-          }}
+          onNewGame={
+            expedition
+              ? undefined
+              : () => {
+                  setMenuOpen(false);
+                  controller.newGame();
+                }
+          }
           onHome={() => {
             setMenuOpen(false);
             onHome();
           }}
+          homeLabel={expedition ? 'Volver a la expedición' : undefined}
           onConcede={() => {
             setMenuOpen(false);
             controller.concede();
@@ -557,8 +576,8 @@ export function Game({ controller, audio, onHome }: GameProps) {
         <DeckViewer
           tabs={([human, opponent] as PlayerId[]).map((player) => ({
             key: String(player),
-            label: `${player === human ? 'Tú' : s.players[player].name} · ${getDeck(decks[player]).name}`,
-            deck: getDeck(decks[player]),
+            label: `${player === human ? 'Tú' : s.players[player].name} · ${resolveDeck(decks[player]).name}`,
+            deck: resolveDeck(decks[player]),
           }))}
           onClose={() => setDecksOpen(false)}
         />

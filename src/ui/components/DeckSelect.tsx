@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'preact/hooks';
-import { DECK_LIST, type PlayerId } from '../../engine';
+import { DECK_LIST, type DeckDef, type PlayerId } from '../../engine';
 import { chosenDeck, deckOptions, seatDeck, withSeatDeck, type DeckChoice } from '../deckChoice';
 import { cssVars } from '../cardInfo';
 import { DeckBox } from './DeckBox';
@@ -73,6 +73,31 @@ export function Versus({ choice, picking, names, onPick }: VersusProps) {
   );
 }
 
+interface DeckOptionProps {
+  deck: DeckDef | null;
+  index: number;
+  checked: boolean;
+  testId: string;
+  onSelect: () => void;
+}
+
+export function DeckOption({ deck, index, checked, testId, onSelect }: DeckOptionProps) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      class="deck-option"
+      style={cssVars({ '--i': String(index) })}
+      data-testid={testId}
+      onClick={onSelect}
+    >
+      <DeckBox deck={deck} open={checked} />
+      <span class="deck-option-name">{deck?.name ?? 'Aleatorio'}</span>
+    </button>
+  );
+}
+
 interface DeckPickerProps {
   seat: PlayerId;
   choice: DeckChoice;
@@ -127,19 +152,14 @@ export function DeckPicker({ seat, choice, onChange, onView, onDone }: DeckPicke
       </div>
       <div class="picker-grid" role="radiogroup" aria-label={title} ref={grid}>
         {deckOptions().map((id, index) => (
-          <button
+          <DeckOption
             key={id}
-            type="button"
-            role="radio"
-            aria-checked={id === selected}
-            class="deck-option"
-            style={cssVars({ '--i': String(index) })}
-            data-testid={seat === 0 ? `deck-${id}` : `opponent-${id}`}
-            onClick={() => onChange(withSeatDeck(choice, seat, id))}
-          >
-            <DeckBox deck={chosenDeck(id)} open={id === selected} />
-            <span class="deck-option-name">{deckName(id)}</span>
-          </button>
+            deck={chosenDeck(id)}
+            index={index}
+            checked={id === selected}
+            testId={seat === 0 ? `deck-${id}` : `opponent-${id}`}
+            onSelect={() => onChange(withSeatDeck(choice, seat, id))}
+          />
         ))}
       </div>
     </section>

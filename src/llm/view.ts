@@ -20,6 +20,8 @@ import {
   stackItemSource,
   triggerText,
   type CardId,
+  type DeckDef,
+  type DeckSpec,
   type GameState,
   type PlayerId,
   type StackItem,
@@ -205,15 +207,20 @@ export function cardGlossary(defIds: Iterable<string>): string[] {
   return unique.sort((a, b) => getCardDef(a).name.localeCompare(getCardDef(b).name)).map((id) => cardSummary(id));
 }
 
-export function deckLine(deckId: string): string | null {
-  if (!hasDeck(deckId)) return null;
-  const deck = getDeck(deckId);
+function deckOf(spec: DeckSpec): DeckDef | null {
+  if (typeof spec !== 'string') return spec;
+  return hasDeck(spec) ? getDeck(spec) : null;
+}
+
+export function deckLine(spec: DeckSpec): string | null {
+  const deck = deckOf(spec);
+  if (!deck) return null;
   const cards = deck.cards.map((entry) => `${entry.count} ${getCardDef(entry.card).name}`).join(', ');
   return `${deck.name} (${deck.description}): ${cards}`;
 }
 
-export function deckCardDefs(deckId: string): string[] {
-  return hasDeck(deckId) ? getDeck(deckId).cards.map((entry) => entry.card) : [];
+export function deckCardDefs(spec: DeckSpec): string[] {
+  return deckOf(spec)?.cards.map((entry) => entry.card) ?? [];
 }
 
 export function thoughtLine(s: GameState, viewer: PlayerId, reason: string): string {

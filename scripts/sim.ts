@@ -10,11 +10,13 @@ import {
   describeEvent,
   describeState,
   getLegalActions,
+  hasCardDef,
   hasDeck,
   forcedAction,
   type Action,
   type GameState,
   type PlayerId,
+  type PlayerSetup,
 } from '../src/engine';
 import {
   DEFAULT_MODEL,
@@ -29,12 +31,14 @@ import {
 
 type BotKind = 'ai' | 'random' | 'llm';
 type Matchup = [string, string];
+type Perks = Pick<PlayerSetup, 'life' | 'openingHand' | 'battlefield'>;
 
 interface Options {
   games: number;
   seed: number;
   bots: [BotKind, BotKind];
   decks: [string, string];
+  perks: [Perks, Perks];
   quiet: boolean;
   json: boolean;
   log: number | null;
@@ -53,6 +57,7 @@ function parseArgs(argv: string[]): Options {
     seed: 1,
     bots: ['ai', 'ai'],
     decks: [ALL, ALL],
+    perks: [{}, {}],
     quiet: false,
     json: false,
     log: null,
@@ -72,6 +77,9 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--p0') options.bots[0] = parseBot(next());
     else if (arg === '--p1') options.bots[1] = parseBot(next());
     else if (arg === '--decks') options.decks = parseDecks(next());
+    else if (arg === '--life0' || arg === '--life1') options.perks[seatOf(arg)].life = parseCount(arg, next());
+    else if (arg === '--hand0' || arg === '--hand1') options.perks[seatOf(arg)].openingHand = parseCount(arg, next());
+    else if (arg === '--start0' || arg === '--start1') options.perks[seatOf(arg)].battlefield = parseCards(next());
     else if (arg === '--quiet') options.quiet = true;
     else if (arg === '--json') options.json = true;
     else if (arg === '--log') options.log = Number(next());
@@ -81,14 +89,31 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--shard') options.shard = parseShard(next());
     else if (arg === '--help') {
       console.log(
-        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--workers N] [--quiet] [--json] [--log SEED]\n' +
+        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--life0|--life1 N] [--hand0|--hand1 N] [--start0|--start1 CARD,CARD] [--workers N] [--quiet] [--json] [--log SEED]\n' +
           'Games without an llm bot run in parallel processes (--workers, one per CPU by default); the results are the same for any number of workers.\n' +
+          'A seat can start with other life (--life1 14), another opening hand (--hand1 6) or permanents on the battlefield (--start0 soldier_token), as Expedition rivals and relics do; wins.p0 then reads as the first seat\'s odds.\n' +
           'An llm bot asks an OpenRouter model (default ' + DEFAULT_MODEL + ') for every real decision; it needs OPENROUTER_API_KEY.',
       );
       process.exit(0);
     } else throw new Error(`Unknown option ${arg}`);
   }
   return options;
+}
+
+function seatOf(arg: string): PlayerId {
+  return arg.endsWith('0') ? 0 : 1;
+}
+
+function parseCount(arg: string, value: string): number {
+  const count = Number(value);
+  if (!Number.isInteger(count) || count < 1) throw new Error(`Invalid ${arg} "${value}" (use a whole number from 1)`);
+  return count;
+}
+
+function parseCards(value: string): string[] {
+  const cards = value.split(',').filter(Boolean);
+  for (const card of cards) if (!hasCardDef(card)) throw new Error(`Unknown card "${card}"`);
+  return cards;
 }
 
 function parseEffort(value: string): ReasoningEffort {
@@ -175,7 +200,7 @@ function llmPlayer(options: Options): LlmPlayer {
 }
 
 async function playGame(seed: number, decks: Matchup, options: Options, log?: string[]): Promise<GameResult> {
-  let s = createGame({ seed, players: [{ deck: decks[0] }, { deck: decks[1] }] });
+  let s = createGame({ seed, players: [{ deck: decks[0], ...options.perks[0] }, { deck: decks[1], ...options.perks[1] }] });
   const rand = lcg(seed);
   const llms = options.bots.map((bot) => (bot === 'llm' ? llmPlayer(options) : null));
   const seen: [string[], string[]] = [[], []];

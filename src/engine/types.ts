@@ -170,6 +170,7 @@ export interface PlayerState {
   conceded: boolean;
   damagedThisTurn: boolean;
   extraLandsThisTurn: number;
+  openingHand?: number;
 }
 
 export type Step =

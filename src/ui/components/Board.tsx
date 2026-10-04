@@ -26,13 +26,14 @@ interface PlayerBarProps {
   human: PlayerId;
   deckName?: string;
   tag?: PlayerTag;
+  badge?: string;
   targetable: boolean;
   aimed: boolean;
   fx?: PlayerFx;
   onTap: () => void;
 }
 
-export function PlayerBar({ s, player, human, deckName, tag, targetable, aimed, fx, onTap }: PlayerBarProps) {
+export function PlayerBar({ s, player, human, deckName, tag, badge, targetable, aimed, fx, onTap }: PlayerBarProps) {
   const ps = s.players[player];
   const hasPriority = s.pending?.kind === 'priority' && s.pending.player === player;
   const label = `${ps.name}${tag ? ` (${tag.title})` : ''}: ${ps.life} ${ps.life === 1 ? 'vida' : 'vidas'}, ${ps.hand.length} en la mano, ${ps.library.length} en la biblioteca, ${ps.graveyard.length} en el cementerio`;
@@ -89,6 +90,11 @@ export function PlayerBar({ s, player, human, deckName, tag, targetable, aimed, 
             {tag && (
               <span class="player-tag" data-testid={`player-tag-${player}`} title={tag.title}>
                 {tag.text}
+              </span>
+            )}
+            {badge && (
+              <span class="player-tag duel-badge" data-testid={`duel-badge-${player}`}>
+                {badge}
               </span>
             )}
           </b>

@@ -18,13 +18,18 @@ export {
   SUNMEADOW,
   VESPERHALL,
   WILDLAND,
+  cardColors,
+  deckIdOf,
   deckSize,
   expandDeck,
   getDeck,
   hasDeck,
+  resolveDeck,
 } from './decks';
-export type { DeckDef, DeckEntry } from './decks';
+export type { DeckDef, DeckEntry, DeckSpec } from './decks';
 export { costColors, costSymbols, formatCost, manaValue, parseCost } from './mana';
+export { nextRandom, normalizeSeed, random, randomInt, shuffleInPlace } from './rng';
+export type { RngHolder } from './rng';
 export {
   IllegalActionError,
   actionError,
@@ -32,6 +37,7 @@ export {
   applyAction,
   createGame,
   nextStepOf,
+  openingHandSize,
   tryApplyAction,
 } from './game';
 export type { ActionResult, GameOptions, PlayerSetup } from './game';

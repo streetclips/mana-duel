@@ -36,6 +36,10 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   Turn **Pase automático** off in the menu to stop wherever you could act, the opponent's turn included, as the AI
   does.
 - **Ver IA contra IA** on the start screen lets the AI play both seats.
+- **Expedición**, under *Más modos*: seven duels in a row with one deck, against rivals that start weak and end in a
+  boss. Each win lets you take one of three cards into your deck, every third win a relic that lasts the whole run,
+  and a single defeat ends it. The run and the duel in progress are saved in the browser, so a reload picks the duel
+  up where it was. Details in [`docs/MODES.md`](docs/MODES.md).
 - **Quién controla la IA**: *Clásica*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
   and your API key (kept in this browser only). The model picks every move among the legal ones, the log shows its
   reasoning and its next prompts recall it; when it fails to answer, the classic AI moves for it. With
@@ -73,8 +77,8 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   a game uses it, and the tests run it offline against mocked models.
 - **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, a deck selector of 3D deck boxes that
   open, a deck viewer, light
-  and dark themes, a game log, animations driven by cues that tests and agents can read, and an automation API on
-  `window.manaDuel`.
+  and dark themes, a game log, the Expedition mode, animations driven by cues that tests and agents can read, and an
+  automation API on `window.manaDuel`.
 - **Audio** (`src/audio`): a generative score, one theme per color combination and four moods that follow the game,
   scheduled ahead of the audio clock, and a sound for every animation cue, each built from layers of synthesized
   tones and noise. Tests read what plays and render every sound offline.
@@ -91,8 +95,8 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 
 | Command | What it proves |
 | --- | --- |
-| `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 60 feature checks |
-| `npm run sim -- --games 3000` | Headless AI games in all 196 deck matchups, one process per CPU, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup) |
+| `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 61 feature checks |
+| `npm run sim -- --games 3000` | Headless AI games in all 196 deck matchups, one process per CPU, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup; `--life1 14 --hand1 6` for an Expedition rival) |
 | `npm run test:e2e` | Playwright on the production build, two phone viewports |
 | `npm run test:live` | Real OpenRouter calls, one per decision kind (needs `OPENROUTER_API_KEY`, spends credits; `OPENROUTER_MODEL` picks the model). `npm run sim -- --p1 llm --model <id> --log 1` plays a whole game against it |
 | `npm run verify` | Typecheck, tests, 196 simulated games (one per matchup) and the build, in one go |
@@ -110,16 +114,17 @@ src/
 │             effects, rules, game, actions, scenario, describe, invariants
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
 ├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy
-├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks
+├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks, expedition,
+│             expeditionController, cardPool
 ├── audio/    music (themes and moods), cues (a sound per cue), synth, engine, director, render, sounds, gate
-└── ui/       App, StartScreen (deck and AI selector), Game, model (interaction logic), deckChoice,
-              opponentChoice, autoPassChoice, audioChoice, fx and motion (animations), components/ (Board, Card,
-              DeckBox, DeckSelect, DeckViewer, Fx, Overlays, SoundToggles), styles.css
+└── ui/       App, StartScreen (deck and AI selector), Game, ExpeditionScreen, model (interaction logic), deckChoice,
+              opponentChoice, autoPassChoice, audioChoice, expeditionStore, fx and motion (animations), components/
+              (Board, Card, DeckBox, DeckSelect, DeckViewer, ExpeditionIcons, Fx, Overlays, SoundToggles), styles.css
 public/cards/ one SVG illustration per card, named <id>.svg
 tests/        engine/ ai/ llm/ app/ ui/ audio/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
 e2e/          Playwright specs
 scripts/      sim.ts, cards.ts, openrouterProxy.ts
-docs/         RULES.md, VERIFICATION.md, CARDS.md, LLM.md, AUDIO.md
+docs/         RULES.md, VERIFICATION.md, CARDS.md, LLM.md, AUDIO.md, MODES.md
 ```
 
 Mana Duel is an independent fan project inspired by Magic: The Gathering, a trademark of Wizards of the Coast. Card

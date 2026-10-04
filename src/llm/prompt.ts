@@ -1,9 +1,9 @@
-import { KEYWORDS, KEYWORD_NAMES, KEYWORD_REMINDERS, opponent, type GameState, type PlayerId } from '../engine';
+import { KEYWORDS, KEYWORD_NAMES, KEYWORD_REMINDERS, opponent, type DeckSpec, type GameState, type PlayerId } from '../engine';
 import type { Decision } from './decision';
 import { cardGlossary, deckCardDefs, deckLine, playerView, visibleCardDefs } from './view';
 
 export interface PromptContext {
-  decks?: readonly [string, string] | null;
+  decks?: readonly [DeckSpec, DeckSpec] | null;
   recentEvents?: readonly string[];
   recentThoughts?: readonly string[];
 }

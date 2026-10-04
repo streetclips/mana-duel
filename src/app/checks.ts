@@ -1226,6 +1226,27 @@ export const CHECKS: Check[] = [
     },
   },
   {
+    id: 'F62',
+    title: 'Player setup: other starting life, another opening hand and permanents on the battlefield from the start, which trigger nothing',
+    run: () => {
+      const s = createGame({
+        seed: 9,
+        startingPlayer: 0,
+        players: [{ life: 25, openingHand: 8, battlefield: ['soldier_token', 'mountain'] }, { life: 14, openingHand: 6 }],
+      });
+      const mulligan = play(createGame({ seed: 9, startingPlayer: 0, players: [{ openingHand: 8 }, {}] }), [{ type: 'mulligan', player: 0 }]);
+      return first(
+        expectValue(s.players.map((p) => [p.life, p.hand.length]), [[25, 8], [14, 6]], 'life and opening hands'),
+        expectValue(s.players[0].battlefield.map((id) => [s.cards[id]?.def, s.cards[id]?.tapped, s.cards[id]?.summoningSick]), [
+          ['soldier_token', false, false],
+          ['mountain', false, false],
+        ], 'permanents from the start'),
+        expectValue(s.triggers.length, 0, 'triggers'),
+        expectValue(mulligan.players[0].hand.length, 8, 'hand after a mulligan'),
+      );
+    },
+  },
+  {
     id: 'F38',
     title: 'Animations: an attacker and its blocker strike each other, and the blocker that dies keeps its place as it fades',
     run: () => {

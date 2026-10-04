@@ -4,6 +4,7 @@ import {
   DEFAULT_DECK_ID,
   createGame,
   createScenario,
+  deckIdOf,
   describeEventParts,
   forcedAction,
   getLegalActions,
@@ -12,11 +13,13 @@ import {
   tryApplyAction,
   type Action,
   type ActionResult,
+  type DeckSpec,
   type GameEvent,
   type GameOptions,
   type GameState,
   type PendingDecision,
   type PlayerId,
+  type PlayerSetup,
   type ScenarioSpec,
   type Step,
   type TextPart,
@@ -50,17 +53,22 @@ export interface ControllerOptions {
   skipMulligans?: boolean;
   startingPlayer?: PlayerId;
   decks?: Matchup;
+  perks?: SeatPerks;
   opponent?: OpponentSetup;
   llmFactory?: LlmFactory;
 }
 
-export type Matchup = [string, string];
+export type Matchup = [DeckSpec, DeckSpec];
+
+export type Perks = Pick<PlayerSetup, 'life' | 'openingHand' | 'battlefield'>;
+export type SeatPerks = [Perks, Perks];
 
 export interface Replay {
   seed: number;
   startingPlayer: PlayerId;
   skipMulligans: boolean;
   decks: Matchup;
+  perks?: SeatPerks;
   actions: Action[];
 }
 
@@ -84,6 +92,7 @@ interface AutomaticAction {
 }
 
 const DEFAULT_MATCHUP: Matchup = [DEFAULT_DECK_ID, DEFAULT_DECK_ID];
+const NO_PERKS: SeatPerks = [{}, {}];
 const CLASSIC_OPPONENT: OpponentSetup = { kind: 'classic' };
 
 export const DEFAULT_AI_DELAY_MS = 650;
@@ -113,6 +122,7 @@ export class GameController {
   autoPass: boolean;
   autoplay: boolean;
   decks: Matchup | null;
+  perks: SeatPerks;
   busy = false;
   opponent: OpponentSetup;
   llm: LlmPlayer | null;
@@ -139,9 +149,10 @@ export class GameController {
     this.opponent = options.opponent ?? CLASSIC_OPPONENT;
     this.llm = this.createLlm(this.opponent);
     this.decks = [...(options.decks ?? DEFAULT_MATCHUP)];
-    const setup = this.setupFrom(options, this.decks);
+    this.perks = copyPerks(options.perks ?? NO_PERKS);
+    const setup = this.setupFrom(options, this.decks, this.perks);
     this.state = createGame(setup);
-    this.replay = this.freshReplay(setup, this.decks);
+    this.replay = this.freshReplay(setup, this.decks, this.perks);
     this.appendLog(this.state);
     this.recordFx(fxCues(null, this.state));
   }
@@ -164,26 +175,27 @@ export class GameController {
     return this.llmFactory(setup);
   }
 
-  private setupFrom(options: ControllerOptions, decks: Matchup): GameOptions {
+  private setupFrom(options: ControllerOptions, decks: Matchup, perks: SeatPerks): GameOptions {
     return {
       seed: options.seed ?? randomSeed(),
       skipMulligans: options.skipMulligans ?? false,
       startingPlayer: options.startingPlayer,
       players: [
-        { name: 'Tú', deck: decks[0] },
-        { name: 'IA', deck: decks[1] },
+        { name: 'Tú', deck: decks[0], ...perks[0] },
+        { name: 'IA', deck: decks[1], ...perks[1] },
       ],
     };
   }
 
-  private freshReplay(setup: GameOptions, decks: Matchup): Replay {
-    return {
+  private freshReplay(setup: GameOptions, decks: Matchup, perks: SeatPerks): Replay {
+    const replay: Replay = {
       seed: this.state.seed,
       startingPlayer: this.state.startingPlayer,
       skipMulligans: setup.skipMulligans ?? false,
       decks: [...decks],
       actions: [],
     };
+    return hasPerks(perks) ? { ...replay, perks: copyPerks(perks) } : replay;
   }
 
   start(): void {
@@ -231,10 +243,12 @@ export class GameController {
     this.llm = this.createLlm(setupOpponent);
     this.opponent = setupOpponent;
     const decks: Matchup = [...(options.decks ?? this.decks ?? DEFAULT_MATCHUP)];
-    const setup = this.setupFrom(options, decks);
+    const perks = copyPerks(options.perks ?? NO_PERKS);
+    const setup = this.setupFrom(options, decks, perks);
     this.state = createGame(setup);
     this.decks = decks;
-    this.replay = this.freshReplay(setup, decks);
+    this.perks = perks;
+    this.replay = this.freshReplay(setup, decks, perks);
     this.resetSession(true);
   }
 
@@ -243,6 +257,7 @@ export class GameController {
     this.cancelLlm();
     this.state = createScenario(spec);
     this.decks = null;
+    this.perks = copyPerks(NO_PERKS);
     this.replay = {
       seed: this.state.seed,
       startingPlayer: this.state.startingPlayer,
@@ -253,21 +268,32 @@ export class GameController {
     this.resetSession(true);
   }
 
-  loadReplay(replay: Replay): ActionResult {
+  loadReplay(replay: Replay, opponent?: OpponentSetup): ActionResult {
     this.clearTimer();
     const decks: Matchup = [...(replay.decks ?? DEFAULT_MATCHUP)];
-    let state = createGame(
-      this.setupFrom({ seed: replay.seed, startingPlayer: replay.startingPlayer, skipMulligans: replay.skipMulligans }, decks),
-    );
+    const perks = copyPerks(replay.perks ?? NO_PERKS);
+    let state: GameState;
+    try {
+      state = createGame(this.setupFrom({ seed: replay.seed, startingPlayer: replay.startingPlayer, skipMulligans: replay.skipMulligans }, decks, perks));
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    }
     for (const action of replay.actions) {
       const result = tryApplyAction(state, action);
       if (!result.ok) return result;
       state = result.state;
     }
     this.cancelLlm();
+    if (opponent) {
+      this.llm = this.createLlm(opponent);
+      this.opponent = opponent;
+    }
     this.state = state;
     this.decks = decks;
+    this.perks = perks;
     this.replay = { ...replay, decks, actions: [...replay.actions] };
+    if (hasPerks(perks)) this.replay.perks = copyPerks(perks);
+    else delete this.replay.perks;
     this.resetSession(false);
     return { ok: true, state };
   }
@@ -287,7 +313,13 @@ export class GameController {
   }
 
   getReplay(): Replay {
-    return { ...this.replay, decks: [...this.replay.decks], actions: [...this.replay.actions] };
+    const replay: Replay = { ...this.replay, decks: [...this.replay.decks], actions: [...this.replay.actions] };
+    if (this.replay.perks) replay.perks = copyPerks(this.replay.perks);
+    return replay;
+  }
+
+  matchupIds(): [string, string] | null {
+    return this.decks ? [deckIdOf(this.decks[0]), deckIdOf(this.decks[1])] : null;
   }
 
   isHumanTurnToDecide(): boolean {
@@ -578,6 +610,15 @@ export class GameController {
   private notify(): void {
     for (const listener of this.listeners) listener();
   }
+}
+
+function copyPerks(perks: SeatPerks): SeatPerks {
+  const copy = (seat: Perks): Perks => (seat.battlefield ? { ...seat, battlefield: [...seat.battlefield] } : { ...seat });
+  return [copy(perks[0]), copy(perks[1])];
+}
+
+function hasPerks(perks: SeatPerks): boolean {
+  return perks.some((seat) => seat.life !== undefined || seat.openingHand !== undefined || (seat.battlefield?.length ?? 0) > 0);
 }
 
 export function randomSeed(): number {

@@ -2,7 +2,7 @@
 
 Minimalist, mobile-first card duel on the rules of Magic: The Gathering, played in Spanish: fourteen decks, one per
 pair of colors, black, red and green alone, and one of all five colors, and a human against an AI: the classic one,
-or an OpenRouter model through the AI SDK.
+or an OpenRouter model through the AI SDK, one duel at a time or seven in a row in the Expedition.
 TypeScript, Preact, Vite; Vitest and Playwright.
 
 ## Layout
@@ -12,10 +12,11 @@ src/engine/  rules: pure functions over a serializable GameState ◄──┐
 src/ai/      chooseAction(state, player) via engine rollouts ───────┤ all read the engine
 src/llm/     LLM player: seat view, legal moves as a zod schema ────┘
 src/app/     GameController (decks per seat, AI timers, async LLM seat, auto-pass, log, fx cues, replay),
-             window.manaDuel, feature checks
+             Expedition runs (expedition.ts, pure; ExpeditionController plays and saves them), window.manaDuel,
+             feature checks
 src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with a deck box
-             per seat that opens onto the deck picker, deck viewer; card art from public/cards/; animations of
-             the fx cues (fx.ts, motion.ts)
+             per seat that opens onto the deck picker, deck viewer, Expedition screen; card art from public/cards/;
+             animations of the fx cues (fx.ts, motion.ts)
 src/audio/   music and sound effects synthesized with Web Audio: a theme per deck whose mood follows the game, a
              sound per fx cue; GameAudio starts on the first tap
 tests/       Vitest: engine, ai, llm, app, ui (happy-dom), audio (fake AudioContext) e2e/  Playwright on the
@@ -65,7 +66,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   game ends; `newGame({ decks: ['dawntide', 'duskmire'], opponent: { kind: 'llm', model } })`, `loadScenario(spec)`,
   `replay()`, `runChecks()`, `fx(since)` for the animation cues of recent actions, `opponent()`, `llmDecisions()`,
   `await llmPrompt()` (what the LLM gets now), `audio.*` for the music and sounds (`audio.played(fxSeq)` lists the
-  sounds of the actions after it), and `engine.*` for pure engine calls.
+  sounds of the actions after it), `expedition.*` to drive a run (`start({ deck, seed })`, `fight()`, `state()`,
+  `chooseCard(id)`, `swapCard(id)`, `chooseRelic(id)`), and `engine.*` for pure engine calls.
 - DOM hooks (`data-testid`): `card-<cardId>` (plus `data-zone`, `data-def`, `data-tapped`; on the battlefield it
   holds its keyword icons `.icon[data-icon]`, `trigger` for a trigger that can still happen, and the pills
   `ability-<cardId>-<n>`, with `data-usable` while you can activate it, and `ability-<cardId>-mana`, with
@@ -81,7 +83,13 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
   `llm-notice` (unavailable, `llm-notice-hide` closes it), `game[data-llm]` (`thinking`, `ready`, `unavailable`). Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),
   `deck-tab-<p>` in game, `mana-curve`, `btn-deck-close`; `menu-decks` opens it in game.
-  `menu-autopass` (`aria-checked`) toggles auto-pass. Audio: `menu-music`, `menu-sfx` (`aria-checked`), start-screen
+  `menu-autopass` (`aria-checked`) toggles auto-pass. Expedition: `btn-expedition` (start screen) opens `expedition`
+  (`data-stage`: `new`, `duel`, `card`, `swap`, `relic`, `won`, `lost`), with `expedition-deck-<deckId>`,
+  `btn-expedition-start`, `expedition-floor-<n>` (`data-state`, `data-deck`), `btn-expedition-fight`,
+  `btn-expedition-deck`, `run-deck-size`, `relic-<id>`, `reward-card-<defId>`, `btn-reward-take`, `btn-reward-skip`,
+  `swap-card-<defId>`, `btn-swap-confirm`, `btn-swap-add`, `relic-option-<id>`, `btn-relic-take`, `expedition-result`
+  (`data-result`), `btn-expedition-new`; in its duels `duel-badge-1`, and the result screen offers
+  `btn-expedition-continue` instead of `btn-play-again`. Audio: `menu-music`, `menu-sfx` (`aria-checked`), start-screen
   `btn-music`, `btn-sfx` (`aria-pressed`), and `html[data-audio]` (`none` until the first tap, `running`, `suspended`,
   `unsupported`), `html[data-music]` (theme id or `off`), `html[data-mood]`.
 - Animations (fx): every animated element carries `data-fx` with the cue kinds it plays (`[data-slot="<cardId>"]` on
@@ -107,6 +115,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   touching `src/llm` or the controller's AI seat.
 - `docs/AUDIO.md` — music and sound effects: themes per color, moods, the sound of each fx cue, mix, test hooks; read
   it before touching `src/audio` or giving a cue a sound.
+- `docs/MODES.md` — the Expedition: rivals and their tuning, rewards, relics, the saved run and duel; read it before
+  touching `src/app/expedition*.ts`, its screen, or a relic.
 
 ## Extending
 

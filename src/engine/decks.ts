@@ -1,5 +1,6 @@
-import { getCardDef } from './registry';
-import type { Color } from './types';
+import { costColors } from './mana';
+import { getCardDef, getCost } from './registry';
+import type { CardDef, Color } from './types';
 
 export interface DeckEntry {
   card: string;
@@ -14,6 +15,8 @@ export interface DeckDef {
   featured: string;
   cards: DeckEntry[];
 }
+
+export type DeckSpec = string | DeckDef;
 
 export const EMBERWILD: DeckDef = {
   id: 'emberwild',
@@ -414,6 +417,20 @@ export function getDeck(id: string): DeckDef {
   const deck = hasDeck(id) ? DECKS[id] : undefined;
   if (!deck) throw new Error(`Unknown deck "${id}"`);
   return deck;
+}
+
+export function resolveDeck(spec: DeckSpec): DeckDef {
+  return typeof spec === 'string' ? getDeck(spec) : spec;
+}
+
+export function deckIdOf(spec: DeckSpec): string {
+  return typeof spec === 'string' ? spec : spec.id;
+}
+
+export function cardColors(def: CardDef): Color[] {
+  if (def.types.includes('land')) return def.mana ?? [];
+  if (def.token) return def.colors ?? [];
+  return costColors(getCost(def.id));
 }
 
 export function expandDeck(deck: DeckDef): string[] {

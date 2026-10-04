@@ -1,6 +1,7 @@
 import { chooseAction } from '../ai';
 import {
   DECK_LIST,
+  DEFAULT_DECK_ID,
   allCardDefs,
   applyAction,
   checkInvariants,
@@ -9,6 +10,7 @@ import {
   deckSize,
   describeState,
   getCardDef,
+  getDeck,
   getLegalActions,
   rulesText,
   tryApplyAction,
@@ -30,7 +32,9 @@ import {
 } from '../audio';
 import type { Prompt } from '../llm/prompt';
 import { CHECKS, runChecks, type CheckResult } from './checks';
-import type { ControllerOptions, GameController, LlmRecord, Matchup, OpponentSetup, Replay } from './controller';
+import type { ControllerOptions, GameController, LlmRecord, OpponentSetup, Replay } from './controller';
+import type { ExpeditionRun, RelicId } from './expedition';
+import { ExpeditionController } from './expeditionController';
 import type { FxCue } from './fx';
 
 export interface EngineApi {
@@ -45,7 +49,7 @@ export interface EngineApi {
   play(state: GameState, actions: Action[]): GameState;
 }
 
-export const API_VERSION = '1.5';
+export const API_VERSION = '1.6';
 
 export interface DeckSummary {
   id: string;
@@ -63,6 +67,21 @@ export type FxRecord = FxCue & { seq: number };
 export interface UiHooks {
   freezeFx(progress: number | null): Promise<string[]>;
   audio?: GameAudio;
+  expedition?: ExpeditionController;
+  showExpedition?: () => void;
+}
+
+export type ExpeditionResult = { ok: true; run: ExpeditionRun | null } | { ok: false; error: string };
+
+export interface ExpeditionApi {
+  state(): ExpeditionRun | null;
+  start(options?: { deck?: string; seed?: number }): ExpeditionResult;
+  fight(): ExpeditionResult;
+  chooseCard(card: string | null): ExpeditionResult;
+  swapCard(out: string | null): ExpeditionResult;
+  chooseRelic(relic: RelicId): ExpeditionResult;
+  abandon(): void;
+  show(): void;
 }
 
 const NO_UI: UiHooks = { freezeFx: async () => [] };
@@ -123,13 +142,14 @@ export interface ManaDuelApi {
   log(): string[];
   cards(): { id: string; name: string; type: string; cost: string | null; text: string[]; token: boolean }[];
   decks(): DeckSummary[];
-  matchup(): Matchup | null;
+  matchup(): [string, string] | null;
   opponent(): OpponentSetup;
   llmDecisions(): LlmRecord[];
   llmPrompt(): Promise<Prompt | null>;
   checks(): { id: string; title: string }[];
   runChecks(ids?: string[]): CheckResult[];
   audio: AudioApi;
+  expedition: ExpeditionApi;
   engine: EngineApi;
 }
 
@@ -173,10 +193,44 @@ const HELP = `window.manaDuel — automation API
                         offline: {seconds, peak, rms, tail, finite}
   audio.setMusic(on), audio.setSfx(on), audio.setVolume(0..1)   also ?music=on|off&sfx=on|off
   audio.unlock(), audio.sounds(), audio.themes()   (docs/AUDIO.md)
+  expedition.state()    the Expedition run: base deck, deck, relics, rivals, wins, stage, saved duel; null without one
+  expedition.start({deck, seed})  a new run from a deck id (default: Emberwild), shown on its screen
+  expedition.fight()    the run's next duel, or the saved one where it was, shown in the game
+  expedition.chooseCard(id | null), swapCard(id | null), chooseRelic(id), abandon(), show()
+                        each answer is {ok, run} or {ok: false, error}
   engine.*              pure engine: createScenario, applyAction, play(state, actions), chooseAction...`;
 
 function toApiResult(result: { ok: true; state: GameState } | { ok: false; error: string }): ApiResult {
   return result.ok ? { ok: true, pending: result.state.pending } : result;
+}
+
+function expeditionApi(expedition: ExpeditionController, show: () => void, showGame: () => void): ExpeditionApi {
+  const attempt = (act: () => void): ExpeditionResult => {
+    try {
+      act();
+      return { ok: true, run: structuredClone(expedition.run) };
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  };
+  return {
+    state: () => structuredClone(expedition.run),
+    start: (options = {}) =>
+      attempt(() => {
+        expedition.start(getDeck(options.deck ?? DEFAULT_DECK_ID), options.seed);
+        show();
+      }),
+    fight: () =>
+      attempt(() => {
+        expedition.fight();
+        showGame();
+      }),
+    chooseCard: (card) => attempt(() => expedition.chooseCard(card)),
+    swapCard: (out) => attempt(() => expedition.swapCard(out)),
+    chooseRelic: (relic) => attempt(() => expedition.chooseRelic(relic)),
+    abandon: () => expedition.abandon(),
+    show,
+  };
 }
 
 export function createTestApi(controller: GameController, showGame: () => void, ui: UiHooks = NO_UI): ManaDuelApi {
@@ -245,13 +299,14 @@ export function createTestApi(controller: GameController, showGame: () => void, 
         size: deckSize(deck),
         cards: deck.cards.map((entry) => ({ id: entry.card, name: getCardDef(entry.card).name, count: entry.count })),
       })),
-    matchup: () => (controller.decks ? [...controller.decks] : null),
+    matchup: () => controller.matchupIds(),
     opponent: () => structuredClone(controller.opponent),
     llmDecisions: () => structuredClone(controller.llmRecords),
     llmPrompt: () => controller.llmPrompt(),
     checks: () => CHECKS.map((check) => ({ id: check.id, title: check.title })),
     runChecks: (ids) => runChecks(ids),
     audio: audioApi(ui.audio ?? new GameAudio({ createContext: null })),
+    expedition: expeditionApi(ui.expedition ?? new ExpeditionController(controller), ui.showExpedition ?? (() => undefined), showGame),
     engine: {
       createGame,
       createScenario,

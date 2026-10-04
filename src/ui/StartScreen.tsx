@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { PlayerId } from '../engine';
 import { DeckPicker, Versus } from './components/DeckSelect';
+import { ChevronRightIcon, MapIcon } from './components/ExpeditionIcons';
 import { SoundToggles, type AudioToggles } from './components/SoundToggles';
 import type { DeckChoice } from './deckChoice';
 import { EFFORT_LABELS, REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
@@ -16,6 +17,11 @@ export interface LlmSettings {
   onApiKey: (key: string) => void;
 }
 
+export interface ModeEntry {
+  status: string;
+  onOpen: () => void;
+}
+
 interface StartScreenProps {
   choice: DeckChoice;
   onChange: (choice: DeckChoice) => void;
@@ -24,6 +30,7 @@ interface StartScreenProps {
   onWatch: () => void;
   llm: LlmSettings;
   audio?: AudioToggles;
+  expedition?: ModeEntry;
 }
 
 function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null }) {
@@ -94,7 +101,22 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
   );
 }
 
-export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, audio }: StartScreenProps) {
+function ModeRow({ testId, title, status, onOpen }: { testId: string; title: string; status: string; onOpen: () => void }) {
+  return (
+    <button type="button" class="mode-row" data-testid={testId} onClick={onOpen}>
+      <span class="mode-icon">
+        <MapIcon />
+      </span>
+      <span class="mode-text">
+        <b>{title}</b>
+        <span data-testid={`${testId}-status`}>{status}</span>
+      </span>
+      <ChevronRightIcon />
+    </button>
+  );
+}
+
+export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, audio, expedition }: StartScreenProps) {
   const [picking, setPicking] = useState<PlayerId | null>(null);
   const matchup = useRef<HTMLDivElement>(null);
   const lastTop = useRef<number | null>(null);
@@ -173,6 +195,15 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
               {llm.choice.kind === 'llm' && <LlmFields llm={llm} problem={problem} />}
             </section>
 
+            {expedition && (
+              <section class="start-section modes" aria-labelledby="modes-label">
+                <h2 id="modes-label" class="section-label">
+                  Más modos
+                </h2>
+                <ModeRow testId="btn-expedition" title="Expedición" status={expedition.status} onOpen={expedition.onOpen} />
+              </section>
+            )}
+
             <details class="rules">
               <summary>Cómo se juega</summary>
               <ul>
@@ -192,6 +223,10 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
                 <li>Un contrahechizo tiene como objetivo un hechizo de la pila: tócalo en la franja entre los dos lados.</li>
                 <li>Las fichas son criaturas que crean las cartas; desaparecen al salir del campo de batalla.</li>
                 <li>Toca una carta para ver qué hace. Mantenla pulsada o haz clic derecho para examinar cualquier carta.</li>
+                <li>
+                  En la Expedición encadenas siete duelos con el mismo mazo: cada victoria te da una carta nueva y cada tres, una
+                  reliquia. Una derrota la termina.
+                </li>
               </ul>
             </details>
           </>

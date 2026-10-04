@@ -17,6 +17,9 @@ id with its Spanish name).
 - The starting player comes from a seeded coin flip (or `startingPlayer`). They skip their first draw.
 - London mulligan: shuffle the hand away, draw seven, and once you keep, put one card on the bottom per mulligan.
   The starting player decides first. At most six mulligans.
+- A game may give either player other starting life, another opening hand (a mulligan draws that many again) or
+  permanents on the battlefield from the start: Expedition rivals and relics do (`docs/MODES.md`). Those permanents are
+  there before the game begins, so they trigger nothing, and they can attack and tap on their controller's first turn.
 - You lose at 0 life or less, when you draw from an empty library, or when you concede. If both players lose at
   once the game is a draw. A game past turn 200 is a draw (safety net; decking ends games long before).
 

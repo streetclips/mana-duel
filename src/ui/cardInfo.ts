@@ -1,10 +1,9 @@
 import type { CSSProperties } from 'preact';
 import {
   COLORS,
-  costColors,
+  cardColors,
   formatModifier,
   getCardDef,
-  getCost,
   type ActivatedAbility,
   type CardDef,
   type Color,
@@ -52,11 +51,7 @@ function lives(amount: number): string {
   return amount === 1 ? 'vida' : 'vidas';
 }
 
-export function cardColors(def: CardDef): Color[] {
-  if (def.types.includes('land')) return def.mana ?? [];
-  if (def.token) return def.colors ?? [];
-  return costColors(getCost(def.id));
-}
+export { cardColors };
 
 function shortKeywords(keywords: readonly Keyword[] = []): string {
   return keywords.map((keyword) => SHORT_KEYWORDS[keyword].toLowerCase()).join(', ');

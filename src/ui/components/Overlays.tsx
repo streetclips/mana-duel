@@ -251,17 +251,32 @@ interface MenuProps {
   fast: boolean;
   autoPass: boolean;
   audio?: AudioToggles;
-  onNewGame: () => void;
+  onNewGame?: () => void;
   onConcede: () => void;
   onLog: () => void;
   onDecks?: () => void;
   onToggleSpeed: () => void;
   onToggleAutoPass: () => void;
   onHome: () => void;
+  homeLabel?: string;
   onClose: () => void;
 }
 
-export function Menu({ gameOver, fast, autoPass, audio, onNewGame, onConcede, onLog, onDecks, onToggleSpeed, onToggleAutoPass, onHome, onClose }: MenuProps) {
+export function Menu({
+  gameOver,
+  fast,
+  autoPass,
+  audio,
+  onNewGame,
+  onConcede,
+  onLog,
+  onDecks,
+  onToggleSpeed,
+  onToggleAutoPass,
+  onHome,
+  homeLabel = 'Menú principal',
+  onClose,
+}: MenuProps) {
   return (
     <>
       <div class="scrim clear" onClick={onClose} />
@@ -290,11 +305,13 @@ export function Menu({ gameOver, fast, autoPass, audio, onNewGame, onConcede, on
             </button>
           </>
         )}
-        <button type="button" role="menuitem" data-testid="menu-new-game" onClick={onNewGame}>
-          Nueva partida
-        </button>
+        {onNewGame && (
+          <button type="button" role="menuitem" data-testid="menu-new-game" onClick={onNewGame}>
+            Nueva partida
+          </button>
+        )}
         <button type="button" role="menuitem" data-testid="menu-home" onClick={onHome}>
-          Menú principal
+          {homeLabel}
         </button>
         {!gameOver && (
           <button type="button" role="menuitem" class="danger" data-testid="menu-concede" onClick={onConcede}>
@@ -313,11 +330,12 @@ interface GameOverProps {
   detail?: string;
   onNewGame: () => void;
   onHome: () => void;
+  onContinue?: () => void;
   onLog: () => void;
   onClose: () => void;
 }
 
-export function GameOverModal({ s, human, title, detail, onNewGame, onHome, onLog, onClose }: GameOverProps) {
+export function GameOverModal({ s, human, title, detail, onNewGame, onHome, onContinue, onLog, onClose }: GameOverProps) {
   const opponent: PlayerId = human === 0 ? 1 : 0;
   return (
     <div class="scrim center-modal" data-testid="game-over" onClick={onClose}>
@@ -338,12 +356,20 @@ export function GameOverModal({ s, human, title, detail, onNewGame, onHome, onLo
           </span>
         </div>
         <div class="sheet-actions">
-          <button type="button" class="btn" data-testid="btn-play-again" onClick={onNewGame}>
-            Jugar otra vez
-          </button>
-          <button type="button" class="btn secondary" data-testid="btn-home" onClick={onHome}>
-            Menú principal
-          </button>
+          {onContinue ? (
+            <button type="button" class="btn" data-testid="btn-expedition-continue" onClick={onContinue}>
+              Continuar la expedición
+            </button>
+          ) : (
+            <>
+              <button type="button" class="btn" data-testid="btn-play-again" onClick={onNewGame}>
+                Jugar otra vez
+              </button>
+              <button type="button" class="btn secondary" data-testid="btn-home" onClick={onHome}>
+                Menú principal
+              </button>
+            </>
+          )}
           <button type="button" class="btn secondary" data-testid="btn-view-log" onClick={onLog}>
             Ver el registro
           </button>

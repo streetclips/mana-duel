@@ -9,10 +9,10 @@ import {
   performDeclareAttackers,
   performDeclareBlockers,
 } from './combat';
-import { DEFAULT_DECK_ID, expandDeck, getDeck } from './decks';
+import { DEFAULT_DECK_ID, expandDeck, resolveDeck, type DeckSpec } from './decks';
 import { resolveTopOfStack } from './effects';
 import { parseCost } from './mana';
-import { getCost, hasCardDef } from './registry';
+import { getCardDef, getCost, hasCardDef } from './registry';
 import { normalizeSeed, random, shuffleInPlace } from './rng';
 import { activateError, castError, landPlayError } from './rules';
 import {
@@ -65,7 +65,10 @@ function illegal(message: string): never {
 
 export interface PlayerSetup {
   name?: string;
-  deck?: string | string[];
+  deck?: DeckSpec | string[];
+  life?: number;
+  openingHand?: number;
+  battlefield?: string[];
 }
 
 export interface GameOptions {
@@ -122,17 +125,48 @@ export function emptyState(seed: number, names: [string, string], turnLimit = DE
   };
 }
 
-function resolveDeckList(deck: string | string[] | undefined): string[] {
+function resolveDeckList(deck: DeckSpec | string[] | undefined): string[] {
   if (Array.isArray(deck)) {
     for (const id of deck) if (!hasCardDef(id)) throw new Error(`Unknown card definition "${id}"`);
     return [...deck];
   }
-  return expandDeck(getDeck(deck ?? DEFAULT_DECK_ID));
+  return expandDeck(resolveDeck(deck ?? DEFAULT_DECK_ID));
+}
+
+function checkSetup(setup: PlayerSetup): void {
+  if (setup.life !== undefined && (!Number.isInteger(setup.life) || setup.life < 1)) {
+    throw new Error(`Invalid starting life ${setup.life}: use a whole number from 1`);
+  }
+  if (setup.openingHand !== undefined && (!Number.isInteger(setup.openingHand) || setup.openingHand < 1)) {
+    throw new Error(`Invalid opening hand ${setup.openingHand}: use a whole number from 1`);
+  }
+  for (const id of setup.battlefield ?? []) {
+    if (!hasCardDef(id)) throw new Error(`Unknown card definition "${id}"`);
+    const def = getCardDef(id);
+    if (!def.types.includes('land') && !def.types.includes('creature')) throw new Error(`"${id}" is not a permanent, so it cannot start on the battlefield`);
+  }
+}
+
+function placeStartingPermanent(s: GameState, player: PlayerId, defId: string, id: CardId): void {
+  s.cards[id] = {
+    id,
+    def: defId,
+    owner: player,
+    controller: player,
+    zone: 'battlefield',
+    tapped: false,
+    summoningSick: false,
+    damage: 0,
+    deathtouchDamage: false,
+    counters: 0,
+  };
+  s.players[player].battlefield.push(id);
 }
 
 export function createGame(options: GameOptions = {}): GameState {
   const names: [string, string] = [options.players?.[0]?.name ?? 'Tú', options.players?.[1]?.name ?? 'IA'];
   const s = emptyState(options.seed ?? 1, names, options.turnLimit);
+  for (const setup of options.players ?? []) if (setup) checkSetup(setup);
   let counter = 0;
   for (const player of [0, 1] as const) {
     for (const def of resolveDeckList(options.players?.[player]?.deck)) {
@@ -154,11 +188,25 @@ export function createGame(options: GameOptions = {}): GameState {
     }
     shuffleInPlace(s, s.players[player].library);
   }
+  for (const player of [0, 1] as const) {
+    const setup = options.players?.[player];
+    const ps = s.players[player];
+    if (setup?.life !== undefined) ps.life = setup.life;
+    if (setup?.openingHand !== undefined && setup.openingHand !== OPENING_HAND) ps.openingHand = setup.openingHand;
+    for (const def of setup?.battlefield ?? []) {
+      if (getCardDef(def).token) {
+        placeStartingPermanent(s, player, def, newId(s, 'tk'));
+        continue;
+      }
+      counter += 1;
+      placeStartingPermanent(s, player, def, `c${counter}`);
+    }
+  }
   s.startingPlayer = options.startingPlayer ?? (random(s) < 0.5 ? 0 : 1);
   s.activePlayer = s.startingPlayer;
   s.events.push({ t: 'start', startingPlayer: s.startingPlayer });
-  drawCards(s, s.startingPlayer, OPENING_HAND);
-  drawCards(s, opponent(s.startingPlayer), OPENING_HAND);
+  drawCards(s, s.startingPlayer, openingHandSize(s, s.startingPlayer));
+  drawCards(s, opponent(s.startingPlayer), openingHandSize(s, opponent(s.startingPlayer)));
   if (options.skipMulligans) {
     for (const ps of s.players) {
       ps.kept = true;
@@ -167,6 +215,10 @@ export function createGame(options: GameOptions = {}): GameState {
   }
   advance(s);
   return s;
+}
+
+export function openingHandSize(s: GameState, player: PlayerId): number {
+  return s.players[player].openingHand ?? OPENING_HAND;
 }
 
 export type ActionResult = { ok: true; state: GameState } | { ok: false; error: string };
@@ -250,7 +302,7 @@ function performAction(s: GameState, action: Action): void {
       shuffleInPlace(s, ps.library);
       ps.mulligans += 1;
       s.events.push({ t: 'mulligan', player, count: ps.mulligans });
-      drawCards(s, player, OPENING_HAND);
+      drawCards(s, player, openingHandSize(s, player));
       s.pending = null;
       nextMulliganDecision(s);
       return;

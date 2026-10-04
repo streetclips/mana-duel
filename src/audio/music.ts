@@ -1,4 +1,4 @@
-import { DECK_LIST, getDeck, hasDeck, type Color, type DeckDef, type GameState, type PlayerId } from '../engine';
+import { DECK_LIST, getDeck, hasDeck, type Color, type DeckDef, type DeckSpec, type GameState, type PlayerId } from '../engine';
 
 export const MOODS = ['calm', 'danger', 'combat', 'over'] as const;
 export type Mood = (typeof MOODS)[number];
@@ -151,9 +151,11 @@ export function deckTheme(deck: DeckDef): Theme {
   };
 }
 
-export function themeFor(decks: readonly string[] | null, seat: PlayerId): Theme {
-  const id = decks?.[seat];
-  return id && hasDeck(id) ? deckTheme(getDeck(id)) : NEUTRAL_THEME;
+export function themeFor(decks: readonly DeckSpec[] | null, seat: PlayerId): Theme {
+  const spec = decks?.[seat];
+  if (spec === undefined) return NEUTRAL_THEME;
+  if (typeof spec !== 'string') return deckTheme(spec);
+  return hasDeck(spec) ? deckTheme(getDeck(spec)) : NEUTRAL_THEME;
 }
 
 export function allThemes(): Theme[] {
