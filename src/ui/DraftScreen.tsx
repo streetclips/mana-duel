@@ -16,12 +16,12 @@ import {
 } from '../app/draft';
 import type { DraftController, GameInfo } from '../app/draftController';
 import { cardColors, getCardDef, type Color, type DeckDef, type DeckEntry } from '../engine';
-import { cardColorVar, cssVars, manaName } from './cardInfo';
-import { MiniFace } from './components/Card';
+import { cssVars, manaName } from './cardInfo';
+import { MiniCard } from './components/Card';
 import { DeckBox } from './components/DeckBox';
 import { DeckBuilder } from './components/DeckBuilder';
 import { DeckViewer } from './components/DeckViewer';
-import { CardDetail } from './components/Overlays';
+import { CardDefSheet } from './components/Overlays';
 import { ScreenBar } from './components/ScreenBar';
 import { useSubscription } from './useController';
 
@@ -169,6 +169,7 @@ function PickSummary({ run, onView }: { run: DraftRun; onView: () => void }) {
 
 function Picking({ run, onPick, onView }: { run: DraftRun; onPick: (card: string) => void; onView: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
+  const [inspected, setInspected] = useState<string | null>(null);
   const pack = run.packs[0];
   const choice = selected && pack.includes(selected) ? selected : null;
   return (
@@ -179,33 +180,22 @@ function Picking({ run, onPick, onView }: { run: DraftRun; onPick: (card: string
             Sobre {run.round + 1} de {ROUNDS} · carta {pickNumber(run)} de {PACK_SIZE}
           </p>
           <h2>Elige una carta</h2>
-          <p class="run-note">La IA elige a la vez del otro sobre; después os los pasáis.</p>
+          <p class="run-note">La IA elige a la vez del otro sobre; después os los pasáis. Mantén pulsada una carta para leerla entera.</p>
         </header>
         <div class="draft-pack" role="radiogroup" aria-label="Cartas del sobre">
-          {pack.map((card) => {
-            const def = getCardDef(card);
-            return (
-              <button
-                key={card}
-                type="button"
-                role="radio"
-                aria-checked={card === choice}
-                aria-label={def.name}
-                class={`card mini deck-card offer${def.types.includes('land') ? ' land' : ''}`}
-                style={cssVars({ '--card-color': cardColorVar(def) })}
-                data-testid={`draft-card-${card}`}
-                onClick={() => setSelected(card)}
-              >
-                <MiniFace def={def} />
-              </button>
-            );
-          })}
+          {pack.map((card) => (
+            <MiniCard
+              key={card}
+              def={getCardDef(card)}
+              label={getCardDef(card).name}
+              className="offer"
+              testId={`draft-card-${card}`}
+              checked={card === choice}
+              onTap={() => setSelected(card)}
+              onInspect={() => setInspected(card)}
+            />
+          ))}
         </div>
-        {choice && (
-          <div class="offer-detail" data-testid="draft-detail">
-            <CardDetail def={getCardDef(choice)} face={null} />
-          </div>
-        )}
         <PickSummary run={run} onView={onView} />
       </div>
       <div class="start-actions">
@@ -223,6 +213,7 @@ function Picking({ run, onPick, onView }: { run: DraftRun; onPick: (card: string
           {choice ? `Elegir ${getCardDef(choice).name}` : 'Toca una carta'}
         </button>
       </div>
+      {inspected && <CardDefSheet def={getCardDef(inspected)} onClose={() => setInspected(null)} />}
     </>
   );
 }

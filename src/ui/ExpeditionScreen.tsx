@@ -15,13 +15,12 @@ import {
 } from '../app/expedition';
 import type { DuelInfo, ExpeditionController } from '../app/expeditionController';
 import { DECK_LIST, OPENING_HAND, getCardDef, getDeck, hasDeck, type DeckDef } from '../engine';
-import { cardColorVar, cssVars } from './cardInfo';
-import { DetailFace, MiniFace } from './components/Card';
+import { MiniCard } from './components/Card';
 import { DeckBox } from './components/DeckBox';
 import { DeckOption } from './components/DeckSelect';
 import { ColorDots, DeckViewer, deckGroups } from './components/DeckViewer';
 import { CheckIcon, CrownIcon, RelicIcon } from './components/ModeIcons';
-import { CardDetail, Sheet } from './components/Overlays';
+import { CardDefSheet } from './components/Overlays';
 import { ScreenBar } from './components/ScreenBar';
 import { useSubscription } from './useController';
 
@@ -262,7 +261,8 @@ interface CardRewardProps {
 
 function CardReward({ run, offers, onTake, onSkip }: CardRewardProps) {
   const [selected, setSelected] = useState<string | null>(null);
-  const def = selected ? getCardDef(selected) : null;
+  const [inspected, setInspected] = useState<string | null>(null);
+  const copies = inspected ? copiesOf(run, inspected) : 0;
   return (
     <>
       <div class="expedition-body" data-testid="expedition-reward">
@@ -273,36 +273,20 @@ function CardReward({ run, offers, onTake, onSkip }: CardRewardProps) {
           <h2>Elige una carta para tu mazo</h2>
         </header>
         <div class="offers" role="radiogroup" aria-label="Cartas que puedes llevarte">
-          {offers.map((card) => {
-            const offer = getCardDef(card);
-            return (
-              <button
-                key={card}
-                type="button"
-                role="radio"
-                aria-checked={card === selected}
-                aria-label={offer.name}
-                class={`card mini deck-card offer${offer.types.includes('land') ? ' land' : ''}`}
-                style={cssVars({ '--card-color': cardColorVar(offer) })}
-                data-testid={`reward-card-${card}`}
-                onClick={() => setSelected(card)}
-              >
-                <MiniFace def={offer} />
-              </button>
-            );
-          })}
-        </div>
-        {def ? (
-          <div class="offer-detail" data-testid="reward-detail">
-            <CardDetail
-              def={def}
-              face={null}
-              statuses={[{ text: copiesOf(run, def.id) === 0 ? 'Nueva en tu mazo' : `Ya tienes ${copiesOf(run, def.id)} en tu mazo` }]}
+          {offers.map((card) => (
+            <MiniCard
+              key={card}
+              def={getCardDef(card)}
+              label={getCardDef(card).name}
+              className="offer"
+              testId={`reward-card-${card}`}
+              checked={card === selected}
+              onTap={() => setSelected(card)}
+              onInspect={() => setInspected(card)}
             />
-          </div>
-        ) : (
-          <p class="run-note">Toca una carta para leerla. Después decidirás qué carta de tu mazo le deja sitio.</p>
-        )}
+          ))}
+        </div>
+        <p class="run-note">Mantén pulsada una carta para leerla entera. Después decidirás qué carta de tu mazo le deja sitio.</p>
       </div>
       <div class="start-actions">
         <button type="button" class="btn secondary" data-testid="btn-reward-skip" onClick={onSkip}>
@@ -312,6 +296,13 @@ function CardReward({ run, offers, onTake, onSkip }: CardRewardProps) {
           Llevármela
         </button>
       </div>
+      {inspected && (
+        <CardDefSheet
+          def={getCardDef(inspected)}
+          statuses={[{ text: copies === 0 ? 'Nueva en tu mazo' : `Ya tienes ${copies} en tu mazo` }]}
+          onClose={() => setInspected(null)}
+        />
+      )}
     </>
   );
 }
@@ -331,48 +322,37 @@ function SwapCard({ run, card, onSwap }: SwapCardProps) {
     <>
       <div class="expedition-body" data-testid="expedition-swap">
         <header class="reward-head swap-head">
-          <button
-            type="button"
-            class="card mini deck-card incoming"
-            style={cssVars({ '--card-color': cardColorVar(incoming) })}
-            data-testid="swap-incoming"
-            aria-label={`Ver ${incoming.name}`}
-            onClick={() => setInspected(card)}
-          >
-            <MiniFace def={incoming} />
-          </button>
+          <MiniCard
+            def={incoming}
+            label={`Ver ${incoming.name}`}
+            className="incoming"
+            testId="swap-incoming"
+            onTap={() => setInspected(card)}
+            onInspect={() => setInspected(card)}
+          />
           <div>
             <p class="eyebrow">Entra {incoming.name}</p>
             <h2>¿Qué carta sale de tu mazo?</h2>
-            <p class="run-note">Tócala, o añade la nueva sin quitar ninguna: tu mazo tendrá más cartas.</p>
+            <p class="run-note">Tócala, o añade la nueva sin quitar ninguna: tu mazo tendrá más cartas. Mantén pulsada una carta para leerla.</p>
           </div>
         </header>
         {deckGroups(deck).map((group) => (
           <section key={group.title} class="deck-section" aria-label={group.title}>
             <h3>{group.title}</h3>
             <div class="deck-grid" role="radiogroup" aria-label={group.title}>
-              {group.entries.map((entry) => {
-                const def = getCardDef(entry.card);
-                return (
-                  <button
-                    key={entry.card}
-                    type="button"
-                    role="radio"
-                    aria-checked={entry.card === out}
-                    aria-label={`${entry.count} × ${def.name}`}
-                    class={`card mini deck-card swap-option${def.types.includes('land') ? ' land' : ''}`}
-                    style={cssVars({ '--card-color': cardColorVar(def) })}
-                    data-testid={`swap-card-${entry.card}`}
-                    data-count={entry.count}
-                    onClick={() => setOut(entry.card === out ? null : entry.card)}
-                  >
-                    <MiniFace def={def} />
-                    <span class="copies num" aria-hidden="true">
-                      ×{entry.count}
-                    </span>
-                  </button>
-                );
-              })}
+              {group.entries.map((entry) => (
+                <MiniCard
+                  key={entry.card}
+                  def={getCardDef(entry.card)}
+                  label={`${entry.count} × ${getCardDef(entry.card).name}`}
+                  className="swap-option"
+                  testId={`swap-card-${entry.card}`}
+                  checked={entry.card === out}
+                  count={entry.count}
+                  onTap={() => setOut(entry.card === out ? null : entry.card)}
+                  onInspect={() => setInspected(entry.card)}
+                />
+              ))}
             </div>
           </section>
         ))}
@@ -392,11 +372,7 @@ function SwapCard({ run, card, onSwap }: SwapCardProps) {
           {out ? 'Cambiar' : 'Elige qué sale'}
         </button>
       </div>
-      {inspected && (
-        <Sheet label={getCardDef(inspected).name} onClose={() => setInspected(null)}>
-          <CardDetail def={getCardDef(inspected)} face={<DetailFace def={getCardDef(inspected)} />} />
-        </Sheet>
-      )}
+      {inspected && <CardDefSheet def={getCardDef(inspected)} onClose={() => setInspected(null)} />}
     </>
   );
 }

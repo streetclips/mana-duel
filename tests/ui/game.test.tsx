@@ -206,6 +206,9 @@ describe('deck viewer', () => {
     expect(byTestId('card-sheet').textContent).toContain('1 copia en Fangoscuro');
     click(byTestId('card-sheet'));
     expect(screen.queryByTestId('card-sheet')).toBeNull();
+    fireEvent.contextMenu(byTestId('deck-card-swamp'));
+    expect(byTestId('card-sheet').textContent).toContain('16 copias en Fangoscuro');
+    click(byTestId('card-sheet'));
     click(byTestId('btn-deck-close'));
     expect(screen.queryByTestId('deck-viewer')).toBeNull();
     expect(byTestId('deck-picker').dataset.seat).toBe('0');

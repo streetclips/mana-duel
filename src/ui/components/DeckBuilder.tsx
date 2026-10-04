@@ -16,12 +16,12 @@ import {
   type DeckDraft,
 } from '../../app/deckBuilding';
 import { COLORS, cardColors, getCardDef, getCost, manaValue, type CardDef, type Color, type DeckEntry } from '../../engine';
-import { cardColorVar, cssVars, manaName } from '../cardInfo';
-import { DetailFace, MiniFace } from './Card';
+import { cssVars, manaName } from '../cardInfo';
+import { MiniCard } from './Card';
 import { DeckBox } from './DeckBox';
 import { ColorDots, DeckStats, ManaCurve, deckGroups } from './DeckViewer';
 import { MinusIcon, PlusIcon } from './ModeIcons';
-import { CardDetail, Sheet } from './Overlays';
+import { CardDefSheet } from './Overlays';
 import { ScreenBar } from './ScreenBar';
 
 type Tab = 'deck' | 'pool';
@@ -70,15 +70,7 @@ interface TileProps {
 function BuilderTile({ def, count, max, addable, testId, onAdd, onRemove, onInspect }: TileProps) {
   return (
     <div class={`builder-tile${count > 0 ? ' in-deck' : ''}`} data-testid={testId} data-count={count}>
-      <button
-        type="button"
-        class={`card mini deck-card${def.types.includes('land') ? ' land' : ''}`}
-        style={cssVars({ '--card-color': cardColorVar(def) })}
-        aria-label={`Ver ${def.name}`}
-        onClick={onInspect}
-      >
-        <MiniFace def={def} />
-      </button>
+      <MiniCard def={def} label={`Ver ${def.name}`} onTap={onInspect} onInspect={onInspect} />
       <div class="stepper">
         <button type="button" class="step" aria-label={`Quitar ${def.name}`} data-testid={`remove-${def.id}`} disabled={count === 0} onClick={onRemove}>
           <MinusIcon />
@@ -294,12 +286,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
       </div>
 
       {inspectedDef && (
-        <Sheet label={inspectedDef.name} raised onClose={() => setInspected(null)}>
-          <CardDetail
-            def={inspectedDef}
-            face={<DetailFace def={inspectedDef} />}
-            statuses={[{ text: `${copiesIn(draft.cards, inspectedDef.id)} en el mazo` }]}
-          />
+        <CardDefSheet def={inspectedDef} statuses={[{ text: `${copiesIn(draft.cards, inspectedDef.id)} en el mazo` }]} raised onClose={() => setInspected(null)}>
           <div class="sheet-actions">
             <button type="button" class="btn" data-testid="sheet-add" disabled={!canAdd(draft.cards, pool, inspectedDef.id)} onClick={() => add(inspectedDef.id)}>
               Añadir una copia
@@ -324,7 +311,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
               </button>
             )}
           </div>
-        </Sheet>
+        </CardDefSheet>
       )}
 
       {leaving && (

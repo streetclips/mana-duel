@@ -383,6 +383,41 @@ export function MiniFace({ def }: { def: CardDef }) {
   );
 }
 
+interface MiniCardProps {
+  def: CardDef;
+  label: string;
+  className?: string;
+  testId?: string;
+  checked?: boolean;
+  count?: number;
+  onTap: () => void;
+  onInspect: () => void;
+}
+
+export function MiniCard({ def, label, className, testId, checked, count, onTap, onInspect }: MiniCardProps) {
+  const press = usePress(onTap, onInspect);
+  return (
+    <button
+      type="button"
+      role={checked === undefined ? undefined : 'radio'}
+      aria-checked={checked}
+      aria-label={label}
+      class={['card mini deck-card', className, def.types.includes('land') ? 'land' : null].filter(Boolean).join(' ')}
+      style={cssVars({ '--card-color': cardColorVar(def) })}
+      data-testid={testId}
+      data-count={count}
+      {...press}
+    >
+      <MiniFace def={def} />
+      {count !== undefined && (
+        <span class="copies num" aria-hidden="true">
+          ×{count}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export function HandCard({ s, id, flags, fx, onTap, onInspect }: HandCardProps) {
   const press = usePress(onTap, onInspect);
   const card = s.cards[id];

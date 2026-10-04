@@ -20,7 +20,7 @@ import {
 } from '../../engine';
 import type { LogEntry } from '../../app/controller';
 import { effectHint } from '../cardInfo';
-import { DetailCard, RulesLine } from './Card';
+import { DetailCard, DetailFace, RulesLine } from './Card';
 import type { AudioToggles } from './SoundToggles';
 
 interface SheetProps {
@@ -75,6 +75,23 @@ export function CardDetail({ def, face, statuses = [] }: { def: CardDef; face: C
         )}
       </div>
     </div>
+  );
+}
+
+interface CardDefSheetProps {
+  def: CardDef;
+  statuses?: Status[];
+  raised?: boolean;
+  onClose: () => void;
+  children?: ComponentChildren;
+}
+
+export function CardDefSheet({ def, statuses, raised, onClose, children }: CardDefSheetProps) {
+  return (
+    <Sheet label={def.name} raised={raised} onClose={onClose}>
+      <CardDetail def={def} face={<DetailFace def={def} />} statuses={statuses} />
+      {children}
+    </Sheet>
   );
 }
 

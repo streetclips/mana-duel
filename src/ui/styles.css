@@ -1163,6 +1163,7 @@ button {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1443,12 +1444,6 @@ button {
   pointer-events: none;
 }
 
-.offer-detail {
-  padding: 14px;
-  border-radius: 14px;
-  background: var(--surface);
-}
-
 .swap-head {
   flex-direction: row;
   align-items: center;
@@ -1691,6 +1686,7 @@ button {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   padding: 4px 16px 24px;
   display: flex;
   flex-direction: column;
@@ -3710,6 +3706,7 @@ p .pip,
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   padding: 16px 16px 24px;
 }
 

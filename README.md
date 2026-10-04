@@ -104,7 +104,7 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 | --- | --- |
 | `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 61 feature checks |
 | `npm run sim -- --games 3000` | Headless AI games in all 196 deck matchups, one process per CPU, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup; `--life1 14 --hand1 6` for an Expedition rival) |
-| `npm run test:e2e` | Playwright on the production build, two phone viewports |
+| `npm run test:e2e` | Playwright on the production build, two phone viewports and a desktop browser |
 | `npm run test:live` | Real OpenRouter calls, one per decision kind (needs `OPENROUTER_API_KEY`, spends credits; `OPENROUTER_MODEL` picks the model). `npm run sim -- --p1 llm --model <id> --log 1` plays a whole game against it |
 | `npm run verify` | Typecheck, tests, 196 simulated games (one per matchup) and the build, in one go |
 

@@ -1,8 +1,8 @@
 import { useState } from 'preact/hooks';
-import { deckSize, getCardDef, getCost, manaValue, type CardDef, type DeckDef, type DeckEntry } from '../../engine';
-import { cardColorVar, cssVars, manaName } from '../cardInfo';
-import { DetailFace, MiniFace } from './Card';
-import { CardDetail, CloseIcon, Sheet } from './Overlays';
+import { deckSize, getCardDef, getCost, manaValue, type DeckDef, type DeckEntry } from '../../engine';
+import { cssVars, manaName } from '../cardInfo';
+import { MiniCard } from './Card';
+import { CardDefSheet, CloseIcon } from './Overlays';
 
 export interface DeckTab {
   key: string;
@@ -104,25 +104,6 @@ export function DeckStats({ deck }: { deck: DeckDef }) {
   );
 }
 
-function DeckCard({ def, count, onTap }: { def: CardDef; count: number; onTap: () => void }) {
-  return (
-    <button
-      type="button"
-      class={`card mini deck-card${def.types.includes('land') ? ' land' : ''}`}
-      style={cssVars({ '--card-color': cardColorVar(def) })}
-      data-testid={`deck-card-${def.id}`}
-      data-count={count}
-      aria-label={`${count} × ${def.name}`}
-      onClick={onTap}
-    >
-      <MiniFace def={def} />
-      <span class="copies num" aria-hidden="true">
-        ×{count}
-      </span>
-    </button>
-  );
-}
-
 export function DeckViewer({ tabs, initial, onClose }: DeckViewerProps) {
   const [key, setKey] = useState(initial ?? tabs[0]?.key ?? '');
   const [inspected, setInspected] = useState<string | null>(null);
@@ -180,7 +161,15 @@ export function DeckViewer({ tabs, initial, onClose }: DeckViewerProps) {
             </h3>
             <div class="deck-grid">
               {group.entries.map((entry) => (
-                <DeckCard key={entry.card} def={getCardDef(entry.card)} count={entry.count} onTap={() => setInspected(entry.card)} />
+                <MiniCard
+                  key={entry.card}
+                  def={getCardDef(entry.card)}
+                  label={`${entry.count} × ${getCardDef(entry.card).name}`}
+                  testId={`deck-card-${entry.card}`}
+                  count={entry.count}
+                  onTap={() => setInspected(entry.card)}
+                  onInspect={() => setInspected(entry.card)}
+                />
               ))}
             </div>
           </section>
@@ -188,13 +177,11 @@ export function DeckViewer({ tabs, initial, onClose }: DeckViewerProps) {
       </div>
 
       {inspectedEntry && (
-        <Sheet label={getCardDef(inspectedEntry.card).name} onClose={() => setInspected(null)}>
-          <CardDetail
-            def={getCardDef(inspectedEntry.card)}
-            face={<DetailFace def={getCardDef(inspectedEntry.card)} />}
-            statuses={[{ text: `${inspectedEntry.count} ${inspectedEntry.count === 1 ? 'copia' : 'copias'} en ${deck.name}` }]}
-          />
-        </Sheet>
+        <CardDefSheet
+          def={getCardDef(inspectedEntry.card)}
+          statuses={[{ text: `${inspectedEntry.count} ${inspectedEntry.count === 1 ? 'copia' : 'copias'} en ${deck.name}` }]}
+          onClose={() => setInspected(null)}
+        />
       )}
     </div>
   );

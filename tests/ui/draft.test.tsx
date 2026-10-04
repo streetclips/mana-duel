@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/preact';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GameController } from '../../src/app/controller';
 import { DeckLibrary } from '../../src/app/deckLibrary';
 import { PACK_SIZE, aiPick, createDraft, pickCard, recordGame, saveDeck, suggestedDeck, type DraftRun } from '../../src/app/draft';
@@ -9,6 +9,7 @@ import { App, type Screen } from '../../src/ui/App';
 import { localDraftStore } from '../../src/ui/draftStore';
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   localStorage.clear();
 });
@@ -86,7 +87,7 @@ describe('picking cards', () => {
     const card = pack[2] ?? '';
     expect((byTestId('btn-draft-pick') as HTMLButtonElement).disabled).toBe(true);
     click(byTestId(`draft-card-${card}`));
-    expect(byTestId('draft-detail')).toBeTruthy();
+    expect(byTestId(`draft-card-${card}`).getAttribute('aria-checked')).toBe('true');
     click(byTestId('btn-draft-pick'));
     expect(draft.run?.picks[0]).toEqual([card]);
     expect(byTestId('draft-picking').textContent).toContain('carta 2 de 12');
@@ -95,6 +96,36 @@ describe('picking cards', () => {
     click(byTestId('btn-draft-picks'));
     expect(byTestId('deck-viewer').dataset.deck).toBe('draft-pool');
     expect(byTestId(`deck-card-${card}`).dataset.count).toBe('1');
+  });
+});
+
+describe('reading the cards of a pack', () => {
+  it('opens a card in a sheet on a long press, without choosing it', () => {
+    vi.useFakeTimers();
+    const { draft } = setup('draft', createDraft('draft', 7));
+    const [first = '', second = ''] = draft.run?.packs[0] ?? [];
+    click(byTestId(`draft-card-${first}`));
+    const card = byTestId(`draft-card-${second}`);
+    fireEvent.pointerDown(card, { button: 0 });
+    act(() => {
+      vi.advanceTimersByTime(450);
+    });
+    fireEvent.pointerUp(card);
+    click(card);
+    expect(within(byTestId('card-sheet')).getByRole('dialog').getAttribute('aria-label')).toBe(card.getAttribute('aria-label'));
+    expect(card.getAttribute('aria-checked')).toBe('false');
+    expect(byTestId(`draft-card-${first}`).getAttribute('aria-checked')).toBe('true');
+    click(byTestId('card-sheet'));
+    expect(screen.queryByTestId('card-sheet')).toBeNull();
+    fireEvent.contextMenu(card);
+    expect(within(byTestId('card-sheet')).getByRole('dialog').getAttribute('aria-label')).toBe(card.getAttribute('aria-label'));
+  });
+
+  it('adds nothing to the screen when you choose a card', () => {
+    const { draft } = setup('draft', createDraft('draft', 7));
+    const elements = byTestId('draft').querySelectorAll('*').length;
+    click(byTestId(`draft-card-${draft.run?.packs[0][3] ?? ''}`));
+    expect(byTestId('draft').querySelectorAll('*').length).toBe(elements);
   });
 });
 

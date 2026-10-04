@@ -48,7 +48,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
    of 3000 still moves a deck by about 2 to 3 points: settle a close call with a second `--seed`. To compare two
    versions of a card, run the same `--seed` before and after, with `--decks <id>,all` to play only that deck's
    matchups.
-4. For UI or audio changes, also run `npm run test:e2e` (two phone viewports). Done when every test passes.
+4. For UI or audio changes, also run `npm run test:e2e` (two phone viewports, and `e2e/desktop.spec.ts`, a desktop
+   browser whose scrollbars take room: headless Chromium hides them otherwise). Done when every test passes.
 5. Steps 1–4 never reach OpenRouter. `npm run test:live` makes real calls and spends credits: run it only when asked.
 
 ## Driving the running game
@@ -77,7 +78,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `ability-<cardId>-<n>`, with `data-usable` while you can activate it, and `ability-<cardId>-mana`, with
   `data-spent` once the creature is tapped or summoning sick), `player-<0|1>`,
   `life-<0|1>`, `deck-name-<p>`, `prompt`, `phase`, `stack`, `stack-<itemId>` (plus `data-card`, `data-targetable`),
-  `hand`, `lands-<p>`, `battlefield-<p>`, `btn-<id>` for bar buttons and `sheet-<actionType>` for card-sheet actions.
+  `hand`, `lands-<p>`, `battlefield-<p>`, `btn-<id>` for bar buttons, and `card-sheet` (a long press or right click opens
+  any card in it, in the game, the modes and the deck screens) with `sheet-<actionType>` for its actions.
   `btn-menu` opens the menu; `menu-log` opens `log-panel`, where each card a line names is a `log-card-<cardId>` button
   that opens that card above the log, read-only, with where it is now. The result screen: `game-over`,
   `game-over-title`, `btn-play-again`, `btn-home` (back to the start screen), `btn-view-log`.

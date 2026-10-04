@@ -127,6 +127,10 @@ describe('my decks', () => {
     click(byTestId('sheet-remove'));
     click(byTestId('sheet-feature'));
     expect(screen.queryByTestId('sheet-feature')).toBeNull();
+    click(byTestId('card-sheet'));
+    fireEvent.contextMenu(within(byTestId('builder-deck-cinder_adept')).getByRole('button', { name: 'Ver Adepto del ascua' }));
+    expect(byTestId('card-sheet').textContent).toContain('2 en el mazo');
+    click(byTestId('card-sheet'));
     click(byTestId('btn-builder-save'));
     expect(library.get('mine-1')?.featured).toBe('cinder_adept');
   });
