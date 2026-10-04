@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1a22"/>
+      <stop offset="1" stop-color="#5e2a24"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#e8703a"/>
+      <stop offset="1" stop-color="#fbd46a"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="60" cy="41" r="30" fill="#f28a3b" opacity="0.12"/>
+  <path d="M0 70 H120 V80 H0 Z" fill="#2e1a1a"/>
+  <ellipse cx="60" cy="70.5" rx="24" ry="2.6" fill="#f28a3b" opacity="0.3"/>
+  <g transform="translate(0 3)">
+    <path d="M60 4 C64 10 70 12 74 18 C78 13 80 10 80 6 C86 14 88 24 86 32 C90 30 92 27 93 24 C97 34 96 46 90 54 C84 61 72 63 60 63 C48 63 36 61 30 54 C24 46 23 34 27 24 C28 27 30 30 34 32 C32 24 34 14 40 6 C40 10 42 13 46 18 C50 12 56 10 60 4 Z" fill="#d9542e" opacity="0.45"/>
+    <ellipse cx="60" cy="40" rx="22" ry="19" fill="#f28a3b" opacity="0.18"/>
+    <path d="M36 56 C34 51 38 47 46 46 H74 C82 47 86 51 84 56 C82 59 72 60 60 60 C48 60 38 59 36 56 Z" fill="#e8703a"/>
+    <path d="M60 25 C55 25 51 27 49.5 30 C47 35 44 41 41 47 C46 49 52 50 60 50 C68 50 74 49 79 47 C76 41 73 35 70.5 30 C69 27 65 25 60 25 Z" fill="url(#body)"/>
+    <path d="M50 30 L54 28.5 L73 46 L68 48 Z" fill="#d9542e"/>
+    <g fill="#f28a3b">
+      <path d="M51 29.5 C47.5 33.5 45 38.5 45.2 42 C45.4 44.6 48 45.4 51 44.2 C54 43 56.8 41.4 58.8 40.2 L58.6 37.4 C56 38.6 53 39.8 50.2 40.6 C50.4 37.5 51.6 34.5 53.4 31.6 Z"/>
+      <path d="M69 29.5 C72.5 33.5 75 38.5 74.8 42 C74.6 44.6 72 45.4 69 44.2 C66 43 63.2 41.4 61.2 40.2 L61.4 37.4 C64 38.6 67 39.8 69.8 40.6 C69.6 37.5 68.4 34.5 66.6 31.6 Z"/>
+    </g>
+    <path d="M60 30 C61.4 32.4 61.8 36 61.5 40.5 H58.5 C58.2 36 58.6 32.4 60 30 Z" fill="#fff3c4"/>
+    <path d="M60 6 C61.5 9 64 11 64 14.5 C64 16.5 62.4 17.8 60 17.8 C57.6 17.8 56 16.5 56 14.5 C56 11.5 58.5 9.5 60 6 Z" fill="#f6a13b"/>
+    <path d="M60 10.5 C60.8 12.2 62 13.3 62 15 C62 16.2 61.1 17 60 17 C58.9 17 58 16.2 58 15 C58 13.3 59.2 12.2 60 10.5 Z" fill="#fff3c4"/>
+    <circle cx="60" cy="19.5" r="5.8" fill="#fbd46a"/>
+    <path d="M57 19.8 Q58.2 21 59.2 19.8 M60.8 19.8 Q61.8 21 63 19.8" fill="none" stroke="#8a2a21" stroke-width="0.8" stroke-linecap="round"/>
+  </g>
+  <g fill="#fbd46a">
+    <circle cx="36" cy="30" r="1"/>
+    <circle cx="86" cy="22" r="1"/>
+    <circle cx="30" cy="46" r="0.8"/>
+    <circle cx="92" cy="44" r="0.9"/>
+    <circle cx="48" cy="12" r="0.7"/>
+    <circle cx="74" cy="10" r="0.7"/>
+  </g>
+</svg>

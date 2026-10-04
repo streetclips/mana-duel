@@ -1,4 +1,5 @@
 import { getCardDef } from './registry';
+import { shuffleInPlace } from './rng';
 import {
   changeLife,
   createToken,
@@ -112,6 +113,18 @@ function addCounters(s: GameState, card: CardId, amount: number): void {
   s.events.push({ t: 'addCounters', card, amount });
 }
 
+function searchLand(s: GameState, player: PlayerId, land: string, battlefield: number, hand: number, tapped: boolean): void {
+  const library = s.players[player].library;
+  const found = library.filter((id) => getCard(s, id).def === land).slice(0, battlefield + hand);
+  found.forEach((id, index) => {
+    const to = index < battlefield ? 'battlefield' : 'hand';
+    s.events.push({ t: 'search', player, card: id, to });
+    moveCard(s, id, to, { controller: player });
+    if (to === 'battlefield' && tapped) getCard(s, id).tapped = true;
+  });
+  shuffleInPlace(s, library);
+}
+
 export function executeEffects(s: GameState, effects: Effect[], ctx: EffectContext): void {
   for (const effect of effects) {
     switch (effect.kind) {
@@ -211,6 +224,13 @@ export function executeEffects(s: GameState, effects: Effect[], ctx: EffectConte
         addCounters(s, ctx.source, effect.counters);
         break;
       }
+      case 'extraLands':
+        s.players[ctx.controller].extraLandsThisTurn += effect.amount;
+        s.events.push({ t: 'extraLands', player: ctx.controller, amount: effect.amount });
+        break;
+      case 'searchLand':
+        searchLand(s, ctx.controller, effect.land, effect.battlefield, effect.hand ?? 0, effect.tapped ?? false);
+        break;
     }
   }
 }

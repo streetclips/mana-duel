@@ -1,8 +1,8 @@
 # Mana Duel
 
-Minimalist, mobile-first card duel on the rules of Magic: The Gathering, played in Spanish: eleven decks, one per
-pair of colors plus black alone, and a human against an AI: the classic one, or an OpenRouter model through the AI
-SDK.
+Minimalist, mobile-first card duel on the rules of Magic: The Gathering, played in Spanish: fourteen decks, one per
+pair of colors, black, red and green alone, and one of all five colors, and a human against an AI: the classic one,
+or an OpenRouter model through the AI SDK.
 TypeScript, Preact, Vite; Vitest and Playwright.
 
 ## Layout
@@ -37,13 +37,14 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 ## Verify a change
 
 1. After editing cards or decks, run `npm run cards` to regenerate `docs/CARDS.md`.
-2. Run `npm run verify` (typecheck, unit tests, 121 AI-vs-AI games, one per matchup, with invariant checks,
+2. Run `npm run verify` (typecheck, unit tests, 196 AI-vs-AI games, one per matchup, with invariant checks,
    production build). Done when it exits 0.
 3. After changing cards, decks or the AI, check the balance with `npm run sim -- --games 3000 --quiet` (under a
    minute on ten CPUs: games run in one process per CPU, and `--workers N` changes how many, never the results): every
-   `decks.*.winRate` should stay between about 0.42 and 0.58. With 121 matchups, smaller runs are noise, and one run
-   of 3000 still moves a deck by about 2 points: settle a close call with a second `--seed`. To compare two versions
-   of a card, run the same `--seed` before and after, with `--decks <id>,all` to play only that deck's matchups.
+   `decks.*.winRate` should stay between about 0.42 and 0.58. With 196 matchups, smaller runs are noise, and one run
+   of 3000 still moves a deck by about 2 to 3 points: settle a close call with a second `--seed`. To compare two
+   versions of a card, run the same `--seed` before and after, with `--decks <id>,all` to play only that deck's
+   matchups.
 4. For UI or audio changes, also run `npm run test:e2e` (two phone viewports). Done when every test passes.
 5. Steps 1–4 never reach OpenRouter. `npm run test:live` makes real calls and spends credits: run it only when asked.
 
@@ -115,7 +116,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   top-left corner, ability pills above the bottom edge and the P/T in the bottom-right corner, and a hand card lays
   its name and text over the bottom third. Its `name`, `subtypes` and `flavor` are Spanish; `subtypes` follow a
   Spanish type line (`['Soldado', 'Humano']` prints «Soldado humano»), and the name fits the two-line name box of a
-  hand card (68 px wide, 60 px on short screens): `e2e/game.spec.ts` checks that no `.card .name` in hand overflows.
+  hand card (68 px wide, 60 px on short screens, so a word of eleven letters seldom fits): `e2e/game.spec.ts` checks
+  that no `.card .name` in hand overflows.
 - A token is a creature `CardDef` with `token: true`, its `colors` and no cost, filed and drawn like any card but in
   no deck; a `createTokens` effect names it. Tokens get ids `tk<n>` and, once they leave the battlefield, stay in
   `state.cards` with zone `gone` so the log and the animations can still name them.
@@ -128,9 +130,10 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   creature keeps on the battlefield, like +1/+1 counters, also needs its reset in `moveCard`, a rule in
   `invariants.ts`, a scenario field and a place in `src/llm/view.ts`; state a player keeps for the turn, like
   `damagedThisTurn`, resets in `goToNextStep` and needs the same scenario field and view. A keyword that triggers
-  (undying, evolve) is a negative ability index in `state.ts` (`UNDYING_TRIGGER`, `EVOLVE_TRIGGER`) with its text in
-  `triggerText`; a trigger's `condition` (bloodthirst's `opponentDamaged`) is checked by `conditionHolds` when it
-  would trigger. Cover it with a scenario test in `tests/engine` and a check in `src/app/checks.ts`.
+  (undying, evolve, prowess) is a negative ability index in `state.ts` (`UNDYING_TRIGGER`, `EVOLVE_TRIGGER`,
+  `PROWESS_TRIGGER`) with its text in `triggerText`; a trigger's `condition` (bloodthirst's `opponentDamaged`) is
+  checked by `conditionHolds` when it would trigger. Cover it with a scenario test in `tests/engine` and a check in
+  `src/app/checks.ts`.
 - A new `GameEvent` animates once `src/app/fx.ts` turns it into a cue (`tests/app/fx.test.ts`) and `src/ui/fx.ts`
   gives the cue its hooks and overlays (`tests/ui/animations.test.tsx`, `e2e/animations.spec.ts`); it sounds once
   `soundsOf` in `src/audio/cues.ts` maps the cue to a sound (`tests/audio/cues.test.ts`).

@@ -18,6 +18,7 @@ import type {
 
 export const UNDYING_TRIGGER = -1;
 export const EVOLVE_TRIGGER = -2;
+export const PROWESS_TRIGGER = -3;
 
 const UNDYING_ABILITY: TriggeredAbility = {
   on: 'dies',
@@ -29,6 +30,12 @@ const EVOLVE_ABILITY: TriggeredAbility = {
   on: 'allyEnters',
   targets: [],
   effects: [{ kind: 'addCounters', amount: 1, to: 'self' }],
+};
+
+const PROWESS_ABILITY: TriggeredAbility = {
+  on: 'spell',
+  targets: [],
+  effects: [{ kind: 'pump', power: 1, toughness: 1, to: 'self' }],
 };
 
 export const STARTING_LIFE = 20;
@@ -115,6 +122,7 @@ export function isTokenDef(def: CardDef): boolean {
 export function triggeredAbility(def: CardDef, index: number): TriggeredAbility | undefined {
   if (index === UNDYING_TRIGGER) return UNDYING_ABILITY;
   if (index === EVOLVE_TRIGGER) return EVOLVE_ABILITY;
+  if (index === PROWESS_TRIGGER) return PROWESS_ABILITY;
   return def.triggers?.[index];
 }
 
@@ -217,10 +225,15 @@ function evolves(s: GameState, evolver: CardId, newcomer: CardId): boolean {
 
 function enterBattlefield(s: GameState, id: CardId): void {
   const card = getCard(s, id);
-  const creature = isCreatureDef(getCardDef(card.def));
+  const def = getCardDef(card.def);
+  const creature = isCreatureDef(def);
   card.summoningSick = creature;
+  if (def.entersTapped) card.tapped = true;
   s.events.push({ t: 'enter', player: card.controller, card: id });
   queueTriggers(s, id, 'enters', card.controller);
+  if (isLandDef(def)) {
+    for (const other of s.players[card.controller].battlefield) queueTriggers(s, other, 'landfall', card.controller);
+  }
   if (!creature) return;
   for (const other of s.players[card.controller].battlefield) {
     if (other === id) continue;

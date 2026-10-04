@@ -21,7 +21,10 @@ export function landPlayError(s: GameState, player: PlayerId, cardId: CardId): s
   if (!card || card.zone !== 'hand' || card.owner !== player) return 'esa carta no está en tu mano';
   if (!isLandDef(getCardDef(card.def))) return 'esa carta no es una tierra';
   if (!canActAtSorcerySpeed(s, player)) return 'las tierras solo se pueden jugar en tu fase principal con la pila vacía';
-  if (s.players[player].landsPlayedThisTurn >= 1) return 'ya has jugado una tierra este turno';
+  const ps = s.players[player];
+  if (ps.landsPlayedThisTurn >= 1 + ps.extraLandsThisTurn) {
+    return ps.extraLandsThisTurn > 0 ? 'ya has jugado todas las tierras que puedes este turno' : 'ya has jugado una tierra este turno';
+  }
   return null;
 }
 

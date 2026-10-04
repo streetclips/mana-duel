@@ -49,6 +49,7 @@ export function validateCardDef(def: CardDef): void {
   if (isSpell && !def.spell) fail('instants and sorceries need a spell ability');
   if (!isSpell && def.spell) fail('only instants and sorceries have a spell ability');
   if (def.token && (!isCreature || def.cost)) fail('tokens are creatures without a mana cost');
+  if (def.entersTapped && !isLand) fail('only lands enter tapped');
   const abilities = [def.spell, ...(def.triggers ?? []), ...(def.activated ?? [])];
   for (const ability of abilities) {
     if (!ability) continue;
@@ -59,6 +60,14 @@ export function validateCardDef(def: CardDef): void {
     if ('on' in ability && ability.on === 'lifeGain' && regains) fail('a "whenever you gain life" ability cannot gain life or deal damage');
     const sacrificed = 'sacrifice' in ability && ability.sacrifice === true;
     for (const effect of ability.effects) {
+      if (effect.kind === 'extraLands' && effect.amount < 1) fail('extra land plays need a positive amount');
+      if (effect.kind === 'searchLand') {
+        const hand = effect.hand ?? 0;
+        if (effect.battlefield < 0 || hand < 0 || effect.battlefield + hand === 0) fail('a land search needs cards to find');
+        if (effect.battlefield > 0 && hand > 0 && (effect.battlefield !== 1 || hand !== 1)) {
+          fail('a land search that splits its cards puts one onto the battlefield and the other into the hand');
+        }
+      }
       if (sacrificed && 'to' in effect && effect.to === 'self') fail('an ability that sacrifices its creature cannot affect it');
       const refs = effect.kind === 'fight' || effect.kind === 'bite' ? [effect.a, effect.b] : 'to' in effect ? [effect.to] : [];
       for (const ref of refs) {

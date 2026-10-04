@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6d394"/>
+      <stop offset="1" stop-color="#fdf2d8"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#sky)"/>
+  <g fill="#fffaf0" opacity="0.45">
+    <polygon points="60,28 54,0 66,0"/>
+    <polygon points="60,28 30,4 38,0"/>
+    <polygon points="60,28 82,0 90,4"/>
+    <polygon points="60,28 20,22 22,30"/>
+    <polygon points="60,28 98,30 100,22"/>
+  </g>
+  <circle cx="60" cy="28" r="16" fill="#fff8e4" opacity="0.75"/>
+  <circle cx="60" cy="28" r="9" fill="#fffdf4"/>
+  <path d="M24 52 L30 42 L42 41 L48 47 L52 52 Z M68 52 L74 44 L86 42 L92 49 L96 52 Z" fill="#eaa58a"/>
+  <path d="M0 60 Q30 52 60 55 T120 56 V80 H0 Z" fill="#b5d3a6"/>
+  <g fill="#3b8356">
+    <path d="M47 46 L43 55 H51 Z M53 48 L50 56 H56 Z M68 47 L64.5 56 H71.5 Z M74 45 L70 55 H78 Z"/>
+  </g>
+  <path d="M0 12 H20 L23 16 H28 L30 26 L27 32 L33 42 L31 50 L40 60 L36 80 H0 Z" fill="#c95a3e"/>
+  <path d="M28 16 L30 26 L27 32 L33 42 L31 50 L40 60 L36 80 H30 L30 62 L23 50 L25 40 L20 31 L23 22 Z" fill="#9a3b2b"/>
+  <path d="M120 16 H102 L99 20 H94 L91 28 L94 36 L88 44 L90 52 L80 61 L84 80 H120 Z" fill="#d76a4b"/>
+  <path d="M94 20 L91 28 L94 36 L88 44 L90 52 L80 61 L84 80 H90 L88 63 L96 54 L94 45 L100 37 L97 28 L99 20 Z" fill="#a8452f"/>
+  <path d="M0 26 Q10 24 20 27 M0 40 Q12 38 24 41 M0 54 Q14 52 28 55 M120 30 Q110 28 100 31 M120 44 Q108 42 96 45 M120 58 Q106 56 92 59" fill="none" stroke="#e8896a" stroke-width="1" stroke-linecap="round"/>
+  <g fill="#2c6441">
+    <path d="M6 4 L2 12 H10 Z M13 6 L9.5 12 H16.5 Z M108 8 L104 16 H112 Z M115 10 L111.5 16 H118.5 Z"/>
+  </g>
+  <path d="M0 70 Q30 64 60 68 T120 67 V80 H0 Z" fill="#4c8653"/>
+  <g fill="#3b8356">
+    <circle cx="50" cy="64" r="4"/>
+    <circle cx="56" cy="65" r="3"/>
+    <circle cx="70" cy="64" r="3.6"/>
+  </g>
+</svg>

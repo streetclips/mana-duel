@@ -43,8 +43,8 @@ color has its own (`COLOR_MUSIC` in `src/audio/music.ts`):
 | Green | G Mixolydian | 100 | I – VII – IV – I | pluck | tribal |
 
 A deck's theme takes its harmony (key, mode, progression, drums) from its first color and its texture (lead timbre
-and arpeggio) from its second, at the average tempo, so every color combination sounds different and a new deck gets
-a theme on its own. The title theme is F Lydian, the colorless one A Dorian.
+and arpeggio) from its last (the second of a two-color deck), at the average tempo of all its colors, so every
+combination of colors sounds different, five colors included, and a new deck gets a theme on its own. The title theme is F Lydian, the colorless one A Dorian.
 
 The score (`notesAt(theme, mood, step)`) runs in sixteenth-note steps: a pad holds each bar's chord, the bass plays
 its root and fifth, the lead arpeggiates its tones an octave up, and the eight-bar loop plays the arpeggio backwards
@@ -75,7 +75,7 @@ timers stall, as in a background window, it skips ahead instead of playing the m
 | `discard` | `discard` | |
 | `play` | `land` or `cast` | in the color of the card: a thump and a colored tone for a land, an arpeggio and a color flourish for a spell |
 | `ability` | `ability` | |
-| `enter` | `enter` | creatures and tokens; a land entering is heard as its `land` |
+| `enter` | `enter` | creatures and tokens; a land played is heard as its `land`, and so is a land an effect puts onto the battlefield |
 | `attack` / `block` | `attack` / `block` | once per declaration; more attackers sound louder |
 | `strike` | `strike` | when the lunge lands (`IMPACT_MS`), up to three, each lower |
 | `damage` | `damage` | only without a strike to cover it: burn, abilities |

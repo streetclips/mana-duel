@@ -131,15 +131,17 @@ export const NEUTRAL_THEME: Theme = {
 };
 
 export function deckTheme(deck: DeckDef): Theme {
-  const [first, second] = deck.colors;
-  if (!first) return { ...NEUTRAL_THEME, id: deck.id, name: deck.name };
+  const first = deck.colors[0];
+  const last = deck.colors.at(-1);
+  if (!first || !last) return { ...NEUTRAL_THEME, id: deck.id, name: deck.name };
   const harmony = COLOR_MUSIC[first];
-  const texture = COLOR_MUSIC[second ?? first];
+  const texture = COLOR_MUSIC[last];
+  const tempo = deck.colors.reduce((sum, color) => sum + COLOR_MUSIC[color].tempo, 0) / deck.colors.length;
   return {
     id: deck.id,
     name: deck.name,
     colors: [...deck.colors],
-    tempo: Math.round((harmony.tempo + texture.tempo) / 2),
+    tempo: Math.round(tempo),
     root: harmony.root,
     mode: harmony.mode,
     progression: harmony.progression,

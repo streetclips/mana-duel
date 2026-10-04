@@ -14,6 +14,8 @@ export function checkInvariants(s: GameState): string[] {
   for (const player of [0, 1] as PlayerId[]) {
     const ps = s.players[player];
     if (!Number.isInteger(ps.life)) problems.push(`p${player} life is not an integer`);
+    if (!Number.isInteger(ps.extraLandsThisTurn) || ps.extraLandsThisTurn < 0) problems.push(`p${player} has invalid extra land plays`);
+    if (player === s.activePlayer && ps.landsPlayedThisTurn > 1 + ps.extraLandsThisTurn) problems.push(`p${player} played more lands than allowed`);
     for (const zone of ['library', 'hand', 'graveyard', 'battlefield'] as const) {
       for (const id of ps[zone]) {
         note(id, `p${player}.${zone}`);

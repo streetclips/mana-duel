@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22141a"/>
+      <stop offset="0.6" stop-color="#4a1c1e"/>
+      <stop offset="1" stop-color="#6e2a22"/>
+    </linearGradient>
+    <g id="lick">
+      <path d="M2 3.5 C-4 3.6 -7 -0.5 -8.2 -4 C-8.8 -6 -9.8 -7.2 -11.5 -8.6 C-7.2 -7.8 -4.8 -6.2 -3.2 -4.6 C-2 -3.6 -0.6 -3.2 2 -3.5 Z" fill="#f28a3b"/>
+      <path d="M2 2 C-2.6 2 -4.6 -0.6 -5.6 -3 C-4 -2 -2.4 -1.5 2 -1.8 Z" fill="#fbd46a"/>
+    </g>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <circle cx="62" cy="38" r="32" fill="#f28a3b" opacity="0.1"/>
+  <path d="M17 18 C50 2 94 20 103 64 C86 40 60 27 17 18 Z" fill="#f28a3b" opacity="0.14"/>
+  <use href="#lick" transform="translate(92.5 51.8) rotate(-25) scale(0.7)"/>
+  <use href="#lick" transform="translate(82.6 41.1) rotate(-36) scale(1.1)"/>
+  <use href="#lick" transform="translate(70.5 32.4) rotate(-47) scale(1.3)"/>
+  <use href="#lick" transform="translate(56.1 25.6) rotate(-55) scale(0.9)"/>
+  <use href="#lick" transform="translate(41.2 21.1) rotate(-63) scale(0.65)"/>
+  <path d="M22 18 C52 8 88 24 98 60 C84 36 60 22 22 18 Z" fill="#e8703a"/>
+  <path d="M22 18 C52 8 88 24 98 60 C88 32 62 17 22 18 Z" fill="#f6a13b"/>
+  <path d="M22 18 C52 8 88 24 98 60 C92 29 62 12.5 22 18 Z" fill="#fbd46a"/>
+  <path d="M25 16.8 C53 8.6 86 23 97 56" fill="none" stroke="#fff3c4" stroke-width="1.3" stroke-linecap="round"/>
+  <g fill="#ffd166">
+    <circle cx="40" cy="34" r="1.1"/>
+    <circle cx="52" cy="43" r="1"/>
+    <circle cx="34" cy="46" r="0.8"/>
+    <circle cx="64" cy="50" r="1.1"/>
+    <circle cx="46" cy="56" r="0.8"/>
+    <circle cx="76" cy="58" r="0.9"/>
+    <circle cx="28" cy="34" r="0.7"/>
+    <circle cx="58" cy="62" r="0.7"/>
+    <circle cx="102" cy="44" r="0.8"/>
+    <circle cx="84" cy="16" r="0.8"/>
+  </g>
+  <path d="M44 46 L45 49 L48 50 L45 51 L44 54 L43 51 L40 50 L43 49 Z M68 56 L68.7 58.3 L71 59 L68.7 59.7 L68 62 L67.3 59.7 L65 59 L67.3 58.3 Z" fill="#fff3c4"/>
+</svg>

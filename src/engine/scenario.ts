@@ -21,6 +21,7 @@ export interface ScenarioPlayer {
   library?: ScenarioEntry[];
   graveyard?: ScenarioEntry[];
   landsPlayed?: number;
+  extraLands?: number;
   damagedThisTurn?: boolean;
 }
 
@@ -96,6 +97,7 @@ export function createScenario(spec: ScenarioSpec): GameState {
     state.kept = true;
     state.bottomed = true;
     state.landsPlayedThisTurn = ps.landsPlayed ?? 0;
+    state.extraLandsThisTurn = ps.extraLands ?? 0;
     state.damagedThisTurn = ps.damagedThisTurn ?? false;
     for (const entry of ps.hand ?? []) place(player, 'hand', entry);
     for (const entry of ps.battlefield ?? []) place(player, 'battlefield', entry);

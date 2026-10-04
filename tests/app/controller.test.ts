@@ -248,6 +248,9 @@ describe('test API', () => {
       ['vesperhall', 40],
       ['cindermaw', 40],
       ['deepgrove', 40],
+      ['flamecrest', 40],
+      ['wildland', 40],
+      ['crossroads', 40],
     ]);
     expect(api.decks()[2]?.cards).toContainEqual({ id: 'swamp', name: 'Pantano', count: 16 });
     expect(api.matchup()).toEqual(['emberwild', 'emberwild']);

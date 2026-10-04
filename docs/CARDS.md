@@ -83,9 +83,9 @@ Azul y rojo: destello, daño directo y robo de cartas; cada instantáneo y cada 
 | --- | --- | --- | --- | --- | --- | --- |
 | 8 | Isla | `island` | — | Tierra básica — Isla | — | {T}: Agrega {U}. |
 | 8 | Montaña | `mountain` | — | Tierra básica — Montaña | — | {T}: Agrega {R}. |
-| 2 | Duende del horno | `kiln_sprite` | {R} | Criatura — Elemental | 1/1 | Prisa. · Siempre que lances un hechizo de instantáneo o de conjuro, esta criatura obtiene +1/+1 hasta el final del turno. |
+| 2 | Duende del horno | `kiln_sprite` | {R} | Criatura — Elemental | 1/1 | Prisa, destreza. |
 | 2 | Ave de la borrasca | `squall_skimmer` | {1}{U} | Criatura — Ave | 2/1 | Destello, vuela. |
-| 2 | Iniciada del arco | `arc_initiate` | {1}{R} | Criatura — Monje humano | 2/2 | Siempre que lances un hechizo de instantáneo o de conjuro, esta criatura obtiene +1/+1 hasta el final del turno. |
+| 2 | Iniciada del arco | `arc_initiate` | {1}{R} | Criatura — Monje humano | 2/2 | Destreza. |
 | 2 | Centinela de vidrio | `glassreef_sentinel` | {2}{U} | Criatura — Soldado tritón | 1/4 | Destello. |
 | 2 | Médium galvánico | `galvanic_channeler` | {2}{R} | Criatura — Chamán humano | 2/2 | Siempre que lances un hechizo de instantáneo o de conjuro, esta criatura hace 1 punto de daño al oponente objetivo. |
 | 2 | Místico marino | `wavecrest_mystic` | {3}{U} | Criatura — Hechicero tritón | 2/3 | Destello. · Cuando esta criatura entre, regresa la criatura objetivo que no controlas a la mano de su propietario. |
@@ -257,6 +257,82 @@ Verde y azul: criaturas que evolucionan con cada llegada más grande y gigantes 
 | 1 | Saber bajo la marea | `undertide_lore` | {2}{U} | Conjuro | — | Roba dos cartas. |
 | 1 | Retorno de la resaca | `riptide_recall` | {U} | Instantáneo | — | Regresa la criatura objetivo que no controlas a la mano de su propietario. |
 
+## Crestafuego (`flamecrest`, 40 cards, R)
+
+Rojo: monjes con destreza que golpean primero y dos veces; cada instantáneo los enciende y el daño directo remata.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 16 | Montaña | `mountain` | — | Tierra básica — Montaña | — | {T}: Agrega {R}. |
+| 2 | Lancera del claustro | `cloister_lancer` | {R} | Criatura — Monje humano | 1/2 | Prisa, destreza. |
+| 2 | Filo del templo | `temple_blade` | {1}{R} | Criatura — Monje humano | 2/1 | Daña primero, destreza. |
+| 2 | Discípula del brasero | `brazier_disciple` | {1}{R} | Criatura — Monje humano | 1/2 | Destreza. · Siempre que lances un hechizo de instantáneo o de conjuro, esta criatura gana la habilidad de dañar primero hasta el final del turno. |
+| 2 | Cernícalo de ceniza | `ashwing_kestrel` | {2}{R} | Criatura — Ave | 2/1 | Vuela, destreza. |
+| 1 | Maestra de la llama | `flamecrest_mentor` | {2}{R} | Criatura — Monje humano | 2/2 | Destreza. · Siempre que lances un hechizo de instantáneo o de conjuro, crea una ficha de criatura Monje roja 1/1 con la habilidad de destreza. |
+| 1 | Monje de mil golpes | `thousand_blows_monk` | {3}{R} | Criatura — Monje humano | 2/2 | Daña dos veces, destreza. |
+| 2 | Elemental del cráter | `crater_elemental` | {3}{R} | Criatura — Elemental | 3/3 | Prisa, destreza. |
+| 1 | Dragón del templo | `temple_dragon` | {3}{R}{R} | Criatura — Dragón | 4/4 | Vuela, destreza. |
+| 2 | Golpe de palma | `palm_strike` | {R} | Instantáneo | — | La criatura objetivo obtiene +1/+0 hasta el final del turno. Roba una carta. |
+| 2 | Ráfaga de chispas | `spark_volley` | {R} | Instantáneo | — | Ráfaga de chispas hace 1 punto de daño a cualquier objetivo. Las criaturas que controlas obtienen +1/+0 hasta el final del turno. |
+| 2 | Puño de lava | `lava_fist` | {1}{R} | Instantáneo | — | La criatura objetivo que controlas hace una cantidad de daño igual a su fuerza a la criatura objetivo que no controlas. |
+| 1 | Golpe doble | `twin_strike` | {1}{R} | Instantáneo | — | La criatura objetivo gana la habilidad de dañar dos veces hasta el final del turno. |
+| 2 | Aliento del dragón | `dragons_breath` | {2}{R} | Instantáneo | — | Aliento del dragón hace 3 puntos de daño a cualquier objetivo. |
+| 2 | Corte de llama | `flame_cut` | {1}{R} | Instantáneo | — | Corte de llama hace 2 puntos de daño a la criatura objetivo. |
+
+## Tierrabrava (`wildland`, 40 cards, G)
+
+Verde: cada tierra que entra despierta a sus bestias; busca bosques y juega tierras de más para crecer sin freno.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 16 | Bosque | `forest` | — | Tierra básica — Bosque | — | {T}: Agrega {G}. |
+| 2 | Lince del risco | `cliff_lynx` | {G} | Criatura — Felino | 1/1 | Aterrizaje — Siempre que una tierra que controlas entre, esta criatura obtiene +2/+2 hasta el final del turno. |
+| 2 | Guía del sendero | `trail_scout` | {1}{G} | Criatura — Explorador elfo | 1/1 | Cuando esta criatura entre, busca en tu biblioteca una carta de Bosque básico, ponla en el campo de batalla girada y luego baraja. |
+| 1 | Anciano de la tribu | `tribe_elder` | {1}{G} | Criatura — Chamán elfo | 1/1 | Sacrificar esta criatura: Busca en tu biblioteca una carta de Bosque básico, ponla en el campo de batalla girada y luego baraja. |
+| 2 | Jabalí sísmico | `quake_boar` | {1}{G} | Criatura — Jabalí | 1/2 | Aterrizaje — Siempre que una tierra que controlas entre, pon un contador +1/+1 sobre esta criatura. |
+| 2 | Ciervo del manantial | `springhorn_stag` | {2}{G} | Criatura — Ciervo | 2/3 | Aterrizaje — Siempre que una tierra que controlas entre, ganas 2 vidas. |
+| 2 | Araña del peñasco | `boulder_spider` | {2}{G} | Criatura — Araña | 2/4 | Alcance. |
+| 2 | Bestia territorial | `territorial_beast` | {3}{G} | Criatura — Bestia | 3/3 | Aterrizaje — Siempre que una tierra que controlas entre, esta criatura obtiene +2/+2 hasta el final del turno. |
+| 1 | Gigante de la cumbre | `peak_giant` | {3}{G} | Criatura — Gigante | 3/3 | Cuando esta criatura entre, busca en tu biblioteca una carta de Bosque básico, ponla en el campo de batalla girada y luego baraja. |
+| 1 | Coloso de Tierrabrava | `wildland_colossus` | {4}{G}{G} | Criatura — Bestia elemental | 5/5 | Arrolla. · Aterrizaje — Siempre que una tierra que controlas entre, crea una ficha de criatura Bestia verde 3/3. |
+| 2 | Senda abierta | `open_path` | {1}{G} | Conjuro | — | Puedes jugar una tierra adicional este turno. Roba una carta. |
+| 2 | Siembra profunda | `deep_sowing` | {2}{G} | Conjuro | — | Busca en tu biblioteca dos cartas de Bosque básico, pon una en el campo de batalla girada y la otra en tu mano, y luego baraja. |
+| 1 | Grieta fértil | `fertile_rift` | {1}{G} | Instantáneo | — | Busca en tu biblioteca una carta de Bosque básico, ponla en el campo de batalla girada y luego baraja. |
+| 2 | Furia del alud | `avalanche_fury` | {2}{G} | Conjuro | — | La criatura objetivo que controlas obtiene +2/+2 hasta el final del turno. Esa criatura lucha contra la criatura objetivo que no controlas. |
+| 1 | Zarpazo certero | `sure_swipe` | {2}{G} | Instantáneo | — | La criatura objetivo que controlas hace una cantidad de daño igual a su fuerza a la criatura objetivo que no controlas. |
+| 1 | Rugido de la manada | `herd_roar` | {3}{G} | Conjuro | — | Las criaturas que controlas obtienen +2/+2 y ganan la habilidad de arrollar hasta el final del turno. |
+
+## Encrucijada (`crossroads`, 40 cards, WUBRG)
+
+Los cinco colores: tierras que dan maná de tres colores o de cualquiera, aunque entran giradas, y hechizos multicolores con lo mejor de cada color.
+
+| Qty | Card | Id | Cost | Type | P/T | Rules text |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Llanura | `plains` | — | Tierra básica — Llanura | — | {T}: Agrega {W}. |
+| 1 | Isla | `island` | — | Tierra básica — Isla | — | {T}: Agrega {U}. |
+| 1 | Pantano | `swamp` | — | Tierra básica — Pantano | — | {T}: Agrega {B}. |
+| 1 | Montaña | `mountain` | — | Tierra básica — Montaña | — | {T}: Agrega {R}. |
+| 1 | Bosque | `forest` | — | Tierra básica — Bosque | — | {T}: Agrega {G}. |
+| 2 | Aguja de plata | `silver_spire` | — | Tierra | — | Esta tierra entra girada. · {T}: Agrega {W}, {U} o {B}. |
+| 2 | Puerto de ceniza | `ash_harbor` | — | Tierra | — | Esta tierra entra girada. · {T}: Agrega {U}, {B} o {R}. |
+| 2 | Selva humeante | `smoldering_jungle` | — | Tierra | — | Esta tierra entra girada. · {T}: Agrega {B}, {R} o {G}. |
+| 2 | Cañón soleado | `sunlit_canyon` | — | Tierra | — | Esta tierra entra girada. · {T}: Agrega {R}, {G} o {W}. |
+| 2 | Prado brumoso | `misty_meadow` | — | Tierra | — | Esta tierra entra girada. · {T}: Agrega {G}, {W} o {U}. |
+| 1 | Fuente prismática | `prismatic_fount` | — | Tierra | — | Esta tierra entra girada. · {T}: Agrega un maná de cualquier color. |
+| 2 | Druida de los caminos | `wayfarer_druid` | {1}{G} | Criatura — Druida elfo | 1/2 | {T}: Agrega un maná de cualquier color. |
+| 2 | Mensajera celeste | `sky_messenger` | {W}{U} | Criatura — Espíritu | 2/2 | Vuela. |
+| 2 | Brujo del humo | `smoke_warlock` | {B}{R} | Criatura — Brujo humano | 2/2 | Cuando esta criatura entre, hace 1 punto de daño a cualquier objetivo. |
+| 2 | Guardián de raíces | `root_warden` | {G}{W} | Criatura — Guerrero elfo | 2/3 | Vigilancia. |
+| 2 | Grifo del prado | `meadow_griffin` | {1}{G}{W}{U} | Criatura — Grifo | 3/3 | Vuela, vigilancia. |
+| 2 | Devorador humeante | `smoldering_devourer` | {1}{B}{R}{G} | Criatura — Bestia | 3/3 | Prisa, arrolla. |
+| 2 | Titán del cañón | `canyon_titan` | {2}{R}{G}{W} | Criatura — Gigante | 4/5 | Vigilancia, arrolla. |
+| 1 | Dragón prismático | `prismatic_dragon` | {W}{U}{B}{R}{G} | Criatura — Dragón | 5/5 | Vuela, vínculo vital. |
+| 1 | Juicio de la aguja | `spire_judgment` | {1}{W}{U}{B} | Instantáneo | — | Destruye la criatura objetivo. Roba una carta. |
+| 2 | Tormenta de ceniza | `ash_storm` | {U}{B}{R} | Conjuro | — | Tormenta de ceniza hace 2 puntos de daño a cualquier objetivo. Roba una carta. |
+| 2 | Veto del concilio | `council_veto` | {1}{W}{U} | Instantáneo | — | Contrarresta el hechizo objetivo. Ganas 2 vidas. |
+| 2 | Visión del cruce | `convergent_vision` | {1}{G}{U} | Instantáneo | — | Roba dos cartas. |
+| 2 | Fuego purificador | `purifying_fire` | {R}{W} | Instantáneo | — | Fuego purificador hace 2 puntos de daño a cualquier objetivo. Ganas 2 vidas. |
+
 ## Tokens
 
 Creatures that effects create. A token that leaves the battlefield ceases to exist.
@@ -267,6 +343,8 @@ Creatures that effects create. A token that leaves the battlefield ceases to exi
 | Elemental | `elemental_token` | Criatura ficha — Elemental | 1/1 | Prisa. | Invocadora de yesca (Forjaluz), Asaltante martillador (Forjaluz), Avivar la forja (Forjaluz) |
 | Saprolín | `saproling_token` | Criatura ficha — Saprolín | 1/1 | — | Seta errante (Selvumbra), Anciano umbrío (Selvumbra), Volver al mantillo (Selvumbra), Llamada de esporas (Selvumbra) |
 | Espíritu | `spirit_token` | Criatura ficha — Espíritu | 1/1 | Vuela. | Portaincienso (Vesperia), Rito de los faroles (Vesperia) |
+| Monje | `monk_token` | Criatura ficha — Monje | 1/1 | Destreza. | Maestra de la llama (Crestafuego) |
+| Bestia | `beast_token` | Criatura ficha — Bestia | 3/3 | — | Coloso de Tierrabrava (Tierrabrava) |
 
 ## Keywords
 
@@ -288,3 +366,4 @@ Creatures that effects create. A token that leaves the battlefield ceases to exi
 | Resiliencia | Cuando muere, si no tenía contadores +1/+1, regresa al campo de batalla con un contador +1/+1. | yes |
 | Antimaleficio | No puede ser objetivo de hechizos o habilidades que controlan tus oponentes. | yes |
 | Evolucionar | Recibe un contador +1/+1 siempre que otra criatura con más fuerza o más resistencia entre bajo tu control. | yes |
+| Destreza | Siempre que lances un hechizo que no sea de criatura, esta criatura obtiene +1/+1 hasta el final del turno. | yes |

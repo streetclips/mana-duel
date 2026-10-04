@@ -2,15 +2,18 @@ import { describe, expect, it } from 'vitest';
 import {
   BRIGHTFORGE,
   CINDERMAW,
+  CROSSROADS,
   DECK_LIST,
   DEEPGROVE,
   EMBERWILD,
   EVOLVE_TRIGGER,
+  FLAMECREST,
   GLOAMWOOD,
   MISTGRAVE,
   STORMGLASS,
   SUNMEADOW,
   VESPERHALL,
+  WILDLAND,
   cardSummary,
   costColors,
   deckSize,
@@ -31,7 +34,7 @@ import { CORE_CARDS } from '../../src/engine/cards';
 const isLandId = (id: string): boolean => getCardDef(id).types.includes('land');
 
 describe('decks', () => {
-  it('are Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave, Gloamwood, Vesperhall, Cindermaw and Deepgrove', () => {
+  it('are Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave, Gloamwood, Vesperhall, Cindermaw, Deepgrove, Flamecrest, Wildland and Crossroads', () => {
     expect(DECK_LIST.map((deck) => deck.id)).toEqual([
       'emberwild',
       'dawntide',
@@ -44,6 +47,9 @@ describe('decks', () => {
       'vesperhall',
       'cindermaw',
       'deepgrove',
+      'flamecrest',
+      'wildland',
+      'crossroads',
     ]);
     expect(getDeck('emberwild')).toBe(EMBERWILD);
     expect(getDeck('stormglass')).toBe(STORMGLASS);
@@ -54,12 +60,17 @@ describe('decks', () => {
     expect(getDeck('vesperhall')).toBe(VESPERHALL);
     expect(getDeck('cindermaw')).toBe(CINDERMAW);
     expect(getDeck('deepgrove')).toBe(DEEPGROVE);
+    expect(getDeck('flamecrest')).toBe(FLAMECREST);
+    expect(getDeck('wildland')).toBe(WILDLAND);
+    expect(getDeck('crossroads')).toBe(CROSSROADS);
   });
 
-  it('cover every pair of colors once, and black on its own', () => {
+  it('cover every pair of colors once, black, red and green on their own, and all five colors together', () => {
     const combinations = DECK_LIST.map((deck) => [...deck.colors].sort().join(''));
     expect(new Set(combinations).size).toBe(DECK_LIST.length);
     expect(combinations.filter((colors) => colors.length === 2)).toHaveLength(10);
+    expect(combinations.filter((colors) => colors.length === 1).sort()).toEqual(['B', 'G', 'R']);
+    expect(combinations.filter((colors) => colors.length > 2)).toEqual(['BGRUW']);
   });
 
   for (const deck of DECK_LIST) {
@@ -184,18 +195,9 @@ describe('rules text', () => {
     nights_bargain: { type: 'Conjuro', text: ['Roba dos cartas. Pierdes 2 vidas.'] },
     soul_siphon: { type: 'Conjuro', text: ['Sifón de almas hace 2 puntos de daño a cualquier objetivo. Ganas 2 vidas.'] },
     grave_sentence: { type: 'Instantáneo', text: ['Destruye la criatura objetivo.'] },
-    kiln_sprite: {
-      type: 'Criatura — Elemental',
-      text: [
-        'Prisa.',
-        'Siempre que lances un hechizo de instantáneo o de conjuro, esta criatura obtiene +1/+1 hasta el final del turno.',
-      ],
-    },
+    kiln_sprite: { type: 'Criatura — Elemental', text: ['Prisa, destreza.'] },
     squall_skimmer: { type: 'Criatura — Ave', text: ['Destello, vuela.'] },
-    arc_initiate: {
-      type: 'Criatura — Monje humano',
-      text: ['Siempre que lances un hechizo de instantáneo o de conjuro, esta criatura obtiene +1/+1 hasta el final del turno.'],
-    },
+    arc_initiate: { type: 'Criatura — Monje humano', text: ['Destreza.'] },
     glassreef_sentinel: { type: 'Criatura — Soldado tritón', text: ['Destello.'] },
     galvanic_channeler: {
       type: 'Criatura — Chamán humano',
@@ -499,6 +501,122 @@ describe('rules text', () => {
     },
     undertide_lore: { type: 'Conjuro', text: ['Roba dos cartas.'] },
     riptide_recall: { type: 'Instantáneo', text: ['Regresa la criatura objetivo que no controlas a la mano de su propietario.'] },
+    cloister_lancer: { type: 'Criatura — Monje humano', text: ['Prisa, destreza.'] },
+    temple_blade: { type: 'Criatura — Monje humano', text: ['Daña primero, destreza.'] },
+    brazier_disciple: {
+      type: 'Criatura — Monje humano',
+      text: [
+        'Destreza.',
+        'Siempre que lances un hechizo de instantáneo o de conjuro, esta criatura gana la habilidad de dañar primero hasta el final del turno.',
+      ],
+    },
+    ashwing_kestrel: { type: 'Criatura — Ave', text: ['Vuela, destreza.'] },
+    flamecrest_mentor: {
+      type: 'Criatura — Monje humano',
+      text: [
+        'Destreza.',
+        'Siempre que lances un hechizo de instantáneo o de conjuro, crea una ficha de criatura Monje roja 1/1 con la habilidad de destreza.',
+      ],
+    },
+    thousand_blows_monk: { type: 'Criatura — Monje humano', text: ['Daña dos veces, destreza.'] },
+    crater_elemental: { type: 'Criatura — Elemental', text: ['Prisa, destreza.'] },
+    temple_dragon: { type: 'Criatura — Dragón', text: ['Vuela, destreza.'] },
+    palm_strike: { type: 'Instantáneo', text: ['La criatura objetivo obtiene +1/+0 hasta el final del turno. Roba una carta.'] },
+    spark_volley: {
+      type: 'Instantáneo',
+      text: [
+        'Ráfaga de chispas hace 1 punto de daño a cualquier objetivo. Las criaturas que controlas obtienen +1/+0 hasta el final del turno.',
+      ],
+    },
+    lava_fist: {
+      type: 'Instantáneo',
+      text: ['La criatura objetivo que controlas hace una cantidad de daño igual a su fuerza a la criatura objetivo que no controlas.'],
+    },
+    twin_strike: { type: 'Instantáneo', text: ['La criatura objetivo gana la habilidad de dañar dos veces hasta el final del turno.'] },
+    dragons_breath: { type: 'Instantáneo', text: ['Aliento del dragón hace 3 puntos de daño a cualquier objetivo.'] },
+    flame_cut: { type: 'Instantáneo', text: ['Corte de llama hace 2 puntos de daño a la criatura objetivo.'] },
+    cliff_lynx: {
+      type: 'Criatura — Felino',
+      text: ['Aterrizaje — Siempre que una tierra que controlas entre, esta criatura obtiene +2/+2 hasta el final del turno.'],
+    },
+    trail_scout: {
+      type: 'Criatura — Explorador elfo',
+      text: [
+        'Cuando esta criatura entre, busca en tu biblioteca una carta de Bosque básico, ponla en el campo de batalla girada y luego baraja.',
+      ],
+    },
+    tribe_elder: {
+      type: 'Criatura — Chamán elfo',
+      text: [
+        'Sacrificar esta criatura: Busca en tu biblioteca una carta de Bosque básico, ponla en el campo de batalla girada y luego baraja.',
+      ],
+    },
+    quake_boar: {
+      type: 'Criatura — Jabalí',
+      text: ['Aterrizaje — Siempre que una tierra que controlas entre, pon un contador +1/+1 sobre esta criatura.'],
+    },
+    springhorn_stag: { type: 'Criatura — Ciervo', text: ['Aterrizaje — Siempre que una tierra que controlas entre, ganas 2 vidas.'] },
+    boulder_spider: { type: 'Criatura — Araña', text: ['Alcance.'] },
+    territorial_beast: {
+      type: 'Criatura — Bestia',
+      text: ['Aterrizaje — Siempre que una tierra que controlas entre, esta criatura obtiene +2/+2 hasta el final del turno.'],
+    },
+    peak_giant: {
+      type: 'Criatura — Gigante',
+      text: [
+        'Cuando esta criatura entre, busca en tu biblioteca una carta de Bosque básico, ponla en el campo de batalla girada y luego baraja.',
+      ],
+    },
+    wildland_colossus: {
+      type: 'Criatura — Bestia elemental',
+      text: ['Arrolla.', 'Aterrizaje — Siempre que una tierra que controlas entre, crea una ficha de criatura Bestia verde 3/3.'],
+    },
+    open_path: { type: 'Conjuro', text: ['Puedes jugar una tierra adicional este turno. Roba una carta.'] },
+    deep_sowing: {
+      type: 'Conjuro',
+      text: [
+        'Busca en tu biblioteca dos cartas de Bosque básico, pon una en el campo de batalla girada y la otra en tu mano, y luego baraja.',
+      ],
+    },
+    fertile_rift: {
+      type: 'Instantáneo',
+      text: ['Busca en tu biblioteca una carta de Bosque básico, ponla en el campo de batalla girada y luego baraja.'],
+    },
+    avalanche_fury: {
+      type: 'Conjuro',
+      text: [
+        'La criatura objetivo que controlas obtiene +2/+2 hasta el final del turno. Esa criatura lucha contra la criatura objetivo que no controlas.',
+      ],
+    },
+    sure_swipe: {
+      type: 'Instantáneo',
+      text: ['La criatura objetivo que controlas hace una cantidad de daño igual a su fuerza a la criatura objetivo que no controlas.'],
+    },
+    herd_roar: {
+      type: 'Conjuro',
+      text: ['Las criaturas que controlas obtienen +2/+2 y ganan la habilidad de arrollar hasta el final del turno.'],
+    },
+    silver_spire: { type: 'Tierra', text: ['Esta tierra entra girada.', '{T}: Agrega {W}, {U} o {B}.'] },
+    ash_harbor: { type: 'Tierra', text: ['Esta tierra entra girada.', '{T}: Agrega {U}, {B} o {R}.'] },
+    smoldering_jungle: { type: 'Tierra', text: ['Esta tierra entra girada.', '{T}: Agrega {B}, {R} o {G}.'] },
+    sunlit_canyon: { type: 'Tierra', text: ['Esta tierra entra girada.', '{T}: Agrega {R}, {G} o {W}.'] },
+    misty_meadow: { type: 'Tierra', text: ['Esta tierra entra girada.', '{T}: Agrega {G}, {W} o {U}.'] },
+    prismatic_fount: { type: 'Tierra', text: ['Esta tierra entra girada.', '{T}: Agrega un maná de cualquier color.'] },
+    wayfarer_druid: { type: 'Criatura — Druida elfo', text: ['{T}: Agrega un maná de cualquier color.'] },
+    sky_messenger: { type: 'Criatura — Espíritu', text: ['Vuela.'] },
+    smoke_warlock: { type: 'Criatura — Brujo humano', text: ['Cuando esta criatura entre, hace 1 punto de daño a cualquier objetivo.'] },
+    root_warden: { type: 'Criatura — Guerrero elfo', text: ['Vigilancia.'] },
+    meadow_griffin: { type: 'Criatura — Grifo', text: ['Vuela, vigilancia.'] },
+    smoldering_devourer: { type: 'Criatura — Bestia', text: ['Prisa, arrolla.'] },
+    canyon_titan: { type: 'Criatura — Gigante', text: ['Vigilancia, arrolla.'] },
+    prismatic_dragon: { type: 'Criatura — Dragón', text: ['Vuela, vínculo vital.'] },
+    spire_judgment: { type: 'Instantáneo', text: ['Destruye la criatura objetivo. Roba una carta.'] },
+    ash_storm: { type: 'Conjuro', text: ['Tormenta de ceniza hace 2 puntos de daño a cualquier objetivo. Roba una carta.'] },
+    council_veto: { type: 'Instantáneo', text: ['Contrarresta el hechizo objetivo. Ganas 2 vidas.'] },
+    convergent_vision: { type: 'Instantáneo', text: ['Roba dos cartas.'] },
+    purifying_fire: { type: 'Instantáneo', text: ['Fuego purificador hace 2 puntos de daño a cualquier objetivo. Ganas 2 vidas.'] },
+    monk_token: { type: 'Criatura ficha — Monje', text: ['Destreza.'] },
+    beast_token: { type: 'Criatura ficha — Bestia', text: [] },
   };
 
   for (const [id, { type, text }] of Object.entries(expected)) {
@@ -593,6 +711,41 @@ describe('card validation', () => {
         }),
       ).toThrow(/cannot gain life or deal damage/);
     }
+  });
+
+  it('rejects nonland cards that enter tapped, land searches without cards or split unevenly, and no extra land plays', () => {
+    expect(() => registerCard({ id: 'bad11', name: 'Bad', types: ['creature'], cost: '{G}', power: 1, toughness: 1, entersTapped: true })).toThrow(
+      /only lands enter tapped/,
+    );
+    expect(() =>
+      registerCard({ id: 'bad12', name: 'Bad', types: ['sorcery'], cost: '{G}', spell: { targets: [], effects: [{ kind: 'searchLand', land: 'forest', battlefield: 0 }] } }),
+    ).toThrow(/needs cards to find/);
+    expect(() =>
+      registerCard({
+        id: 'bad13',
+        name: 'Bad',
+        types: ['sorcery'],
+        cost: '{G}',
+        spell: { targets: [], effects: [{ kind: 'searchLand', land: 'forest', battlefield: 2, hand: 1 }] },
+      }),
+    ).toThrow(/one onto the battlefield and the other into the hand/);
+    expect(() =>
+      registerCard({ id: 'bad14', name: 'Bad', types: ['sorcery'], cost: '{G}', spell: { targets: [], effects: [{ kind: 'extraLands', amount: 0 }] } }),
+    ).toThrow(/positive amount/);
+  });
+
+  it('describes searches that put every card onto the battlefield untapped, or into the hand', () => {
+    const search = (battlefield: number, hand: number, tapped: boolean): string[] =>
+      rulesText({
+        id: 'search_text',
+        name: 'Search',
+        types: ['sorcery'],
+        cost: '{G}',
+        spell: { targets: [], effects: [{ kind: 'searchLand', land: 'plains', battlefield, hand, tapped }] },
+      });
+    expect(search(2, 0, false)).toEqual(['Busca en tu biblioteca dos cartas de Llanura básica, ponlas en el campo de batalla y luego baraja.']);
+    expect(search(2, 0, true)).toEqual(['Busca en tu biblioteca dos cartas de Llanura básica, ponlas en el campo de batalla giradas y luego baraja.']);
+    expect(search(0, 1, false)).toEqual(['Busca en tu biblioteca una carta de Llanura básica, revélala, ponla en tu mano y luego baraja.']);
   });
 
   it('rejects tokens with a cost, discards before other effects, undying returns and sacrificed sources that affect themselves', () => {

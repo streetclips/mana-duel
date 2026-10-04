@@ -2,7 +2,7 @@
   "name": "mana-duel",
   "private": true,
   "version": "0.1.0",
-  "description": "Minimalist mobile-first card game inspired by the rules of Magic: The Gathering. Eleven decks, 1v1 against an AI.",
+  "description": "Minimalist mobile-first card game inspired by the rules of Magic: The Gathering. Fourteen decks, 1v1 against an AI.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,7 @@
     "test:live": "LLM_LIVE=1 vitest run tests/llm/live.test.ts",
     "sim": "tsx scripts/sim.ts",
     "cards": "tsx scripts/cards.ts",
-    "verify": "npm run typecheck && npm run test && npm run sim -- --games 121 --quiet && npm run build"
+    "verify": "npm run typecheck && npm run test && npm run sim -- --games 196 --quiet && npm run build"
   },
   "dependencies": {
     "@openrouter/ai-sdk-provider": "^3.1.0",

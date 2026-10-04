@@ -1,17 +1,18 @@
 # Rules
 
-Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its eleven decks need. This page is the
+Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its fourteen decks need. This page is the
 contract of `src/engine`: what is implemented, and where it deliberately differs from Magic. The game shows its cards
 and decks under Spanish names; this page calls them by the English names their ids keep (`docs/CARDS.md` pairs each
 id with its Spanish name).
 
 ## Game
 
-- Two players, 20 life each, seven-card opening hands. Each player brings one of eleven 40-card decks, chosen
+- Two players, 20 life each, seven-card opening hands. Each player brings one of fourteen 40-card decks, chosen
   before the game: Emberwild (Brasalvaje, red/green), Dawntide (Albamar, white/blue), Duskmire (Fangoscuro,
   black), Stormglass (Cristormenta, blue/red), Sunmeadow (Pradosol, green/white), Brightforge (Forjaluz, red/white),
   Mistgrave (Brumafosa, blue/black), Gloamwood (Selvumbra, black/green), Vesperhall (Vesperia, white/black),
-  Cindermaw (Fauceniza, black/red) or Deepgrove (Sotohondo, green/blue). Both may bring the same deck.
+  Cindermaw (Fauceniza, black/red), Deepgrove (Sotohondo, green/blue), Flamecrest (Crestafuego, red), Wildland
+  (Tierrabrava, green) or Crossroads (Encrucijada, all five colors). Both may bring the same deck.
   No nonland card appears in two decks; basic lands may.
 - The starting player comes from a seeded coin flip (or `startingPlayer`). They skip their first draw.
 - London mulligan: shuffle the hand away, draw seven, and once you keep, put one card on the bottom per mulligan.
@@ -26,7 +27,8 @@ id with its Spanish name).
 
 - Untap: the active player's permanents untap, their creatures stop being summoning sick, the land drop resets.
 - Draw: the active player draws one card (except the starting player on turn 1).
-- One land per turn, in your main phase, with an empty stack.
+- One land per turn, in your main phase, with an empty stack. "You may play an additional land this turn" (Open
+  Path) adds one more land play to that turn only.
 - Combat is skipped past "declare attackers" when nobody attacks. The first-strike step only exists when a combatant
   has first strike or double strike.
 - Cleanup: the active player discards down to seven cards, then all damage is removed and "until end of turn"
@@ -53,10 +55,13 @@ id with its Spanish name).
 
 ## Mana
 
-- Lands and Grove Tender tap for one mana of their color, Kelpweaver Druid for {G} or {U}. A summoning-sick creature
-  cannot tap for mana.
-- Paying is automatic: the engine taps lands before creatures and keeps untapped the colors your other cards need.
-  There is no mana pool: mana appears exactly when a cost is paid.
+- Lands and Grove Tender tap for one mana of their color, Kelpweaver Druid for {G} or {U}, each Crossroads tri-land
+  for any of its three colors, and the Prismatic Fount and Wayfarer Druid for one mana of any color. A
+  summoning-sick creature cannot tap for mana.
+- A land that enters tapped (the tri-lands and the Prismatic Fount) can't pay for anything the turn it arrives; it
+  untaps with your other permanents. Entering tapped doesn't stop it from triggering landfall.
+- Paying is automatic: the engine taps lands before creatures and sources of one color before those of several, and
+  keeps untapped the colors your other cards need. There is no mana pool: mana appears exactly when a cost is paid.
 
 ## Combat
 
@@ -76,9 +81,9 @@ id with its Spanish name).
 
 - Triggers: "when this creature enters", "when this creature dies", "whenever this creature attacks", "whenever
   you cast an instant or sorcery spell", "whenever another creature you control enters", "whenever another
-  creature you control dies", "whenever this creature deals combat damage to a player" and "whenever you gain
-  life". They go on the stack the next time a player would receive priority, the active player's first; targets are
-  chosen then. A trigger with no legal target is skipped.
+  creature you control dies", "whenever this creature deals combat damage to a player", "whenever you gain
+  life" and "whenever a land you control enters". They go on the stack the next time a player would receive
+  priority, the active player's first; targets are chosen then. A trigger with no legal target is skipped.
 - "Another creature you control" includes tokens, one trigger per creature: Raise the Banners gives Forge Cadet
   two +1/+1 counters. Creatures that die at the same time see each other die: two Rotwing Crows killed by one
   attacker each drain for the other.
@@ -87,6 +92,12 @@ id with its Spanish name).
 - "Whenever you cast an instant or sorcery spell" triggers for each permanent of the caster that has it, and only
   for that player's instants and sorceries, not for creature spells. The trigger goes on the stack above the spell,
   so it resolves first (Arc Initiate is already 3/3 when the Static Jolt that triggered it resolves).
+- Prowess: whenever its controller casts a noncreature spell, the creature gets +1/+1 until end of turn. Instants
+  and sorceries are the only noncreature spells, so prowess triggers exactly where "whenever you cast an instant or
+  sorcery spell" does, above the spell, once per spell for each creature with it, tokens included (the Monks of
+  Flamecrest Mentor). Kiln Sprite and Arc Initiate have it too.
+- Landfall, "whenever a land you control enters" (Wildland): every land that enters under your control triggers it,
+  played or put onto the battlefield by an effect, tapped or not. The opponent's lands don't.
 - "Whenever you gain life" triggers once per gain, not per point: lifelink damage dealt at the same time is one gain
   (two lifelink attackers in one combat damage step trigger Vesper Novice once), and each spell or ability that
   gains life is another. Only its controller's gains count. Such an ability never gains life or deals damage
@@ -141,6 +152,11 @@ id with its Spanish name).
   A discard is always the last effect of its ability.
 - "Target tapped creature" (Dawn's Verdict) only accepts a creature that is tapped when the spell is cast and still
   tapped when it resolves; attacking taps a creature unless it has vigilance.
+- **Land search**: "search your library for a basic Forest card, put it onto the battlefield tapped, then shuffle"
+  (Trail Scout, Peak Giant, Tribe Elder, Fertile Rift) takes the first basic Forests of your library, every one
+  alike, and puts them onto the battlefield, tapped when the text says so, or into your hand (Deep Sowing puts one in
+  each), then shuffles your library, also when it found none. A land put onto the battlefield this way isn't
+  played: it doesn't use your land play, and it triggers landfall. The log names the land, to both players.
 
 ## Automatic passing (UI only)
 
@@ -175,4 +191,5 @@ auto-pass skips for you; with auto-pass off, both seats get the same ones.
 | A discard happens where it is written, and some are at random | The discarding player always chooses, and a discard is the last effect of its ability |
 | Evolve checks again, as its trigger resolves, that the newcomer is still bigger | Evolve only compares as the creature enters |
 | Bloodthirst makes a creature enter with its counters | A triggered ability: the counters arrive when it resolves, so the creature can be answered while it is small |
+| You search a library by looking at it, choose the cards and may fail to find them | The search takes the first matching cards, and always finds them when the library has them |
 | Counters other than +1/+1, exile, graveyard targets, auras, equipment, replacement effects, layers | Not in the engine yet |

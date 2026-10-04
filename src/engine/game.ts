@@ -20,6 +20,7 @@ import {
   MAX_HAND_SIZE,
   MAX_MULLIGANS,
   OPENING_HAND,
+  PROWESS_TRIGGER,
   STARTING_LIFE,
   allCreatures,
   cloneState,
@@ -28,6 +29,7 @@ import {
   findPayment,
   getCard,
   getToughness,
+  hasKeyword,
   isInstantOrSorceryDef,
   moveCard,
   newId,
@@ -90,6 +92,7 @@ export function emptyPlayer(id: PlayerId, name: string): PlayerState {
     drewFromEmptyLibrary: false,
     conceded: false,
     damagedThisTurn: false,
+    extraLandsThisTurn: 0,
   };
 }
 
@@ -305,7 +308,10 @@ function performAction(s: GameState, action: Action): void {
       s.stack.push({ id: newId(s, 's'), kind: 'spell', controller: player, card: action.card, targets: [...targets] });
       s.events.push({ t: 'cast', player, card: action.card, targets: [...targets] });
       if (isInstantOrSorceryDef(defOf(s, action.card))) {
-        for (const id of [...ps.battlefield]) queueTriggers(s, id, 'spell', player);
+        for (const id of [...ps.battlefield]) {
+          queueTriggers(s, id, 'spell', player);
+          if (hasKeyword(s, id, 'prowess')) s.triggers.push({ id: newId(s, 't'), controller: player, source: id, ability: PROWESS_TRIGGER });
+        }
       }
       s.pending = null;
       s.passes = 0;
@@ -615,7 +621,10 @@ function goToNextStep(s: GameState): void {
       s.turn += 1;
       s.activePlayer = opponent(s.activePlayer);
     }
-    for (const ps of s.players) ps.damagedThisTurn = false;
+    for (const ps of s.players) {
+      ps.damagedThisTurn = false;
+      ps.extraLandsThisTurn = 0;
+    }
     s.events.push({ t: 'turn', turn: s.turn, player: s.activePlayer });
     if (s.turn > s.turnLimit) {
       endGame(s, null, 'turnLimit');

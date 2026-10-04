@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   EVOLVE_TRIGGER,
+  PROWESS_TRIGGER,
   UNDYING_TRIGGER,
   activatedText,
   blockOptions,
@@ -1412,5 +1413,267 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
     expect(castBlocker(s, 0, 'recall')).toBeNull();
     s = resolveStack(cast(playLand(s, 'land'), 'recall', [{ card: 'bear' }]));
     expect([zoneOf(s, 'bear'), s.cards.druid?.tapped]).toEqual(['hand', true]);
+  });
+});
+
+describe('Flamecrest: prowess', () => {
+  it('an instant gives each creature with prowess +1/+1 until end of turn, and the trigger resolves before the spell', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'flame_cut', id: 'cut' }], battlefield: ['mountain', 'mountain', { card: 'cloister_lancer', id: 'lancer' }] },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+      ],
+    });
+    s = cast(s, 'cut', [{ card: 'bear' }]);
+    expect(s.stack.map((item) => (item.kind === 'trigger' ? [item.source, item.ability] : item.kind))).toEqual(['spell', ['lancer', PROWESS_TRIGGER]]);
+    s = pass(pass(s));
+    expect([getPower(s, 'lancer'), getToughness(s, 'lancer'), s.stack.length]).toEqual([2, 3, 1]);
+    s = resolveStack(s);
+    expect(zoneOf(s, 'bear')).toBe('graveyard');
+    s = passToStep(s, 'main1', s.turn + 1);
+    expect([getPower(s, 'lancer'), getToughness(s, 'lancer')]).toEqual([1, 2]);
+  });
+
+  it('creature spells and the opponent’s spells do not trigger it', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'temple_blade', id: 'blade' }], battlefield: ['mountain', 'mountain', { card: 'arc_initiate', id: 'initiate' }] },
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+      ],
+    });
+    s = cast(pass(cast(s, 'blade')), 'snap', [{ player: 0 }]);
+    expect(s.stack.map((item) => item.kind)).toEqual(['spell', 'spell']);
+  });
+
+  it('Flamecrest Mentor makes a Monk with prowess for each instant or sorcery, and the Monk grows with the next one', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'spark_volley', id: 'v1' }, { card: 'spark_volley', id: 'v2' }],
+          battlefield: ['mountain', 'mountain', { card: 'flamecrest_mentor', id: 'mentor' }],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'v1', [{ player: 1 }]));
+    const monk = s.players[0].battlefield.find((id) => s.cards[id]?.def === 'monk_token') as string;
+    expect([getPower(s, 'mentor'), getToughness(s, 'mentor'), getKeywords(s, monk), getPower(s, monk), life(s, 1)]).toEqual([4, 3, ['prowess'], 2, 19]);
+    s = resolveStack(cast(s, 'v2', [{ player: 1 }]));
+    expect([getPower(s, monk), getToughness(s, monk), s.players[0].battlefield.filter((id) => s.cards[id]?.def === 'monk_token')]).toEqual([4, 2, [monk, expect.any(String)]]);
+  });
+
+  it('Brazier Disciple gains first strike with every instant, on top of its prowess', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'palm_strike', id: 'palm' }], battlefield: ['mountain', { card: 'brazier_disciple', id: 'disciple' }] },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'palm', [{ card: 'disciple' }]));
+    expect([getPower(s, 'disciple'), getToughness(s, 'disciple'), getKeywords(s, 'disciple'), s.players[0].hand.length]).toEqual([
+      3,
+      3,
+      ['prowess', 'firstStrike'],
+      1,
+    ]);
+  });
+
+  it('Lava Fist bites with the power prowess just gave, and Twin Strike makes a creature deal its damage twice', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'lava_fist', id: 'fist' }, { card: 'twin_strike', id: 'twin' }],
+          battlefield: ['mountain', 'mountain', 'mountain', 'mountain', { card: 'temple_blade', id: 'blade' }],
+        },
+        { battlefield: [{ card: 'test_wall', id: 'wall' }] },
+      ],
+    });
+    s = resolveStack(cast(s, 'fist', [{ card: 'blade' }, { card: 'wall' }]));
+    expect([s.cards.wall?.damage, s.cards.blade?.damage]).toEqual([3, 0]);
+    s = resolveStack(cast(s, 'twin', [{ card: 'blade' }]));
+    expect([getPower(s, 'blade'), getKeywords(s, 'blade')]).toEqual([4, ['firstStrike', 'prowess', 'doubleStrike']]);
+  });
+});
+
+describe('Wildland: landfall, land searches and extra land plays', () => {
+  it('landfall: each land that enters under your control triggers it, the opponent’s lands do not', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'forest', id: 'land' }], battlefield: [{ card: 'cliff_lynx', id: 'lynx' }, { card: 'quake_boar', id: 'boar' }] },
+        { battlefield: [{ card: 'cliff_lynx', id: 'theirs' }] },
+      ],
+    });
+    s = playLand(s, 'land');
+    expect(s.stack.map((item) => (item.kind === 'trigger' ? item.source : item.kind)).sort()).toEqual(['boar', 'lynx']);
+    s = resolveStack(s);
+    expect([getPower(s, 'lynx'), getToughness(s, 'lynx'), s.cards.boar?.counters, getPower(s, 'theirs')]).toEqual([3, 3, 1, 1]);
+    s = passToStep(s, 'main1', s.turn + 1);
+    expect([getPower(s, 'lynx'), s.cards.boar?.counters]).toEqual([1, 1]);
+  });
+
+  it('Trail Scout puts a basic Forest from the library onto the battlefield tapped, shuffles, and the Forest triggers landfall', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'trail_scout', id: 'scout' }],
+          battlefield: ['forest', 'forest', { card: 'quake_boar', id: 'boar' }],
+          library: ['mountain', 'mountain', { card: 'forest', id: 'deep' }, 'mountain', 'mountain', 'mountain'],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'scout'));
+    expect([zoneOf(s, 'deep'), s.cards.deep?.tapped, s.players[0].library.length, s.cards.boar?.counters]).toEqual(['battlefield', true, 5, 1]);
+    expect(describeEvent(s, { t: 'search', player: 0, card: 'deep', to: 'battlefield' }, 0)).toBe(
+      'Buscas en tu biblioteca y pones Bosque en el campo de batalla.',
+    );
+    expect(describeEvent(s, { t: 'search', player: 0, card: 'deep', to: 'battlefield' }, 1)).toBe(
+      'El rival busca en su biblioteca y pone Bosque en el campo de batalla.',
+    );
+  });
+
+  it('Deep Sowing puts one Forest onto the battlefield tapped and another into your hand; with none left it only shuffles', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'deep_sowing', id: 'sowing' }, { card: 'deep_sowing', id: 'again' }],
+          battlefield: ['forest', 'forest', 'forest', 'forest', 'forest', 'forest'],
+          library: [{ card: 'forest', id: 'f1' }, 'mountain', { card: 'forest', id: 'f2' }, 'mountain'],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'sowing'));
+    expect([zoneOf(s, 'f1'), s.cards.f1?.tapped, zoneOf(s, 'f2'), s.players[0].library.length]).toEqual(['battlefield', true, 'hand', 2]);
+    expect(describeEvent(s, { t: 'search', player: 1, card: 'f2', to: 'hand' }, 0)).toBe(
+      'El rival busca en su biblioteca y pone Bosque en su mano.',
+    );
+    const before = s.players[0].battlefield.length;
+    s = resolveStack(cast(s, 'again'));
+    expect([s.players[0].battlefield.length, s.players[0].library.length]).toEqual([before, 2]);
+  });
+
+  it('Open Path lets you play one more land this turn only', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'open_path', id: 'path' }, { card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }, { card: 'forest', id: 'f3' }],
+          battlefield: ['forest'],
+          library: ['forest', 'forest', 'forest', 'forest', 'forest', 'forest'],
+        },
+        {},
+      ],
+    });
+    s = playLand(s, 'f1');
+    expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f2' })).toEqual({ ok: false, error: 'ya has jugado una tierra este turno' });
+    s = resolveStack(cast(s, 'path'));
+    expect([s.players[0].extraLandsThisTurn, s.players[0].hand.length]).toEqual([1, 3]);
+    expect(s.events).toContainEqual({ t: 'extraLands', player: 0, amount: 1 });
+    expect(describeEvent(s, { t: 'extraLands', player: 0, amount: 1 }, 0)).toBe('Puedes jugar una tierra adicional este turno.');
+    expect(describeEvent(s, { t: 'extraLands', player: 0, amount: 1 }, 1)).toBe('El rival puede jugar una tierra adicional este turno.');
+    s = playLand(s, 'f2');
+    expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f3' })).toEqual({
+      ok: false,
+      error: 'ya has jugado todas las tierras que puedes este turno',
+    });
+    s = passToStep(s, 'main1', s.turn + 2);
+    expect(s.players[0].extraLandsThisTurn).toBe(0);
+    s = playLand(s, 'f3');
+    expect(s.players[0].landsPlayedThisTurn).toBe(1);
+  });
+
+  it('Tribe Elder sacrifices itself at instant speed to fetch a Forest, which triggers landfall in combat', () => {
+    let s = scenario({
+      players: [
+        {
+          battlefield: [{ card: 'tribe_elder', id: 'elder' }, { card: 'territorial_beast', id: 'beast' }],
+          library: [{ card: 'forest', id: 'fetched' }, 'mountain', 'mountain'],
+        },
+        { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+      ],
+    });
+    s = block(attack(s, ['beast']), [{ blocker: 'rhino', attacker: 'beast' }]);
+    s = resolveStack(activate(s, 'elder'));
+    expect([zoneOf(s, 'elder'), zoneOf(s, 'fetched'), s.cards.fetched?.tapped, getPower(s, 'beast'), getToughness(s, 'beast')]).toEqual([
+      'graveyard',
+      'battlefield',
+      true,
+      5,
+      5,
+    ]);
+    s = finishCombat(s);
+    expect([zoneOf(s, 'beast'), zoneOf(s, 'rhino')]).toEqual(['battlefield', 'graveyard']);
+  });
+
+  it('Wildland Colossus makes a 3/3 Beast for each land that enters, and Herd Roar pumps and gives trample to all of them', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'forest', id: 'land' }, { card: 'herd_roar', id: 'roar' }],
+          battlefield: ['forest', 'forest', 'forest', { card: 'wildland_colossus', id: 'colossus' }],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(playLand(s, 'land'));
+    const beast = s.players[0].battlefield.find((id) => s.cards[id]?.def === 'beast_token') as string;
+    expect([getPower(s, beast), getToughness(s, beast)]).toEqual([3, 3]);
+    s = resolveStack(cast(s, 'roar'));
+    expect([getPower(s, beast), getKeywords(s, beast), getPower(s, 'colossus')]).toEqual([5, ['trample'], 7]);
+  });
+});
+
+describe('Crossroads: lands that enter tapped and mana of three or five colors', () => {
+  it('a tri-land enters tapped, so it cannot pay this turn, and untaps with the others next turn', () => {
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'sky_messenger', id: 'messenger' }], battlefield: ['plains'] },
+        {},
+      ],
+    });
+    s = playLand(s, 'spire');
+    expect([s.cards.spire?.tapped, castBlocker(s, 0, 'messenger')]).toEqual([true, 'no hay suficiente maná']);
+    s = passToStep(s, 'main1', s.turn + 2);
+    expect([s.cards.spire?.tapped, castBlocker(s, 0, 'messenger')]).toEqual([false, null]);
+    s = resolveStack(cast(s, 'messenger'));
+    expect(zoneOf(s, 'messenger')).toBe('battlefield');
+  });
+
+  it('tri-lands, the Prismatic Fount and Wayfarer Druid pay any of their colors', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'prismatic_dragon', id: 'dragon' }],
+          battlefield: [
+            { card: 'silver_spire', id: 'spire' },
+            { card: 'ash_harbor', id: 'harbor' },
+            { card: 'misty_meadow', id: 'meadow' },
+            { card: 'prismatic_fount', id: 'fount' },
+            { card: 'wayfarer_druid', id: 'druid' },
+          ],
+        },
+        {},
+      ],
+    });
+    expect(castBlocker(s, 0, 'dragon')).toBeNull();
+    s = resolveStack(cast(s, 'dragon'));
+    expect([zoneOf(s, 'dragon'), ['spire', 'harbor', 'meadow', 'fount', 'druid'].every((id) => s.cards[id]?.tapped)]).toEqual(['battlefield', true]);
+  });
+
+  it('a Forest that a search puts onto the battlefield tapped stays tapped until your next untap step', () => {
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'fertile_rift', id: 'rift' }],
+          battlefield: ['forest', 'forest'],
+          library: [{ card: 'forest', id: 'found' }, 'mountain', 'mountain'],
+        },
+        {},
+      ],
+    });
+    s = resolveStack(cast(s, 'rift'));
+    expect([zoneOf(s, 'found'), s.cards.found?.tapped]).toEqual(['battlefield', true]);
+    s = passToStep(s, 'main1', s.turn + 2);
+    expect(s.cards.found?.tapped).toBe(false);
   });
 });

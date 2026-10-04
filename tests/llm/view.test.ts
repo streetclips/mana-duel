@@ -3,7 +3,7 @@ import { applyAction, createGame, type GameState } from '../../src/engine';
 import { cardGlossary, eventLines, playerView, thoughtLine, visibleCardDefs } from '../../src/llm';
 import { deckLine } from '../../src/llm/view';
 import { compactJson } from '../../src/llm/prompt';
-import { attack, block, cast, pass, passTo, scenario } from '../helpers';
+import { attack, block, cast, pass, passTo, resolveStack, scenario } from '../helpers';
 
 function secretScenario(): GameState {
   return scenario({
@@ -107,6 +107,13 @@ describe('the view of one seat', () => {
       true,
       undefined,
     ]);
+  });
+
+  it('tells how many extra lands a player may play this turn, once an effect allows them', () => {
+    let s = scenario({ players: [{ hand: [{ card: 'open_path', id: 'path' }], battlefield: ['forest', 'forest'] }, {}] });
+    expect(playerView(s, 0).you.extraLandsThisTurn).toBeUndefined();
+    s = resolveStack(cast(s, 'path'));
+    expect([playerView(s, 0).you.extraLandsThisTurn, playerView(s, 1).opponent.extraLandsThisTurn]).toEqual([1, 1]);
   });
 
   it('lists the stack from the top, with each item’s text and targets from the viewer’s seat', () => {

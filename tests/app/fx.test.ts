@@ -342,6 +342,17 @@ describe('fx cues: tokens, keyword grants, undying and discards', () => {
     expect(cues).toEqual(tokens.map((card) => ({ kind: 'enter', player: 0, card })));
   });
 
+  it('shows a land that an effect fetches from the library entering after its creature', () => {
+    const s = scenario({
+      players: [{ hand: [{ card: 'trail_scout', id: 'scout' }], battlefield: ['forest', 'forest'], library: [{ card: 'forest', id: 'found' }, 'mountain'] }, {}],
+    });
+    expect(passCollecting(cast(s, 'scout'), stackEmpty).cues).toEqual([
+      { kind: 'enter', player: 0, card: 'scout' },
+      { kind: 'ability', player: 0, card: 'scout' },
+      { kind: 'enter', player: 0, card: 'found' },
+    ]);
+  });
+
   it('carries the keywords a pump grants', () => {
     const s = scenario({
       players: [

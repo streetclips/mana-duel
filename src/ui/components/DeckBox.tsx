@@ -8,7 +8,7 @@ interface DeckBoxProps {
 }
 
 function boxTones(deck: DeckDef): Record<`--${string}`, string> {
-  const [first, second = first] = deck.colors;
+  const [first, second = first] = deck.colors.length > 2 ? ['M', 'M'] : deck.colors;
   return { '--box-a': `var(--mana-${first})`, '--box-b': `var(--mana-${second})` };
 }
 

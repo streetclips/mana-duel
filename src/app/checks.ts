@@ -3,6 +3,7 @@ import {
   DECK_LIST,
   applyAction,
   blockOptions,
+  castBlocker,
   checkInvariants,
   createGame,
   createScenario,
@@ -513,7 +514,7 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F29',
-    title: 'Decks: eleven 40-card decks with 16 lands each and no nonland card in common',
+    title: 'Decks: fourteen 40-card decks with 16 lands each and no nonland card in common',
     run: () => {
       const owners = new Map<string, number>();
       for (const deck of DECK_LIST) {
@@ -523,7 +524,22 @@ export const CHECKS: Check[] = [
       return first(
         expectValue(
           DECK_LIST.map((deck) => deck.id),
-          ['emberwild', 'dawntide', 'duskmire', 'stormglass', 'sunmeadow', 'brightforge', 'mistgrave', 'gloamwood', 'vesperhall', 'cindermaw', 'deepgrove'],
+          [
+            'emberwild',
+            'dawntide',
+            'duskmire',
+            'stormglass',
+            'sunmeadow',
+            'brightforge',
+            'mistgrave',
+            'gloamwood',
+            'vesperhall',
+            'cindermaw',
+            'deepgrove',
+            'flamecrest',
+            'wildland',
+            'crossroads',
+          ],
           'decks',
         ),
         expectValue(
@@ -695,7 +711,7 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F41',
-    title: '"Whenever you cast an instant or sorcery spell": Arc Initiate grows before the spell resolves; a creature spell does not trigger it',
+    title: 'Prowess: Arc Initiate grows before the instant resolves; a creature spell does not trigger it',
     run: () => {
       let s = createScenario({
         players: [
@@ -1086,6 +1102,127 @@ export const CHECKS: Check[] = [
       });
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'strike', targets: [{ card: 'lurker' }, { card: 'bear' }] }]));
       return expectValue([zone(s, 'bear'), s.cards.lurker?.damage], ['graveyard', 0], 'after Snapjaw Strike');
+    },
+  },
+  {
+    id: 'F57',
+    title: '"Whenever you cast an instant or sorcery spell": Flamecrest Mentor makes a Monk with prowess, which grows with the next spell',
+    run: () => {
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'spark_volley', id: 'v1' }, { card: 'spark_volley', id: 'v2' }],
+            battlefield: ['mountain', 'mountain', { card: 'flamecrest_mentor', id: 'mentor' }],
+          },
+          {},
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'v1', targets: [{ player: 1 }] }]));
+      const monk = s.players[0].battlefield.find((id) => s.cards[id]?.def === 'monk_token') ?? 'none';
+      const made = [getKeywords(s, monk), getPower(s, 'mentor'), getToughness(s, 'mentor')];
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'v2', targets: [{ player: 1 }] }]));
+      return first(
+        expectValue(made, [['prowess'], 4, 3], 'Monk keywords and Flamecrest Mentor after one spell'),
+        expectValue([getPower(s, monk), getToughness(s, monk), s.players[1].life], [4, 2, 18], 'first Monk and life after two spells'),
+      );
+    },
+  },
+  {
+    id: 'F58',
+    title: 'Landfall: Cliff Lynx gets +2/+2 until end of turn and Quake Boar a +1/+1 counter for each land that enters under your control',
+    run: () => {
+      let s = createScenario({
+        players: [
+          { hand: [{ card: 'forest', id: 'land' }], battlefield: [{ card: 'cliff_lynx', id: 'lynx' }, { card: 'quake_boar', id: 'boar' }] },
+          { battlefield: [{ card: 'cliff_lynx', id: 'theirs' }] },
+        ],
+      });
+      s = resolve(play(s, [{ type: 'playLand', player: 0, card: 'land' }]));
+      const grown = [getPower(s, 'lynx'), getToughness(s, 'lynx'), s.cards.boar?.counters, getPower(s, 'theirs')];
+      s = passUntil(s, (state) => state.turn === 5 && state.step === 'main1' && state.pending?.kind === 'priority');
+      return first(
+        expectValue(grown, [3, 3, 1, 1], 'after playing a land'),
+        expectValue([getPower(s, 'lynx'), s.cards.boar?.counters], [1, 1], 'two turns later'),
+      );
+    },
+  },
+  {
+    id: 'F59',
+    title: 'Land search: Trail Scout puts a basic Forest from the library onto the battlefield tapped, and Deep Sowing puts another into the hand',
+    run: () => {
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'trail_scout', id: 'scout' }, { card: 'deep_sowing', id: 'sowing' }],
+            battlefield: ['forest', 'forest', 'forest', 'forest', 'forest'],
+            library: ['mountain', { card: 'forest', id: 'f1' }, 'mountain', { card: 'forest', id: 'f2' }, { card: 'forest', id: 'f3' }],
+          },
+          {},
+        ],
+      });
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'scout', targets: [] }]));
+      const scouted = [zone(s, 'f1'), s.cards.f1?.tapped, s.players[0].library.length];
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'sowing', targets: [] }]));
+      const found = ['f2', 'f3'].map((id) => zone(s, id)).sort();
+      return first(
+        expectValue(scouted, ['battlefield', true, 4], 'after Trail Scout'),
+        expectValue([found, s.players[0].library.length], [['battlefield', 'hand'], 2], 'after Deep Sowing'),
+      );
+    },
+  },
+  {
+    id: 'F60',
+    title: 'Extra land plays: Open Path lets you play a second land this turn, not a third',
+    run: () => {
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'open_path', id: 'path' }, { card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }, { card: 'forest', id: 'f3' }],
+            battlefield: ['forest'],
+          },
+          {},
+        ],
+      });
+      s = play(s, [{ type: 'playLand', player: 0, card: 'f1' }]);
+      const second = refused(s, { type: 'playLand', player: 0, card: 'f2' }, 'ya has jugado una tierra este turno');
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'path', targets: [] }]));
+      s = play(s, [{ type: 'playLand', player: 0, card: 'f2' }]);
+      return first(
+        second,
+        expectValue([zone(s, 'f2'), s.players[0].landsPlayedThisTurn], ['battlefield', 2], 'after Open Path'),
+        refused(s, { type: 'playLand', player: 0, card: 'f3' }, 'ya has jugado todas las tierras que puedes este turno'),
+      );
+    },
+  },
+  {
+    id: 'F61',
+    title: 'Special lands: Silver Spire enters tapped and pays white, blue or black from the next turn; the Prismatic Fount and Wayfarer Druid pay any color',
+    run: () => {
+      let s = createScenario({
+        players: [
+          { hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'sky_messenger', id: 'messenger' }], battlefield: ['plains'] },
+          {},
+        ],
+      });
+      s = play(s, [{ type: 'playLand', player: 0, card: 'spire' }]);
+      const now = [s.cards.spire?.tapped, castBlocker(s, 0, 'messenger')];
+      s = passUntil(s, (state) => state.turn === 5 && state.step === 'main1' && state.pending?.kind === 'priority');
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'messenger', targets: [] }]));
+      let dragon = createScenario({
+        players: [
+          {
+            hand: [{ card: 'prismatic_dragon', id: 'dragon' }],
+            battlefield: ['silver_spire', 'ash_harbor', 'misty_meadow', 'prismatic_fount', 'wayfarer_druid'],
+          },
+          {},
+        ],
+      });
+      dragon = resolve(play(dragon, [{ type: 'cast', player: 0, card: 'dragon', targets: [] }]));
+      return first(
+        expectValue(now, [true, 'no hay suficiente maná'], 'the turn Silver Spire is played'),
+        expectValue(zone(s, 'messenger'), 'battlefield', 'Sky Messenger two turns later'),
+        expectValue(zone(dragon, 'dragon'), 'battlefield', 'Prismatic Dragon paid by three tri-lands, the Fount and the Druid'),
+      );
     },
   },
   {

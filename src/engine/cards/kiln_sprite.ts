@@ -8,7 +8,6 @@ export const kilnSprite: CardDef = {
   cost: '{R}',
   power: 1,
   toughness: 1,
-  keywords: ['haste'],
-  triggers: [{ on: 'spell', targets: [], effects: [{ kind: 'pump', power: 1, toughness: 1, to: 'self' }] }],
+  keywords: ['haste', 'prowess'],
   flavor: 'Nació en el fuego del vidriero y nunca aprendió a estarse quieto.',
 };

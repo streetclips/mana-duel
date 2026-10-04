@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cfe6c3"/>
+      <stop offset="1" stop-color="#eef5dc"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#e6f5b0" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#e6f5b0" stop-opacity="0"/>
+    </radialGradient>
+    <g id="hand">
+      <path d="M0 5 L12 7 L10 25.4 L0 24.4 Z" fill="#3b7a4f"/>
+      <path d="M11 7.6 C16 8.6 21 10.4 25 12.4 C30 11.6 35.4 12.6 39 15.6 C41.4 17.6 42.4 20 42 22.4 L48.6 30.2 C49.4 31.6 48.2 33.4 46.4 32.8 L39.8 26.4 C39 28.4 36.8 29.2 35.4 28.2 C34.2 29.6 31.8 29.8 30.6 28.4 C29.2 29.2 26.8 28.8 26 27.2 C21 26.6 15 25.6 10 25 Z" fill="#c98f62"/>
+      <path d="M28.4 18.2 C32 16.8 37 17.6 40 20.4 C38.4 22.4 34 22.8 30.4 21.8 C29 21.4 28.4 19.8 28.4 18.2 Z" fill="#dcaa7f"/>
+      <path d="M35.4 28.2 C35.6 26.6 35.2 25.4 34.4 24.6 M30.6 28.4 C30.8 26.8 30.4 25.6 29.6 24.8 M42 22.4 L40.4 24.6" fill="none" stroke="#a8704a" stroke-width="0.8" stroke-linecap="round"/>
+      <path d="M8.6 6.6 L13.2 7.4 L11.4 25.6 L7 25.2 Z" fill="#4c8653"/>
+    </g>
+  </defs>
+  <rect width="120" height="80" fill="url(#sky)"/>
+  <circle cx="60" cy="22" r="16" fill="#fffbe6" opacity="0.5"/>
+  <path d="M0 31 Q30 28 60 31 T120 30 V80 H0 Z" fill="#6f4d30"/>
+  <path d="M0 48 Q20 45 40 48 T80 48 T120 47 V80 H0 Z" fill="#87613d"/>
+  <path d="M0 63 Q24 60 48 63 T96 62 T120 63 V80 H0 Z" fill="#6c685c"/>
+  <g fill="#8b877a">
+    <ellipse cx="14" cy="71" rx="6" ry="3.6"/>
+    <ellipse cx="44" cy="76" rx="7" ry="3.4"/>
+    <ellipse cx="78" cy="72" rx="5" ry="3"/>
+    <ellipse cx="106" cy="76" rx="7" ry="3.8"/>
+  </g>
+  <g fill="#a6a294">
+    <ellipse cx="13" cy="69.6" rx="3.6" ry="1.4"/>
+    <ellipse cx="43" cy="74.6" rx="4" ry="1.3"/>
+    <ellipse cx="77.4" cy="70.8" rx="2.8" ry="1.1"/>
+    <ellipse cx="105" cy="74.4" rx="4" ry="1.4"/>
+  </g>
+  <g fill="#a07a52">
+    <ellipse cx="22" cy="55" rx="2" ry="1.2"/>
+    <ellipse cx="98" cy="53" rx="2.2" ry="1.2"/>
+    <ellipse cx="70" cy="57" rx="1.4" ry="0.9"/>
+    <ellipse cx="8" cy="40" rx="1.6" ry="1"/>
+    <ellipse cx="112" cy="40" rx="1.6" ry="1"/>
+  </g>
+  <ellipse cx="60" cy="52" rx="40" ry="24" fill="url(#glow)"/>
+  <g fill="none" stroke="#f0e2bd" stroke-linecap="round">
+    <path d="M60 39 C60 50 58 58 60 68 C61 73 60 76 59 80" stroke-width="2.6"/>
+    <path d="M60 43 C54 49 44 51 36 57 C30 61 24 62 16 67 M60 43 C66 49 76 51 84 57 C90 61 96 62 104 67" stroke-width="2"/>
+    <path d="M60 57 C55 62 48 65 42 73 M60 57 C65 62 72 65 78 73 M48.6 36 C47 41 44 45 40 47 M71.4 36 C73 41 76 45 80 47" stroke-width="1.4"/>
+    <path d="M36 57 C34 53 30 52 26 52 M84 57 C86 53 90 52 94 52 M24 62 C22 66 22 70 24 74 M96 62 C98 66 98 70 96 74 M60 68 C56 70 54 72 52 76 M60 68 C64 70 66 72 68 76" stroke-width="0.9"/>
+  </g>
+  <g fill="#d7f08f">
+    <circle cx="16" cy="67" r="1.4"/>
+    <circle cx="104" cy="67" r="1.4"/>
+    <circle cx="26" cy="52" r="1.1"/>
+    <circle cx="94" cy="52" r="1.1"/>
+    <circle cx="42" cy="73" r="1.2"/>
+    <circle cx="78" cy="73" r="1.2"/>
+    <circle cx="24" cy="74" r="1"/>
+    <circle cx="96" cy="74" r="1"/>
+    <circle cx="40" cy="47" r="1"/>
+    <circle cx="80" cy="47" r="1"/>
+    <circle cx="59" cy="80" r="1.2"/>
+  </g>
+  <path d="M0 31 Q30 28 60 31 T120 30 V33 Q90 34.4 60 33 T0 33.4 Z" fill="#5a9a52"/>
+  <path d="M42 33 Q60 26 78 33 Z" fill="#5e4029"/>
+  <ellipse cx="60" cy="38" rx="3.6" ry="2.6" fill="#e9c46a"/>
+  <ellipse cx="59" cy="37.2" rx="1.4" ry="0.8" fill="#fbe9a8"/>
+  <ellipse cx="48.6" cy="35.2" rx="2" ry="1.4" fill="#e9c46a"/>
+  <ellipse cx="71.4" cy="35.2" rx="2" ry="1.4" fill="#e9c46a"/>
+  <path d="M60 36 C60 28 59.4 22 60 14" fill="none" stroke="#3e8a5a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M60 24 C54 24 50 20 49 15 C55 15 59 19 60 24 Z" fill="#6fbd5a"/>
+  <path d="M60 19 C66 19 70 15 71 10 C65 10 61 14 60 19 Z" fill="#8fd36f"/>
+  <use href="#hand"/>
+  <use href="#hand" transform="translate(120 0) scale(-1 1)"/>
+  <g fill="#fffbd6">
+    <circle cx="52" cy="12" r="0.8"/>
+    <circle cx="69" cy="22" r="0.7"/>
+    <circle cx="55" cy="28" r="0.6"/>
+  </g>
+</svg>

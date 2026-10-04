@@ -78,6 +78,15 @@ const GLYPHS: Record<IconName, () => JSX.Element> = {
     />
   ),
   evolve: () => <path d="M8 1.4 L13.8 7.2 H10.9 L8 4.3 L5.1 7.2 H2.2 Z M8 7.6 L13.8 13.4 H10.9 L8 10.5 L5.1 13.4 H2.2 Z" />,
+  prowess: () => (
+    <>
+      <path
+        fill-rule="evenodd"
+        d="M3.4 5.4 C3.4 4.3 4.2 3.5 5.2 3.5 H11.4 C12.6 3.5 13.5 4.4 13.5 5.6 V10.4 C13.5 12.8 11.7 14.6 9.3 14.6 H7.1 C5 14.6 3.4 13 3.4 10.9 Z M5.9 3.5 H6.5 V7.4 H5.9 Z M8.4 3.5 H9 V7.4 H8.4 Z M10.9 3.5 H11.5 V7.4 H10.9 Z M3.4 8.3 H9.2 C10 8.3 10.6 8.9 10.6 9.7 C10.6 10.5 10 11.1 9.2 11.1 H3.4 Z"
+      />
+      <path d="M1 6 H2.4 M0.8 8.6 H2.2 M1 11.2 H2.4" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" />
+    </>
+  ),
   trigger: () => <path d="M2.6 3.4 H13.4 V5.2 H2.6 Z M2.6 7.1 H13.4 V8.9 H2.6 Z M2.6 10.8 H9.8 V12.6 H2.6 Z" />,
 };
 

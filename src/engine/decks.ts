@@ -300,6 +300,91 @@ export const DEEPGROVE: DeckDef = {
   ],
 };
 
+export const FLAMECREST: DeckDef = {
+  id: 'flamecrest',
+  name: 'Crestafuego',
+  description: 'Rojo: monjes con destreza que golpean primero y dos veces; cada instantáneo los enciende y el daño directo remata.',
+  colors: ['R'],
+  featured: 'flamecrest_mentor',
+  cards: [
+    { card: 'mountain', count: 16 },
+    { card: 'cloister_lancer', count: 2 },
+    { card: 'temple_blade', count: 2 },
+    { card: 'brazier_disciple', count: 2 },
+    { card: 'ashwing_kestrel', count: 2 },
+    { card: 'flamecrest_mentor', count: 1 },
+    { card: 'thousand_blows_monk', count: 1 },
+    { card: 'crater_elemental', count: 2 },
+    { card: 'temple_dragon', count: 1 },
+    { card: 'palm_strike', count: 2 },
+    { card: 'spark_volley', count: 2 },
+    { card: 'lava_fist', count: 2 },
+    { card: 'twin_strike', count: 1 },
+    { card: 'dragons_breath', count: 2 },
+    { card: 'flame_cut', count: 2 },
+  ],
+};
+
+export const WILDLAND: DeckDef = {
+  id: 'wildland',
+  name: 'Tierrabrava',
+  description: 'Verde: cada tierra que entra despierta a sus bestias; busca bosques y juega tierras de más para crecer sin freno.',
+  colors: ['G'],
+  featured: 'wildland_colossus',
+  cards: [
+    { card: 'forest', count: 16 },
+    { card: 'cliff_lynx', count: 2 },
+    { card: 'trail_scout', count: 2 },
+    { card: 'tribe_elder', count: 1 },
+    { card: 'quake_boar', count: 2 },
+    { card: 'springhorn_stag', count: 2 },
+    { card: 'boulder_spider', count: 2 },
+    { card: 'territorial_beast', count: 2 },
+    { card: 'peak_giant', count: 1 },
+    { card: 'wildland_colossus', count: 1 },
+    { card: 'open_path', count: 2 },
+    { card: 'deep_sowing', count: 2 },
+    { card: 'fertile_rift', count: 1 },
+    { card: 'avalanche_fury', count: 2 },
+    { card: 'sure_swipe', count: 1 },
+    { card: 'herd_roar', count: 1 },
+  ],
+};
+
+export const CROSSROADS: DeckDef = {
+  id: 'crossroads',
+  name: 'Encrucijada',
+  description: 'Los cinco colores: tierras que dan maná de tres colores o de cualquiera, aunque entran giradas, y hechizos multicolores con lo mejor de cada color.',
+  colors: ['W', 'U', 'B', 'R', 'G'],
+  featured: 'prismatic_dragon',
+  cards: [
+    { card: 'plains', count: 1 },
+    { card: 'island', count: 1 },
+    { card: 'swamp', count: 1 },
+    { card: 'mountain', count: 1 },
+    { card: 'forest', count: 1 },
+    { card: 'silver_spire', count: 2 },
+    { card: 'ash_harbor', count: 2 },
+    { card: 'smoldering_jungle', count: 2 },
+    { card: 'sunlit_canyon', count: 2 },
+    { card: 'misty_meadow', count: 2 },
+    { card: 'prismatic_fount', count: 1 },
+    { card: 'wayfarer_druid', count: 2 },
+    { card: 'sky_messenger', count: 2 },
+    { card: 'smoke_warlock', count: 2 },
+    { card: 'root_warden', count: 2 },
+    { card: 'meadow_griffin', count: 2 },
+    { card: 'smoldering_devourer', count: 2 },
+    { card: 'canyon_titan', count: 2 },
+    { card: 'prismatic_dragon', count: 1 },
+    { card: 'spire_judgment', count: 1 },
+    { card: 'ash_storm', count: 2 },
+    { card: 'council_veto', count: 2 },
+    { card: 'convergent_vision', count: 2 },
+    { card: 'purifying_fire', count: 2 },
+  ],
+};
+
 export const DECK_LIST: readonly DeckDef[] = [
   EMBERWILD,
   DAWNTIDE,
@@ -312,6 +397,9 @@ export const DECK_LIST: readonly DeckDef[] = [
   VESPERHALL,
   CINDERMAW,
   DEEPGROVE,
+  FLAMECREST,
+  WILDLAND,
+  CROSSROADS,
 ];
 
 export const DECKS: Record<string, DeckDef> = Object.fromEntries(DECK_LIST.map((deck) => [deck.id, deck]));

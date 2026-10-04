@@ -31,7 +31,8 @@ export type Keyword =
   | 'skulk'
   | 'undying'
   | 'hexproof'
-  | 'evolve';
+  | 'evolve'
+  | 'prowess';
 
 export const KEYWORDS: readonly Keyword[] = [
   'flying',
@@ -50,6 +51,7 @@ export const KEYWORDS: readonly Keyword[] = [
   'undying',
   'hexproof',
   'evolve',
+  'prowess',
 ];
 
 export type TargetSpec =
@@ -80,9 +82,20 @@ export type Effect =
   | { kind: 'addCountersTeam'; amount: number }
   | { kind: 'createTokens'; token: string; amount: number }
   | { kind: 'discard'; amount: number; who?: Who }
-  | { kind: 'returnToBattlefield'; counters: number };
+  | { kind: 'returnToBattlefield'; counters: number }
+  | { kind: 'extraLands'; amount: number }
+  | { kind: 'searchLand'; land: string; battlefield: number; hand?: number; tapped?: boolean };
 
-export type TriggerEvent = 'enters' | 'dies' | 'attacks' | 'spell' | 'allyEnters' | 'allyDies' | 'damagesPlayer' | 'lifeGain';
+export type TriggerEvent =
+  | 'enters'
+  | 'dies'
+  | 'attacks'
+  | 'spell'
+  | 'allyEnters'
+  | 'allyDies'
+  | 'damagesPlayer'
+  | 'lifeGain'
+  | 'landfall';
 
 export type TriggerCondition = 'opponentDamaged';
 
@@ -117,6 +130,7 @@ export interface CardDef {
   toughness?: number;
   keywords?: Keyword[];
   mana?: Color[];
+  entersTapped?: boolean;
   token?: boolean;
   colors?: Color[];
   spell?: SpellAbility;
@@ -155,6 +169,7 @@ export interface PlayerState {
   drewFromEmptyLibrary: boolean;
   conceded: boolean;
   damagedThisTurn: boolean;
+  extraLandsThisTurn: number;
 }
 
 export type Step =
@@ -252,6 +267,8 @@ export type GameEvent =
   | { t: 'counter'; card: CardId; player: PlayerId }
   | { t: 'bounce'; card: CardId; player: PlayerId }
   | { t: 'enter'; player: PlayerId; card: CardId }
+  | { t: 'search'; player: PlayerId; card: CardId; to: 'battlefield' | 'hand' }
+  | { t: 'extraLands'; player: PlayerId; amount: number }
   | { t: 'create'; player: PlayerId; card: CardId }
   | { t: 'return'; player: PlayerId; card: CardId }
   | { t: 'attack'; player: PlayerId; attackers: CardId[] }

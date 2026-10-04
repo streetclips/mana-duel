@@ -33,7 +33,22 @@ test('the deck selector sets up the chosen matchup', async ({ page }) => {
   await expect(page.getByTestId('seat-1')).toHaveAttribute('data-deck', 'random');
   await page.getByTestId('seat-0').click();
   const picker = page.getByTestId('deck-picker');
-  for (const name of ['Brasalvaje', 'Albamar', 'Fangoscuro', 'Cristormenta', 'Pradosol', 'Forjaluz', 'Brumafosa', 'Selvumbra']) {
+  for (const name of [
+    'Brasalvaje',
+    'Albamar',
+    'Fangoscuro',
+    'Cristormenta',
+    'Pradosol',
+    'Forjaluz',
+    'Brumafosa',
+    'Selvumbra',
+    'Vesperia',
+    'Fauceniza',
+    'Sotohondo',
+    'Crestafuego',
+    'Tierrabrava',
+    'Encrucijada',
+  ]) {
     await expect(picker).toContainText(name);
   }
   await page.getByTestId('deck-dawntide').click();
@@ -339,6 +354,8 @@ test('every card name fits two lines in hand, and ability pills fit their cards 
           battlefield: [
             { card: 'bloodspore_thrall', id: 'thrall' },
             { card: 'bonewood_stalker', id: 'stalker' },
+            { card: 'wayfarer_druid', id: 'wayfarer' },
+            { card: 'tribe_elder', id: 'elder' },
           ],
         },
       ],
@@ -361,7 +378,16 @@ test('every card name fits two lines in hand, and ability pills fit their cards 
     }),
   );
   expect(pills.map((pill) => pill.pill).sort()).toEqual(
-    ['ability-dragon-0', 'ability-druid-mana', 'ability-elf-mana', 'ability-shade-0', 'ability-stalker-0', 'ability-thrall-0'].sort(),
+    [
+      'ability-dragon-0',
+      'ability-druid-mana',
+      'ability-elf-mana',
+      'ability-shade-0',
+      'ability-stalker-0',
+      'ability-thrall-0',
+      'ability-wayfarer-mana',
+      'ability-elder-0',
+    ].sort(),
   );
   expect(pills.filter((pill) => !pill.inside || !pill.fits)).toEqual([]);
   await expect(page.getByTestId('ability-dragon-0')).toHaveAttribute('data-usable', 'true');
@@ -540,6 +566,51 @@ test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain an
   await expect(page.getByTestId('pt-hellion')).toHaveText('5/4');
   await page.getByTestId('card-hellion').click({ button: 'right' });
   await expect(page.getByTestId('card-sheet')).toContainText('2 contadores +1/+1');
+  await expectNoHorizontalOverflow(page);
+  expect(errors).toEqual([]);
+});
+
+test('Flamecrest, Wildland and Crossroads: prowess on an instant, landfall on a land drop, a tri-land that enters tapped', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?seed=5&first=you&deck=flamecrest&aiDeck=crossroads&aiDelay=0');
+  await expect(page.getByTestId('deck-name-0')).toContainText('Crestafuego');
+  await expect(page.getByTestId('deck-name-1')).toContainText('Encrucijada');
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [{ hand: [{ card: 'spark_volley', id: 'volley' }], battlefield: ['mountain', { card: 'cloister_lancer', id: 'lancer' }] }, {}],
+    }),
+  );
+  await expect(page.getByTestId('card-lancer').locator('.icon[data-icon="prowess"]')).toHaveCount(1);
+  await page.getByTestId('card-volley').click();
+  await page.getByTestId('sheet-cast').click();
+  await page.getByTestId('player-1').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('life-1')).toHaveText('19');
+  await expect(page.getByTestId('pt-lancer')).toHaveText('3/3');
+
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [{ hand: [{ card: 'forest', id: 'land' }], battlefield: [{ card: 'cliff_lynx', id: 'lynx' }, { card: 'quake_boar', id: 'boar' }] }, {}],
+    }),
+  );
+  await page.getByTestId('card-land').click();
+  await page.getByTestId('sheet-playLand').click();
+  await page.evaluate(() => window.manaDuel.settle());
+  await expect(page.getByTestId('pt-lynx')).toHaveText('3/3');
+  await expect(page.getByTestId('pt-boar')).toHaveText('2/3');
+  expect(await page.evaluate(() => window.manaDuel.log())).toContain('Se dispara tu Lince del risco.');
+
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({
+      players: [{ hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'sky_messenger', id: 'messenger' }], battlefield: ['plains'] }, {}],
+    }),
+  );
+  await expect(page.getByTestId('card-spire').locator('.text .pip')).toHaveCount(3);
+  await page.getByTestId('card-spire').click();
+  await page.getByTestId('sheet-playLand').click();
+  await expect(page.getByTestId('card-spire')).toHaveAttribute('data-tapped', 'true');
+  await expect(page.getByTestId('card-spire')).toHaveClass(/multi/);
+  await expect(page.getByTestId('card-messenger')).not.toHaveAttribute('data-playable');
   await expectNoHorizontalOverflow(page);
   expect(errors).toEqual([]);
 });

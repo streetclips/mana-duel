@@ -62,6 +62,7 @@ export interface SideView {
   graveyard: string[];
   availableMana: string[];
   landsPlayedThisTurn: number;
+  extraLandsThisTurn?: number;
   damagedThisTurn?: true;
   mulligans: number;
 }
@@ -157,6 +158,7 @@ function sideView(s: GameState, player: PlayerId, viewer: PlayerId): SideView {
     landsPlayedThisTurn: ps.landsPlayedThisTurn,
     mulligans: ps.mulligans,
   };
+  if (ps.extraLandsThisTurn > 0) view.extraLandsThisTurn = ps.extraLandsThisTurn;
   if (ps.damagedThisTurn) view.damagedThisTurn = true;
   if (player === viewer) view.hand = ps.hand.map((id) => ({ id, name: name(id) }));
   return view;

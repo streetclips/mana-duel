@@ -18,13 +18,15 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | Id | Feature | Tests |
 | --- | --- | --- |
 | F01 | Setup: 40-card decks, seven-card hands, 20 life; the same seed gives the same game | `tests/engine/setup.test.ts` › game setup |
-| F29 | Decks: Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave, Gloamwood, Vesperhall, Cindermaw and Deepgrove, 40 cards and 16 lands each, in their own colors, every pair of colors once; no nonland card in two decks; every card is in a deck and every token is created by one of their cards | `tests/engine/cards.test.ts` › decks |
+| F29 | Decks: Emberwild, Dawntide, Duskmire, Stormglass, Sunmeadow, Brightforge, Mistgrave, Gloamwood, Vesperhall, Cindermaw, Deepgrove, Flamecrest, Wildland and Crossroads, 40 cards and 16 lands each, in their own colors: every pair of colors once, black, red and green alone, and all five colors together; no nonland card in two decks; every card is in a deck and every token is created by one of their cards | `tests/engine/cards.test.ts` › decks |
 | F02 | London mulligan: new seven, one card to the bottom per mulligan, at most six | `tests/engine/setup.test.ts` › London mulligan · `tests/ui/game.test.tsx` › opening hand |
 | F03 | Turn order; the starting player skips the first draw | `tests/engine/setup.test.ts` · `tests/engine/turn.test.ts` › turn structure, passing through a whole turn |
 | F04 | One land per turn, main phase, empty stack | `tests/engine/turn.test.ts` › lands |
+| F60 | Extra land plays: Open Path lets you play one more land this turn only | `tests/engine/spells.test.ts` › Wildland |
 | F05 | Sorcery speed vs instant speed | `tests/engine/turn.test.ts` › timing |
 | F06 | Priority and the stack: last in, first out; responses | `tests/engine/turn.test.ts` › priority and the stack |
 | F07 | Mana: automatic payment, colors, sick mana creatures | `tests/engine/mana.test.ts` · `tests/engine/turn.test.ts` › summoning sickness |
+| F61 | Special lands: tri-lands and the Prismatic Fount enter tapped and pay any of their colors from the next turn; Wayfarer Druid taps for any color | `tests/engine/spells.test.ts` › Crossroads |
 | F08 | Summoning sickness and haste | `tests/engine/turn.test.ts` › summoning sickness |
 | F09 | Attacking: tapping, vigilance, defender, unblocked damage | `tests/engine/combat.test.ts` › declaring attackers |
 | F10 | Blocking: flying/reach, menace, tapped blockers, one attacker per blocker | `tests/engine/combat.test.ts` › declaring blockers |
@@ -45,7 +47,8 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F34 | Losing life as a cost of a spell or trigger, which can end the game | `tests/engine/spells.test.ts` › life drain and life payment, Dawntide and Duskmire creature abilities |
 | F35 | Death triggers of Duskmire: draw a card, deal damage to the opponent | `tests/engine/spells.test.ts` › Dawntide and Duskmire creature abilities |
 | F40 | Flash: a creature with flash is cast whenever you could cast an instant, and blocks the turn it enters | `tests/engine/turn.test.ts` › timing · `tests/engine/spells.test.ts` › Stormglass |
-| F41 | "Whenever you cast an instant or sorcery spell": only its controller's instants and sorceries trigger it, above the spell, so it resolves first; pumps, damage and +1/+1 counters (Arc Initiate, Galvanic Channeler, Stormglass Drake) | `tests/engine/spells.test.ts` › Stormglass |
+| F41 | Prowess and "whenever you cast an instant or sorcery spell": only their controller's instants and sorceries trigger them, above the spell, so they resolve first; +1/+1 until end of turn for each creature with prowess, damage and +1/+1 counters (Arc Initiate, Kiln Sprite, Galvanic Channeler, Stormglass Drake) | `tests/engine/spells.test.ts` › Stormglass, Flamecrest |
+| F57 | Tokens with prowess: Flamecrest Mentor makes a Monk for each instant or sorcery, and the Monk grows with the next one; first strike granted with every instant (Brazier Disciple); a bite with the power prowess gave (Lava Fist); double strike until end of turn (Twin Strike) | `tests/engine/spells.test.ts` › Flamecrest |
 | F42 | +1/+1 counters: added to power and toughness, damage and `-N/-N` included; they outlast cleanup and leave with the creature; one creature or each creature you control; on enters, dies and attacks triggers | `tests/engine/spells.test.ts` › Sunmeadow |
 | F43 | Pumps for every creature you control until end of turn (Rally the Meadow, Sunmeadow Herald's attack) | `tests/engine/spells.test.ts` › Sunmeadow |
 | F44 | Tokens: created under the controller of the effect, summoning sick unless they have haste; one that dies or returns to hand ceases to exist; they only exist on the battlefield | `tests/engine/spells.test.ts` › Brightforge |
@@ -61,13 +64,15 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | F54 | Hexproof: the opponent's spells and abilities can't target the creature, its controller's can; gaining it in response makes the opponent's spell lose its target | `tests/engine/spells.test.ts` › Deepgrove |
 | F55 | Evolve: a +1/+1 counter when another creature with greater power or toughness enters under your control, not for an equal one or the opponent's | `tests/engine/spells.test.ts` › Deepgrove |
 | F56 | Bite (Snapjaw Strike): damage equal to the biter's power, none back, deathtouch included; a spell with two targets still acts on the one left (Splitting Flame) | `tests/engine/spells.test.ts` › Deepgrove, Cindermaw |
+| F58 | Landfall: every land that enters under your control triggers it, played or fetched, not the opponent's (Cliff Lynx, Quake Boar, Territorial Beast, Wildland Colossus) | `tests/engine/spells.test.ts` › Wildland |
+| F59 | Land search: the first basic Forests of the library onto the battlefield, tapped when it says so, or into the hand, then a shuffle, also when none is left (Trail Scout, Deep Sowing, Fertile Rift, Tribe Elder at instant speed); the log names the land | `tests/engine/spells.test.ts` › Wildland, Crossroads · `tests/engine/cards.test.ts` › card validation |
 | F21 | Activated abilities, repeatable, `{T}` costs | `tests/engine/turn.test.ts` › activated abilities |
 | F22 | Cleanup: discard to seven, damage and pumps wear off | `tests/engine/turn.test.ts` › turn structure |
 | F23 | Game over: 0 life, empty library, concession, turn limit | `tests/engine/gameover.test.ts` |
 | F24 | Every listed action is legal; bad input is refused with a reason and changes nothing | `tests/engine/properties.test.ts` |
 | F25 | Replays: seed plus actions reproduces a game exactly | `tests/engine/properties.test.ts` · `tests/app/controller.test.ts` |
 | F26 | Invariants after every action (one zone per card, clean state off the battlefield) | `tests/engine/properties.test.ts` · `npm run sim` |
-| F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all 121 matchups by default) |
+| F36 | Every matchup plays to the end with sound invariants | `tests/engine/properties.test.ts` · `npm run sim` (all 196 matchups by default) |
 
 ## AI
 
@@ -79,6 +84,7 @@ The checks live in `src/app/checks.ts`; that file is the source of truth for exa
 | — | Flashes in blockers when attacked; finds lethal through Galvanic Channeler; puts +1/+1 counters where they are worth most; Rally the Meadow after blockers; Wild Blossom against burn; Pack Pounce before a fight | `tests/ai/ai.test.ts` › AI with the Stormglass and Sunmeadow cards |
 | — | Casts Brightforge Warlord before combat; makes blockers with Raise the Banners against a lethal attack; Rob the Mind only into a hand that holds cards; discards the card it needs least; sacrifices Bonewood Stalker for a better creature; attacks with a skulker nothing may block | `tests/ai/ai.test.ts` › AI with the Brightforge, Mistgrave and Gloamwood cards |
 | — | Waits until after combat to cast a bloodthirsty creature; casts creatures before combat when an evolving attacker grows; answers removal with Shell of the Deep | `tests/ai/ai.test.ts` › AI with the Vesperhall, Cindermaw and Deepgrove cards |
+| — | Plays an untapped land when it casts a spell this turn and a land that enters tapped when it would cast nothing; casts Open Path only with another land to play; casts an instant after blockers so prowess wins the fight; sacrifices Tribe Elder for a Forest when it would die anyway | `tests/ai/ai.test.ts` › AI with the Flamecrest, Wildland and Crossroads cards |
 | — | Mulligans hands whose lands cannot cast their spells | `tests/ai/ai.test.ts` › AI setup decisions |
 | — | Fairness: hidden cards never change a decision, in mirror and mixed matchups | `tests/ai/ai.test.ts` › AI fairness |
 | — | Strength: beats a random player nearly always with any deck; AI vs AI balanced and crash-free | `tests/ai/ai.test.ts` › AI strength · `npm run sim -- --games 3000 --quiet` (`"errors": 0`, per-deck `winRate` near 0.5) · `npm run sim -- --p0 random --games 50 --quiet` |
@@ -89,7 +95,7 @@ How it works is in `docs/LLM.md`. Everything here runs offline, against mocked m
 
 | Feature | Tests |
 | --- | --- |
-| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat, pumps, keywords granted until end of turn, +1/+1 counters and tokens, which player was dealt damage this turn, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
+| The seat's view: its own hand, card counts for the opponent's hand and both libraries, battlefields with combat, pumps, keywords granted until end of turn, +1/+1 counters and tokens, which player was dealt damage this turn, extra land plays this turn, the stack from the top, recent events from its seat, its thoughts with their turn and step | `tests/llm/view.test.ts` |
 | Fairness: the prompt is the same whatever the hidden cards are, over real games in three matchups; the latest events and thoughts, in order | `tests/llm/player.test.ts` › the LLM prompt |
 | Every legal action is an option for mulligans, priority and targets; attackers, blockers and cards to bottom or discard are constrained fields, a discard names the card that causes it; a refused answer names the rule | `tests/llm/decision.test.ts` |
 | One call per real decision, none for a forced one; retries with the reason; the classic AI when every attempt fails or time runs out; unavailable after 401, 402 or 404; cancellation; lazy loading | `tests/llm/player.test.ts` |
@@ -109,7 +115,7 @@ controller records them (`manaDuel.fx()`), and `src/ui/fx.ts` and `src/ui/motion
 | --- | --- | --- |
 | F38 | Combat: an attacker and its blocker strike each other; the damage, the trample to the player and the death show, and the dead creature fades out in its own place | `tests/app/fx.test.ts` › combat · `tests/ui/animations.test.tsx` › animations of combat · `e2e/animations.spec.ts` › in combat |
 | F39 | The opponent's spell is revealed with its target; burn shows the life lost; a new turn is announced and deals the drawn card | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` › animations of plays, of draws and turns · `e2e/animations.spec.ts` |
-| — | Lands and permanents entering, tokens entering, abilities, pumps and shrinks with the keywords they grant, +1/+1 counters and pumps for every creature you control (shown as pumps), an undying creature dying and coming back, a bite striking its target, lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
+| — | Lands and permanents entering, a land fetched from the library, tokens entering, abilities, pumps and shrinks with the keywords they grant, +1/+1 counters and pumps for every creature you control (shown as pumps), an undying creature dying and coming back, a bite striking its target, lifelink and life gain, counters, fizzles, bounces, discards, the opening deal | `tests/app/fx.test.ts` · `tests/ui/animations.test.tsx` |
 | — | Timing: hits land after the strikes, draws deal one after another, hooks stay until a newer action animates something, slow motion, a new game starts over | `tests/ui/fxTracker.test.ts` |
 | — | Pacing: with an AI delay the AI and automatic passing wait for the opponent's plays and for combat to be seen; not with `aiDelay=0` or `fx=off` | `tests/app/controller.test.ts` › animation cues |
 | — | Browser: CSS and Web Animations run and end, `freezeFx` holds them, `fx=off` and `fx=slow`, reduced motion, no overflow mid-animation, no console errors | `e2e/animations.spec.ts` |
@@ -122,9 +128,9 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 
 | Feature | Tests |
 | --- | --- |
-| Themes: one per deck from its colors, a different one for each combination, the title and colorless themes; every pitched note in key, each bar's chord on the pad and its root in the bass, the eight-bar loop | `tests/audio/music.test.ts` |
+| Themes: one per deck from its first and last colors at the average tempo of all of them, a different one for each combination, five colors included, the title and colorless themes; every pitched note in key, each bar's chord on the pad and its root in the bass, the eight-bar loop | `tests/audio/music.test.ts` |
 | Moods: calm, danger at 5 life or less, combat while attackers are declared, over at the end; drums in combat and a heartbeat in danger; louder moods on the next beat, calmer ones on the bar line | `tests/audio/music.test.ts` · `tests/audio/engine.test.ts` › changes its mood on the beat · `e2e/audio.spec.ts` › a game plays the theme of your deck |
-| A sound for every cue kind, timed like its animation: hits at the impact, the dead after them, your draws one after another, a turn's card after its bell, lands and spells in their colors; repeats capped; a burst heard by its latest actions; slow motion stretches it | `tests/audio/cues.test.ts` · `tests/audio/director.test.ts` · `e2e/audio.spec.ts` › every action plays its sound |
+| A sound for every cue kind, timed like its animation: hits at the impact, the dead after them, your draws one after another, a turn's card after its bell, lands and spells in their colors, a land an effect puts onto the battlefield as a land; repeats capped; a burst heard by its latest actions; slow motion stretches it | `tests/audio/cues.test.ts` · `tests/audio/director.test.ts` · `e2e/audio.spec.ts` › every action plays its sound |
 | Victory, defeat and stalemate jingles, once per game, none for a finished replay | `tests/audio/cues.test.ts` › the end of a game · `tests/audio/director.test.ts` · `e2e/audio.spec.ts` › a game ends with a victory jingle |
 | Sound gate: one of each sound per 45 ms and ten at once, jingles always | `tests/audio/cues.test.ts` › the sound gate · `tests/audio/engine.test.ts` › drops a sound repeated |
 | Recipes and notes: finite, audible layers that fade out; envelopes that start and end silent; every source stopped and every node released; music and effects mixed into a compressed master | `tests/audio/synth.test.ts` |
@@ -146,6 +152,7 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 | Flash creatures cast from the card sheet in the opponent's turn; +1/+1 counters raise the P/T tag and show in the card sheet | `e2e/game.spec.ts` › Stormglass and Sunmeadow |
 | Tokens on the battlefield and in the card sheet; sacrifice abilities from the card sheet; a spell that makes you discard asks which card, naming itself; an undying creature back with its counter | `tests/ui/game.test.tsx` › tokens, sacrifices and discards · `e2e/game.spec.ts` › Brightforge, Mistgrave and Gloamwood |
 | A hexproof creature never glows as the opponent's target; life gain and evolve raise a creature's P/T tag; a bloodthirsty creature cast after a hit arrives with its counters | `e2e/game.spec.ts` › Vesperhall, Cindermaw and Deepgrove |
+| Prowess shows its fist icon and raises the P/T tag when you cast an instant; a land drop raises landfall creatures; a tri-land played from hand enters tapped, drawn as a ring of its colors among your lands; in hand, a land that enters tapped says so and shows its mana symbols, a rainbow one for any color | `e2e/game.spec.ts` › Flamecrest, Wildland and Crossroads · `tests/ui/cardInfo.test.ts` |
 | Controller decks: per-seat decks, kept by "New game", recorded in replays, none for scenarios | `tests/app/controller.test.ts` › decks |
 | Automatic passing and End turn (behaviour described in `docs/RULES.md`) | `tests/app/controller.test.ts` › auto-pass, ends the turn on request |
 | Auto-pass off: stops wherever you could act, End turn still works; the menu toggle, remembered, `?autoPass=on\|off`, `setAutoPass()`; prompts that name whose step it is | `tests/app/controller.test.ts` › auto-pass · `tests/ui/game.test.tsx` › auto-pass · `e2e/game.spec.ts` › auto-pass |
@@ -154,7 +161,7 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 | Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`, `opponent()`, `llmDecisions()`, `llmPrompt()`, `idle()`, `setAutoPass()`, `audio.*`), URL parameters (`deck`, `aiDeck`, `fx`, `ai`, `model`, `autoPass`, `music`, `sfx`), `data-testid`, `data-fx`, `data-llm` and `data-audio` hooks | `tests/app/controller.test.ts` › test API, animation cues · `tests/app/llm.test.ts` · `e2e/game.spec.ts` · `e2e/animations.spec.ts` · `e2e/llm.spec.ts` |
 | `docs/CARDS.md` matches the card definitions | `tests/docs.test.ts` · `npm run cards -- --check` |
 | Card art: every card has `public/cards/<id>.svg`, shown in hand, on the battlefield and in the card sheet; each deck's featured card on its box | `tests/ui/art.test.ts` · `tests/ui/game.test.tsx` › card art · `e2e/game.spec.ts` › every card shows art, every deck box shows its featured art |
-| Card faces: the art fills the card; on the battlefield, icons for its keywords (those granted until end of turn included) and for a trigger that can still happen, a pill with the cost and effect of each activated or mana ability, lit while you can activate it and dimmed once a mana creature is tapped or summoning sick; in hand, the name over the art, printed keywords as icons before the rest of the text; names fit two lines and pills fit their cards on both phones; in a crowded hand each card lies whole over the one before it, frame and caption included, playable or not; mana symbols sit centred on the lowercase letters of the text around them, in hand and in the card sheet | `tests/ui/game.test.tsx` › card faces · `tests/ui/cardInfo.test.ts` · `e2e/game.spec.ts` › every card name fits two lines in hand, each card in a crowded hand lies over the one before it, mana symbols sit centred |
+| Card faces: the art fills the card; on the battlefield, icons for its keywords (those granted until end of turn included) and for a trigger that can still happen, a pill with the cost and effect of each activated or mana ability (one rainbow symbol for mana of any color), lit while you can activate it and dimmed once a mana creature is tapped or summoning sick; in hand, the name over the art, printed keywords as icons before the rest of the text; names fit two lines and pills fit their cards on both phones; in a crowded hand each card lies whole over the one before it, frame and caption included, playable or not; mana symbols sit centred on the lowercase letters of the text around them, in hand and in the card sheet | `tests/ui/game.test.tsx` › card faces · `tests/ui/cardInfo.test.ts` · `e2e/game.spec.ts` › every card name fits two lines in hand, each card in a crowded hand lies over the one before it, mana symbols sit centred |
 
 ## Manual pass in a browser
 
@@ -194,3 +201,11 @@ Every text the game shows is in Spanish, so the steps quote it; cards and decks 
    ['swamp', 'mountain', 'mountain', 'mountain', 'mountain'] }, { battlefield: ['mossfin_lurker'] }] })`. Cast
    Rayo de sangre: the Pez musgoso never glows as a target, so aim it at the AI. Then cast Infernal abrasador: it
    arrives as a 5/4 with two +1/+1 counters, because the AI was dealt damage this turn.
+9. Try the Crestafuego, Tierrabrava and Encrucijada mechanics: open
+   `/?seed=2&first=you&deck=wildland&aiDeck=crossroads&aiDelay=0` and run `manaDuel.loadScenario({ players: [{ hand:
+   ['forest', 'open_path', 'forest'], battlefield: ['forest', 'forest', 'cliff_lynx', 'quake_boar'] }, {}] })`. Play a
+   Bosque: Lince del risco (`cliff_lynx`) turns 3/3 and Jabalí sísmico (`quake_boar`) 2/3. Cast Senda abierta
+   (`open_path`) and play the second Bosque: both grow again. Then run `manaDuel.loadScenario({ players: [{ hand:
+   ['silver_spire', 'spark_volley'], battlefield: ['mountain', 'cloister_lancer'] }, {}] })`: play Aguja de plata
+   (`silver_spire`), which enters tapped and shows as a ring of white, blue and black among your lands, and cast
+   Ráfaga de chispas (`spark_volley`) at the AI: Lancera del claustro (`cloister_lancer`) attacks as a 3/3.

@@ -36,7 +36,7 @@ function hitsOf(theme: Theme, mood: Mood, voice: Voice): number[] {
 }
 
 describe('music themes', () => {
-  it('give every deck a theme made from its colors, a different one for each combination of colors', () => {
+  it('give every deck a theme made from its first and last colors at their average tempo, a different one for each combination', () => {
     const themes = DECK_LIST.map(deckTheme);
     expect(themes.map((theme) => theme.id)).toEqual(DECK_LIST.map((deck) => deck.id));
     const combinations = new Set(DECK_LIST.map((deck) => deck.colors.join('')));
@@ -45,6 +45,9 @@ describe('music themes', () => {
     expect(keyName(deckTheme(getDeck('emberwild')))).toBe('A Aeolian');
     expect(keyName(deckTheme(getDeck('duskmire')))).toBe('E Phrygian');
     expect(keyName(deckTheme(getDeck('dawntide')))).toBe('C Ionian');
+    expect(deckTheme(getDeck('crossroads'))).toMatchObject({ colors: ['W', 'U', 'B', 'R', 'G'], tempo: 94, lead: 'pluck' });
+    expect(keyName(deckTheme(getDeck('crossroads')))).toBe('C Ionian');
+    expect(deckTheme(getDeck('wildland'))).toMatchObject({ tempo: 100, lead: 'pluck' });
   });
 
   it('keep a steady tempo and can be found by id', () => {

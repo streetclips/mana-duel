@@ -136,11 +136,16 @@ describe('sounds of the animation cues', () => {
     expect(play('soldier', 'cast')).toMatchObject({ sound: 'cast', color: 'W' });
   });
 
-  it('stay quiet where another sound covers the cue: a land entering, the damage of a strike', () => {
+  it('stay quiet where another sound covers the cue: a land played as it enters, the damage of a strike', () => {
     const land = batch(1, { kind: 'enter', player: 0, card: 'forest' }, { kind: 'play', player: 0, card: 'forest', via: 'land', targets: [] });
     expect(sounds(soundsOf(land, context))).toEqual([['land', 0]]);
     expect(sounds(soundsOf(batch(1, ONE_OF_EACH.enter), context))).toEqual([['enter', ENTER_AFTER]]);
     expect(soundsOf(batch(1, ONE_OF_EACH.strike, ONE_OF_EACH.damage), context).map((event) => event.sound)).toEqual(['strike']);
+  });
+
+  it('sound a land that an effect puts onto the battlefield as a land of its color', () => {
+    const fetched = soundsOf(batch(2, { kind: 'enter', player: 0, card: 'forest' }), context);
+    expect(fetched.map((event) => [event.sound, round(event.at), event.color])).toEqual([['land', ENTER_AFTER, 'G']]);
   });
 
   it('repeat a sound at most a few times in one action, and attack louder with more attackers', () => {

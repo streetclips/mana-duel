@@ -1,6 +1,6 @@
 import { formatCost } from './mana';
 import { getCardDef, getCost } from './registry';
-import { EVOLVE_TRIGGER, UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef } from './state';
+import { EVOLVE_TRIGGER, PROWESS_TRIGGER, UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef } from './state';
 import { isPlayerTarget } from './targets';
 import type {
   CardDef,
@@ -37,6 +37,7 @@ export const KEYWORD_NAMES: Record<Keyword, string> = {
   undying: 'Resiliencia',
   hexproof: 'Antimaleficio',
   evolve: 'Evolucionar',
+  prowess: 'Destreza',
 };
 
 const KEYWORD_ABILITIES: Record<Keyword, string> = {
@@ -56,6 +57,7 @@ const KEYWORD_ABILITIES: Record<Keyword, string> = {
   undying: 'resiliencia',
   hexproof: 'antimaleficio',
   evolve: 'evolucionar',
+  prowess: 'destreza',
 };
 
 export const KEYWORD_REMINDERS: Record<Keyword, string> = {
@@ -75,6 +77,7 @@ export const KEYWORD_REMINDERS: Record<Keyword, string> = {
   undying: 'Cuando muere, si no tenía contadores +1/+1, regresa al campo de batalla con un contador +1/+1.',
   hexproof: 'No puede ser objetivo de hechizos o habilidades que controlan tus oponentes.',
   evolve: 'Recibe un contador +1/+1 siempre que otra criatura con más fuerza o más resistencia entre bajo tu control.',
+  prowess: 'Siempre que lances un hechizo que no sea de criatura, esta criatura obtiene +1/+1 hasta el final del turno.',
 };
 
 export const STEP_NAMES: Record<Step, string> = {
@@ -149,6 +152,8 @@ export function typeLine(def: CardDef): string {
   const subtypes = (def.subtypes ?? []).map((subtype, index) => (index === 0 ? subtype : lowerFirst(subtype))).join(' ');
   return subtypes ? `${main} — ${subtypes}` : main;
 }
+
+const COLOR_COUNT = 5;
 
 const COLOR_WORDS: Record<Color, [string, string]> = {
   W: ['blanca', 'blancas'],
@@ -252,6 +257,27 @@ export function countersLabel(count: number): string {
   return `${count} ${plural(count, 'contador', 'contadores')} +1/+1`;
 }
 
+function landCards(defId: string, amount: number): string {
+  const def = getCardDef(defId);
+  const basic = def.supertypes?.includes('Basic') ? ` ${def.name.endsWith('a') ? 'básica' : 'básico'}` : '';
+  return `${cardsCount(amount)} de ${def.name}${basic}`;
+}
+
+function searchLandSentence(land: string, battlefield: number, hand: number, tapped: boolean): string {
+  const search = `Busca en tu biblioteca ${landCards(land, battlefield + hand)}`;
+  if (hand === 0) {
+    const put = battlefield === 1 ? 'ponla' : 'ponlas';
+    const turned = tapped ? (battlefield === 1 ? ' girada' : ' giradas') : '';
+    return `${search}, ${put} en el campo de batalla${turned} y luego baraja.`;
+  }
+  if (battlefield === 0) return `${search}, ${hand === 1 ? 'revélala, ponla' : 'revélalas, ponlas'} en tu mano y luego baraja.`;
+  return `${search}, pon una en el campo de batalla${tapped ? ' girada' : ''} y la otra en tu mano, y luego baraja.`;
+}
+
+function extraLandsText(amount: number): string {
+  return amount === 1 ? 'una tierra adicional' : `${countWord(amount)} tierras adicionales`;
+}
+
 function damagePoints(amount: number): string {
   return `${amount} ${plural(amount, 'punto', 'puntos')} de daño`;
 }
@@ -325,6 +351,10 @@ function effectSentence(effect: Effect, ref: (target: EffectTarget, role: Role) 
       return `Cada oponente descarta ${cardsCount(effect.amount)}.`;
     case 'returnToBattlefield':
       return `Regrésala al campo de batalla bajo el control de su propietario con ${plusCounters(effect.counters)}.`;
+    case 'extraLands':
+      return `Puedes jugar ${extraLandsText(effect.amount)} este turno.`;
+    case 'searchLand':
+      return searchLandSentence(effect.land, effect.battlefield, effect.hand ?? 0, effect.tapped ?? false);
   }
 }
 
@@ -362,6 +392,7 @@ const TRIGGER_OPENERS: Record<TriggerEvent, string> = {
   allyDies: 'Siempre que otra criatura que controlas muera',
   damagesPlayer: 'Siempre que esta criatura haga daño de combate a un jugador',
   lifeGain: 'Siempre que ganes vidas',
+  landfall: 'Aterrizaje — Siempre que una tierra que controlas entre',
 };
 
 const TRIGGER_CONDITIONS: Record<TriggerCondition, string> = {
@@ -370,14 +401,20 @@ const TRIGGER_CONDITIONS: Record<TriggerCondition, string> = {
 
 const OPENER_NAMES_IT: ReadonlySet<TriggerEvent> = new Set(['enters', 'dies', 'attacks', 'damagesPlayer']);
 
+export function manaChoice(colors: readonly Color[]): string {
+  if (colors.length === COLOR_COUNT) return 'un maná de cualquier color';
+  const symbols = colors.map((color) => `{${color}}`);
+  if (symbols.length === 1) return symbols.join('');
+  return `${symbols.slice(0, -1).join(', ')} o ${symbols.at(-1)}`;
+}
+
 export function rulesText(def: CardDef): string[] {
   const lines: string[] = [];
   if (def.keywords?.length) {
     lines.push(`${def.keywords.map((keyword, i) => (i === 0 ? KEYWORD_NAMES[keyword] : lowerFirst(KEYWORD_NAMES[keyword]))).join(', ')}.`);
   }
-  if (def.mana?.length) {
-    lines.push(`{T}: Agrega ${def.mana.map((color) => `{${color}}`).join(' o ')}.`);
-  }
+  if (def.entersTapped) lines.push('Esta tierra entra girada.');
+  if (def.mana?.length) lines.push(`{T}: Agrega ${manaChoice(def.mana)}.`);
   if (def.spell) {
     lines.push(sentences(def.spell.effects, def.spell.targets, { subject: def.name }, NO_SELF));
   }
@@ -393,6 +430,7 @@ export function triggerText(def: CardDef, index: number): string {
   if (index === EVOLVE_TRIGGER) {
     return `${TRIGGER_OPENERS.allyEnters}, si la fuerza o la resistencia de esa criatura es mayor que la de esta criatura, pon un contador +1/+1 sobre esta criatura.`;
   }
+  if (index === PROWESS_TRIGGER) return KEYWORD_REMINDERS.prowess;
   const trigger = def.triggers?.[index];
   if (!trigger) return '';
   const self: SelfReference = OPENER_NAMES_IT.has(trigger.on)
@@ -603,6 +641,13 @@ export function describeEventParts(s: GameState, event: GameEvent, viewer: Playe
     case 'gameOver':
       if (event.winner === null) return line`La partida termina en empate.`;
       return event.winner === viewer ? line`¡Ganas!` : line`Gana el rival.`;
+    case 'search': {
+      const mine = event.player === viewer;
+      const where = event.to === 'hand' ? (mine ? 'tu mano' : 'su mano') : 'el campo de batalla';
+      return line`${act(event.player, viewer, 'buscas', 'busca')} en ${mine ? 'tu' : 'su'} biblioteca y ${mine ? 'pones' : 'pone'} ${mention(s, event.card)} en ${where}.`;
+    }
+    case 'extraLands':
+      return line`${act(event.player, viewer, 'puedes', 'puede')} jugar ${extraLandsText(event.amount)} este turno.`;
     case 'resolve':
     case 'enter':
       return null;

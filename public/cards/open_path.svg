@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c4dfbd"/>
+      <stop offset="0.45" stop-color="#f4f6dc"/>
+    </linearGradient>
+    <linearGradient id="trail" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6d6"/>
+      <stop offset="1" stop-color="#d8bd8a"/>
+    </linearGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf4cf"/>
+      <stop offset="0.2" stop-color="#cfe5ae"/>
+    </linearGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d2e8b0"/>
+      <stop offset="0.16" stop-color="#b2d494"/>
+    </linearGradient>
+    <path id="half" d="M0 -44 L-9 -30 L-5 -30 L-13 -16 L-8 -16 L-17 0 L0 0 Z"/>
+  </defs>
+  <rect width="120" height="80" fill="url(#sky)"/>
+  <path d="M60 34 L0 0 V12 Z M60 34 L0 22 V30 Z M60 34 L120 0 V12 Z M60 34 L120 22 V30 Z M60 34 L30 0 H43 Z M60 34 L90 0 H77 Z" fill="#fffbe6" opacity="0.4"/>
+  <circle cx="60" cy="34" r="28" fill="#fffbe2" opacity="0.35"/>
+  <circle cx="60" cy="34" r="16" fill="#fffbe6" opacity="0.5"/>
+  <circle cx="60" cy="34" r="7.4" fill="#fffdf0"/>
+  <path d="M0 34 Q10 26 22 29 Q34 32 44 29 Q52 26.5 60 30.5 Q68 26.5 76 29 Q88 32 98 27 Q110 22 120 28 V80 H0 Z" fill="url(#far)"/>
+  <path d="M0 40 Q18 33 36 37 Q50 40.5 60 37.5 Q72 34 86 37.5 Q104 41 120 36 V80 H0 Z" fill="url(#near)"/>
+  <path d="M0 46 Q30 40 60 42 T120 44 V80 H0 Z" fill="#9cc58a"/>
+  <g fill="#5b3b25">
+    <rect x="47.6" y="40" width="1.8" height="3"/>
+    <rect x="70.6" y="40" width="1.8" height="3"/>
+    <rect x="37.4" y="48" width="3" height="5"/>
+    <rect x="79.6" y="48" width="3" height="5"/>
+  </g>
+  <use href="#half" transform="translate(48.5 41) rotate(-6) scale(0.36)" fill="#86b97c"/>
+  <use href="#half" transform="translate(48.5 41) rotate(-6) scale(-0.36 0.36)" fill="#a3cc96"/>
+  <use href="#half" transform="translate(71.5 41) rotate(6) scale(0.36)" fill="#a3cc96"/>
+  <use href="#half" transform="translate(71.5 41) rotate(6) scale(-0.36 0.36)" fill="#86b97c"/>
+  <use href="#half" transform="translate(39 50) rotate(-10) scale(0.64)" fill="#3f8a55"/>
+  <use href="#half" transform="translate(39 50) rotate(-10) scale(-0.64 0.64)" fill="#5ea86a"/>
+  <use href="#half" transform="translate(81 50) rotate(10) scale(0.64)" fill="#5ea86a"/>
+  <use href="#half" transform="translate(81 50) rotate(10) scale(-0.64 0.64)" fill="#3f8a55"/>
+  <path d="M0 60 Q20 55 40 58 L46 80 H0 Z M120 60 Q100 55 80 58 L74 80 H120 Z" fill="#7fb06e"/>
+  <path d="M32 80 C44 68 54 54 58.8 38 L61.2 38 C66 54 76 68 88 80 Z" fill="url(#trail)"/>
+  <path d="M32 80 C44 68 54 54 58.8 38 M88 80 C76 68 66 54 61.2 38" fill="none" stroke="#7fae6a" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M59.6 43 C58.8 54 54 66 48 80 M60.7 48 C61.6 60 64 70 68 80" fill="none" stroke="#fffbe8" stroke-width="0.9" stroke-linecap="round" opacity="0.8"/>
+  <g fill="#c4a571">
+    <ellipse cx="52" cy="70" rx="1.8" ry="0.9"/>
+    <ellipse cx="66" cy="62" rx="1.4" ry="0.7"/>
+    <ellipse cx="62" cy="75" rx="2" ry="1"/>
+    <ellipse cx="57.6" cy="54" rx="1" ry="0.5"/>
+  </g>
+  <g fill="#5b3b25">
+    <rect x="18" y="66" width="5" height="9" transform="rotate(-16 20.5 70)"/>
+    <rect x="97" y="66" width="5" height="9" transform="rotate(16 99.5 70)"/>
+  </g>
+  <use href="#half" transform="translate(21 70) rotate(-16) scale(1.2)" fill="#245638"/>
+  <use href="#half" transform="translate(21 70) rotate(-16) scale(-1.2 1.2)" fill="#347a4d"/>
+  <use href="#half" transform="translate(99 70) rotate(16) scale(1.2)" fill="#347a4d"/>
+  <use href="#half" transform="translate(99 70) rotate(16) scale(-1.2 1.2)" fill="#245638"/>
+  <path d="M0 73 Q14 69 28 73 L30 80 H0 Z M120 73 Q106 69 92 73 L90 80 H120 Z" fill="#4c8653"/>
+  <path d="M47 15 q2 -2 4 0 q2 -2 4 0 M64 10 q1.6 -1.6 3.2 0 q1.6 -1.6 3.2 0" fill="none" stroke="#7d9a78" stroke-width="0.9" stroke-linecap="round"/>
+  <g fill="#fffbd6">
+    <circle cx="56" cy="64" r="0.8"/>
+    <circle cx="64.6" cy="56" r="0.7"/>
+    <circle cx="49" cy="47" r="0.6"/>
+    <circle cx="71" cy="46" r="0.6"/>
+    <circle cx="44" cy="24" r="0.7"/>
+    <circle cx="77" cy="21" r="0.7"/>
+  </g>
+</svg>

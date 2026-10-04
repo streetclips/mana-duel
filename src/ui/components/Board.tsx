@@ -10,7 +10,7 @@ import {
   type PlayerId,
   type Step,
 } from '../../engine';
-import { cardColorVar, cssVars } from '../cardInfo';
+import { cardColorVar, cssVars, manaFill } from '../cardInfo';
 import type { CardFx, FxView, PlayerFx } from '../fx';
 import type { BarModel, UiButton, UiCommand } from '../model';
 import { fxDelay } from './Card';
@@ -111,12 +111,14 @@ export function Lands({ s, player, cardFx }: { s: GameState; player: PlayerId; c
       {lands.length === 0 && <span class="empty">Sin tierras</span>}
       {lands.map((id) => {
         const def = getCardDef(s.cards[id]?.def ?? '');
+        const mana = def.mana ?? [];
+        const multi = mana.length > 1;
         return (
           <span
             key={id}
-            class={`land-pip${s.cards[id]?.tapped ? ' tapped' : ''}`}
-            style={cssVars({ '--pip': cardColorVar(def) })}
-            data-color={(def.mana ?? []).join('')}
+            class={`land-pip${multi ? ' multi' : ''}${s.cards[id]?.tapped ? ' tapped' : ''}`}
+            style={cssVars(multi ? { '--pip': cardColorVar(def), '--pip-fill': manaFill(mana) } : { '--pip': cardColorVar(def) })}
+            data-color={mana.join('')}
             title={`${def.name}${s.cards[id]?.tapped ? ' (girada)' : ''}`}
             data-testid={`card-${id}`}
             data-card={id}
@@ -125,7 +127,7 @@ export function Lands({ s, player, cardFx }: { s: GameState; player: PlayerId; c
             data-tapped={s.cards[id]?.tapped ? 'true' : 'false'}
             data-fx={cardFx?.get(id)?.kinds.join(' ')}
           >
-            {(def.mana ?? []).join('')}
+            {multi ? '' : mana.join('')}
           </span>
         );
       })}

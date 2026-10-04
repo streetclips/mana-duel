@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c6dfe9"/>
+      <stop offset="1" stop-color="#f5f1dc"/>
+    </linearGradient>
+    <linearGradient id="river" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cfe8f2"/>
+      <stop offset="1" stop-color="#5d9dcb"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="80" fill="url(#sky)"/>
+  <circle cx="92" cy="18" r="12" fill="#fffaf0" opacity="0.7"/>
+  <circle cx="92" cy="18" r="7" fill="#fffdf4"/>
+  <path d="M20 24 q3 -3 6 0 q3 -3 6 0 M31 16 q2 -2 4 0 q2 -2 4 0" fill="none" stroke="#35597a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M0 46 Q20 38 42 43 T84 40 T120 42 V80 H0 Z" fill="#b8d6b0"/>
+  <g fill="#8fbf8a">
+    <circle cx="30" cy="40.5" r="3"/>
+    <circle cx="35" cy="40" r="2.4"/>
+    <circle cx="84" cy="38.5" r="3"/>
+    <circle cx="89" cy="39" r="2.2"/>
+  </g>
+  <ellipse cx="60" cy="45" rx="62" ry="3" fill="#ffffff" opacity="0.6"/>
+  <path d="M0 54 Q24 46 50 51 T120 49 V80 H0 Z" fill="#94c48d"/>
+  <path d="M59.5 45 Q55 47.5 52 50 Q44 53 40 56.5 Q38 60.5 42 62.5 Q48 66.5 54 69 Q57 73 58 80 H82 Q78 71 70 67 Q60 64 54 61.5 Q46 59 48 56 Q51 52.5 56 50.5 Q60 47.5 60.5 45 Z" fill="url(#river)"/>
+  <path d="M50 53 Q46 55 45 57 M60 66 Q66 68 70 72" fill="none" stroke="#ffffff" stroke-width="0.9" stroke-linecap="round" opacity="0.8"/>
+  <g fill="#3b8356">
+    <circle cx="22" cy="49" r="5"/>
+    <circle cx="28" cy="51" r="4"/>
+    <circle cx="96" cy="47" r="4.6"/>
+    <circle cx="102" cy="49" r="3.6"/>
+  </g>
+  <ellipse cx="30" cy="55" rx="30" ry="2.2" fill="#ffffff" opacity="0.5"/>
+  <ellipse cx="94" cy="53" rx="28" ry="2" fill="#ffffff" opacity="0.5"/>
+  <ellipse cx="62" cy="60" rx="40" ry="1.8" fill="#ffffff" opacity="0.35"/>
+  <path d="M0 68 Q20 63 40 66 Q50 67 55 70 V80 H0 Z M120 66 Q100 62 80 66 Q74 68 72 72 V80 H120 Z" fill="#4c8653"/>
+  <g fill="#fdf5df">
+    <circle cx="12" cy="72" r="1"/>
+    <circle cx="26" cy="74" r="0.9"/>
+    <circle cx="96" cy="72" r="1"/>
+    <circle cx="108" cy="75" r="0.9"/>
+  </g>
+  <g fill="#e2b955">
+    <circle cx="18" cy="76" r="0.9"/>
+    <circle cx="102" cy="77" r="0.9"/>
+    <circle cx="36" cy="72" r="0.8"/>
+  </g>
+</svg>

@@ -1,5 +1,6 @@
 import { Fragment, type ComponentChildren, type CSSProperties } from 'preact';
 import {
+  COLORS,
   costSymbols,
   countersLabel,
   getCardDef,
@@ -18,7 +19,7 @@ import {
   type GameState,
   type Keyword,
 } from '../../engine';
-import { abilityHints, cardArtUrl, cardColorVar, cssVars, effectHint, lastingTriggers, manaName, triggerHint } from '../cardInfo';
+import { abilityHints, cardArtUrl, cardColorVar, cssVars, effectHint, landHint, lastingTriggers, manaFill, manaName, triggerHint } from '../cardInfo';
 import type { CardFx, GhostFx } from '../fx';
 import { usePress } from '../useController';
 import { CardIcon } from './KeywordIcon';
@@ -32,6 +33,9 @@ export function CardArt({ defId }: { defId: string }) {
 }
 
 function ManaSymbol({ symbol }: { symbol: string }) {
+  if (symbol === 'any') {
+    return <span class="pip any" style={cssVars({ '--pip': manaFill(COLORS) })} aria-label="cualquier color" />;
+  }
   if (symbol === 'T') {
     return (
       <span class="pip tap" aria-label="girar">
@@ -195,12 +199,16 @@ function AbilityPills({ def, id, usable = [], manaSpent = false }: AbilityPillsP
           </span>{' '}
           <span class="effect">
             +
-            {mana.map((color, index) => (
-              <Fragment key={color}>
-                {index > 0 && '/'}
-                <ManaSymbol symbol={color} />
-              </Fragment>
-            ))}
+            {mana.length === COLORS.length ? (
+              <ManaSymbol symbol="any" />
+            ) : (
+              mana.map((color, index) => (
+                <Fragment key={color}>
+                  {index > 0 && '/'}
+                  <ManaSymbol symbol={color} />
+                </Fragment>
+              ))
+            )}
           </span>
         </span>
       )}
@@ -348,7 +356,7 @@ interface HandCardProps {
 export function MiniFace({ def }: { def: CardDef }) {
   const isCreature = def.types.includes('creature');
   const keywords = isCreature ? (def.keywords ?? []) : [];
-  const text = isCreature ? abilityHints(def.id).join(' · ') : rulesText(def).join(' ');
+  const text = isCreature ? abilityHints(def.id).join(' · ') : (landHint(def) ?? rulesText(def).join(' '));
   return (
     <>
       <CardArt defId={def.id} />

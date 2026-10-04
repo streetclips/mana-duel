@@ -1278,6 +1278,16 @@ button {
   border-color: var(--mana-W-edge);
 }
 
+.land-pip.multi {
+  border-color: transparent;
+  background: var(--pip-fill) border-box;
+}
+
+.land-pip.multi.tapped {
+  -webkit-mask: radial-gradient(circle, transparent 0 4.4px, #000 4.9px);
+  mask: radial-gradient(circle, transparent 0 4.4px, #000 4.9px);
+}
+
 .lands .empty {
   font-size: 11px;
   color: var(--muted);

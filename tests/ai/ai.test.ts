@@ -457,6 +457,56 @@ describe('AI with the Vesperhall, Cindermaw and Deepgrove cards', () => {
   });
 });
 
+describe('AI with the Flamecrest, Wildland and Crossroads cards', () => {
+  it('plays an untapped land when it casts a spell this turn, and a land that enters tapped when it would cast nothing', () => {
+    const now = scenario({
+      activePlayer: 1,
+      players: [{}, { hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'plains', id: 'plains' }, 'sky_messenger'], battlefield: ['island'] }],
+    });
+    expect(chooseAction(now, 1)).toEqual({ type: 'playLand', player: 1, card: 'plains' });
+    const later = scenario({
+      activePlayer: 1,
+      players: [{}, { hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'plains', id: 'plains' }, 'test_giant'], battlefield: ['island'] }],
+    });
+    expect(chooseAction(later, 1)).toEqual({ type: 'playLand', player: 1, card: 'spire' });
+  });
+
+  it('casts Open Path when it holds another land to play, and not otherwise', () => {
+    const withLand = scenario({
+      activePlayer: 1,
+      players: [{}, { hand: [{ card: 'open_path', id: 'path' }, 'forest'], battlefield: ['forest', 'forest'], landsPlayed: 1 }],
+    });
+    expect(chooseAction(withLand, 1)).toEqual({ type: 'cast', player: 1, card: 'path', targets: [] });
+    const withoutLand = scenario({
+      activePlayer: 1,
+      players: [{}, { hand: [{ card: 'open_path', id: 'path' }], battlefield: ['forest', 'forest'], landsPlayed: 1 }],
+    });
+    expect(chooseAction(withoutLand, 1)).toEqual({ type: 'pass', player: 1 });
+  });
+
+  it('casts an instant after blockers so prowess wins the fight', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+        { hand: [{ card: 'palm_strike', id: 'palm' }], battlefield: ['mountain', { card: 'cloister_lancer', id: 'lancer' }] },
+      ],
+    });
+    s = act(passTo(attack(s, ['lancer']), 'declareBlockers'), { type: 'declareBlockers', player: 0, blocks: [{ blocker: 'bear', attacker: 'lancer' }] });
+    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'palm', targets: [{ card: 'lancer' }] });
+  });
+
+  it('sacrifices Tribe Elder for a Forest when it blocks and would die anyway, and keeps it otherwise', () => {
+    const idle = scenario({ activePlayer: 1, players: [{}, { battlefield: [{ card: 'tribe_elder', id: 'elder' }], library: Array.from({ length: 8 }, () => 'forest') }] });
+    expect(chooseAction(idle, 1)).toEqual({ type: 'pass', player: 1 });
+    let s = scenario({
+      players: [{ battlefield: [{ card: 'test_bear', id: 'bear' }] }, { battlefield: [{ card: 'tribe_elder', id: 'elder' }], library: Array.from({ length: 8 }, () => 'forest') }],
+    });
+    s = pass(act(passTo(attack(s, ['bear']), 'declareBlockers'), { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elder', attacker: 'bear' }] }));
+    expect(chooseAction(s, 1)).toEqual({ type: 'activate', player: 1, card: 'elder', ability: 0, targets: [] });
+  });
+});
+
 describe('AI rollouts', () => {
   it('aim a death trigger at the most valuable target it can kill, not at its own controller', () => {
     let s = scenario({
@@ -659,6 +709,9 @@ describe('AI fairness', () => {
       ['brightforge', 'mistgrave'],
       ['mistgrave', 'gloamwood'],
       ['gloamwood', 'brightforge'],
+      ['flamecrest', 'crossroads'],
+      ['wildland', 'stormglass'],
+      ['crossroads', 'wildland'],
     ];
     for (const [seed, [first, second]] of matchups.entries()) {
       let s = createGame({ seed: seed + 1, players: [{ deck: first }, { deck: second }] });

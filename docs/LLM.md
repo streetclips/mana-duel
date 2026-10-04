@@ -44,7 +44,8 @@ first so providers can cache the prefix:
 5. **Estado de la partida desde tu asiento** (game state from your seat): `playerView` as compact JSON. Its hand,
    both battlefields (tapped, sick, damage, combat, pumps and keywords granted `untilEndOfTurn`, `plusOneCounters`,
    `token`), graveyards, untapped mana, life, `damagedThisTurn` for a player dealt damage this turn (what
-   bloodthirst checks), the stack from the top.
+   bloodthirst checks), `extraLandsThisTurn` once an effect lets a player play more lands this turn, the stack from
+   the top.
 6. **Decisión** (decision): the question, the options and how to answer.
 
 Hidden from the model: the opponent's hand (`handSize` only), both libraries (`libraryCards` only), the seed and

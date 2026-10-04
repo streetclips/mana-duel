@@ -2,6 +2,7 @@ import {
   canAttack,
   getCardDef,
   getLegalActions,
+  isLand,
   type Action,
   type CardDef,
   type GameState,
@@ -16,6 +17,7 @@ export { creatureValue, evaluate, lifeScore } from './evaluate';
 export { rollout } from './rollout';
 
 const MIN_GAIN = 0.5;
+const EXTRA_LAND_VALUE = 2;
 
 function hasReadyAttacker(s: GameState, player: PlayerId): boolean {
   return s.players[player].battlefield.some((id) => canAttack(s, id));
@@ -45,6 +47,16 @@ function waitsForCombat(s: GameState, action: Action): boolean {
   return def.types.includes('creature') && !helpsThisCombat(def) && !growsWithNewCreatures(s, action.player);
 }
 
+function extraLandValue(s: GameState, action: Action): number {
+  if (action.type !== 'cast') return 0;
+  const effects = getCardDef(s.cards[action.card]?.def ?? '').spell?.effects ?? [];
+  if (!effects.some((effect) => effect.kind === 'extraLands')) return 0;
+  const ps = s.players[action.player];
+  const lands = ps.hand.filter((id) => id !== action.card && isLand(s, id)).length;
+  const playsLeft = Math.max(0, 1 + ps.extraLandsThisTurn - ps.landsPlayedThisTurn);
+  return lands > playsLeft ? EXTRA_LAND_VALUE : 0;
+}
+
 function choosePriorityAction(s: GameState, player: PlayerId): Action {
   const pass: Action = { type: 'pass', player };
   const legal = getLegalActions(s);
@@ -62,7 +74,7 @@ function choosePriorityAction(s: GameState, player: PlayerId): Action {
   let best: Action = pass;
   let bestValue = actionValue(s, pass, player) + MIN_GAIN;
   for (const action of candidates) {
-    const value = action.type === 'activate' ? repeatedActionValue(s, action, player) : actionValue(s, action, player);
+    const value = action.type === 'activate' ? repeatedActionValue(s, action, player) : actionValue(s, action, player) + extraLandValue(s, action);
     if (value > bestValue) {
       best = action;
       bestValue = value;

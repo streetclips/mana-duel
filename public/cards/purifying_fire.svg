@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.45" r="0.75">
+      <stop offset="0" stop-color="#fff1cf"/>
+      <stop offset="0.5" stop-color="#f4b27c"/>
+      <stop offset="1" stop-color="#a8452f"/>
+    </radialGradient>
+    <path id="f" d="M60 16 C62.5 22.5 67.5 23.5 68.5 30 C71 27.5 72.5 25 71.8 21 C77.5 27.5 78.5 37.5 74.5 44 C71.5 49 66 52 60 52 C54 52 48.5 49 45.5 44 C41.5 37.5 42.5 27.5 48.2 21 C47.5 25 49 27.5 51.5 30 C52.5 23.5 57.5 22.5 60 16 Z"/>
+    <path id="s" d="M0 -3 L0.8 -0.8 L3 0 L0.8 0.8 L0 3 L-0.8 0.8 L-3 0 L-0.8 -0.8 Z"/>
+  </defs>
+  <rect width="120" height="80" fill="url(#bg)"/>
+  <g fill="#fff6dc" opacity="0.35">
+    <polygon points="60,36 57,0 63,0"/>
+    <polygon points="60,36 57,80 63,80"/>
+    <polygon points="60,36 0,33 0,39"/>
+    <polygon points="60,36 120,33 120,39"/>
+    <polygon points="60,36 14,0 22,0"/>
+    <polygon points="60,36 98,0 106,0"/>
+    <polygon points="60,36 14,80 22,80"/>
+    <polygon points="60,36 98,80 106,80"/>
+  </g>
+  <circle cx="60" cy="36" r="28" fill="none" stroke="#fff6dc" stroke-width="0.8" opacity="0.7"/>
+  <circle cx="60" cy="36" r="23" fill="#fff8e4" opacity="0.5"/>
+  <circle cx="60" cy="36" r="23" fill="none" stroke="#f3c35a" stroke-width="3"/>
+  <circle cx="60" cy="36" r="23" fill="none" stroke="#fffaf0" stroke-width="1.2"/>
+  <use href="#f" fill="#d63c2a"/>
+  <use href="#f" fill="#f28a3b" transform="matrix(0.76 0 0 0.76 14.4 12.48)"/>
+  <use href="#f" fill="#fbd46a" transform="matrix(0.52 0 0 0.52 28.8 24.96)"/>
+  <use href="#f" fill="#fffbe8" transform="matrix(0.3 0 0 0.3 42 36.4)"/>
+  <g fill="#e8583a">
+    <path d="M52 17 C51 15.5 51.6 14 52.8 13.2 C52.8 14.4 53.8 15 53.6 16.2 C53.5 17 52.6 17.6 52 17 Z"/>
+    <path d="M68.5 16 C67.6 14.6 68.2 13.2 69.3 12.5 C69.3 13.6 70.2 14.2 70 15.3 C69.9 16 69.1 16.5 68.5 16 Z"/>
+  </g>
+  <g fill="#ffffff">
+    <use href="#s" transform="translate(88 18)"/>
+    <use href="#s" transform="translate(32 52) scale(0.7)"/>
+    <use href="#s" transform="translate(30 20) scale(0.6)"/>
+    <use href="#s" transform="translate(90 52) scale(0.6)"/>
+  </g>
+  <g fill="#e8583a">
+    <circle cx="40" cy="12" r="1"/>
+    <circle cx="82" cy="62" r="1.1"/>
+    <circle cx="96" cy="34" r="0.8"/>
+    <circle cx="24" cy="38" r="0.8"/>
+  </g>
+</svg>

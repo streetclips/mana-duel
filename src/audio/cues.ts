@@ -68,6 +68,7 @@ export function soundsOf(batch: FxBatch, context: SoundContext): SoundEvent[] {
       }),
     );
   };
+  const played = new Set(batch.cues.flatMap((cue) => (cue.kind === 'play' ? [cue.card] : [])));
   let ownDraws = 0;
   let theirDraw = false;
   for (const cue of batch.cues) {
@@ -94,6 +95,7 @@ export function soundsOf(batch: FxBatch, context: SoundContext): SoundEvent[] {
         break;
       case 'enter':
         if (!isLand(s, cue.card)) add('enter', ENTER_AFTER, { pitchStep: 2 });
+        else if (!played.has(cue.card)) add('land', ENTER_AFTER, { color: colorOf(s, cue.card) });
         break;
       case 'attack':
         add('attack', 0, { gain: Math.min(1, 0.7 + 0.1 * attackers) });
