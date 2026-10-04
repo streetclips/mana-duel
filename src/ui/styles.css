@@ -1067,6 +1067,11 @@ button {
 .modes {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.modes .section-label {
+  margin-bottom: 0;
 }
 
 .mode-row {
