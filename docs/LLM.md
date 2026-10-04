@@ -78,15 +78,15 @@ prompts list it under "Tus pensamientos recientes".
 
 ## Keys and models
 
-- In the browser the key is typed on the start screen and kept in `localStorage` (`manaDuel.openrouterKey`); the
+- In the browser the key is typed in the start screen's settings and kept in `localStorage` (`manaDuel.openrouterKey`); the
   browser calls OpenRouter directly.
 - `npm run dev` with `OPENROUTER_API_KEY` set (shell or `.env.local`) serves `/openrouter/v1`, a proxy that adds the
   key on the server (`scripts/openrouterProxy.ts`), so no key is typed, on a phone either. It answers only requests
   whose `Origin` is the dev server itself; anyone on the LAN can still reach it by faking that header. Production
   builds and `vite preview` have no proxy.
 - Any OpenRouter model id with structured outputs works; the default is `DEFAULT_MODEL` in `src/llm/models.ts`, and
-  the start screen suggests the live catalog.
-- **Esfuerzo de razonamiento**, the thinking effort (start screen, `?effort=`, `--effort`, `OPENROUTER_EFFORT`),
+  the settings suggest the live catalog.
+- **Esfuerzo de razonamiento**, the thinking effort (start screen settings, `?effort=`, `--effort`, `OPENROUTER_EFFORT`),
   sends `reasoning.effort`; "El del modelo" sends nothing. With `require_parameters`, a model that does not reason
   gets the same 404, so the default stays off. Measured on `openai/gpt-6-luna`: about 4–9 s a decision by default,
   2–3 s at `low`, which also misjudged a trigger target the default got right. A decision costs about $0.0001–0.0003.

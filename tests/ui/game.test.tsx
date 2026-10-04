@@ -67,7 +67,7 @@ describe('deck selection', () => {
     expect(byTestId('deck-picker').dataset.seat).toBe('0');
     expect(options()).toEqual(['deck-random', ...DECK_LIST.map((deck) => `deck-${deck.id}`)]);
     for (const deck of DECK_LIST) expect(byTestId('deck-picker').textContent).toContain(deck.name);
-    expect(screen.queryByTestId('ai-classic')).toBeNull();
+    expect(screen.queryByTestId('btn-expedition')).toBeNull();
 
     click(byTestId('seat-1'));
     expect(expanded(0)).toBe('false');
@@ -78,7 +78,7 @@ describe('deck selection', () => {
     click(byTestId('seat-1'));
     expect(screen.queryByTestId('deck-picker')).toBeNull();
     expect(expanded(1)).toBe('false');
-    expect(byTestId('ai-classic')).toBeTruthy();
+    expect(byTestId('btn-expedition')).toBeTruthy();
 
     click(byTestId('seat-0'));
     click(byTestId('btn-picker-done'));
@@ -152,10 +152,26 @@ describe('deck selection', () => {
 
   it('shows the LLM on the AI’s seat when it plays', () => {
     setup(undefined, 'start');
+    click(byTestId('btn-settings'));
     click(byTestId('ai-llm'));
+    click(byTestId('btn-settings-close'));
     expect(byTestId('seat-1').getAttribute('aria-label')).toBe('IA · LLM: Aleatorio');
+    click(byTestId('btn-settings'));
     click(byTestId('ai-classic'));
+    click(byTestId('btn-settings-close'));
     expect(byTestId('seat-1').getAttribute('aria-label')).toBe('IA: Aleatorio');
+  });
+
+  it('keeps who plays the AI and how to play in the settings behind the gear', () => {
+    setup(undefined, 'start');
+    expect(screen.queryByTestId('ai-classic')).toBeNull();
+    expect(byTestId('start-screen').textContent).not.toContain('Cómo se juega');
+    click(byTestId('btn-settings'));
+    const settings = byTestId('settings');
+    expect(within(settings).getByTestId('ai-classic').getAttribute('aria-checked')).toBe('true');
+    expect(within(settings).getByRole('heading', { name: 'Cómo se juega' })).toBeTruthy();
+    click(byTestId('btn-settings-close'));
+    expect(screen.queryByTestId('settings')).toBeNull();
   });
 
   it('remembers the choice for the next visit', () => {

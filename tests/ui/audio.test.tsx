@@ -55,8 +55,10 @@ describe('sound settings', () => {
     expect(setup().audio.state()).toMatchObject({ music: { on: false }, sfx: { on: false } });
   });
 
-  it('toggle from the start screen, pressed while on', () => {
+  it('toggle from the settings of the start screen, pressed while on', () => {
     const { audio } = setup('start');
+    expect(screen.queryByTestId('btn-music')).toBeNull();
+    fireEvent.click(byTestId('btn-settings'));
     expect([pressed('btn-music'), pressed('btn-sfx')]).toEqual(['true', 'true']);
     expect(byTestId('btn-music').getAttribute('aria-label')).toBe('Música');
     fireEvent.click(byTestId('btn-music'));
@@ -83,7 +85,10 @@ describe('sound settings', () => {
 
   it('are left out where the game has no audio', () => {
     render(<App controller={new GameController({ seed: 5, aiDelayMs: 0 })} initialScreen="start" />);
+    fireEvent.click(byTestId('btn-settings'));
+    expect(byTestId('settings')).toBeTruthy();
     expect(screen.queryByTestId('btn-music')).toBeNull();
+    fireEvent.click(byTestId('btn-settings-close'));
     fireEvent.click(byTestId('btn-play'));
     fireEvent.click(byTestId('btn-menu'));
     expect(screen.queryByTestId('menu-music')).toBeNull();

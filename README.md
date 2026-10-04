@@ -47,7 +47,7 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   one of the fourteen, with a search, filters by color and type, the mana curve, warnings about lands and colors and
   a button that completes the deck with basic lands. A deck of 40 to 60 cards with up to four copies of each card
   (basic lands aside) appears in both seats' pickers and can start an Expedition.
-- **Quién controla la IA**: *Clásica*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
+- **Quién controla la IA**, in the settings behind the gear of the start screen: *Clásica*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
   and your API key (kept in this browser only). The model picks every move among the legal ones, the log shows its
   reasoning and its next prompts recall it; when it fails to answer, the classic AI moves for it. With
   `OPENROUTER_API_KEY` set in the shell or in `.env.local`, `npm run dev` adds the key on the server and no key needs
@@ -58,7 +58,7 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 - Music and sound effects: each deck plays its own theme, in the colors of its cards, that brings in the drums when
   creatures attack and turns tense at low life; every play, hit, death and turn has its sound, timed with its
   animation, and the game ends on a victory or a defeat. All of it is synthesized with the Web Audio API, starts
-  with your first tap and turns off from the menu or the start screen (`?music=off`, `?sfx=off`). Details in
+  with your first tap and turns off from the menu or the start screen's settings (`?music=off`, `?sfx=off`). Details in
   [`docs/AUDIO.md`](docs/AUDIO.md).
 
 ## What is inside

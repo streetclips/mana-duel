@@ -187,9 +187,10 @@ test('music and sound effects turn off from the menu, stay off after a reload, a
   expect(errors).toEqual([]);
 });
 
-test('the start screen turns music and sound effects off and on', async ({ page }) => {
+test('the settings of the start screen turn music and sound effects off and on', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
+  await page.getByTestId('btn-settings').click();
   const music = page.getByTestId('btn-music');
   const sfx = page.getByTestId('btn-sfx');
   await expect(music).toHaveAttribute('aria-pressed', 'true');

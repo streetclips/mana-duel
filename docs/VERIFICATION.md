@@ -103,7 +103,7 @@ How it works is in `docs/LLM.md`. Everything here runs offline, against mocked m
 | The OpenRouter request: strict `json_schema`, `provider.require_parameters`, the key, a proxy base URL; the catalog of models with structured outputs | `tests/llm/openrouter.test.ts` |
 | Whole games where the model answers anything its schema allows: never an illegal action, sound invariants | `tests/llm/games.test.ts` |
 | Controller: the AI seat decides asynchronously, `settle` stops for it, stale answers are dropped, it is asked wherever it could act but never for a single choice, its reasoning goes to the log and back into its next prompts (fallbacks add none), the classic AI takes over when it is unavailable, replays reproduce its games | `tests/app/llm.test.ts` |
-| Start screen: Classic or LLM, model, thinking effort and key, remembered, catalog suggestions; in game: the LLM tag, the model while it thinks, the unavailable notice and hiding it | `tests/ui/llm.test.tsx` · `e2e/llm.spec.ts` (OpenRouter mocked with `page.route`) |
+| Start screen settings, behind the gear: Classic or LLM, model, thinking effort and key, remembered, catalog suggestions, how to play; what the LLM still lacks, said on the start screen with a way into the settings; in game: the LLM tag, the model while it thinks, the unavailable notice and hiding it | `tests/ui/llm.test.tsx` · `tests/ui/game.test.tsx` › deck selection · `e2e/llm.spec.ts` (OpenRouter mocked with `page.route`) |
 | Dev server proxy: adds the server's key, answers only the game's own origin; the factory sends a typed key to OpenRouter, or goes through the proxy | `tests/proxy.test.ts` · `tests/app/llmFactory.test.ts` |
 | Live: one real decision of each kind, a whole game | `npm run test:live` · `npm run sim -- --p1 llm --model <id> --log 1` (both need `OPENROUTER_API_KEY` and spend credits) |
 
@@ -138,7 +138,7 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 | Engine: no context before a tap; silent where Web Audio is missing or fails; music scheduled ahead of the audio clock, skipping ahead after a stall; a new theme fades the old one out; toggles; suspended while hidden or with everything off; level and volume | `tests/audio/engine.test.ts` |
 | Director: the sounds of each action once, after it; the title theme on the start screen, your deck's theme in a game, the colorless one for a scenario; the opening deal | `tests/audio/director.test.ts` · `tests/ui/audio.test.tsx` › follow the screen |
 | Browser: the first tap starts the music and the output rises above silence; every sound and every theme in every mood renders finite, audible, unclipped and fades out; a hidden page pauses it; no console errors | `e2e/audio.spec.ts` |
-| Settings: the game menu and start-screen toggles, remembered; `?music=on\|off`, `?sfx=on\|off`; none without audio | `tests/ui/audio.test.tsx` · `e2e/audio.spec.ts` › turn off from the menu, the start screen turns music and sound effects off and on |
+| Settings: the game menu and the toggles in the start screen's settings, remembered; `?music=on\|off`, `?sfx=on\|off`; none without audio | `tests/ui/audio.test.tsx` · `e2e/audio.spec.ts` › turn off from the menu, the settings of the start screen turn music and sound effects off and on |
 | Automation: `manaDuel.audio` (`state`, `played`, `level`, `render`, toggles, `unlock`, `sounds`, `themes`) and `html[data-audio]`, `[data-music]`, `[data-mood]` | `tests/audio/api.test.ts` · `e2e/audio.spec.ts` |
 
 ## App and UI

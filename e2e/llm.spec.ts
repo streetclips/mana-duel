@@ -93,6 +93,7 @@ test('an LLM from OpenRouter plays the AI seat, seeing only what the AI may see'
   const errors = collectErrors(page);
   const sent = await mockOpenRouter(page);
   await page.goto('/');
+  await page.getByTestId('btn-settings').click();
   await page.getByTestId('ai-llm').click();
   await expect(page.getByTestId('btn-play')).toBeDisabled();
   await page.getByTestId('llm-model').fill('mock/model');
@@ -100,6 +101,8 @@ test('an LLM from OpenRouter plays the AI seat, seeing only what the AI may see'
   await expect(page.getByTestId('llm-models').locator('option[value="mock/model"]')).toHaveCount(1);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
+  await page.getByTestId('btn-settings-close').click();
+  await expect(page.getByTestId('start-problem')).toHaveCount(0);
   await page.getByTestId('btn-play').click();
   await expect(page.getByTestId('player-tag-1')).toHaveText('LLM');
   expect(await page.evaluate(() => window.manaDuel.opponent())).toEqual({ kind: 'llm', model: 'mock/model' });

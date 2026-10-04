@@ -17,8 +17,9 @@ src/app/     GameController (decks per seat, AI timers, async LLM seat, auto-pas
              games with DuelTracker and save them), your own decks (deckBuilding.ts, DeckLibrary),
              window.manaDuel, feature checks
 src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with a deck box
-             per seat that opens onto the deck picker, deck viewer, the Expedition and Draft screens, your decks
-             and the deck builder; card art from public/cards/; animations of the fx cues (fx.ts, motion.ts)
+             per seat that opens onto the deck picker, a gear for its settings (sound, who plays the AI, how to
+             play), deck viewer, the Expedition and Draft screens, your decks and the deck builder; card art from
+             public/cards/; animations of the fx cues (fx.ts, motion.ts)
 src/audio/   music and sound effects synthesized with Web Audio: a theme per deck whose mood follows the game, a
              sound per fx cue; GameAudio starts on the first tap
 tests/       Vitest: engine, ai, llm, app, ui (happy-dom), audio (fake AudioContext) e2e/  Playwright on the
@@ -85,8 +86,9 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `game-over-title`, `btn-play-again`, `btn-home` (back to the start screen), `btn-view-log`.
   Start screen: `seat-<p>` (a deck box: `data-deck`, `aria-expanded`) opens `deck-picker` (`data-seat`), which holds
   `deck-<deckId|random>` or `opponent-<deckId|random>` radios (`aria-checked`), `deck-detail`, `deck-view-<deckId>` and
-  `btn-picker-done`; each box's `.deck-box[data-open]` tells whether its lid is open. `ai-classic`, `ai-llm`,
-  `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
+  `btn-picker-done`; each box's `.deck-box[data-open]` tells whether its lid is open. `btn-settings` opens `settings`
+  (`btn-settings-close`), with `ai-classic`, `ai-llm`, `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, the sound
+  toggles and how to play; `start-problem` says what the LLM still lacks, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
   `llm-notice` (unavailable, `llm-notice-hide` closes it), `game[data-llm]` (`thinking`, `ready`, `unavailable`). Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),
   `deck-tab-<p>` in game, `mana-curve`, `btn-deck-close`; `menu-decks` opens it in game.
   `menu-autopass` (`aria-checked`) toggles auto-pass. Expedition: `btn-expedition` (start screen) opens `expedition`
@@ -105,7 +107,7 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `btn-builder-back` (`builder-leave` asks first), `builder-count`, `builder-problems`, `builder-tab-deck|pool`,
   `builder-deck-<defId>` and `builder-pool-<defId>` (`data-count`) with `add-<defId>` and `remove-<defId>`,
   `builder-search`, `builder-color-<W|U|B|R|G>`, `builder-kind-<all|creature|spell|land>`, `btn-builder-fill`; the
-  pickers list them after `picker-custom`. Audio: `menu-music`, `menu-sfx` (`aria-checked`), start-screen
+  pickers list them after `picker-custom`. Audio: `menu-music`, `menu-sfx` (`aria-checked`), the settings'
   `btn-music`, `btn-sfx` (`aria-pressed`), and `html[data-audio]` (`none` until the first tap, `running`, `suspended`,
   `unsupported`), `html[data-music]` (theme id or `off`), `html[data-mood]`.
 - Animations (fx): every animated element carries `data-fx` with the cue kinds it plays (`[data-slot="<cardId>"]` on

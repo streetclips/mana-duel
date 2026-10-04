@@ -1,3 +1,5 @@
+import type { ComponentChildren } from 'preact';
+
 export interface AudioToggles {
   music: boolean;
   sfx: boolean;
@@ -31,31 +33,26 @@ export function SoundIcon({ off = false }: { off?: boolean }) {
   );
 }
 
+function SoundRow({ testId, label, on, icon, onToggle }: { testId: string; label: string; on: boolean; icon: ComponentChildren; onToggle: () => void }) {
+  return (
+    <button type="button" class="setting-row" aria-pressed={on} aria-label={label} data-testid={testId} onClick={onToggle}>
+      <span class="mode-icon">{icon}</span>
+      <span class="mode-text">
+        <b>{label}</b>
+      </span>
+      <span class="switch" aria-hidden="true" />
+    </button>
+  );
+}
+
 export function SoundToggles({ audio }: { audio: AudioToggles }) {
   return (
-    <div class="sound-toggles" role="group" aria-label="Sonido">
-      <button
-        type="button"
-        class="icon-btn sound-toggle"
-        aria-pressed={audio.music}
-        aria-label="Música"
-        title={audio.music ? 'Música activada' : 'Música desactivada'}
-        data-testid="btn-music"
-        onClick={audio.onToggleMusic}
-      >
-        <MusicIcon off={!audio.music} />
-      </button>
-      <button
-        type="button"
-        class="icon-btn sound-toggle"
-        aria-pressed={audio.sfx}
-        aria-label="Efectos de sonido"
-        title={audio.sfx ? 'Efectos de sonido activados' : 'Efectos de sonido desactivados'}
-        data-testid="btn-sfx"
-        onClick={audio.onToggleSfx}
-      >
-        <SoundIcon off={!audio.sfx} />
-      </button>
-    </div>
+    <section class="setting-rows" aria-labelledby="sound-label">
+      <h2 id="sound-label" class="section-label">
+        Sonido
+      </h2>
+      <SoundRow testId="btn-music" label="Música" on={audio.music} icon={<MusicIcon off={!audio.music} />} onToggle={audio.onToggleMusic} />
+      <SoundRow testId="btn-sfx" label="Efectos de sonido" on={audio.sfx} icon={<SoundIcon off={!audio.sfx} />} onToggle={audio.onToggleSfx} />
+    </section>
   );
 }

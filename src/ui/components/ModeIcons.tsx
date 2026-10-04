@@ -56,6 +56,15 @@ export function BackIcon() {
   );
 }
 
+export function GearIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true">
+      <path d="M7.47 3.3 L7.66 1.42 A7.7 7.7 0 0 1 10.34 1.42 L10.53 3.3 A5.9 5.9 0 0 1 11.95 3.89 L13.42 2.69 A7.7 7.7 0 0 1 15.31 4.58 L14.11 6.05 A5.9 5.9 0 0 1 14.7 7.47 L16.58 7.66 A7.7 7.7 0 0 1 16.58 10.34 L14.7 10.53 A5.9 5.9 0 0 1 14.11 11.95 L15.31 13.42 A7.7 7.7 0 0 1 13.42 15.31 L11.95 14.11 A5.9 5.9 0 0 1 10.53 14.7 L10.34 16.58 A7.7 7.7 0 0 1 7.66 16.58 L7.47 14.7 A5.9 5.9 0 0 1 6.05 14.11 L4.58 15.31 A7.7 7.7 0 0 1 2.69 13.42 L3.89 11.95 A5.9 5.9 0 0 1 3.3 10.53 L1.42 10.34 A7.7 7.7 0 0 1 1.42 7.66 L3.3 7.47 A5.9 5.9 0 0 1 3.89 6.05 L2.69 4.58 A7.7 7.7 0 0 1 4.58 2.69 L6.05 3.89 A5.9 5.9 0 0 1 7.47 3.3 Z" />
+      <circle cx="9" cy="9" r="2.4" />
+    </svg>
+  );
+}
+
 export function CheckIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">

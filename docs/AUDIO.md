@@ -111,8 +111,8 @@ read on phone speakers.
 - `<html>` mirrors the state for assertions that wait: `data-audio` (`none`, `running`, `suspended`, `closed`,
   `interrupted`, `unsupported`), `data-music` (the theme id, or `off`), `data-mood`.
 - `?music=on|off` and `?sfx=on|off` override the choice saved by the toggles (`manaDuel.audio` in `localStorage`):
-  `menu-music` and `menu-sfx` (`aria-checked`) in the game menu, `btn-music` and `btn-sfx` (`aria-pressed`) on the start
-  screen.
+  `menu-music` and `menu-sfx` (`aria-checked`) in the game menu, `btn-music` and `btn-sfx` (`aria-pressed`) in the
+  settings of the start screen, behind its gear.
 - Unit tests run against `tests/audio/fakeAudio.ts`, a strict fake `AudioContext` that throws where the real one does
   (non-finite values, exponential ramps to zero, a source started twice). `e2e/audio.spec.ts` plays in Chromium and
   renders every sound and every theme in every mood offline: each must be finite, audible, under full scale and fade

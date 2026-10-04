@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/preact';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/preact';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { chooseAction } from '../../src/ai';
 import { GameController } from '../../src/app/controller';
@@ -29,6 +29,12 @@ function setup({ proxy = false, loadModels, llm = new ScriptedLlm(DEFAULT_MODEL,
 }
 
 const byTestId = (id: string): HTMLElement => screen.getByTestId(id);
+const openSettings = (): void => {
+  fireEvent.click(byTestId('btn-settings'));
+};
+const closeSettings = (): void => {
+  fireEvent.click(byTestId('btn-settings-close'));
+};
 const checked = (id: string): string | null => byTestId(id).getAttribute('aria-checked');
 const type = (id: string, value: string): void => {
   fireEvent.input(byTestId(id), { target: { value } });
@@ -44,6 +50,7 @@ async function settled(controller: GameController): Promise<void> {
 describe('choosing who plays the AI', () => {
   it('is the classic AI unless the LLM is picked, which needs a model and a key', () => {
     const { controller, factory } = setup();
+    openSettings();
     expect(checked('ai-classic')).toBe('true');
     expect(screen.queryByTestId('llm-model')).toBeNull();
     fireEvent.click(byTestId('ai-llm'));
@@ -55,6 +62,7 @@ describe('choosing who plays the AI', () => {
     type('llm-key', 'sk-or-test');
     expect(localStorage.getItem('manaDuel.openrouterKey')).toBe('sk-or-test');
     expect((byTestId('btn-play') as HTMLButtonElement).disabled).toBe(false);
+    closeSettings();
     fireEvent.click(byTestId('btn-play'));
     expect(controller.opponent).toEqual({ kind: 'llm', model: DEFAULT_MODEL });
     expect(factory).toHaveBeenCalledWith({ kind: 'llm', model: DEFAULT_MODEL });
@@ -65,10 +73,12 @@ describe('choosing who plays the AI', () => {
 
   it('passes the chosen thinking effort to the LLM setup', () => {
     const { controller, factory } = setup({ proxy: true });
+    openSettings();
     fireEvent.click(byTestId('ai-llm'));
     expect((byTestId('llm-effort') as HTMLSelectElement).value).toBe('default');
     fireEvent.change(byTestId('llm-effort'), { target: { value: 'low' } });
     expect(JSON.parse(localStorage.getItem('manaDuel.opponent') ?? 'null')).toEqual({ kind: 'llm', model: DEFAULT_MODEL, effort: 'low' });
+    closeSettings();
     fireEvent.click(byTestId('btn-play'));
     expect(controller.opponent).toEqual({ kind: 'llm', model: DEFAULT_MODEL, effort: 'low' });
     expect(factory).toHaveBeenCalledWith({ kind: 'llm', model: DEFAULT_MODEL, effort: 'low' });
@@ -77,6 +87,7 @@ describe('choosing who plays the AI', () => {
 
   it('checks the model id', () => {
     setup();
+    openSettings();
     fireEvent.click(byTestId('ai-llm'));
     type('llm-key', 'sk-or-test');
     type('llm-model', 'gpt');
@@ -88,6 +99,7 @@ describe('choosing who plays the AI', () => {
 
   it('needs no key when the dev server proxies OpenRouter', () => {
     setup({ proxy: true });
+    openSettings();
     fireEvent.click(byTestId('ai-llm'));
     expect((byTestId('btn-play') as HTMLButtonElement).disabled).toBe(false);
     expect(byTestId('llm-hint').textContent).toContain('El servidor de desarrollo añade su propia OPENROUTER_API_KEY');
@@ -95,10 +107,12 @@ describe('choosing who plays the AI', () => {
 
   it('remembers the choice for the next visit', () => {
     const { view } = setup();
+    openSettings();
     fireEvent.click(byTestId('ai-llm'));
     type('llm-model', 'deepseek/deepseek-v4.1-flash');
     view.unmount();
     setup();
+    openSettings();
     expect(checked('ai-llm')).toBe('true');
     expect((byTestId('llm-model') as HTMLInputElement).value).toBe('deepseek/deepseek-v4.1-flash');
   });
@@ -107,6 +121,7 @@ describe('choosing who plays the AI', () => {
     const loadModels = vi.fn(async () => [{ id: 'zeta/model', name: 'Zeta', promptPrice: 0.1, completionPrice: 0.2 }]);
     setup({ loadModels });
     expect(loadModels).not.toHaveBeenCalled();
+    openSettings();
     fireEvent.click(byTestId('ai-llm'));
     const options = (): (string | null)[] => [...byTestId('llm-models').querySelectorAll('option')].map((option) => option.getAttribute('value'));
     await vi.waitFor(() => expect(options()).toContain('zeta/model'));
@@ -115,10 +130,29 @@ describe('choosing who plays the AI', () => {
   });
 });
 
+describe('the start screen with an LLM that lacks its setup', () => {
+  it('says what is missing and opens the settings to fix it', () => {
+    setup();
+    expect(screen.queryByTestId('start-problem')).toBeNull();
+    openSettings();
+    fireEvent.click(byTestId('ai-llm'));
+    closeSettings();
+    expect(byTestId('start-problem').textContent).toContain('Escribe tu clave de API de OpenRouter.');
+    expect((byTestId('btn-play') as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(within(byTestId('start-problem')).getByRole('button', { name: 'Abrir los ajustes' }));
+    type('llm-key', 'sk-or-test');
+    closeSettings();
+    expect(screen.queryByTestId('start-problem')).toBeNull();
+    expect((byTestId('btn-play') as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
 describe('a game against the LLM', () => {
   function startLlmGame(llm: ScriptedLlm) {
     const context = setup({ llm, proxy: true });
+    openSettings();
     fireEvent.click(byTestId('ai-llm'));
+    closeSettings();
     fireEvent.click(byTestId('btn-play'));
     act(() => context.controller.newGame({ seed: 5, startingPlayer: 0 }));
     return context;
