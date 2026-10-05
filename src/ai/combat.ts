@@ -17,6 +17,11 @@ const MIN_GAIN = 0.01;
 const MAX_ENUMERATED_ATTACKERS = 5;
 const LIFE_CUSHION = 1000;
 
+interface Candidate {
+  attacker: CardId;
+  next: Block[];
+}
+
 interface Outcome {
   damage: number;
   value: number;
@@ -27,13 +32,20 @@ interface Defense extends Outcome {
   flexibility: number;
 }
 
-interface Attempt {
+interface Plan {
   blocks: Block[];
+  score: number;
+}
+
+interface Attempt extends Plan {
   damage: number;
-  survives: boolean;
 }
 
 type Preference = (a: Defense, b: Defense) => boolean;
+
+function loses(score: number): boolean {
+  return score <= -WIN_SCORE / 2;
+}
 
 function signature(s: GameState, id: CardId): string {
   const card = s.cards[id];
@@ -48,6 +60,10 @@ function signature(s: GameState, id: CardId): string {
 function blockedSignature(s: GameState, blocks: Block[], attacker: CardId): string {
   const blockers = blocks.filter((block) => block.attacker === attacker).map((block) => signature(s, block.blocker));
   return `${signature(s, attacker)}[${blockers.sort().join('+')}]`;
+}
+
+function gainKey(s: GameState, blocks: Block[], candidate: Candidate): string {
+  return `${blockedSignature(s, blocks, candidate.attacker)}>${blockedSignature(s, candidate.next, candidate.attacker)}`;
 }
 
 function blockScore(s: GameState, player: PlayerId, blocks: Block[]): number {
@@ -72,23 +88,42 @@ function completeBlock(
   return null;
 }
 
-function emergencyBlocks(s: GameState, player: PlayerId, options: Record<CardId, CardId[]>): Block[] {
+function blockCandidates(s: GameState, blocks: Block[], options: Record<CardId, CardId[]>): Candidate[] {
+  const used = new Set(blocks.map((block) => block.blocker));
+  const tried = new Set<string>();
+  const candidates: Candidate[] = [];
+  for (const blocker of Object.keys(options)) {
+    if (used.has(blocker)) continue;
+    for (const attacker of options[blocker] ?? []) {
+      const key = `${signature(s, blocker)}>${blockedSignature(s, blocks, attacker)}`;
+      if (tried.has(key)) continue;
+      tried.add(key);
+      const next = completeBlock(s, blocks, { blocker, attacker }, options, used);
+      if (next) candidates.push({ attacker, next });
+    }
+  }
+  return candidates;
+}
+
+function cheapestChumps(s: GameState, player: PlayerId, options: Record<CardId, CardId[]>): Plan {
   const attackers = [...(s.combat?.attackers ?? [])].sort((a, b) => getPower(s, b) - getPower(s, a));
   const blockers = Object.keys(options).sort((a, b) => creatureValue(s, a) - creatureValue(s, b));
   let blocks: Block[] = [];
+  let score = blockScore(s, player, blocks);
   const used = new Set<CardId>();
   for (const attacker of attackers) {
-    if (blockScore(s, player, blocks) > -WIN_SCORE / 2) break;
+    if (!loses(score)) break;
     for (const blocker of blockers) {
       if (used.has(blocker) || !options[blocker]?.includes(attacker)) continue;
       const next = completeBlock(s, blocks, { blocker, attacker }, options, used);
       if (!next) continue;
       for (const block of next) used.add(block.blocker);
       blocks = next;
+      score = blockScore(s, player, blocks);
       break;
     }
   }
-  return blocks;
+  return { blocks, score };
 }
 
 function cushioned(s: GameState, player: PlayerId): GameState {
@@ -99,11 +134,7 @@ function cushioned(s: GameState, player: PlayerId): GameState {
 
 function outcomeOf(cushion: GameState, player: PlayerId, blocks: Block[]): Outcome {
   const after = rollout(applyAction(cushion, { type: 'declareBlockers', player, blocks }), 1);
-  const won = after.pending?.kind === 'gameOver' && after.pending.winner === player;
-  return {
-    damage: won ? Number.NEGATIVE_INFINITY : cushion.players[player].life - after.players[player].life,
-    value: evaluate(after, player),
-  };
+  return { damage: cushion.players[player].life - after.players[player].life, value: evaluate(after, player) };
 }
 
 function keepsMoreValue(a: Defense, b: Defense): boolean {
@@ -127,47 +158,37 @@ function lowerDamage(
   let blocks: Block[] = [];
   let outcome = outcomeOf(cushion, player, blocks);
   for (;;) {
-    if (outcome.damage < life && blockScore(s, player, blocks) > -WIN_SCORE / 2) return { blocks, damage: outcome.damage, survives: true };
-    const used = new Set(blocks.map((block) => block.blocker));
-    const tried = new Set<string>();
+    const score = outcome.damage < life ? blockScore(s, player, blocks) : Number.NEGATIVE_INFINITY;
+    if (!loses(score)) return { blocks, damage: outcome.damage, score };
     let best: Defense | null = null;
-    for (const blocker of Object.keys(options)) {
-      if (used.has(blocker)) continue;
-      for (const attacker of options[blocker] ?? []) {
-        const key = `${signature(s, blocker)}>${blockedSignature(s, blocks, attacker)}`;
-        if (tried.has(key)) continue;
-        tried.add(key);
-        const next = completeBlock(s, blocks, { blocker, attacker }, options, used);
-        if (!next) continue;
-        let gain = gains.get(key);
-        if (!gain) {
-          const after = outcomeOf(cushion, player, next);
-          gain = { damage: outcome.damage - after.damage, value: after.value - outcome.value };
-          gains.set(key, gain);
-        }
-        const flexibility = next.slice(blocks.length).reduce((sum, block) => sum + (options[block.blocker]?.length ?? 0), 0);
-        const candidate = { blocks: next, damage: outcome.damage - gain.damage, value: outcome.value + gain.value, flexibility };
-        if (!best || prefer(candidate, best)) best = candidate;
+    for (const candidate of blockCandidates(s, blocks, options)) {
+      const key = gainKey(s, blocks, candidate);
+      let gain = gains.get(key);
+      if (!gain) {
+        const after = outcomeOf(cushion, player, candidate.next);
+        gain = { damage: outcome.damage - after.damage, value: after.value - outcome.value };
+        gains.set(key, gain);
       }
+      const flexibility = candidate.next.slice(blocks.length).reduce((sum, block) => sum + (options[block.blocker]?.length ?? 0), 0);
+      const defense = { blocks: candidate.next, damage: outcome.damage - gain.damage, value: outcome.value + gain.value, flexibility };
+      if (!best || prefer(defense, best)) best = defense;
     }
-    if (!best || best.damage >= outcome.damage) return { blocks, damage: outcome.damage, survives: false };
+    if (!best || best.damage >= outcome.damage) return { blocks, damage: outcome.damage, score };
     blocks = best.blocks;
     outcome = outcomeOf(cushion, player, blocks);
   }
 }
 
-function leastDamageBlocks(s: GameState, player: PlayerId, options: Record<CardId, CardId[]>): Block[] {
+function blocksAgainstLethal(s: GameState, player: PlayerId, options: Record<CardId, CardId[]>): Plan {
+  const chumps = cheapestChumps(s, player, options);
+  if (!loses(chumps.score)) return chumps;
   const cushion = cushioned(s, player);
   const gains = new Map<string, Outcome>();
+  const byValue = lowerDamage(s, player, options, cushion, gains, keepsMoreValue);
   const flexibilities = new Set(Object.values(options).map((attackers) => attackers.length));
-  const preferences = flexibilities.size > 1 ? [keepsMoreValue, sparesFlexibleBlockers] : [keepsMoreValue];
-  let fallback: Attempt | null = null;
-  for (const prefer of preferences) {
-    const attempt = lowerDamage(s, player, options, cushion, gains, prefer);
-    if (attempt.survives) return attempt.blocks;
-    if (!fallback || attempt.damage < fallback.damage) fallback = attempt;
-  }
-  return fallback?.blocks ?? [];
+  if (!loses(byValue.score) || flexibilities.size <= 1) return byValue;
+  const byReach = lowerDamage(s, player, options, cushion, gains, sparesFlexibleBlockers);
+  return !loses(byReach.score) || byReach.damage < byValue.damage ? byReach : byValue;
 }
 
 export function chooseBlocks(s: GameState, player: PlayerId): Block[] {
@@ -177,34 +198,21 @@ export function chooseBlocks(s: GameState, player: PlayerId): Block[] {
 
   let blocks: Block[] = [];
   let current = blockScore(s, player, blocks);
-  if (current <= -WIN_SCORE / 2) {
-    blocks = emergencyBlocks(s, player, options);
-    current = blockScore(s, player, blocks);
-    if (current <= -WIN_SCORE / 2) {
-      blocks = leastDamageBlocks(s, player, options);
-      current = blockScore(s, player, blocks);
-    }
-    if (current <= -WIN_SCORE / 2) return blocks;
+  if (loses(current)) {
+    const plan = blocksAgainstLethal(s, player, options);
+    if (loses(plan.score)) return plan.blocks;
+    blocks = plan.blocks;
+    current = plan.score;
   }
 
   for (let round = 0; round < blockers.length; round++) {
-    const used = new Set(blocks.map((block) => block.blocker));
-    const tried = new Set<string>();
     let bestBlocks: Block[] | null = null;
     let bestValue = current + MIN_GAIN;
-    for (const blocker of blockers) {
-      if (used.has(blocker)) continue;
-      for (const attacker of options[blocker] ?? []) {
-        const key = `${signature(s, blocker)}>${blockedSignature(s, blocks, attacker)}`;
-        if (tried.has(key)) continue;
-        tried.add(key);
-        const candidate = completeBlock(s, blocks, { blocker, attacker }, options, used);
-        if (!candidate) continue;
-        const value = blockScore(s, player, candidate);
-        if (value > bestValue) {
-          bestValue = value;
-          bestBlocks = candidate;
-        }
+    for (const candidate of blockCandidates(s, blocks, options)) {
+      const value = blockScore(s, player, candidate.next);
+      if (value > bestValue) {
+        bestValue = value;
+        bestBlocks = candidate.next;
       }
     }
     if (!bestBlocks) break;

@@ -366,7 +366,8 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
     const blocking = passTo(act(s, action), 'declareBlockers');
     const soldiers = blocking.players[1].battlefield.filter((id) => blocking.cards[id]?.def === 'soldier_token');
     const blocks = chooseBlocks(blocking, 1);
-    expect(blocks.map((b) => `${b.blocker}>${b.attacker}`).sort()).toEqual(soldiers.map((id) => `${id}>rhino`).sort());
+    expect(blocks.map((chump) => chump.blocker).sort()).toEqual([...soldiers].sort());
+    expect(new Set(blocks.map((chump) => chump.attacker))).toEqual(new Set(['rhino']));
     expect(life(finishCombat(block(blocking, blocks)), 1)).toBe(1);
   });
 
@@ -638,7 +639,7 @@ describe('AI combat', () => {
     s = passTo(attack(s, ['g1', 'g2']), 'declareBlockers');
     const blocks = chooseBlocks(s, 1);
     expect(blocks).toHaveLength(2);
-    expect(new Set(blocks.map((block) => block.attacker))).toEqual(new Set(['g1', 'g2']));
+    expect(new Set(blocks.map((chump) => chump.attacker))).toEqual(new Set(['g1', 'g2']));
   });
 
   it('chumps with its cheapest creature when that is enough, and keeps the better one for another block', () => {
@@ -692,6 +693,32 @@ describe('AI combat', () => {
     });
     s = passTo(attack(s, ['r1', 'r2']), 'declareBlockers');
     expect(chooseBlocks(s, 1)).toHaveLength(2);
+  });
+
+  it('blocks to survive the combat damage even when any dying blocker would drain the attacker out', () => {
+    let s = scenario({
+      players: [
+        { life: 1, battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'bramble_warden', id: 'warden' }] },
+        { life: 5, relics: ['urn'], battlefield: [{ card: 'soldier_token', id: 's1' }] },
+      ],
+    });
+    s = passTo(attack(s, ['rhino', 'warden']), 'declareBlockers');
+    const blocks = chooseBlocks(s, 1);
+    expect(blocks).toEqual([{ blocker: 's1', attacker: 'warden' }]);
+    expect(passTo(block(s, blocks), 'gameOver').pending).toMatchObject({ kind: 'gameOver', winner: 1 });
+  });
+
+  it('stacks chump blockers on a trampler even when one dying would drain the attacker out', () => {
+    let s = scenario({
+      players: [
+        { life: 1, battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'bramble_warden', id: 'warden' }] },
+        { life: 3, relics: ['urn'], battlefield: ['s1', 's2', 's3'].map((id) => ({ card: 'soldier_token', id })) },
+      ],
+    });
+    s = passTo(attack(s, ['rhino', 'warden']), 'declareBlockers');
+    const blocks = chooseBlocks(s, 1);
+    expect(blocks.map((chump) => chump.attacker).sort()).toEqual(['rhino', 'rhino', 'warden']);
+    expect(passTo(block(s, blocks), 'gameOver').pending).toMatchObject({ kind: 'gameOver', winner: 1 });
   });
 });
 

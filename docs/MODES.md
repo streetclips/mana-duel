@@ -65,13 +65,13 @@ player can answer them with the cards and relics of the run.
 | Relic | Id | Effect | Kind | Holders | Strength |
 | --- | --- | --- | --- | --- | --- |
 | Amuleto de vigor | `vigor` | 6 more life | start | you, rivals | 9.7 |
-| Ojo del augur | `foresight` | an opening hand of one more card (a mulligan draws that many too) | start | you, rivals | 7.6 |
+| Ojo del augur | `foresight` | an opening hand of one more card (a mulligan draws that many too) | start | you, rivals | 7.5 |
 | Estandarte del alba | `banner` | a 1/1 white Soldier token on the battlefield from the start | start | you, rivals | 14.5 |
 | Mapa del cartógrafo | `cartographer` | one more copy of the deck's most common land on the battlefield from the start, and one card fewer in the opening hand | start | you, rivals | 7.0 |
-| Reloj de arena | `hourglass` | you start every duel, and draw on your first turn too | start | you | 13.7 |
+| Reloj de arena | `hourglass` | you start every duel, and draw on your first turn too | start | you | 13.6 |
 | Máscara del silencio | `mask` | the other player's opening hand has one card fewer | start | you, rivals | 12.9 |
 | Incensario de esporas | `censer` | a 1/1 green Saproling for each instant or sorcery you cast | in play | you, rivals | 12.9 |
-| Urna de almas | `urn` | each opponent loses 1 life whenever a creature you control dies | in play | you, rivals | 10.8 |
+| Urna de almas | `urn` | each opponent loses 1 life whenever a creature you control dies | in play | you, rivals | 11.0 |
 | Tambor de guerra | `drum` | landfall: creatures you control get +1/+0 until end of turn | in play | you, rivals | 13.2 |
 | Cáliz del peregrino | `chalice` | 1 life whenever a creature enters under your control | in play | you, rivals | 11.3 |
 | Libro de horas | `tome` | at the beginning of your upkeep, a card if your hand is empty | in play | you, rivals | 7.9 |
