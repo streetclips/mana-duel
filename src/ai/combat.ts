@@ -2,6 +2,7 @@ import {
   applyAction,
   blockOptions,
   blocksError,
+  cloneState,
   eligibleAttackers,
   getPower,
   type Block,
@@ -14,6 +15,25 @@ import { rollout } from './rollout';
 
 const MIN_GAIN = 0.01;
 const MAX_ENUMERATED_ATTACKERS = 5;
+const LIFE_CUSHION = 1000;
+
+interface Outcome {
+  damage: number;
+  value: number;
+}
+
+interface Defense extends Outcome {
+  blocks: Block[];
+  flexibility: number;
+}
+
+interface Attempt {
+  blocks: Block[];
+  damage: number;
+  survives: boolean;
+}
+
+type Preference = (a: Defense, b: Defense) => boolean;
 
 function signature(s: GameState, id: CardId): string {
   const card = s.cards[id];
@@ -71,6 +91,85 @@ function emergencyBlocks(s: GameState, player: PlayerId, options: Record<CardId,
   return blocks;
 }
 
+function cushioned(s: GameState, player: PlayerId): GameState {
+  const t = cloneState(s);
+  t.players[player].life += LIFE_CUSHION;
+  return t;
+}
+
+function outcomeOf(cushion: GameState, player: PlayerId, blocks: Block[]): Outcome {
+  const after = rollout(applyAction(cushion, { type: 'declareBlockers', player, blocks }), 1);
+  const won = after.pending?.kind === 'gameOver' && after.pending.winner === player;
+  return {
+    damage: won ? Number.NEGATIVE_INFINITY : cushion.players[player].life - after.players[player].life,
+    value: evaluate(after, player),
+  };
+}
+
+function keepsMoreValue(a: Defense, b: Defense): boolean {
+  return a.damage !== b.damage ? a.damage < b.damage : a.value > b.value;
+}
+
+function sparesFlexibleBlockers(a: Defense, b: Defense): boolean {
+  if (a.damage !== b.damage) return a.damage < b.damage;
+  return a.flexibility !== b.flexibility ? a.flexibility < b.flexibility : a.value > b.value;
+}
+
+function lowerDamage(
+  s: GameState,
+  player: PlayerId,
+  options: Record<CardId, CardId[]>,
+  cushion: GameState,
+  gains: Map<string, Outcome>,
+  prefer: Preference,
+): Attempt {
+  const life = s.players[player].life;
+  let blocks: Block[] = [];
+  let outcome = outcomeOf(cushion, player, blocks);
+  for (;;) {
+    if (outcome.damage < life && blockScore(s, player, blocks) > -WIN_SCORE / 2) return { blocks, damage: outcome.damage, survives: true };
+    const used = new Set(blocks.map((block) => block.blocker));
+    const tried = new Set<string>();
+    let best: Defense | null = null;
+    for (const blocker of Object.keys(options)) {
+      if (used.has(blocker)) continue;
+      for (const attacker of options[blocker] ?? []) {
+        const key = `${signature(s, blocker)}>${blockedSignature(s, blocks, attacker)}`;
+        if (tried.has(key)) continue;
+        tried.add(key);
+        const next = completeBlock(s, blocks, { blocker, attacker }, options, used);
+        if (!next) continue;
+        let gain = gains.get(key);
+        if (!gain) {
+          const after = outcomeOf(cushion, player, next);
+          gain = { damage: outcome.damage - after.damage, value: after.value - outcome.value };
+          gains.set(key, gain);
+        }
+        const flexibility = next.slice(blocks.length).reduce((sum, block) => sum + (options[block.blocker]?.length ?? 0), 0);
+        const candidate = { blocks: next, damage: outcome.damage - gain.damage, value: outcome.value + gain.value, flexibility };
+        if (!best || prefer(candidate, best)) best = candidate;
+      }
+    }
+    if (!best || best.damage >= outcome.damage) return { blocks, damage: outcome.damage, survives: false };
+    blocks = best.blocks;
+    outcome = outcomeOf(cushion, player, blocks);
+  }
+}
+
+function leastDamageBlocks(s: GameState, player: PlayerId, options: Record<CardId, CardId[]>): Block[] {
+  const cushion = cushioned(s, player);
+  const gains = new Map<string, Outcome>();
+  const flexibilities = new Set(Object.values(options).map((attackers) => attackers.length));
+  const preferences = flexibilities.size > 1 ? [keepsMoreValue, sparesFlexibleBlockers] : [keepsMoreValue];
+  let fallback: Attempt | null = null;
+  for (const prefer of preferences) {
+    const attempt = lowerDamage(s, player, options, cushion, gains, prefer);
+    if (attempt.survives) return attempt.blocks;
+    if (!fallback || attempt.damage < fallback.damage) fallback = attempt;
+  }
+  return fallback?.blocks ?? [];
+}
+
 export function chooseBlocks(s: GameState, player: PlayerId): Block[] {
   const options = blockOptions(s);
   const blockers = Object.keys(options);
@@ -79,12 +178,13 @@ export function chooseBlocks(s: GameState, player: PlayerId): Block[] {
   let blocks: Block[] = [];
   let current = blockScore(s, player, blocks);
   if (current <= -WIN_SCORE / 2) {
-    const emergency = emergencyBlocks(s, player, options);
-    const emergencyScore = blockScore(s, player, emergency);
-    if (emergencyScore > current) {
-      blocks = emergency;
-      current = emergencyScore;
+    blocks = emergencyBlocks(s, player, options);
+    current = blockScore(s, player, blocks);
+    if (current <= -WIN_SCORE / 2) {
+      blocks = leastDamageBlocks(s, player, options);
+      current = blockScore(s, player, blocks);
     }
+    if (current <= -WIN_SCORE / 2) return blocks;
   }
 
   for (let round = 0; round < blockers.length; round++) {

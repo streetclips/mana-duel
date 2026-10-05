@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { chooseAction, chooseAttackers, chooseBlocks, rollout } from '../../src/ai';
 import { DECK_LIST, applyAction, createGame, getLegalActions, type Action } from '../../src/engine';
-import { act, attack, cast, lcg, pass, passTo, scenario, scrambleHiddenInformation } from '../helpers';
+import { act, attack, block, cast, finishCombat, lcg, life, pass, passTo, scenario, scrambleHiddenInformation } from '../helpers';
 
 describe('AI main-phase decisions', () => {
   it('plays a land first', () => {
@@ -348,7 +348,7 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
     expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'sergeant', targets: [] });
   });
 
-  it('makes blockers with Raise the Banners when an attack would be lethal', () => {
+  it('makes blockers with Raise the Banners when an attack would be lethal, and blocks the trampler with both', () => {
     const s = pass(
       attack(
         scenario({
@@ -360,7 +360,14 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
         ['rhino'],
       ),
     );
-    expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'banners', targets: [] });
+    const action = chooseAction(s, 1);
+    expect(action).toEqual({ type: 'cast', player: 1, card: 'banners', targets: [] });
+
+    const blocking = passTo(act(s, action), 'declareBlockers');
+    const soldiers = blocking.players[1].battlefield.filter((id) => blocking.cards[id]?.def === 'soldier_token');
+    const blocks = chooseBlocks(blocking, 1);
+    expect(blocks.map((b) => `${b.blocker}>${b.attacker}`).sort()).toEqual(soldiers.map((id) => `${id}>rhino`).sort());
+    expect(life(finishCombat(block(blocking, blocks)), 1)).toBe(1);
   });
 
   it('casts Rob the Mind while the opponent holds cards, not into an empty hand', () => {
@@ -632,6 +639,59 @@ describe('AI combat', () => {
     const blocks = chooseBlocks(s, 1);
     expect(blocks).toHaveLength(2);
     expect(new Set(blocks.map((block) => block.attacker))).toEqual(new Set(['g1', 'g2']));
+  });
+
+  it('chumps with its cheapest creature when that is enough, and keeps the better one for another block', () => {
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'bog_lurker', id: 'lurker' }, { card: 'mist_sprite', id: 'sprite' }] },
+        { life: 3, battlefield: [{ card: 'reefshell_crab', id: 'crab' }, { card: 'cloudrider_knight', id: 'knight' }] },
+      ],
+    });
+    s = passTo(attack(s, ['lurker', 'sprite']), 'declareBlockers');
+    expect(chooseBlocks(s, 1)).toEqual([
+      { blocker: 'crab', attacker: 'lurker' },
+      { blocker: 'knight', attacker: 'sprite' },
+    ]);
+  });
+
+  it('stacks chump blockers on tramplers until what tramples over is no longer lethal', () => {
+    const soldiers = ['t1', 't2', 't3', 't4'].map((id) => ({ card: 'soldier_token', id }));
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'timberland_rhino', id: 'r1' }, { card: 'timberland_rhino', id: 'r2' }] },
+        { life: 6, battlefield: soldiers },
+      ],
+    });
+    s = passTo(attack(s, ['r1', 'r2']), 'declareBlockers');
+    const blocks = chooseBlocks(s, 1);
+    expect(blocks.length).toBeGreaterThanOrEqual(3);
+    expect(life(finishCombat(block(s, blocks)), 1)).toBeGreaterThan(0);
+  });
+
+  it('keeps its only flying blocker for the flying attacker when both attackers must be blocked', () => {
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'sunantler_monarch', id: 'monarch' }, { card: 'crag_dragon', id: 'dragon' }] },
+        { life: 4, battlefield: [{ card: 'spirit_token', id: 'spirit' }, { card: 'bramble_warden', id: 'warden' }] },
+      ],
+    });
+    s = passTo(attack(s, ['monarch', 'dragon']), 'declareBlockers');
+    expect(chooseBlocks(s, 1)).toEqual([
+      { blocker: 'warden', attacker: 'monarch' },
+      { blocker: 'spirit', attacker: 'dragon' },
+    ]);
+  });
+
+  it('still blocks to take as little damage as it can when the attack is lethal anyway', () => {
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'timberland_rhino', id: 'r1' }, { card: 'timberland_rhino', id: 'r2' }] },
+        { life: 3, battlefield: [{ card: 'soldier_token', id: 't1' }, { card: 'soldier_token', id: 't2' }] },
+      ],
+    });
+    s = passTo(attack(s, ['r1', 'r2']), 'declareBlockers');
+    expect(chooseBlocks(s, 1)).toHaveLength(2);
   });
 });
 

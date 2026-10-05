@@ -49,7 +49,7 @@ src/ui/expeditionStore.ts        the run in localStorage under manaDuel.expediti
 | 4 | 18 | 6 | 1 | 0.55 |
 | 5 | 20 | 6 | 1 | 0.52 |
 | 6 | 20 | 6 | 2 | 0.41 |
-| 7, boss | 20 | 6 | a boss relic and 1 | 0.30 |
+| 7, boss | 20 | 6 | a boss relic and 1 | 0.29 |
 
 The relics of a rival are drawn without repeats among the ten a rival may carry, and the boss's first one among the
 three boss relics. Life and hand on the map are those the rival starts the duel with, its relics and yours counted:
@@ -64,21 +64,21 @@ player can answer them with the cards and relics of the run.
 
 | Relic | Id | Effect | Kind | Holders | Strength |
 | --- | --- | --- | --- | --- | --- |
-| Amuleto de vigor | `vigor` | 6 more life | start | you, rivals | 9.6 |
+| Amuleto de vigor | `vigor` | 6 more life | start | you, rivals | 9.7 |
 | Ojo del augur | `foresight` | an opening hand of one more card (a mulligan draws that many too) | start | you, rivals | 7.6 |
-| Estandarte del alba | `banner` | a 1/1 white Soldier token on the battlefield from the start | start | you, rivals | 14.3 |
-| Mapa del cartógrafo | `cartographer` | one more copy of the deck's most common land on the battlefield from the start, and one card fewer in the opening hand | start | you, rivals | 7.1 |
-| Reloj de arena | `hourglass` | you start every duel, and draw on your first turn too | start | you | 13.9 |
-| Máscara del silencio | `mask` | the other player's opening hand has one card fewer | start | you, rivals | 12.7 |
-| Incensario de esporas | `censer` | a 1/1 green Saproling for each instant or sorcery you cast | in play | you, rivals | 12.5 |
-| Urna de almas | `urn` | each opponent loses 1 life whenever a creature you control dies | in play | you, rivals | 10.7 |
-| Tambor de guerra | `drum` | landfall: creatures you control get +1/+0 until end of turn | in play | you, rivals | 13.1 |
-| Cáliz del peregrino | `chalice` | 1 life whenever a creature enters under your control | in play | you, rivals | 11.5 |
-| Libro de horas | `tome` | at the beginning of your upkeep, a card if your hand is empty | in play | you, rivals | 7.4 |
+| Estandarte del alba | `banner` | a 1/1 white Soldier token on the battlefield from the start | start | you, rivals | 14.5 |
+| Mapa del cartógrafo | `cartographer` | one more copy of the deck's most common land on the battlefield from the start, and one card fewer in the opening hand | start | you, rivals | 7.0 |
+| Reloj de arena | `hourglass` | you start every duel, and draw on your first turn too | start | you | 13.7 |
+| Máscara del silencio | `mask` | the other player's opening hand has one card fewer | start | you, rivals | 12.9 |
+| Incensario de esporas | `censer` | a 1/1 green Saproling for each instant or sorcery you cast | in play | you, rivals | 12.9 |
+| Urna de almas | `urn` | each opponent loses 1 life whenever a creature you control dies | in play | you, rivals | 10.8 |
+| Tambor de guerra | `drum` | landfall: creatures you control get +1/+0 until end of turn | in play | you, rivals | 13.2 |
+| Cáliz del peregrino | `chalice` | 1 life whenever a creature enters under your control | in play | you, rivals | 11.3 |
+| Libro de horas | `tome` | at the beginning of your upkeep, a card if your hand is empty | in play | you, rivals | 7.9 |
 | Pluma de fénix | `phoenix` | the first defeat of the run is fought again instead of ending it | run | you | — |
-| Campana fúnebre | `bell` | at the beginning of your upkeep, each opponent loses 1 life | in play | bosses | 19.7 |
-| Grimorio prohibido | `grimoire` | at the beginning of your upkeep, draw a card and lose 1 life | in play | bosses | 19.2 |
-| Corona del tirano | `crown` | at the beginning of your upkeep, creatures you control get +1/+0 until end of turn | in play | bosses | 17.4 |
+| Campana fúnebre | `bell` | at the beginning of your upkeep, each opponent loses 1 life | in play | bosses | 20.0 |
+| Grimorio prohibido | `grimoire` | at the beginning of your upkeep, draw a card and lose 1 life | in play | bosses | 19.5 |
+| Corona del tirano | `crown` | at the beginning of your upkeep, creatures you control get +1/+0 until end of turn | in play | bosses | 17.5 |
 
 **Strength** is how many points of win rate the AI loses when its rival holds the relic, at 20 life and seven cards on
 both sides, over 1960 games, every matchup ten times; the relics you can win sit between 7 and 14, the boss relics near

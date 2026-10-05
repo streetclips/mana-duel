@@ -77,8 +77,8 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   can be replayed. Details in [`docs/RULES.md`](docs/RULES.md).
 - **AI** (`src/ai`): evaluates each option by playing the engine forward, predicts blocks with its own blocking
   logic, keeps combat tricks for combat, answers burn with pumps, counters what is worth countering and only
-  chump-blocks to survive. A test proves hidden cards never change its decisions. It plays all fourteen decks, and
-  simulated games between them stay close to even.
+  chump-blocks against lethal damage, with as many blockers as it takes. A test proves hidden cards never change its
+  decisions. It plays all fourteen decks, and simulated games between them stay close to even.
 - **LLM opponent** (`src/llm`): the AI seat's view of the game as JSON (its own hand, the opponent's card counts),
   every legal move as a zod schema, and one AI SDK `generateText` call with `Output.object` per decision, through
   the OpenRouter provider. Answers the engine refuses are retried, then left to the classic AI. It loads only when

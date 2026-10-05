@@ -1359,16 +1359,26 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F28',
-    title: 'AI: chump-blocks when the attack would otherwise be lethal',
+    title: 'AI: chump-blocks a lethal trampler with as many creatures as it takes',
     run: () => {
       let s = toAttackers(
         createScenario({
-          players: [{ battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, { life: 3, battlefield: [{ card: 'bramble_warden', id: 'warden' }] }],
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { life: 3, battlefield: [{ card: 'soldier_token', id: 's1' }, { card: 'soldier_token', id: 's2' }] },
+          ],
         }),
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['rhino'] }]));
       const action = chooseAction(s, 1 as PlayerId);
-      return expectValue(action.type === 'declareBlockers' ? action.blocks : null, [{ blocker: 'warden', attacker: 'rhino' }], 'AI blocks');
+      return expectValue(
+        action.type === 'declareBlockers' ? action.blocks : null,
+        [
+          { blocker: 's1', attacker: 'rhino' },
+          { blocker: 's2', attacker: 'rhino' },
+        ],
+        'AI blocks',
+      );
     },
   },
 ];
