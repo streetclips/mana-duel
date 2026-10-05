@@ -2,6 +2,8 @@ import { fork } from 'node:child_process';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { chooseAction } from '../src/ai';
+import { DUELS, rivalAt, rivalSeat, shuffledRelicPools } from '../src/app/expedition';
+import { RELICS, duelPerks, isRelicId, relicOf, startsEveryDuel, type RelicId, type SeatRelics } from '../src/app/relics';
 import {
   DECK_LIST,
   applyAction,
@@ -13,6 +15,8 @@ import {
   hasCardDef,
   hasDeck,
   forcedAction,
+  getDeck,
+  normalizeSeed,
   type Action,
   type GameState,
   type PlayerId,
@@ -32,6 +36,7 @@ import {
 type BotKind = 'ai' | 'random' | 'llm';
 type Matchup = [string, string];
 type Perks = Pick<PlayerSetup, 'life' | 'openingHand' | 'battlefield'>;
+type Relics = [RelicId[], RelicId[]];
 
 interface Options {
   games: number;
@@ -39,6 +44,8 @@ interface Options {
   bots: [BotKind, BotKind];
   decks: [string, string];
   perks: [Perks, Perks];
+  relics: Relics;
+  duel: number | null;
   quiet: boolean;
   json: boolean;
   log: number | null;
@@ -58,6 +65,8 @@ function parseArgs(argv: string[]): Options {
     bots: ['ai', 'ai'],
     decks: [ALL, ALL],
     perks: [{}, {}],
+    relics: [[], []],
+    duel: null,
     quiet: false,
     json: false,
     log: null,
@@ -80,6 +89,8 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--life0' || arg === '--life1') options.perks[seatOf(arg)].life = parseCount(arg, next());
     else if (arg === '--hand0' || arg === '--hand1') options.perks[seatOf(arg)].openingHand = parseCount(arg, next());
     else if (arg === '--start0' || arg === '--start1') options.perks[seatOf(arg)].battlefield = parseCards(next());
+    else if (arg === '--relics0' || arg === '--relics1') options.relics[seatOf(arg)] = parseRelics(next());
+    else if (arg === '--duel') options.duel = parseDuel(next());
     else if (arg === '--quiet') options.quiet = true;
     else if (arg === '--json') options.json = true;
     else if (arg === '--log') options.log = Number(next());
@@ -89,9 +100,11 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--shard') options.shard = parseShard(next());
     else if (arg === '--help') {
       console.log(
-        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--life0|--life1 N] [--hand0|--hand1 N] [--start0|--start1 CARD,CARD] [--workers N] [--quiet] [--json] [--log SEED]\n' +
+        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--life0|--life1 N] [--hand0|--hand1 N] [--start0|--start1 CARD,CARD] [--relics0|--relics1 RELIC,RELIC] [--duel 1-' + DUELS + '] [--workers N] [--quiet] [--json] [--log SEED]\n' +
           'Games without an llm bot run in parallel processes (--workers, one per CPU by default); the results are the same for any number of workers.\n' +
           'A seat can start with other life (--life1 14), another opening hand (--hand1 6) or permanents on the battlefield (--start0 soldier_token), as Expedition rivals and relics do; wins.p0 then reads as the first seat\'s odds.\n' +
+          `A seat can also hold Expedition relics, on top of those (--relics1 bell,vigor): ${RELICS.filter((relic) => relic.kind !== 'run').map((relic) => relic.id).join(', ')}.\n` +
+          '--duel N makes the second seat the Nth rival of an Expedition, in place of --life1, --hand1 and --start1: its life, hand and relics, drawn from each game\'s seed as a run draws them.\n' +
           'An llm bot asks an OpenRouter model (default ' + DEFAULT_MODEL + ') for every real decision; it needs OPENROUTER_API_KEY.',
       );
       process.exit(0);
@@ -114,6 +127,48 @@ function parseCards(value: string): string[] {
   const cards = value.split(',').filter(Boolean);
   for (const card of cards) if (!hasCardDef(card)) throw new Error(`Unknown card "${card}"`);
   return cards;
+}
+
+function parseRelics(value: string): RelicId[] {
+  const relics = value.split(',').filter(Boolean);
+  for (const relic of relics) {
+    if (!isRelicId(relic) || relicOf(relic).kind === 'run') {
+      throw new Error(`Unknown relic "${relic}" (use ${RELICS.filter((candidate) => candidate.kind !== 'run').map((candidate) => candidate.id).join(', ')})`);
+    }
+  }
+  return relics as RelicId[];
+}
+
+function parseDuel(value: string): number {
+  const duel = Number(value);
+  if (!Number.isInteger(duel) || duel < 1 || duel > DUELS) throw new Error(`Invalid --duel "${value}" (use a whole number from 1 to ${DUELS})`);
+  return duel;
+}
+
+function seatRelics(options: Options, seat: PlayerId, deckId: string): SeatRelics {
+  const deck = getDeck(deckId);
+  return { relics: options.relics[seat], deck: deck.cards, colors: deck.colors, life: options.perks[seat].life, openingHand: options.perks[seat].openingHand };
+}
+
+function rivalRelics(options: Options, seed: number, deckId: string): SeatRelics {
+  if (options.duel === null) return seatRelics(options, 1, deckId);
+  const rival = rivalSeat(rivalAt(options.duel - 1, deckId, shuffledRelicPools({ rng: normalizeSeed(seed) })));
+  return { ...rival, relics: [...rival.relics, ...options.relics[1]] };
+}
+
+function seatSetups(options: Options, seed: number, decks: Matchup): [PlayerSetup, PlayerSetup] {
+  const perks = duelPerks([seatRelics(options, 0, decks[0]), rivalRelics(options, seed, decks[1])]);
+  return [0, 1].map((seat) => {
+    const base = seat === 1 && options.duel !== null ? {} : options.perks[seat as PlayerId];
+    const battlefield = [...(base.battlefield ?? []), ...(perks[seat as PlayerId].battlefield ?? [])];
+    return { deck: decks[seat as PlayerId], ...base, ...perks[seat as PlayerId], ...(battlefield.length > 0 ? { battlefield } : {}) };
+  }) as [PlayerSetup, PlayerSetup];
+}
+
+function startingPlayerOf(options: Options): PlayerId | undefined {
+  const first = options.relics.map(startsEveryDuel);
+  if (first[0] === first[1]) return undefined;
+  return first[0] ? 0 : 1;
 }
 
 function parseEffort(value: string): ReasoningEffort {
@@ -200,7 +255,7 @@ function llmPlayer(options: Options): LlmPlayer {
 }
 
 async function playGame(seed: number, decks: Matchup, options: Options, log?: string[]): Promise<GameResult> {
-  let s = createGame({ seed, players: [{ deck: decks[0], ...options.perks[0] }, { deck: decks[1], ...options.perks[1] }] });
+  let s = createGame({ seed, startingPlayer: startingPlayerOf(options), players: seatSetups(options, seed, decks) });
   const rand = lcg(seed);
   const llms = options.bots.map((bot) => (bot === 'llm' ? llmPlayer(options) : null));
   const seen: [string[], string[]] = [[], []];

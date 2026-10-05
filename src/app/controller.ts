@@ -60,7 +60,7 @@ export interface ControllerOptions {
 
 export type Matchup = [DeckSpec, DeckSpec];
 
-export type Perks = Pick<PlayerSetup, 'life' | 'openingHand' | 'battlefield'>;
+export type Perks = Pick<PlayerSetup, 'life' | 'openingHand' | 'battlefield' | 'relics' | 'drawOnFirstTurn'>;
 export type SeatPerks = [Perks, Perks];
 
 export interface Replay {
@@ -613,12 +613,24 @@ export class GameController {
 }
 
 function copyPerks(perks: SeatPerks): SeatPerks {
-  const copy = (seat: Perks): Perks => (seat.battlefield ? { ...seat, battlefield: [...seat.battlefield] } : { ...seat });
+  const copy = (seat: Perks): Perks => {
+    const copied: Perks = { ...seat };
+    if (seat.battlefield) copied.battlefield = [...seat.battlefield];
+    if (seat.relics) copied.relics = [...seat.relics];
+    return copied;
+  };
   return [copy(perks[0]), copy(perks[1])];
 }
 
 function hasPerks(perks: SeatPerks): boolean {
-  return perks.some((seat) => seat.life !== undefined || seat.openingHand !== undefined || (seat.battlefield?.length ?? 0) > 0);
+  return perks.some(
+    (seat) =>
+      seat.life !== undefined ||
+      seat.openingHand !== undefined ||
+      (seat.battlefield?.length ?? 0) > 0 ||
+      (seat.relics?.length ?? 0) > 0 ||
+      seat.drawOnFirstTurn === true,
+  );
 }
 
 export function randomSeed(): number {

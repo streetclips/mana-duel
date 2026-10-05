@@ -104,3 +104,47 @@ test('a duel in progress survives a reload and resumes where it was', async ({ p
   expect(await page.evaluate(() => JSON.stringify(window.manaDuel.state()))).toBe(before);
   expect(errors).toEqual([]);
 });
+
+test('the boss carries a boss relic, shown on the map and beside its bar in the duel', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/?aiDelay=0');
+  const boss = await page.evaluate(() => {
+    const started = window.manaDuel.expedition.start({ deck: 'dawntide', seed: 7 });
+    return started.ok ? (started.run?.rivals.at(-1) ?? null) : null;
+  });
+  expect(boss?.relics).toHaveLength(2);
+  const special = boss?.relics[0] ?? '';
+  const floor = page.getByTestId('expedition-floor-7');
+  await expect(floor.locator('.relic-pill')).toHaveCount(2);
+  await expect(floor.locator('.relic-pill.boss')).toHaveAttribute('data-testid', `rival-relic-${special}`);
+  await expectNoHorizontalOverflow(page);
+  await page.getByTestId(`rival-relic-${special}`).click();
+  await expect(page.getByTestId('relic-sheet')).toContainText('Su habilidad especial: solo los jefes llevan esta reliquia.');
+  await page.getByTestId('relic-sheet').click({ position: { x: 10, y: 10 } });
+  await expect(page.getByTestId('relic-sheet')).toHaveCount(0);
+
+  await page.evaluate(() => {
+    const run = window.manaDuel.expedition.state();
+    if (!run) return;
+    run.wins = 6;
+    run.history = run.rivals.slice(0, 6).map((rival) => ({ rival: rival.deck, result: 'won' as const, turns: 9 }));
+    localStorage.setItem('manaDuel.expedition', JSON.stringify(run));
+  });
+  await page.reload();
+  await page.getByTestId('btn-expedition').click();
+  await expect(page.getByTestId('expedition-floor-7')).toHaveAttribute('data-state', 'current');
+  await page.getByTestId('btn-expedition-fight').click();
+  await expect(page.getByTestId('duel-badge-1')).toHaveText('Jefe');
+  const inPlay = await page.evaluate(() => {
+    const s = window.manaDuel.state();
+    return s.players[1].command.map((id) => s.cards[id]?.def);
+  });
+  expect(inPlay[0]).toBe(special);
+  const badges = page.getByTestId('relics-1').getByRole('button');
+  await expect(badges).toHaveCount(inPlay.length);
+  await expect(badges.first()).toHaveAttribute('data-def', special);
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+  await badges.first().click();
+  await expect(page.getByTestId('card-sheet')).toContainText('Reliquia del rival');
+  expect(errors).toEqual([]);
+});

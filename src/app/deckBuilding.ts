@@ -1,4 +1,4 @@
-import { COLORS, cardColors, getCardDef, getCost, hasCardDef, manaValue, type Color, type DeckDef, type DeckEntry } from '../engine';
+import { COLORS, cardColors, getCardDef, getCost, hasCardDef, isRelicDef, manaValue, type Color, type DeckDef, type DeckEntry } from '../engine';
 import { MAX_COPIES, isBasicLand, isLandCard, poolCards } from './cardPool';
 
 export const MIN_DECK = 40;
@@ -196,7 +196,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isPlayableCard(value: unknown): value is string {
-  return typeof value === 'string' && hasCardDef(value) && !getCardDef(value).token;
+  return typeof value === 'string' && hasCardDef(value) && !getCardDef(value).token && !isRelicDef(getCardDef(value));
 }
 
 export function isCustomDeck(value: unknown): value is DeckDef {

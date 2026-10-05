@@ -1,6 +1,9 @@
 import { CORE_CARDS } from './cards';
 import { parseCost } from './mana';
-import type { CardDef, ManaCost } from './types';
+import { RELIC_DEFS } from './relics';
+import type { CardDef, ManaCost, TriggerEvent } from './types';
+
+const RELIC_EVENTS: ReadonlySet<TriggerEvent> = new Set(['upkeep', 'spell', 'allyEnters', 'allyDies', 'lifeGain', 'landfall']);
 
 const registry = new Map<string, CardDef>();
 const costCache = new Map<string, ManaCost>();
@@ -50,6 +53,17 @@ export function validateCardDef(def: CardDef): void {
   if (!isSpell && def.spell) fail('only instants and sorceries have a spell ability');
   if (def.token && (!isCreature || def.cost)) fail('tokens are creatures without a mana cost');
   if (def.entersTapped && !isLand) fail('only lands enter tapped');
+  if (def.types.includes('relic')) {
+    if (def.types.length > 1) fail('a relic has no other type');
+    if (def.cost || def.power !== undefined || def.toughness !== undefined || def.keywords?.length || def.mana?.length || def.activated?.length || def.token) {
+      fail('a relic has nothing but triggered abilities');
+    }
+    if (!def.triggers?.length) fail('a relic needs a triggered ability');
+    for (const trigger of def.triggers ?? []) {
+      if (!RELIC_EVENTS.has(trigger.on)) fail(`a relic cannot trigger on "${trigger.on}"`);
+      if (trigger.targets.length > 0) fail('relic abilities have no targets');
+    }
+  }
   const abilities = [def.spell, ...(def.triggers ?? []), ...(def.activated ?? [])];
   for (const ability of abilities) {
     if (!ability) continue;
@@ -81,4 +95,4 @@ export function validateCardDef(def: CardDef): void {
   }
 }
 
-for (const def of CORE_CARDS) registerCard(def);
+for (const def of [...CORE_CARDS, ...RELIC_DEFS]) registerCard(def);

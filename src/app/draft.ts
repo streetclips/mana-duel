@@ -4,6 +4,7 @@ import {
   getCardDef,
   getCost,
   hasCardDef,
+  isRelicDef,
   manaValue,
   nextRandom,
   normalizeSeed,
@@ -394,7 +395,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isCardList(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((card) => typeof card === 'string' && hasCardDef(card) && !getCardDef(card).token);
+  return (
+    Array.isArray(value) &&
+    value.every((card) => typeof card === 'string' && hasCardDef(card) && !getCardDef(card).token && !isRelicDef(getCardDef(card)))
+  );
 }
 
 function isEntries(value: unknown): value is DeckEntry[] {

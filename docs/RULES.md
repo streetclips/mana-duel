@@ -18,9 +18,10 @@ id with its Spanish name).
   flipped even when `startingPlayer` is given, so a game replays from its seed and the starting player it had.
 - London mulligan: shuffle the hand away, draw seven, and once you keep, put one card on the bottom per mulligan.
   The starting player decides first. At most six mulligans.
-- A game may give either player other starting life, another opening hand (a mulligan draws that many again) or
-  permanents on the battlefield from the start: Expedition rivals and relics do (`docs/MODES.md`). Those permanents are
-  there before the game begins, so they trigger nothing, and they can attack and tap on their controller's first turn.
+- A game may give either player other starting life, another opening hand (a mulligan draws that many again),
+  permanents on the battlefield from the start, relics (see Relics) or a draw on the first turn even as the starting
+  player: Expedition rivals and relics do (`docs/MODES.md`). Those permanents are there before the game begins, so they
+  trigger nothing, and they can attack and tap on their controller's first turn.
 - You lose at 0 life or less, when you draw from an empty library, or when you concede. If both players lose at
   once the game is a draw. A game past turn 200 is a draw (safety net; decking ends games long before).
 
@@ -30,7 +31,8 @@ id with its Spanish name).
 → combat damage → end of combat → main 2 → end → cleanup`
 
 - Untap: the active player's permanents untap, their creatures stop being summoning sick, the land drop resets.
-- Draw: the active player draws one card (except the starting player on turn 1).
+- Draw: the active player draws one card (except the starting player on turn 1, unless the game lets them: the
+  Reloj de arena).
 - One land per turn, in your main phase, with an empty stack. "You may play an additional land this turn" (Open
   Path) adds one more land play to that turn only.
 - Combat is skipped past "declare attackers" when nobody attacks. The first-strike step only exists when a combatant
@@ -83,11 +85,12 @@ id with its Spanish name).
 
 ## Abilities
 
-- Triggers: "when this creature enters", "when this creature dies", "whenever this creature attacks", "whenever
-  you cast an instant or sorcery spell", "whenever another creature you control enters", "whenever another
-  creature you control dies", "whenever this creature deals combat damage to a player", "whenever you gain
-  life" and "whenever a land you control enters". They go on the stack the next time a player would receive
-  priority, the active player's first; targets are chosen then. A trigger with no legal target is skipped.
+- Triggers: "at the beginning of your upkeep", "when this creature enters", "when this creature dies", "whenever
+  this creature attacks", "whenever you cast an instant or sorcery spell", "whenever another creature you control
+  enters", "whenever another creature you control dies", "whenever this creature deals combat damage to a player",
+  "whenever you gain life" and "whenever a land you control enters". They go on the stack the next time a player
+  would receive priority, the active player's first; targets are chosen then. A trigger with no legal target is
+  skipped. An upkeep trigger gives both players priority in the upkeep, which otherwise passes without any.
 - "Another creature you control" includes tokens, one trigger per creature: Raise the Banners gives Forge Cadet
   two +1/+1 counters. Creatures that die at the same time see each other die: two Rotwing Crows killed by one
   attacker each drain for the other.
@@ -106,6 +109,8 @@ id with its Spanish name).
   (two lifelink attackers in one combat damage step trigger Vesper Novice once), and each spell or ability that
   gains life is another. Only its controller's gains count. Such an ability never gains life or deals damage
   itself, so it cannot loop.
+- "At the beginning of your upkeep, if you have no cards in hand" (the Libro de horas) checks as the upkeep begins:
+  a card drawn or played later that turn changes nothing.
 - Bloodthirst: "when this creature enters, if an opponent was dealt damage this turn" (Cindermaw) checks as the
   creature enters whether any source dealt the opponent damage this turn, in combat or not. Losing life is not
   damage, and damage to yourself does not count. The record clears when the next turn begins. Without it, the
@@ -124,6 +129,19 @@ id with its Spanish name).
   loses that target and fizzles when nothing else is left to act on, even after undying returned it.
 - Damage from a creature's ability or a fight uses that creature's deathtouch and lifelink. Death triggers work
   from the graveyard: Crypt Ghoul and Nightveil Wraith deal their damage after they die.
+
+## Relics
+
+The Expedition gives players relics (`docs/MODES.md`); those that act during a duel are relics of the engine
+(`src/engine/relics.ts`, listed in `docs/CARDS.md`), like Magic's emblems:
+
+- A player starts the game with their relics beside the battlefield (the `command` zone), and keeps them until it ends.
+  A relic is not a permanent or a card in any other zone: it can't be targeted, destroyed, bounced or countered, and
+  it never enters or leaves, so it triggers nothing by arriving.
+- Its abilities trigger like those of a permanent of its player: at the beginning of that player's upkeep, when they
+  cast an instant or sorcery, when a creature or a land enters under their control, when a creature they control
+  dies, when they gain life. "A creature you control" counts every one of them, tokens included, since a relic is no
+  creature. Its abilities use the stack and have no targets.
 
 ## Effects
 
@@ -167,7 +185,8 @@ id with its Spanish name).
 The engine always asks. The app answers "pass" for you when:
 
 - you have nothing you could do;
-- your own spell or ability is on top of the stack;
+- your own spell or ability is on top of the stack, or any relic's ability, which nothing can answer;
+- it is an upkeep with an empty stack;
 - it is the opponent's main phase or end step, your end step, or you just declared your attackers.
 
 It stops for you when the opponent casts something you could answer, when the opponent attacks (before blocks),
@@ -196,4 +215,5 @@ auto-pass skips for you; with auto-pass off, both seats get the same ones.
 | Evolve checks again, as its trigger resolves, that the newcomer is still bigger | Evolve only compares as the creature enters |
 | Bloodthirst makes a creature enter with its counters | A triggered ability: the counters arrive when it resolves, so the creature can be answered while it is small |
 | You search a library by looking at it, choose the cards and may fail to find them | The search takes the first matching cards, and always finds them when the library has them |
+| Emblems come from planeswalkers and other effects, with any ability | Relics are only given when a game starts, and only trigger, without targets |
 | Counters other than +1/+1, exile, graveyard targets, auras, equipment, replacement effects, layers | Not in the engine yet |

@@ -1,5 +1,6 @@
 import { advance, emptyState } from './game';
 import { getCardDef, hasCardDef } from './registry';
+import { isRelicDef } from './state';
 import type { CardId, GameState, PlayerId, Zone } from './types';
 
 export interface ScenarioCard {
@@ -20,6 +21,7 @@ export interface ScenarioPlayer {
   battlefield?: ScenarioEntry[];
   library?: ScenarioEntry[];
   graveyard?: ScenarioEntry[];
+  relics?: ScenarioEntry[];
   landsPlayed?: number;
   extraLands?: number;
   damagedThisTurn?: boolean;
@@ -52,6 +54,7 @@ export function createScenario(spec: ScenarioSpec): GameState {
       ...(spec.players[player]?.battlefield ?? []),
       ...(spec.players[player]?.library ?? DEFAULT_LIBRARY),
       ...(spec.players[player]?.graveyard ?? []),
+      ...(spec.players[player]?.relics ?? []),
     ]) {
       if (typeof entry !== 'string' && entry.id) {
         if (usedIds.has(entry.id)) throw new Error(`Duplicate scenario card id "${entry.id}"`);
@@ -74,6 +77,9 @@ export function createScenario(spec: ScenarioSpec): GameState {
     const card = typeof entry === 'string' ? { card: entry } : entry;
     if (!hasCardDef(card.card)) throw new Error(`Unknown card definition "${card.card}"`);
     if (getCardDef(card.card).token && zone !== 'battlefield') throw new Error(`The token "${card.card}" can only be on the battlefield`);
+    if (isRelicDef(getCardDef(card.card)) !== (zone === 'command')) {
+      throw new Error(zone === 'command' ? `"${card.card}" is not a relic` : `The relic "${card.card}" can only be among a player's relics`);
+    }
     const id = card.id ?? nextAutoId();
     s.cards[id] = {
       id,
@@ -103,6 +109,7 @@ export function createScenario(spec: ScenarioSpec): GameState {
     for (const entry of ps.battlefield ?? []) place(player, 'battlefield', entry);
     for (const entry of ps.library ?? DEFAULT_LIBRARY) place(player, 'library', entry);
     for (const entry of ps.graveyard ?? []) place(player, 'graveyard', entry);
+    for (const entry of ps.relics ?? []) place(player, 'command', entry);
   }
 
   advance(s);

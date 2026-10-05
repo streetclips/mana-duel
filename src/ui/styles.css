@@ -1424,6 +1424,105 @@ button {
   color: var(--mana-M);
 }
 
+.relic-chip.spent .relic-icon {
+  opacity: 0.45;
+}
+
+.relic-used {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  vertical-align: 1px;
+}
+
+.floor-relics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.relic-pill {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 2px 9px 2px 5px;
+  border: 1px solid color-mix(in srgb, var(--mana-M) 50%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mana-M) 10%, var(--surface));
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.relic-pill .relic-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.relic-pill.boss {
+  border-color: var(--mana-M);
+  background: color-mix(in srgb, var(--mana-M) 28%, var(--surface));
+  color: var(--ink);
+}
+
+.relic-pill.boss .relic-icon {
+  color: color-mix(in srgb, var(--mana-M) 70%, var(--ink));
+}
+
+.relic-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.relic-detail > .relic-icon {
+  width: 60px;
+  height: 60px;
+  padding: 14px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--mana-M) 14%, var(--surface));
+}
+
+.relic-detail h3 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+
+.relic-detail p {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.relic-detail .relic-holder {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.relic-detail .relic-boss {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--mana-M) 70%, var(--ink));
+}
+
+.relic-detail .flavor {
+  font-style: italic;
+  color: var(--muted);
+}
+
 .relic-options {
   display: flex;
   flex-direction: column;
@@ -2114,6 +2213,42 @@ button {
   flex: 1;
 }
 
+.lands-row {
+  display: flex;
+  align-items: center;
+}
+
+.lands-row .lands {
+  flex: 1;
+  min-width: 0;
+}
+
+.relic-badges {
+  flex: none;
+  display: flex;
+  gap: 4px;
+  padding-right: 14px;
+}
+
+.relic-badge {
+  appearance: none;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--mana-M) 55%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--mana-M) 12%, var(--surface));
+  cursor: pointer;
+}
+
+.relic-badge .relic-icon {
+  width: 15px;
+  height: 15px;
+}
+
 .priority-dot {
   width: 8px;
   height: 8px;
@@ -2279,6 +2414,22 @@ button {
   margin: 5px -6px -5px;
   overflow: hidden;
   background: color-mix(in srgb, var(--card-color, var(--mana-C)) 16%, var(--surface));
+}
+
+.card .art.relic-art {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    circle at 50% 46%,
+    color-mix(in srgb, var(--mana-M) 34%, var(--surface)) 0%,
+    color-mix(in srgb, var(--mana-M) 10%, var(--surface)) 72%
+  );
+}
+
+.card .art.relic-art .relic-icon {
+  width: 46%;
+  height: auto;
+  max-height: 78%;
 }
 
 .card .art img {

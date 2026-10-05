@@ -13,7 +13,8 @@ import {
 import { cardColorVar, cssVars, manaFill } from '../cardInfo';
 import type { CardFx, FxView, PlayerFx } from '../fx';
 import type { BarModel, UiButton, UiCommand } from '../model';
-import { fxDelay } from './Card';
+import { FxFlash, fxDelay } from './Card';
+import { RelicIcon, hasRelicGlyph } from './ModeIcons';
 
 export interface PlayerTag {
   text: string;
@@ -31,6 +32,47 @@ interface PlayerBarProps {
   aimed: boolean;
   fx?: PlayerFx;
   onTap: () => void;
+}
+
+interface RelicBadgesProps {
+  s: GameState;
+  player: PlayerId;
+  human: PlayerId;
+  cardFx?: Map<CardId, CardFx>;
+  onRelic: (id: CardId) => void;
+}
+
+export function RelicBadges({ s, player, human, cardFx, onRelic }: RelicBadgesProps) {
+  const relics = s.players[player].command;
+  if (relics.length === 0) return null;
+  const owner = player === human ? 'Tu reliquia' : 'Reliquia del rival';
+  return (
+    <span class="relic-badges" data-testid={`relics-${player}`}>
+      {relics.map((id) => {
+        const def = getCardDef(s.cards[id]?.def ?? '');
+        const fx = cardFx?.get(id);
+        return (
+          <button
+            key={id}
+            type="button"
+            class="relic-badge"
+            data-testid={`card-${id}`}
+            data-card={id}
+            data-def={def.id}
+            data-zone="command"
+            data-fx={fx?.kinds.join(' ')}
+            data-fx-seq={fx?.seq}
+            aria-label={`${owner}: ${def.name}`}
+            title={def.name}
+            onClick={() => onRelic(id)}
+          >
+            {hasRelicGlyph(def.id) && <RelicIcon relic={def.id} />}
+            <FxFlash fx={fx} />
+          </button>
+        );
+      })}
+    </span>
+  );
 }
 
 export function PlayerBar({ s, player, human, deckName, tag, badge, targetable, aimed, fx, onTap }: PlayerBarProps) {

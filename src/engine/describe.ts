@@ -1,6 +1,6 @@
 import { formatCost } from './mana';
 import { getCardDef, getCost } from './registry';
-import { EVOLVE_TRIGGER, PROWESS_TRIGGER, UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef } from './state';
+import { EVOLVE_TRIGGER, PROWESS_TRIGGER, UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef, isRelicDef } from './state';
 import { isPlayerTarget } from './targets';
 import type {
   CardDef,
@@ -102,6 +102,7 @@ const TYPE_NAMES: Record<CardType, string> = {
   creature: 'Criatura',
   instant: 'Instantáneo',
   sorcery: 'Conjuro',
+  relic: 'Reliquia',
 };
 
 const SUPERTYPE_NAMES: Record<string, string> = { Basic: 'básica' };
@@ -384,6 +385,7 @@ function sentences(effects: Effect[], specs: TargetSpec[], context: SentenceCont
 }
 
 const TRIGGER_OPENERS: Record<TriggerEvent, string> = {
+  upkeep: 'Al comienzo de tu mantenimiento',
   enters: 'Cuando esta criatura entre',
   dies: 'Cuando esta criatura muera',
   attacks: 'Siempre que esta criatura ataque',
@@ -395,8 +397,14 @@ const TRIGGER_OPENERS: Record<TriggerEvent, string> = {
   landfall: 'Aterrizaje — Siempre que una tierra que controlas entre',
 };
 
+const RELIC_OPENERS: Partial<Record<TriggerEvent, string>> = {
+  allyEnters: 'Siempre que una criatura que controlas entre',
+  allyDies: 'Siempre que una criatura que controlas muera',
+};
+
 const TRIGGER_CONDITIONS: Record<TriggerCondition, string> = {
   opponentDamaged: 'si un oponente recibió daño este turno',
+  emptyHand: 'si no tienes cartas en la mano',
 };
 
 const OPENER_NAMES_IT: ReadonlySet<TriggerEvent> = new Set(['enters', 'dies', 'attacks', 'damagesPlayer']);
@@ -437,7 +445,8 @@ export function triggerText(def: CardDef, index: number): string {
     ? { subject: '', object: 'ella' }
     : { subject: 'esta criatura', object: 'esta criatura' };
   const condition = trigger.condition ? `${TRIGGER_CONDITIONS[trigger.condition]}, ` : '';
-  return `${TRIGGER_OPENERS[trigger.on]}, ${condition}${lowerFirst(sentences(trigger.effects, trigger.targets, { subject: self.subject, on: trigger.on }, self))}`;
+  const opener = (isRelicDef(def) ? RELIC_OPENERS[trigger.on] : undefined) ?? TRIGGER_OPENERS[trigger.on];
+  return `${opener}, ${condition}${lowerFirst(sentences(trigger.effects, trigger.targets, { subject: self.subject, on: trigger.on }, self))}`;
 }
 
 export function activatedText(def: CardDef, index: number): string {
@@ -679,6 +688,7 @@ export function describeState(s: GameState, viewer: PlayerId = 0, revealAll = fa
     lines.push(`${ps.name} (p${player}): ${lifeAmount(ps.life)} · biblioteca ${ps.library.length} · cementerio ${ps.graveyard.length}`);
     lines.push(`  mano: ${hand || '—'}`);
     lines.push(`  campo de batalla: ${ps.battlefield.map((id) => permanentLabel(s, id)).join(', ') || '—'}`);
+    if (ps.command.length > 0) lines.push(`  reliquias: ${ps.command.map((id) => `${cardName(s, id)}(${id})`).join(', ')}`);
   }
   const stack = [...s.stack]
     .reverse()

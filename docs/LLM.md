@@ -43,7 +43,8 @@ first so providers can cache the prefix:
    each with its turn and step (`thoughtLine`), so it can keep to a plan. Fallbacks and forced moves add none.
 5. **Estado de la partida desde tu asiento** (game state from your seat): `playerView` as compact JSON. Its hand,
    both battlefields (tapped, sick, damage, combat, pumps and keywords granted `untilEndOfTurn`, `plusOneCounters`,
-   `token`), graveyards, untapped mana, life, `damagedThisTurn` for a player dealt damage this turn (what
+   `token`), graveyards, each player's `relics` (Expedition relics in play, whose rules text is in the card list and
+   whose abilities the system prompt explains), untapped mana, life, `damagedThisTurn` for a player dealt damage this turn (what
    bloodthirst checks), `extraLandsThisTurn` once an effect lets a player play more lands this turn, the stack from
    the top.
 6. **Decisión** (decision): the question, the options and how to answer.

@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, describe, expect, it } from 'vitest';
 import { GameController } from '../../src/app/controller';
 import { chooseRelic, createRun, recordDuel, type ExpeditionRun } from '../../src/app/expedition';
+import { relicOf } from '../../src/app/relics';
 import { ExpeditionController } from '../../src/app/expeditionController';
 import { getDeck } from '../../src/engine';
 import { App, type Screen } from '../../src/ui/App';
@@ -63,6 +64,31 @@ describe('starting an expedition', () => {
     expect(byTestId('expedition-floor-1').textContent).toContain('14 vidas · mano de 6');
     expect(byTestId('expedition-floor-7').textContent).toContain('Jefe:');
     expect(byTestId('btn-expedition-fight').textContent).toBe('Luchar: duelo 1');
+  });
+
+  it('shows the relics the later rivals bring, the boss’s first, and reads one in a sheet', () => {
+    const run = createRun(getDeck('dawntide'), 7);
+    setup('expedition', run);
+    const floors = within(byTestId('expedition-map')).getAllByRole('listitem');
+    expect(floors.map((floor) => floor.querySelectorAll('.relic-pill').length)).toEqual([0, 0, 1, 1, 1, 2, 2]);
+    const boss = run.rivals[6];
+    const special = boss?.relics[0];
+    if (!boss || !special) throw new Error('expected a boss with a relic');
+    expect(within(byTestId('expedition-floor-7')).getAllByRole('button')[0]?.dataset.testid).toBe(`rival-relic-${special}`);
+    expect(byTestId('expedition-floor-7').textContent).toContain('20 vidas · mano de 6');
+    click(byTestId(`rival-relic-${special}`));
+    const sheet = byTestId('relic-sheet');
+    expect(within(sheet).getByRole('heading', { name: relicOf(special).name })).toBeTruthy();
+    expect(sheet.textContent).toContain(`Reliquia del jefe: ${getDeck(boss.deck).name}`);
+    expect(sheet.textContent).toContain('Su habilidad especial: solo los jefes llevan esta reliquia.');
+    expect(sheet.textContent).toContain(relicOf(special).text);
+    click(sheet);
+    expect(screen.queryByTestId('relic-sheet')).toBeNull();
+  });
+
+  it('counts the player’s relics in what each rival starts with', () => {
+    setup('expedition', { ...createRun(getDeck('dawntide'), 7), relics: ['mask'] });
+    expect(byTestId('expedition-floor-1').textContent).toContain('14 vidas · mano de 5');
   });
 
   it('shows the run on the start screen and back on the expedition screen', () => {
@@ -149,6 +175,21 @@ describe('an expedition duel', () => {
     expect(byTestId('expedition-deck-brightforge').getAttribute('aria-checked')).toBe('true');
   });
 
+  it('burns the phoenix feather on a defeat and fights the same rival again', () => {
+    setup('expedition', { ...createRun(getDeck('brightforge'), 4), relics: ['phoenix'] });
+    click(byTestId('btn-expedition-fight'));
+    click(byTestId('btn-menu'));
+    click(byTestId('menu-concede'));
+    expect(byTestId('game-over').textContent).toContain('La Pluma de fénix arde: repetirás este duelo.');
+    click(byTestId('btn-mode-continue'));
+    expect(byTestId('expedition').dataset.stage).toBe('duel');
+    expect(byTestId('expedition-floor-1').dataset.state).toBe('current');
+    expect(byTestId('relic-phoenix').dataset.spent).toBe('true');
+    expect(byTestId('relic-phoenix').textContent).toContain('Usada');
+    expect(stored()?.spent).toEqual(['phoenix']);
+    expect(byTestId('btn-expedition-fight').textContent).toBe('Luchar: duelo 1');
+  });
+
   it('leaves a plain game for the start screen, with no badge', () => {
     const { controller } = setup('expedition', createRun(getDeck('brightforge'), 4));
     click(byTestId('btn-expedition-fight'));
@@ -215,14 +256,14 @@ describe('expedition rewards', () => {
       run = recordDuel(run, 'won', 8);
       run = { ...run, stage: { kind: 'duel' } };
     }
-    run = { ...run, wins: 3, stage: { kind: 'relic', offers: ['vigor', 'banner', 'hourglass'] } };
+    run = { ...run, wins: 3, stage: { kind: 'relic', offers: ['mask', 'censer', 'phoenix'] } };
     setup('expedition', run);
     expect(byTestId('expedition-relics').textContent).toContain('Elige una reliquia');
-    click(byTestId('relic-option-banner'));
-    expect(byTestId('btn-relic-take').textContent).toBe('Llevarme Estandarte del alba');
+    click(byTestId('relic-option-censer'));
+    expect(byTestId('btn-relic-take').textContent).toBe('Llevarme Incensario de esporas');
     click(byTestId('btn-relic-take'));
-    expect(stored()?.relics).toEqual(['banner']);
-    expect(byTestId('relic-banner').textContent).toContain('Soldado blanca 1/1');
+    expect(stored()?.relics).toEqual(['censer']);
+    expect(byTestId('relic-censer').textContent).toContain('Saprolín verde 1/1');
   });
 
   it('celebrates a finished expedition', () => {

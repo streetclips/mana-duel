@@ -74,7 +74,7 @@ export function manaFill(colors: readonly Color[]): string {
 export function cardColorVar(def: CardDef): string {
   const colors = cardColors(def);
   if (colors.length === 1) return `var(--mana-${colors[0]})`;
-  if (colors.length > 1) return 'var(--mana-M)';
+  if (colors.length > 1 || def.types.includes('relic')) return 'var(--mana-M)';
   return 'var(--mana-C)';
 }
 
@@ -125,6 +125,7 @@ export function effectHint(effect: Effect): string {
 }
 
 const TRIGGER_HINTS: Record<TriggerEvent, string> = {
+  upkeep: 'Mantenimiento',
   enters: 'Entra',
   dies: 'Muere',
   attacks: 'Ataca',
@@ -138,6 +139,7 @@ const TRIGGER_HINTS: Record<TriggerEvent, string> = {
 
 const CONDITION_HINTS: Record<TriggerCondition, string> = {
   opponentDamaged: 'Sed de sangre',
+  emptyHand: 'Mano vacía',
 };
 
 export function activatedCost(ability: ActivatedAbility): string {

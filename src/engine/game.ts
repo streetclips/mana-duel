@@ -31,11 +31,13 @@ import {
   getToughness,
   hasKeyword,
   isInstantOrSorceryDef,
+  isRelicDef,
   moveCard,
   newId,
   opponent,
   queueTriggers,
   tapCards,
+  triggerSources,
   triggeredAbility,
 } from './state';
 import { targetCombos, targetsError } from './targets';
@@ -69,6 +71,8 @@ export interface PlayerSetup {
   life?: number;
   openingHand?: number;
   battlefield?: string[];
+  relics?: string[];
+  drawOnFirstTurn?: boolean;
 }
 
 export interface GameOptions {
@@ -88,6 +92,7 @@ export function emptyPlayer(id: PlayerId, name: string): PlayerState {
     hand: [],
     battlefield: [],
     graveyard: [],
+    command: [],
     landsPlayedThisTurn: 0,
     mulligans: 0,
     kept: false,
@@ -145,6 +150,10 @@ function checkSetup(setup: PlayerSetup): void {
     const def = getCardDef(id);
     if (!def.types.includes('land') && !def.types.includes('creature')) throw new Error(`"${id}" is not a permanent, so it cannot start on the battlefield`);
   }
+  for (const id of setup.relics ?? []) {
+    if (!hasCardDef(id)) throw new Error(`Unknown card definition "${id}"`);
+    if (!isRelicDef(getCardDef(id))) throw new Error(`"${id}" is not a relic`);
+  }
 }
 
 function placeStartingPermanent(s: GameState, player: PlayerId, defId: string, id: CardId): void {
@@ -161,6 +170,22 @@ function placeStartingPermanent(s: GameState, player: PlayerId, defId: string, i
     counters: 0,
   };
   s.players[player].battlefield.push(id);
+}
+
+function placeRelic(s: GameState, player: PlayerId, defId: string, id: CardId): void {
+  s.cards[id] = {
+    id,
+    def: defId,
+    owner: player,
+    controller: player,
+    zone: 'command',
+    tapped: false,
+    summoningSick: false,
+    damage: 0,
+    deathtouchDamage: false,
+    counters: 0,
+  };
+  s.players[player].command.push(id);
 }
 
 export function createGame(options: GameOptions = {}): GameState {
@@ -193,6 +218,7 @@ export function createGame(options: GameOptions = {}): GameState {
     const ps = s.players[player];
     if (setup?.life !== undefined) ps.life = setup.life;
     if (setup?.openingHand !== undefined && setup.openingHand !== OPENING_HAND) ps.openingHand = setup.openingHand;
+    if (setup?.drawOnFirstTurn) ps.drawOnFirstTurn = true;
     for (const def of setup?.battlefield ?? []) {
       if (getCardDef(def).token) {
         placeStartingPermanent(s, player, def, newId(s, 'tk'));
@@ -200,6 +226,10 @@ export function createGame(options: GameOptions = {}): GameState {
       }
       counter += 1;
       placeStartingPermanent(s, player, def, `c${counter}`);
+    }
+    for (const def of setup?.relics ?? []) {
+      counter += 1;
+      placeRelic(s, player, def, `c${counter}`);
     }
   }
   const coin: PlayerId = random(s) < 0.5 ? 0 : 1;
@@ -361,7 +391,7 @@ function performAction(s: GameState, action: Action): void {
       s.stack.push({ id: newId(s, 's'), kind: 'spell', controller: player, card: action.card, targets: [...targets] });
       s.events.push({ t: 'cast', player, card: action.card, targets: [...targets] });
       if (isInstantOrSorceryDef(defOf(s, action.card))) {
-        for (const id of [...ps.battlefield]) {
+        for (const id of triggerSources(s, player)) {
           queueTriggers(s, id, 'spell', player);
           if (hasKeyword(s, id, 'prowess')) s.triggers.push({ id: newId(s, 't'), controller: player, source: id, ability: PROWESS_TRIGGER });
         }
@@ -515,7 +545,7 @@ function runStateBasedActions(s: GameState): void {
       return toughness <= 0 || card.damage >= toughness || (card.deathtouchDamage && card.damage > 0);
     });
     if (dying.length === 0) return;
-    const watchers: [CardId[], CardId[]] = [[...s.players[0].battlefield], [...s.players[1].battlefield]];
+    const watchers: [CardId[], CardId[]] = [triggerSources(s, 0), triggerSources(s, 1)];
     for (const id of dying) moveCard(s, id, 'graveyard', { watchers: watchers[getCard(s, id).controller] });
   }
 }
@@ -579,9 +609,10 @@ function beginStep(s: GameState): void {
       s.players[active].landsPlayedThisTurn = 0;
       return;
     case 'upkeep':
+      for (const id of triggerSources(s, active)) queueTriggers(s, id, 'upkeep', active);
       return;
     case 'draw':
-      if (s.turn !== 1) drawCards(s, active, 1);
+      if (s.turn !== 1 || s.players[active].drawOnFirstTurn) drawCards(s, active, 1);
       return;
     case 'main1':
     case 'main2':

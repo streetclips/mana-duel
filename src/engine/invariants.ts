@@ -1,5 +1,5 @@
 import { getCardDef, hasCardDef } from './registry';
-import { isCreature, isTokenDef } from './state';
+import { isCreature, isRelicDef, isTokenDef } from './state';
 import type { CardId, GameState, PlayerId } from './types';
 
 export function checkInvariants(s: GameState): string[] {
@@ -16,7 +16,7 @@ export function checkInvariants(s: GameState): string[] {
     if (!Number.isInteger(ps.life)) problems.push(`p${player} life is not an integer`);
     if (!Number.isInteger(ps.extraLandsThisTurn) || ps.extraLandsThisTurn < 0) problems.push(`p${player} has invalid extra land plays`);
     if (player === s.activePlayer && ps.landsPlayedThisTurn > 1 + ps.extraLandsThisTurn) problems.push(`p${player} played more lands than allowed`);
-    for (const zone of ['library', 'hand', 'graveyard', 'battlefield'] as const) {
+    for (const zone of ['library', 'hand', 'graveyard', 'battlefield', 'command'] as const) {
       for (const id of ps[zone]) {
         note(id, `p${player}.${zone}`);
         const card = s.cards[id];
@@ -29,6 +29,9 @@ export function checkInvariants(s: GameState): string[] {
         if (zone !== 'battlefield' && card.owner !== player) problems.push(`${id} is in the wrong player's ${zone}`);
         if (zone !== 'battlefield' && hasCardDef(card.def) && isTokenDef(getCardDef(card.def))) {
           problems.push(`token ${id} exists outside the battlefield`);
+        }
+        if (hasCardDef(card.def) && (zone === 'command') !== isRelicDef(getCardDef(card.def))) {
+          problems.push(zone === 'command' ? `${id} is in p${player}.command but is not a relic` : `relic ${id} is outside the command zone`);
         }
       }
     }

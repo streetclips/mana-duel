@@ -173,6 +173,7 @@ describe('the match', () => {
     expect(roundTrip(run)).toBe(true);
     expect(isDraftRun({ ...run, version: 3 })).toBe(false);
     expect(isDraftRun({ ...run, picks: [['nope'], []] })).toBe(false);
+    expect(isDraftRun({ ...run, picks: [['urn'], []] })).toBe(false);
     expect(isDraftRun({ ...run, stage: 'shopping' })).toBe(false);
     expect(isDraftRun({ ...run, wins: [1] })).toBe(false);
     expect(isDraftRun(null)).toBe(false);

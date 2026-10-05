@@ -13,8 +13,8 @@ src/engine/  rules: pure functions over a serializable GameState ◄──┐
 src/ai/      chooseAction(state, player) via engine rollouts ───────┤ all read the engine
 src/llm/     LLM player: seat view, legal moves as a zod schema ────┘
 src/app/     GameController (decks per seat, AI timers, async LLM seat, auto-pass, log, fx cues, replay),
-             modes: Expedition runs and Draft runs (expedition.ts, draft.ts, pure; their controllers follow their
-             games with DuelTracker and save them), your own decks (deckBuilding.ts, DeckLibrary),
+             modes: Expedition runs with their relics and Draft runs (expedition.ts, relics.ts, draft.ts, pure; their
+             controllers follow their games with DuelTracker and save them), your own decks (deckBuilding.ts, DeckLibrary),
              window.manaDuel, feature checks
 src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with a deck box
              per seat that opens onto the deck picker, a gear for its settings (sound, who plays the AI, how to
@@ -48,7 +48,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
    `decks.*.winRate` should stay between about 0.42 and 0.58. With 196 matchups, smaller runs are noise, and one run
    of 3000 still moves a deck by about 2 to 3 points: settle a close call with a second `--seed`. To compare two
    versions of a card, run the same `--seed` before and after, with `--decks <id>,all` to play only that deck's
-   matchups.
+   matchups. After changing a relic or the Expedition's ladder, measure it as `docs/MODES.md` › Tuning says
+   (`--relics1 <id>`, `--duel <n>`).
 4. For UI or audio changes, also run `npm run test:e2e` (two phone viewports, and `e2e/desktop.spec.ts`, a desktop
    browser whose scrollbars take room: headless Chromium hides them otherwise). Done when every test passes.
 5. Steps 1–4 never reach OpenRouter. `npm run test:live` makes real calls and spends credits: run it only when asked.
@@ -77,7 +78,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 - DOM hooks (`data-testid`): `card-<cardId>` (plus `data-zone`, `data-def`, `data-tapped`; on the battlefield it
   holds its keyword icons `.icon[data-icon]`, `trigger` for a trigger that can still happen, and the pills
   `ability-<cardId>-<n>`, with `data-usable` while you can activate it, and `ability-<cardId>-mana`, with
-  `data-spent` once the creature is tapped or summoning sick), `player-<0|1>`,
+  `data-spent` once the creature is tapped or summoning sick; a relic is a `card-<cardId>` with `data-zone="command"`
+  in `relics-<p>`, at the end of its player's row of lands), `player-<0|1>`,
   `life-<0|1>`, `deck-name-<p>`, `prompt`, `phase`, `stack`, `stack-<itemId>` (plus `data-card`, `data-targetable`),
   `hand`, `lands-<p>`, `battlefield-<p>`, `btn-<id>` for bar buttons, and `card-sheet` (a long press or right click opens
   any card in it, in the game, the modes and the deck screens) with `sheet-<actionType>` for its actions.
@@ -93,8 +95,9 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `deck-tab-<p>` in game, `mana-curve`, `btn-deck-close`; `menu-decks` opens it in game.
   `menu-autopass` (`aria-checked`) toggles auto-pass. Expedition: `btn-expedition` (start screen) opens `expedition`
   (`data-stage`: `new`, `duel`, `card`, `swap`, `relic`, `won`, `lost`), with `expedition-deck-<deckId>`,
-  `btn-expedition-start`, `expedition-floor-<n>` (`data-state`, `data-deck`), `btn-expedition-fight`,
-  `btn-expedition-deck`, `run-deck-size`, `relic-<id>`, `reward-card-<defId>`, `btn-reward-take`, `btn-reward-skip`,
+  `btn-expedition-start`, `expedition-floor-<n>` (`data-state`, `data-deck`) with a rival's `rival-relic-<id>`
+  (class `boss` for a boss relic) that opens `relic-sheet`, `btn-expedition-fight`,
+  `btn-expedition-deck`, `run-deck-size`, `relic-<id>` (`data-spent` once used), `reward-card-<defId>`, `btn-reward-take`, `btn-reward-skip`,
   `swap-card-<defId>`, `btn-swap-confirm`, `btn-swap-add`, `relic-option-<id>`, `btn-relic-take`, `expedition-result`
   (`data-result`), `btn-expedition-new`. Draft: `btn-draft` (start screen) opens `draft` (`data-stage`: `new`,
   `picking`, `building`, `match`, `done`), with `draft-format-<draft|sealed>`, `btn-draft-start`, `draft-card-<defId>`,
@@ -163,6 +166,10 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `PROWESS_TRIGGER`) with its text in `triggerText`; a trigger's `condition` (bloodthirst's `opponentDamaged`) is
   checked by `conditionHolds` when it would trigger. Cover it with a scenario test in `tests/engine` and a check in
   `src/app/checks.ts`.
+- A relic that acts during a duel is a `CardDef` of type `relic` in `src/engine/relics.ts`: only triggered abilities
+  without targets, on what a relic sees (`upkeep`, `spell`, `allyEnters`, `allyDies`, `lifeGain`, `landfall`), which
+  `validateCardDef` checks. A player gets it from `PlayerSetup.relics` (or a scenario's `relics`) and it triggers from
+  the `command` zone through `triggerSources`. The Expedition's relics and who holds them: `docs/MODES.md` › Extending.
 - A new `GameEvent` animates once `src/app/fx.ts` turns it into a cue (`tests/app/fx.test.ts`) and `src/ui/fx.ts`
   gives the cue its hooks and overlays (`tests/ui/animations.test.tsx`, `e2e/animations.spec.ts`); it sounds once
   `soundsOf` in `src/audio/cues.ts` maps the cue to a sound (`tests/audio/cues.test.ts`).

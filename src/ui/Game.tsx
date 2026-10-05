@@ -20,7 +20,7 @@ import { FxTracker, fxNow, fxTime, fxView, withGhosts, type BattlefieldItem } fr
 import { MIN_CARD_SCALE, fitCardScale, type CardSlot } from './layout';
 import { playMotions } from './motion';
 import { GhostCard, HandCard, PermanentCard, type CardFlags } from './components/Card';
-import { ActionBar, CenterStrip, Lands, PlayerBar } from './components/Board';
+import { ActionBar, CenterStrip, Lands, PlayerBar, RelicBadges } from './components/Board';
 import { DeckViewer } from './components/DeckViewer';
 import { FxLayer } from './components/Fx';
 import { CardSheet, CloseIcon, GameOverModal, LogPanel, Menu, MenuIcon } from './components/Overlays';
@@ -428,7 +428,10 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
           fx={fx.players.get(opponent)}
           onTap={() => onPlayerTap(opponent)}
         />
-        <Lands s={s} player={opponent} cardFx={fx.cards} />
+        <div class="lands-row">
+          <Lands s={s} player={opponent} cardFx={fx.cards} />
+          <RelicBadges s={s} player={opponent} human={human} cardFx={fx.cards} onRelic={setInspected} />
+        </div>
         {renderSide(opponent)}
       </section>
 
@@ -444,7 +447,10 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
 
       <section class="side me" aria-label="Tu lado">
         {renderSide(human)}
-        <Lands s={s} player={human} cardFx={fx.cards} />
+        <div class="lands-row">
+          <Lands s={s} player={human} cardFx={fx.cards} />
+          <RelicBadges s={s} player={human} human={human} cardFx={fx.cards} onRelic={setInspected} />
+        </div>
         <PlayerBar
           s={s}
           player={human}

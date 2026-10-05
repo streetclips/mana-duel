@@ -13,74 +13,118 @@ whose *Menú principal* goes back to the mode instead, and the result screen and
 
 ## Expedition
 
-Seven duels in a row with one deck. Each rival is a little stronger than the one before; every win improves the deck,
-and a single defeat ends the run.
+Seven duels in a row with one deck. Each rival is a little stronger than the one before: the first ones start with
+less life and a smaller hand, the later ones carry relics, and the boss a boss relic, its special ability. Every win
+improves the deck, and a single defeat ends the run.
 
 ```
-src/app/expedition.ts            the run, pure: rivals, duel setup, rewards, relics, validation
+src/app/expedition.ts            the run, pure: rivals, duel setup, rewards, relic offers, validation
+src/app/relics.ts                the relics: who may hold them, and what each does for either seat
+src/engine/relics.ts             the relics that act during a duel, as the engine plays them
 src/app/expeditionController.ts  plays the run's duels in the GameController, records their results, saves the run
-src/ui/ExpeditionScreen.tsx      new run, map of rivals, card reward, swap, relic, result
+src/ui/ExpeditionScreen.tsx      new run, map of rivals and their relics, card reward, swap, relic, result
 src/ui/expeditionStore.ts        the run in localStorage under manaDuel.expedition
 ```
 
 ### A run
 
-1. **Start**: pick one of the fourteen decks. The run's seed draws the seven rivals among the other thirteen; the last
-   one is the boss.
+1. **Start**: pick one of the fourteen decks. The run's seed draws the seven rivals among the other thirteen, the last
+   one the boss, and the relics they carry. The map shows each rival's life, hand and relics, and a tap on a relic
+   reads it (`relic-sheet`).
 2. **Duel**: the run's deck (id `expedition`, named after the deck it started from) against the rival's deck. The
    run's seed also gives each duel its seed and its starting player.
 3. **Card reward**, after each win but the last: three cards to choose from, drawn among the nonland cards of the
    fourteen decks whose colors are all colors of the starting deck, never a fifth copy. Take one and swap it for a card
    of the deck, add it without taking one out (the deck grows), or skip.
-4. **Relic**, after the third and sixth wins: one of three, kept for the rest of the run.
-5. **End**: the run is won after the seventh win. A defeat, a concession included, ends it; a draw plays the same rival
-   again.
+4. **Relic**, after the third and sixth wins: one of three of the twelve relics you can win, kept for the rest of the
+   run.
+5. **End**: the run is won after the seventh win. A defeat, a concession included, ends it, unless the Pluma de fénix
+   burns for it: then the same rival is fought again, once. A draw plays the same rival again.
 
-| Duel | Rival's life | Rival's opening hand | AI win rate |
-| --- | --- | --- | --- |
-| 1 | 14 | 6 | 0.74 |
-| 2 | 16 | 6 | 0.71 |
-| 3 | 16 | 7 | 0.57 |
-| 4 | 18 | 7 | 0.53 |
-| 5 | 20 | 7 | 0.49 |
-| 6 | 22 | 7 | 0.46 |
-| 7, boss | 24 | 8 | 0.36 |
+| Duel | Rival's life | Rival's opening hand | Rival's relics | AI win rate |
+| --- | --- | --- | --- | --- |
+| 1 | 14 | 6 | — | 0.74 |
+| 2 | 16 | 6 | — | 0.71 |
+| 3 | 16 | 6 | 1 | 0.59 |
+| 4 | 18 | 6 | 1 | 0.55 |
+| 5 | 20 | 6 | 1 | 0.52 |
+| 6 | 20 | 6 | 2 | 0.41 |
+| 7, boss | 20 | 6 | a boss relic and 1 | 0.30 |
 
-| Relic | Id | Effect in every duel | AI win rate against the boss |
-| --- | --- | --- | --- |
-| Amuleto de vigor | `vigor` | 25 life instead of 20 | 0.44 |
-| Ojo del augur | `foresight` | an opening hand of eight cards (a mulligan draws eight too) | 0.45 |
-| Estandarte del alba | `banner` | a 1/1 white Soldier token on the battlefield from the start | 0.49 |
-| Mapa del cartógrafo | `cartographer` | one more copy of the deck's most common land on the battlefield from the start | — |
-| Reloj de arena | `hourglass` | you start every duel | — |
+The relics of a rival are drawn without repeats among the ten a rival may carry, and the boss's first one among the
+three boss relics. Life and hand on the map are those the rival starts the duel with, its relics and yours counted:
+the Amuleto de vigor of a rival adds its life, your Máscara del silencio takes a card from its hand.
 
-Rivals' life and hands and the relics reach the engine as each player's `life`, `openingHand` and `battlefield`
-(`docs/RULES.md` › Game).
+Rivals never start above 20 life because more life is not the same handicap for every deck: four more life cost
+Brightforge 11 points of win rate and Flamecrest 9, but Mistgrave 3 and Crossroads under 1 (420 games per deck, the
+deck against all fourteen). Relics climb instead: they change how each rival plays, the map announces them, and a
+player can answer them with the cards and relics of the run.
+
+### Relics
+
+| Relic | Id | Effect | Kind | Holders | Strength |
+| --- | --- | --- | --- | --- | --- |
+| Amuleto de vigor | `vigor` | 6 more life | start | you, rivals | 9.6 |
+| Ojo del augur | `foresight` | an opening hand of one more card (a mulligan draws that many too) | start | you, rivals | 7.6 |
+| Estandarte del alba | `banner` | a 1/1 white Soldier token on the battlefield from the start | start | you, rivals | 14.3 |
+| Mapa del cartógrafo | `cartographer` | one more copy of the deck's most common land on the battlefield from the start, and one card fewer in the opening hand | start | you, rivals | 7.1 |
+| Reloj de arena | `hourglass` | you start every duel, and draw on your first turn too | start | you | 13.9 |
+| Máscara del silencio | `mask` | the other player's opening hand has one card fewer | start | you, rivals | 12.7 |
+| Incensario de esporas | `censer` | a 1/1 green Saproling for each instant or sorcery you cast | in play | you, rivals | 12.5 |
+| Urna de almas | `urn` | each opponent loses 1 life whenever a creature you control dies | in play | you, rivals | 10.7 |
+| Tambor de guerra | `drum` | landfall: creatures you control get +1/+0 until end of turn | in play | you, rivals | 13.1 |
+| Cáliz del peregrino | `chalice` | 1 life whenever a creature enters under your control | in play | you, rivals | 11.5 |
+| Libro de horas | `tome` | at the beginning of your upkeep, a card if your hand is empty | in play | you, rivals | 7.4 |
+| Pluma de fénix | `phoenix` | the first defeat of the run is fought again instead of ending it | run | you | — |
+| Campana fúnebre | `bell` | at the beginning of your upkeep, each opponent loses 1 life | in play | bosses | 19.7 |
+| Grimorio prohibido | `grimoire` | at the beginning of your upkeep, draw a card and lose 1 life | in play | bosses | 19.2 |
+| Corona del tirano | `crown` | at the beginning of your upkeep, creatures you control get +1/+0 until end of turn | in play | bosses | 17.4 |
+
+**Strength** is how many points of win rate the AI loses when its rival holds the relic, at 20 life and seven cards on
+both sides, over 1960 games, every matchup ten times; the relics you can win sit between 7 and 14, the boss relics near
+20. The Pluma de fénix does nothing in a duel.
+
+- **Start** relics change how the duel is set up: life, opening hand, permanents from the start, the first draw, the
+  starting player (`docs/RULES.md` › Game). They reach the engine as each player's `life`, `openingHand`,
+  `battlefield` and `drawOnFirstTurn`, the Reloj de arena also as the duel's starting player.
+- **In play** relics are engine relics (`src/engine/relics.ts`, listed in `docs/CARDS.md`): the player who holds one
+  starts the duel with it beside the battlefield, where it triggers like a permanent and nobody can touch it
+  (`docs/RULES.md` › Relics). In the game they sit at the end of their player's row of lands (`relics-<p>`), and a tap
+  opens one like a card.
+- The **Pluma de fénix** is spent by the first defeat it sees (`spent` in the run), which is recorded in the run's
+  history; the same rival is fought again with a new seed. Spent, it stays among your relics, marked *Usada*.
 
 ### Tuning
 
-The ladder is `RIVAL_LIFE` and `RIVAL_HAND` in `src/app/expedition.ts`. The win rates above are the AI with an
-unchanged deck against each rival over 1960 games, every matchup ten times: measure a duel with
-`npm run sim -- --games 1960 --quiet --life1 14 --hand1 6` and read `wins.p0` out of `games`; a relic adds
-`--life0 25`, `--hand0 8` or `--start0 soldier_token`. A player who beats the AI as often as it beats itself finishes
-about one run in a hundred with no reward at all; card rewards, relics and play better than the AI's are what make
-a run winnable.
+The ladder is `RIVAL_LIFE`, `RIVAL_HAND` and `RIVAL_RELICS` in `src/app/expedition.ts`; the boss carries a boss relic
+on top of its count. The win rates above are the AI with an unchanged deck against each rival over 1960 games, every
+matchup ten times, each game with the relics its seed draws, as a run draws them: measure a duel with
+`npm run sim -- --games 1960 --quiet --duel 5` and read `wins.p0` out of `games`. `--relics0 banner,drum` gives your
+seat relics too, and `--relics1 bell` without `--duel` measures one relic on its own at 20 life and seven cards. A
+player who beats the AI as often as it beats itself finishes about one run in a hundred with no reward at all; card
+rewards, relics and play better than the AI's are what make a run winnable.
 
 ### The saved run
 
-The run is saved on every change and checked when it is read (`isExpeditionRun`); a run it cannot read is dropped.
-The duel in progress is saved with it, and **Continuar el duelo** loads it again exactly where it was.
+The run is saved on every change and checked when it is read (`isExpeditionRun`, version 2): your relics must be some
+a player can win, a rival's some a rival can carry, none twice. A run it cannot read, an older version's included, is
+dropped. The duel in progress is saved with it, and **Continuar el duelo** loads it again exactly where it was.
 
 ### Extending
 
-- A relic: its id in `RelicId`, an entry in `RELICS` (Spanish name and text), its perk in `playerPerks` (or the
-  starting player in `startDuel`), its icon in `src/ui/components/ModeIcons.tsx`, and its case in
-  `tests/app/expedition.test.ts` › turns relics into perks.
-- More duels: `DUELS`, with one entry per duel in `RIVAL_LIFE` and `RIVAL_HAND`; relics come every `RELIC_EVERY` wins.
+- A relic: its id in `RelicId` and an entry in `RELICS` (`src/app/relics.ts`) with its kind and who may hold it, and
+  its glyph in `src/ui/components/ModeIcons.tsx`, which is also its art in the card sheet. A start relic adds its perk
+  in `seatPerks`; one in play is a `CardDef` of type `relic` in `src/engine/relics.ts`, whose name and rules text the
+  app reads from the engine. Measure it with `--relics1 <id>` and add it to the tables above and to
+  `tests/app/relics.test.ts`.
+- More duels: `DUELS`, with one entry per duel in `RIVAL_LIFE`, `RIVAL_HAND` and `RIVAL_RELICS`; relics come every
+  `RELIC_EVERY` wins.
 - A deck a run may start from or face: every deck of `DECK_LIST` already is.
 
-Tests: `tests/app/expedition.test.ts` (the run and its controller), `tests/ui/expedition.test.tsx` (the screens),
-`e2e/expedition.spec.ts` (a whole flow, a reward, a reload in the middle of a duel).
+Tests: `tests/app/expedition.test.ts` (the run and its controller), `tests/app/relics.test.ts` (the relics and their
+perks), `tests/engine/relics.test.ts` (relics in play), `tests/ui/expedition.test.tsx` (the screens),
+`e2e/expedition.spec.ts` (a whole flow, a reward, a reload in the middle of a duel, the boss's relic on the map and in
+its duel).
 
 ## My decks
 

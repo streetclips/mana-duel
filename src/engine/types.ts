@@ -13,7 +13,7 @@ export interface ManaCost {
   G: number;
 }
 
-export type CardType = 'land' | 'creature' | 'instant' | 'sorcery';
+export type CardType = 'land' | 'creature' | 'instant' | 'sorcery' | 'relic';
 
 export type Keyword =
   | 'flying'
@@ -87,6 +87,7 @@ export type Effect =
   | { kind: 'searchLand'; land: string; battlefield: number; hand?: number; tapped?: boolean };
 
 export type TriggerEvent =
+  | 'upkeep'
   | 'enters'
   | 'dies'
   | 'attacks'
@@ -97,7 +98,7 @@ export type TriggerEvent =
   | 'lifeGain'
   | 'landfall';
 
-export type TriggerCondition = 'opponentDamaged';
+export type TriggerCondition = 'opponentDamaged' | 'emptyHand';
 
 export interface TriggeredAbility {
   on: TriggerEvent;
@@ -139,7 +140,7 @@ export interface CardDef {
   flavor?: string;
 }
 
-export type Zone = 'library' | 'hand' | 'battlefield' | 'graveyard' | 'stack' | 'gone';
+export type Zone = 'library' | 'hand' | 'battlefield' | 'graveyard' | 'command' | 'stack' | 'gone';
 
 export interface CardInstance {
   id: CardId;
@@ -162,6 +163,7 @@ export interface PlayerState {
   hand: CardId[];
   battlefield: CardId[];
   graveyard: CardId[];
+  command: CardId[];
   landsPlayedThisTurn: number;
   mulligans: number;
   kept: boolean;
@@ -171,6 +173,7 @@ export interface PlayerState {
   damagedThisTurn: boolean;
   extraLandsThisTurn: number;
   openingHand?: number;
+  drawOnFirstTurn?: boolean;
 }
 
 export type Step =

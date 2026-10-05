@@ -3,7 +3,7 @@ import { applyAction, createGame, type GameState } from '../../src/engine';
 import { cardGlossary, eventLines, playerView, thoughtLine, visibleCardDefs } from '../../src/llm';
 import { deckLine } from '../../src/llm/view';
 import { compactJson } from '../../src/llm/prompt';
-import { attack, block, cast, pass, passTo, resolveStack, scenario } from '../helpers';
+import { attack, block, cast, pass, passTo, passToStep, resolveStack, scenario } from '../helpers';
 
 function secretScenario(): GameState {
   return scenario({
@@ -114,6 +114,34 @@ describe('the view of one seat', () => {
     expect(playerView(s, 0).you.extraLandsThisTurn).toBeUndefined();
     s = resolveStack(cast(s, 'path'));
     expect([playerView(s, 0).you.extraLandsThisTurn, playerView(s, 1).opponent.extraLandsThisTurn]).toEqual([1, 1]);
+  });
+
+  it('lists the relics of both players, puts them in the glossary and names the abilities they put on the stack', () => {
+    let s = scenario({
+      activePlayer: 1,
+      players: [{ relics: [{ card: 'bell', id: 'bell' }] }, { relics: [{ card: 'urn', id: 'urn' }, { card: 'censer', id: 'censer' }] }],
+    });
+    expect([playerView(s, 0).you.relics, playerView(s, 0).opponent.relics]).toEqual([
+      [{ id: 'bell', name: 'Campana fúnebre' }],
+      [
+        { id: 'urn', name: 'Urna de almas' },
+        { id: 'censer', name: 'Incensario de esporas' },
+      ],
+    ]);
+    expect(playerView(scenario({ players: [{}, {}] }), 0).you.relics).toBeUndefined();
+    expect(visibleCardDefs(s, 1)).toEqual(expect.arrayContaining(['bell', 'urn', 'censer']));
+    expect(cardGlossary(['bell'])).toEqual(['Campana fúnebre · Reliquia · Al comienzo de tu mantenimiento, cada oponente pierde 1 vida.']);
+    s = passToStep(s, 'upkeep', 4);
+    expect(playerView(s, 1).stack).toEqual([
+      {
+        id: 'bell',
+        name: 'Campana fúnebre',
+        kind: 'habilidad disparada',
+        controller: 'opponent',
+        text: 'Al comienzo de tu mantenimiento, cada oponente pierde 1 vida.',
+        targets: [],
+      },
+    ]);
   });
 
   it('lists the stack from the top, with each item’s text and targets from the viewer’s seat', () => {

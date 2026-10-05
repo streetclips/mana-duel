@@ -3,6 +3,7 @@ import { autoPassReason } from '../../src/app/autopass';
 import { GameController } from '../../src/app/controller';
 import { createTestApi } from '../../src/app/testApi';
 import { applyAction, createScenario, expandDeck, getDeck } from '../../src/engine';
+import { passToStep } from '../helpers';
 
 function controller(options: ConstructorParameters<typeof GameController>[0] = {}): GameController {
   return new GameController({ seed: 5, aiDelayMs: 0, startingPlayer: 0, ...options });
@@ -215,6 +216,29 @@ describe('auto-pass', () => {
     expect(autoPassReason(s, 0, MANUAL)).toBeNull();
   });
 
+  it('lets a relic’s ability resolve and passes an upkeep with an empty stack, unless turned off', () => {
+    let s = createScenario({
+      activePlayer: 1,
+      players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, { relics: [{ card: 'bell', id: 'bell' }] }],
+    });
+    s = passToStep(s, 'upkeep', 5);
+    s = applyAction(s, { type: 'pass', player: 1 });
+    expect(s).toMatchObject({ step: 'upkeep', stack: [{ kind: 'trigger', source: 'bell' }], pending: { kind: 'priority', player: 0 } });
+    expect(autoPassReason(s, 0, AUTO)).toBe('habilidad de una reliquia');
+    expect(autoPassReason(s, 0, MANUAL)).toBeNull();
+    s = applyAction(applyAction(s, { type: 'pass', player: 0 }), { type: 'pass', player: 1 });
+    expect(s).toMatchObject({ step: 'upkeep', stack: [], pending: { kind: 'priority', player: 0 } });
+    expect(autoPassReason(s, 0, AUTO)).toBe('mantenimiento');
+    expect(autoPassReason(s, 0, MANUAL)).toBeNull();
+    const c = controller();
+    c.loadScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, { relics: ['bell'] }] });
+    c.settle();
+    c.endTurn();
+    c.settle();
+    expect(c.state).toMatchObject({ turn: 6, activePlayer: 0, step: 'main1', pending: { kind: 'priority', player: 0 } });
+    expect(c.state.players[0].life).toBe(19);
+  });
+
   it('turned off, stops the human wherever they could act, and End turn still ends the turn', () => {
     const c = controller({ autoPass: false });
     c.loadScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
@@ -246,6 +270,7 @@ describe('test API', () => {
     expect(api.settle()).toEqual({ kind: 'priority', player: 0 });
     expect(api.describe()).toContain('Turno 1');
     expect(api.cards().map((card) => card.id)).toContain('crag_dragon');
+    expect(api.cards().map((card) => card.id)).not.toContain('bell');
     expect(api.decks().map((deck) => [deck.id, deck.size])).toEqual([
       ['emberwild', 40],
       ['dawntide', 40],

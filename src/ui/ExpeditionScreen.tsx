@@ -2,25 +2,26 @@ import { useState } from 'preact/hooks';
 import {
   DUELS,
   RELIC_EVERY,
+  RIVAL_RELICS,
   changesLabel,
   copiesOf,
   currentRival,
   deckSizeOf,
-  relicOf,
+  rivalStart,
   runDeck,
   type DuelRecord,
   type ExpeditionRun,
-  type RelicId,
   type Rival,
 } from '../app/expedition';
 import type { DuelInfo, ExpeditionController } from '../app/expeditionController';
-import { DECK_LIST, OPENING_HAND, getCardDef, getDeck, hasDeck, type DeckDef } from '../engine';
+import { relicOf, type RelicId } from '../app/relics';
+import { DECK_LIST, OPENING_HAND, getCardDef, getDeck, hasCardDef, hasDeck, type DeckDef } from '../engine';
 import { MiniCard } from './components/Card';
 import { DeckBox } from './components/DeckBox';
 import { DeckOption } from './components/DeckSelect';
 import { ColorDots, DeckViewer, deckGroups } from './components/DeckViewer';
 import { CheckIcon, CrownIcon, RelicIcon } from './components/ModeIcons';
-import { CardDefSheet } from './components/Overlays';
+import { CardDefSheet, Sheet } from './components/Overlays';
 import { ScreenBar } from './components/ScreenBar';
 import { useSubscription } from './useController';
 
@@ -34,6 +35,8 @@ interface ExpeditionScreenProps {
 }
 
 const COUNT_WORDS = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
+const ORDINAL_WORDS = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto', 'séptimo', 'octavo', 'noveno', 'décimo'];
+const FIRST_ARMED = ORDINAL_WORDS[RIVAL_RELICS.findIndex((count) => count > 0)] ?? 'último';
 
 function countWord(count: number): string {
   return COUNT_WORDS[count] ?? String(count);
@@ -47,9 +50,10 @@ function lives(count: number): string {
   return `${count} ${count === 1 ? 'vida' : 'vidas'}`;
 }
 
-export function rivalTerms(rival: Rival): string {
-  const hand = rival.openingHand === OPENING_HAND ? '' : ` · mano de ${rival.openingHand}`;
-  return `${lives(rival.life)}${hand}`;
+export function rivalTerms(run: ExpeditionRun, rival: Rival): string {
+  const start = rivalStart(run, rival);
+  const hand = start.openingHand === OPENING_HAND ? '' : ` · mano de ${start.openingHand}`;
+  return `${lives(start.life)}${hand}`;
 }
 
 export function duelLabel(number: number, total: number, boss: boolean): string {
@@ -67,7 +71,7 @@ export function duelOutcome(duel: DuelInfo): string | null {
     case 'won':
       return duel.number === duel.total ? '¡Has vencido al jefe! La expedición es tuya.' : `Duelo ${duel.number} de ${duel.total} superado: elige tu recompensa.`;
     case 'lost':
-      return 'La expedición termina aquí.';
+      return duel.revived ? 'La Pluma de fénix arde: repetirás este duelo.' : 'La expedición termina aquí.';
     case 'draw':
       return 'Empate: repetirás este duelo.';
   }
@@ -93,7 +97,7 @@ function cardsWord(count: number): string {
   return `${count} ${count === 1 ? 'carta' : 'cartas'}`;
 }
 
-function RelicList({ relics }: { relics: readonly RelicId[] }) {
+function RelicList({ relics, spent = [] }: { relics: readonly RelicId[]; spent?: readonly RelicId[] }) {
   if (relics.length === 0) {
     return <p class="run-note">Sin reliquias todavía: ganarás una cada {countWord(RELIC_EVERY)} victorias.</p>;
   }
@@ -101,17 +105,66 @@ function RelicList({ relics }: { relics: readonly RelicId[] }) {
     <ul class="relic-list">
       {relics.map((id) => {
         const relic = relicOf(id);
+        const used = spent.includes(id);
         return (
-          <li key={id} class="relic-chip" data-testid={`relic-${id}`}>
+          <li key={id} class={`relic-chip${used ? ' spent' : ''}`} data-testid={`relic-${id}`} data-spent={used ? 'true' : undefined}>
             <RelicIcon relic={id} />
             <span>
-              <b>{relic.name}</b>
+              <b>
+                {relic.name}
+                {used && <span class="relic-used">Usada</span>}
+              </b>
               {relic.text}
             </span>
           </li>
         );
       })}
     </ul>
+  );
+}
+
+interface RelicSheetProps {
+  relic: RelicId;
+  holder: string;
+  onClose: () => void;
+}
+
+function RelicSheet({ relic, holder, onClose }: RelicSheetProps) {
+  const { name, text, owner } = relicOf(relic);
+  const flavor = hasCardDef(relic) ? getCardDef(relic).flavor : undefined;
+  return (
+    <Sheet label={name} testId="relic-sheet" onClose={onClose}>
+      <div class="relic-detail">
+        <RelicIcon relic={relic} />
+        <div>
+          <h3>{name}</h3>
+          <p class="relic-holder">{holder}</p>
+          {owner === 'boss' && <p class="relic-boss">Su habilidad especial: solo los jefes llevan esta reliquia.</p>}
+          <p>{text}</p>
+          {flavor && <p class="flavor">{flavor}</p>}
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+function RivalRelics({ rival, onRead }: { rival: Rival; onRead: (relic: RelicId) => void }) {
+  if (rival.relics.length === 0) return null;
+  return (
+    <span class="floor-relics">
+      {rival.relics.map((id) => (
+        <button
+          key={id}
+          type="button"
+          class={`relic-pill${relicOf(id).owner === 'boss' ? ' boss' : ''}`}
+          data-testid={`rival-relic-${id}`}
+          onClick={() => onRead(id)}
+        >
+          <RelicIcon relic={id} />
+          {relicOf(id).name}
+        </button>
+      ))}
+    </span>
   );
 }
 
@@ -129,7 +182,9 @@ function NewRun({ decks, initialDeck, onStart, onView }: NewRunProps) {
     <>
       <div class="expedition-body" data-testid="expedition-new">
         <p class="run-intro">
-          {capitalized(countWord(DUELS))} duelos seguidos con el mismo mazo, cada rival más duro que el anterior. Tras cada victoria eliges una carta nueva; cada {countWord(RELIC_EVERY)}, una reliquia. Una derrota termina la expedición.
+          {capitalized(countWord(DUELS))} duelos seguidos con el mismo mazo, cada rival más duro que el anterior: desde el {FIRST_ARMED} llevan
+          reliquias, y el jefe, una reliquia de jefe con su habilidad especial. Tras cada victoria eliges una carta nueva; cada{' '}
+          {countWord(RELIC_EVERY)}, una reliquia. Una derrota termina la expedición.
         </p>
         <section class="picker run-picker" aria-label="Tu mazo inicial">
           <header class="picker-head">
@@ -182,6 +237,7 @@ interface RunMapProps {
 function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
   const deck = runDeck(run);
   const rival = currentRival(run);
+  const [reading, setReading] = useState<{ relic: RelicId; holder: string } | null>(null);
   return (
     <>
       <div class="expedition-body" data-testid="expedition-map">
@@ -209,7 +265,13 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
                     {candidate.boss && <CrownIcon />}
                     {candidate.boss ? `Jefe: ${rivalDeck.name}` : rivalDeck.name}
                   </b>
-                  <span>{state === 'won' ? 'Vencido' : rivalTerms(candidate)}</span>
+                  <span>{state === 'won' ? 'Vencido' : rivalTerms(run, candidate)}</span>
+                  {state !== 'won' && (
+                    <RivalRelics
+                      rival={candidate}
+                      onRead={(relic) => setReading({ relic, holder: candidate.boss ? `Reliquia del jefe: ${rivalDeck.name}` : `Reliquia de ${rivalDeck.name}` })}
+                    />
+                  )}
                 </span>
               </li>
             );
@@ -232,7 +294,7 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
             </button>
           </div>
           <h2 class="section-label">Reliquias</h2>
-          <RelicList relics={run.relics} />
+          <RelicList relics={run.relics} spent={run.spent} />
         </section>
         {problem && (
           <p class="field-hint problem" data-testid="expedition-problem">
@@ -248,6 +310,7 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
           {run.duel ? 'Continuar el duelo' : `Luchar: duelo ${run.wins + 1}`}
         </button>
       </div>
+      {reading && <RelicSheet relic={reading.relic} holder={reading.holder} onClose={() => setReading(null)} />}
     </>
   );
 }
@@ -418,7 +481,7 @@ function RelicReward({ run, offers, onTake }: RelicRewardProps) {
         {run.relics.length > 0 && (
           <>
             <h2 class="section-label">Ya tienes</h2>
-            <RelicList relics={run.relics} />
+            <RelicList relics={run.relics} spent={run.spent} />
           </>
         )}
       </div>
@@ -478,7 +541,7 @@ function RunResult({ run, onNew, onHome, onView }: RunResultProps) {
             </li>
           ))}
         </ol>
-        {run.relics.length > 0 && <RelicList relics={run.relics} />}
+        {run.relics.length > 0 && <RelicList relics={run.relics} spent={run.spent} />}
         <button type="button" class="btn secondary result-deck" data-testid="btn-expedition-deck" onClick={() => onView(runDeck(run))}>
           Ver el mazo final
         </button>

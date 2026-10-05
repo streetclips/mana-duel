@@ -62,6 +62,7 @@ export interface SideView {
   lands: LandView[];
   creatures: CreatureView[];
   graveyard: string[];
+  relics?: CardRefView[];
   availableMana: string[];
   landsPlayedThisTurn: number;
   extraLandsThisTurn?: number;
@@ -92,7 +93,7 @@ export function sideOf(viewer: PlayerId, player: PlayerId): Side {
 
 function isPublic(s: GameState, id: CardId): boolean {
   const zone = s.cards[id]?.zone;
-  return zone === 'battlefield' || zone === 'graveyard' || zone === 'stack';
+  return zone === 'battlefield' || zone === 'graveyard' || zone === 'stack' || zone === 'command';
 }
 
 function visibleTo(s: GameState, id: CardId, viewer: PlayerId): boolean {
@@ -160,6 +161,7 @@ function sideView(s: GameState, player: PlayerId, viewer: PlayerId): SideView {
     landsPlayedThisTurn: ps.landsPlayedThisTurn,
     mulligans: ps.mulligans,
   };
+  if (ps.command.length > 0) view.relics = ps.command.map((id) => ({ id, name: name(id) }));
   if (ps.extraLandsThisTurn > 0) view.extraLandsThisTurn = ps.extraLandsThisTurn;
   if (ps.damagedThisTurn) view.damagedThisTurn = true;
   if (player === viewer) view.hand = ps.hand.map((id) => ({ id, name: name(id) }));

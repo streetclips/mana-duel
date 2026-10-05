@@ -127,6 +127,14 @@ describe('player setup', () => {
     expect(s.cards[land ?? '']?.tapped).toBe(false);
   });
 
+  it('lets the starting player draw on the first turn when set up to, and nobody else draws more', () => {
+    const first = keepBoth(createGame({ seed: 4, startingPlayer: 0, players: [{ drawOnFirstTurn: true }, {}] }));
+    expect([first.turn, first.step, first.players[0].hand.length]).toEqual([1, 'main1', 8]);
+    expect(first.players[0].drawOnFirstTurn).toBe(true);
+    const second = passToStep(keepBoth(createGame({ seed: 4, startingPlayer: 0, players: [{}, { drawOnFirstTurn: true }] })), 'main1', 2);
+    expect([first.players[1].hand.length, second.players[0].hand.length, second.players[1].hand.length]).toEqual([7, 7, 8]);
+  });
+
   it('draws the bigger hand again after a mulligan', () => {
     let s = createGame({ seed: 21, startingPlayer: 0, players: [{ openingHand: 8 }, {}] });
     s = act(s, { type: 'mulligan', player: 0 });

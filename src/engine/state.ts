@@ -77,6 +77,7 @@ function clonePlayer(p: PlayerState): PlayerState {
     hand: [...p.hand],
     battlefield: [...p.battlefield],
     graveyard: [...p.graveyard],
+    command: [...p.command],
   };
 }
 
@@ -126,6 +127,10 @@ export function triggeredAbility(def: CardDef, index: number): TriggeredAbility 
   return def.triggers?.[index];
 }
 
+export function isRelicDef(def: CardDef): boolean {
+  return def.types.includes('relic');
+}
+
 export function isPermanentDef(def: CardDef): boolean {
   return def.types.includes('creature') || def.types.includes('land');
 }
@@ -148,6 +153,10 @@ export function creaturesOf(s: GameState, player: PlayerId): CardId[] {
 
 export function landsOf(s: GameState, player: PlayerId): CardId[] {
   return s.players[player].battlefield.filter((id) => isLand(s, id));
+}
+
+export function triggerSources(s: GameState, player: PlayerId): CardId[] {
+  return [...s.players[player].battlefield, ...s.players[player].command];
 }
 
 export function allCreatures(s: GameState): CardId[] {
@@ -198,6 +207,8 @@ function zoneList(s: GameState, card: CardInstance, zone: Zone): CardId[] | null
       return s.players[card.owner].hand;
     case 'graveyard':
       return s.players[card.owner].graveyard;
+    case 'command':
+      return s.players[card.owner].command;
     case 'battlefield':
       return s.players[card.controller].battlefield;
     case 'stack':
@@ -232,10 +243,10 @@ function enterBattlefield(s: GameState, id: CardId): void {
   s.events.push({ t: 'enter', player: card.controller, card: id });
   queueTriggers(s, id, 'enters', card.controller);
   if (isLandDef(def)) {
-    for (const other of s.players[card.controller].battlefield) queueTriggers(s, other, 'landfall', card.controller);
+    for (const other of triggerSources(s, card.controller)) queueTriggers(s, other, 'landfall', card.controller);
   }
   if (!creature) return;
-  for (const other of s.players[card.controller].battlefield) {
+  for (const other of triggerSources(s, card.controller)) {
     if (other === id) continue;
     queueTriggers(s, other, 'allyEnters', card.controller);
     if (evolves(s, other, id)) s.triggers.push({ id: newId(s, 't'), controller: card.controller, source: other, ability: EVOLVE_TRIGGER });
@@ -292,7 +303,7 @@ export function moveCard(s: GameState, id: CardId, to: Zone, options: MoveOption
   if (from === 'battlefield' && to === 'graveyard' && isCreatureDef(def)) {
     s.events.push({ t: 'dies', card: id, player: previousController });
     queueTriggers(s, id, 'dies', previousController);
-    for (const watcher of options.watchers ?? s.players[previousController].battlefield) {
+    for (const watcher of options.watchers ?? triggerSources(s, previousController)) {
       if (watcher !== id) queueTriggers(s, watcher, 'allyDies', previousController);
     }
     if (undying) s.triggers.push({ id: newId(s, 't'), controller: previousController, source: id, ability: UNDYING_TRIGGER });
@@ -325,6 +336,8 @@ function conditionHolds(s: GameState, condition: TriggerCondition | undefined, c
       return true;
     case 'opponentDamaged':
       return s.players[opponent(controller)].damagedThisTurn;
+    case 'emptyHand':
+      return s.players[controller].hand.length === 0;
   }
 }
 
@@ -354,7 +367,7 @@ export function changeLife(s: GameState, player: PlayerId, delta: number): void 
   const ps = s.players[player];
   ps.life += delta;
   s.events.push({ t: 'life', player, delta, life: ps.life });
-  if (delta > 0) for (const id of ps.battlefield) queueTriggers(s, id, 'lifeGain', player);
+  if (delta > 0) for (const id of triggerSources(s, player)) queueTriggers(s, id, 'lifeGain', player);
 }
 
 export function manaSources(s: GameState, player: PlayerId, exclude?: CardId): ManaSource[] {

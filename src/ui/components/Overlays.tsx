@@ -26,13 +26,14 @@ import type { AudioToggles } from './SoundToggles';
 interface SheetProps {
   label: string;
   raised?: boolean;
+  testId?: string;
   onClose: () => void;
   children: ComponentChildren;
 }
 
-export function Sheet({ label, raised = false, onClose, children }: SheetProps) {
+export function Sheet({ label, raised = false, testId = 'card-sheet', onClose, children }: SheetProps) {
   return (
-    <div class={`scrim${raised ? ' raised' : ''}`} onClick={onClose} data-testid="card-sheet">
+    <div class={`scrim${raised ? ' raised' : ''}`} onClick={onClose} data-testid={testId}>
       <div class="sheet" onClick={(event) => event.stopPropagation()} role="dialog" aria-label={label}>
         <div class="sheet-grip" />
         {children}
@@ -169,6 +170,8 @@ function zoneLabel(card: CardInstance, human: PlayerId): string {
       return 'En el campo de batalla';
     case 'graveyard':
       return mine ? 'En tu cementerio' : 'En el cementerio del rival';
+    case 'command':
+      return mine ? 'Tu reliquia' : 'Reliquia del rival';
     case 'stack':
       return 'En la pila';
     case 'gone':
@@ -182,7 +185,11 @@ export function CardSheet({ s, id, human, actions, onAction, onClose }: CardShee
   const def = getCardDef(card.def);
   const buttons = distinctActions(actions);
   const hidden = card.zone === 'hand' && card.owner !== human;
-  const statuses: Status[] = [...(card.zone === 'stack' ? [{ text: 'En la pila' }] : []), ...battlefieldStatuses(s, id, human)];
+  const statuses: Status[] = [
+    ...(card.zone === 'stack' ? [{ text: 'En la pila' }] : []),
+    ...(card.zone === 'command' ? [{ text: zoneLabel(card, human) }] : []),
+    ...battlefieldStatuses(s, id, human),
+  ];
   const note = buttons.length === 0 ? whyNot(s, id, human) : null;
   return (
     <Sheet label={hidden ? 'Carta oculta' : def.name} onClose={onClose}>

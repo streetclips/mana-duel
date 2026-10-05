@@ -111,6 +111,7 @@ describe('deck building', () => {
     expect(isCustomDeck(JSON.parse(JSON.stringify(deck)))).toBe(true);
     expect(isCustomDeck({ ...deck, id: 'duskmire' })).toBe(false);
     expect(isCustomDeck({ ...deck, cards: [{ card: 'soldier_token', count: 1 }] })).toBe(false);
+    expect(isCustomDeck({ ...deck, cards: [{ card: 'bell', count: 1 }] })).toBe(false);
     expect(isCustomDeck({ ...deck, name: '' })).toBe(false);
     expect(searchKey('Víbora del Musgo')).toBe('vibora del musgo');
   });
@@ -157,6 +158,7 @@ describe('the deck library', () => {
   it('refuses tokens and unknown cards, and drops stored decks it cannot read', () => {
     const library = new DeckLibrary(memoryStore());
     expect(() => library.save(draft([{ card: 'soldier_token', count: 1 }]))).toThrow(/not a card a deck can hold/);
+    expect(() => library.save(draft([{ card: 'grimoire', count: 1 }]))).toThrow(/not a card a deck can hold/);
     expect(() => library.save(draft([{ card: 'nope', count: 1 }]))).toThrow(/not a card a deck can hold/);
     const stored = buildDeck(draft(getDeck('emberwild').cards), 'mine-3');
     expect(new DeckLibrary(memoryStore([stored, { id: 'mine-4', name: 'Roto' }, 'basura'])).decks).toEqual([stored]);

@@ -1253,6 +1253,33 @@ export const CHECKS: Check[] = [
     },
   },
   {
+    id: 'F63',
+    title: 'Relics: beside their player from the start and never a target; the bell drains the opponent at its owner’s upkeep, the censer makes a Saproling for each instant or sorcery, the urn drains for each of its owner’s creatures that dies; a first-turn draw',
+    run: () => {
+      const kept = play(createGame({ seed: 9, startingPlayer: 0, players: [{ relics: ['bell'], drawOnFirstTurn: true }, { relics: ['censer'] }] }), [
+        { type: 'keep', player: 0 },
+        { type: 'keep', player: 1 },
+      ]);
+      const upkeep = [kept.step, kept.stack.map((item) => (item.kind === 'trigger' ? kept.cards[item.source]?.def : item.kind))];
+      const turn = passUntil(kept, (state) => state.step === 'main1');
+      let s = createScenario({
+        players: [
+          { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'], relics: [{ card: 'censer', id: 'censer' }] },
+          { battlefield: [{ card: 'grove_tender', id: 'elf' }], relics: [{ card: 'urn', id: 'urn' }] },
+        ],
+      });
+      const untargetable = refused(s, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'urn' }] }, 'el objetivo 0 (urn) no es legal');
+      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'snap', targets: [{ card: 'elf' }] }]));
+      const saprolings = s.players[0].battlefield.filter((id) => s.cards[id]?.def === 'saproling_token').length;
+      return first(
+        expectValue(upkeep, ['upkeep', ['bell']], 'the first upkeep'),
+        expectValue([turn.players[1].life, turn.players[0].hand.length], [19, 8], 'the first main phase'),
+        untargetable,
+        expectValue([saprolings, zone(s, 'elf'), s.players[0].life], [1, 'graveyard', 19], 'after Ember Snap kills the Grove Tender'),
+      );
+    },
+  },
+  {
     id: 'F38',
     title: 'Animations: an attacker and its blocker strike each other, and the blocker that dies keeps its place as it fades',
     run: () => {

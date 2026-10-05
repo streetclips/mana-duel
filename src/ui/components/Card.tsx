@@ -10,6 +10,7 @@ import {
   getToughness,
   hasKeyword,
   isReadyToTap,
+  isRelicDef,
   parseCost,
   rulesText,
   typeLine,
@@ -23,8 +24,16 @@ import { abilityHints, cardArtUrl, cardColorVar, cssVars, effectHint, landHint, 
 import type { CardFx, GhostFx } from '../fx';
 import { usePress } from '../useController';
 import { CardIcon } from './KeywordIcon';
+import { RelicIcon, hasRelicGlyph } from './ModeIcons';
 
 export function CardArt({ defId }: { defId: string }) {
+  if (hasRelicGlyph(defId) && isRelicDef(getCardDef(defId))) {
+    return (
+      <span class="art relic-art" aria-hidden="true">
+        <RelicIcon relic={defId} />
+      </span>
+    );
+  }
   return (
     <span class="art" aria-hidden="true">
       <img src={cardArtUrl(defId)} alt="" draggable={false} />
@@ -111,7 +120,7 @@ function classes(base: string, flags: CardFlags, extra: string[] = []): string {
   return names.join(' ');
 }
 
-function FxFlash({ fx }: { fx?: CardFx }) {
+export function FxFlash({ fx }: { fx?: CardFx }) {
   if (!fx?.flash) return null;
   return <span key={fx.flash.key} class={`flash ${fx.flash.tone}`} style={fxDelay(fx.flash.delay)} />;
 }

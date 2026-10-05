@@ -10,6 +10,7 @@ import {
   deckSize,
   describeState,
   getCardDef,
+  isRelicDef,
   getDeck,
   getLegalActions,
   rulesText,
@@ -38,9 +39,10 @@ import type { DeckDraft } from './deckBuilding';
 import { DeckLibrary } from './deckLibrary';
 import { suggestedDeck, type DraftFormat, type DraftRun } from './draft';
 import { DraftController } from './draftController';
-import type { ExpeditionRun, RelicId } from './expedition';
+import type { ExpeditionRun } from './expedition';
 import { ExpeditionController } from './expeditionController';
 import type { FxCue } from './fx';
+import type { RelicId } from './relics';
 
 export interface EngineApi {
   createGame: typeof createGame;
@@ -211,7 +213,7 @@ const HELP = `window.manaDuel — automation API
   saveDeck({id?, name, cards: [{card, count}], featured?})   saves one of your decks; {ok, deck, problems}
   deleteDeck(id)        removes one of your decks
   matchup()             deck ids in play, [yours, AI's] (null for a loaded scenario)
-  loadScenario(spec)    build a position: {activePlayer, step, players:[{hand, battlefield, library, life}, {...}]}
+  loadScenario(spec)    build a position: {activePlayer, step, players:[{hand, battlefield, library, life, relics}, {...}]}
   replay() / loadReplay(replay)
   setAiDelay(ms), setAutoplay(on), log(), cards()
   setAutoPass(on)       off: you pass yourself wherever you could act, as the LLM does (also ?autoPass=off);
@@ -229,7 +231,8 @@ const HELP = `window.manaDuel — automation API
                         offline: {seconds, peak, rms, tail, finite}
   audio.setMusic(on), audio.setSfx(on), audio.setVolume(0..1)   also ?music=on|off&sfx=on|off
   audio.unlock(), audio.sounds(), audio.themes()   (docs/AUDIO.md)
-  expedition.state()    the Expedition run: base deck, deck, relics, rivals, wins, stage, saved duel; null without one
+  expedition.state()    the Expedition run: base deck, deck, relics (spent: the used ones), rivals with their life, hand
+                        and relics, wins, stage, saved duel; null without one
   expedition.start({deck, seed})  a new run from a deck id (default: Emberwild), shown on its screen
   expedition.fight()    the run's next duel, or the saved one where it was, shown in the game
   expedition.chooseCard(id | null), swapCard(id | null), chooseRelic(id), abandon(), show()
@@ -382,7 +385,7 @@ export function createTestApi(controller: GameController, showGame: () => void, 
     log: () => controller.log.map((entry) => entry.text),
     cards: () =>
       allCardDefs()
-        .filter((def) => !def.id.startsWith('test_'))
+        .filter((def) => !def.id.startsWith('test_') && !isRelicDef(def))
         .map((def) => ({ id: def.id, name: def.name, type: typeLine(def), cost: def.cost ?? null, text: rulesText(def), token: def.token === true })),
     decks: () => [...DECK_LIST.map((deck) => summary(deck, false, [])), ...library.decks.map((deck) => summary(deck, true, library.problems(deck)))],
     saveDeck: (input) => {

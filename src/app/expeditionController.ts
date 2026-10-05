@@ -13,8 +13,8 @@ import {
   swapCard,
   withDuel,
   type ExpeditionRun,
-  type RelicId,
 } from './expedition';
+import type { RelicId } from './relics';
 
 export interface RunStore {
   load(): unknown;
@@ -29,6 +29,7 @@ export interface DuelInfo {
   rival: string;
   boss: boolean;
   result: DuelResult | null;
+  revived: boolean;
 }
 
 type Listener = () => void;
@@ -110,7 +111,9 @@ export class ExpeditionController {
 
   private follow(run: ExpeditionRun): void {
     const rival = currentRival(run);
-    this.duelInfo = rival ? { number: run.wins + 1, total: run.rivals.length, rival: rival.deck, boss: rival.boss, result: null } : null;
+    this.duelInfo = rival
+      ? { number: run.wins + 1, total: run.rivals.length, rival: rival.deck, boss: rival.boss, result: null, revived: false }
+      : null;
     this.update(run);
     this.tracker.follow();
   }
@@ -123,8 +126,9 @@ export class ExpeditionController {
   private endDuel(result: DuelResult, turns: number): void {
     const run = this.run;
     if (run?.stage.kind !== 'duel' || !currentRival(run)) return;
-    if (this.duelInfo) this.duelInfo = { ...this.duelInfo, result };
-    this.update(recordDuel(run, result, turns));
+    const next = recordDuel(run, result, turns);
+    if (this.duelInfo) this.duelInfo = { ...this.duelInfo, result, revived: result === 'lost' && next.stage.kind === 'duel' };
+    this.update(next);
   }
 
   private require(): ExpeditionRun {

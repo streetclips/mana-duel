@@ -36,9 +36,10 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   Turn **Pase automático** off in the menu to stop wherever you could act, the opponent's turn included, as the AI
   does.
 - **Ver IA contra IA** on the start screen lets the AI play both seats.
-- **Expedición**, under *Más modos*: seven duels in a row with one deck, against rivals that start weak and end in a
-  boss. Each win lets you take one of three cards into your deck, every third win a relic that lasts the whole run,
-  and a single defeat ends it. The run and the duel in progress are saved in the browser, so a reload picks the duel
+- **Expedición**, under *Más modos*: seven duels in a row with one deck, against rivals that start weak, carry relics
+  from the third duel on and end in a boss whose boss relic is its special ability. Each win lets you take one of
+  three cards into your deck, every third win one of twelve relics that lasts the whole run, and a single defeat ends
+  it. The run and the duel in progress are saved in the browser, so a reload picks the duel
   up where it was. Details in [`docs/MODES.md`](docs/MODES.md).
 - **Draft**, under *Más modos*: a draft against the AI, three rounds of passing packs of twelve and picking a card
   each time, or a sealed pool of six packs. Build a deck from your cards and the basic lands, starting from a
@@ -102,8 +103,8 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 
 | Command | What it proves |
 | --- | --- |
-| `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 61 feature checks |
-| `npm run sim -- --games 3000` | Headless AI games in all 196 deck matchups, one process per CPU, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup; `--life1 14 --hand1 6` for an Expedition rival) |
+| `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 62 feature checks |
+| `npm run sim -- --games 3000` | Headless AI games in all 196 deck matchups, one process per CPU, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup; `--duel 5` for an Expedition rival, `--relics1 bell` for a relic) |
 | `npm run test:e2e` | Playwright on the production build, two phone viewports and a desktop browser |
 | `npm run test:live` | Real OpenRouter calls, one per decision kind (needs `OPENROUTER_API_KEY`, spends credits; `OPENROUTER_MODEL` picks the model). `npm run sim -- --p1 llm --model <id> --log 1` plays a whole game against it |
 | `npm run verify` | Typecheck, tests, 196 simulated games (one per matchup) and the build, in one go |
@@ -117,12 +118,12 @@ the automation API. [`AGENTS.md`](AGENTS.md) is the guide for coding agents.
 ```
 index.html · src/main.tsx
 src/
-├── engine/   types, cards/ (one file per card), registry, decks, mana, state, targets, combat,
+├── engine/   types, cards/ (one file per card), relics, registry, decks, mana, state, targets, combat,
 │             effects, rules, game, actions, scenario, describe, invariants
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
 ├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy
 ├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks, expedition,
-│             expeditionController, draft, draftController, duelTracker, cardPool, deckBuilding, deckLibrary
+│             expeditionController, relics, draft, draftController, duelTracker, cardPool, deckBuilding, deckLibrary
 ├── audio/    music (themes and moods), cues (a sound per cue), synth, engine, director, render, sounds, gate
 └── ui/       App, StartScreen (deck and AI selector), Game, ExpeditionScreen, DraftScreen, DecksScreen, model
               (interaction logic), deckChoice, opponentChoice, autoPassChoice, audioChoice, expeditionStore,

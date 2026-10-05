@@ -1,5 +1,6 @@
 export * from './types';
 export { allCardDefs, getCardDef, getCost, hasCardDef, registerCard } from './registry';
+export { RELIC_DEFS } from './relics';
 export {
   BRIGHTFORGE,
   CINDERMAW,
@@ -80,11 +81,13 @@ export {
   isCreature,
   isLand,
   isReadyToTap,
+  isRelicDef,
   isTokenDef,
   landsOf,
   manaSources,
   onBattlefield,
   opponent,
+  triggerSources,
   triggeredAbility,
 } from './state';
 export { isLegalTarget, isPlayerTarget, isSpellOnStack, legalTargets, sameTarget, targetCombos, targetKey } from './targets';

@@ -583,6 +583,51 @@ describe('tokens, sacrifices and discards', () => {
   });
 });
 
+describe('relics', () => {
+  it('sit beside each player’s bar, open as their card, flash when they trigger and appear in the log', () => {
+    const { settle } = setup({
+      players: [
+        {
+          hand: [{ card: 'ember_snap', id: 'snap' }],
+          battlefield: ['mountain', { card: 'soldier_token', id: 'soldier' }],
+          relics: [{ card: 'urn', id: 'urn' }],
+        },
+        { relics: [{ card: 'bell', id: 'bell' }, { card: 'crown', id: 'crown' }] },
+      ],
+    });
+    expect(within(byTestId('relics-0')).getAllByRole('button').map((button) => button.dataset.def)).toEqual(['urn']);
+    expect(within(byTestId('relics-1')).getAllByRole('button').map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Reliquia del rival: Campana fúnebre',
+      'Reliquia del rival: Corona del tirano',
+    ]);
+    expect(byTestId('card-urn').dataset.zone).toBe('command');
+    click(byTestId('card-bell'));
+    const sheet = byTestId('card-sheet');
+    expect(within(sheet).getByRole('heading', { name: 'Campana fúnebre' })).toBeTruthy();
+    expect(sheet.querySelector('.type-line')?.textContent).toBe('Reliquia');
+    expect(sheet.textContent).toContain('Al comienzo de tu mantenimiento, cada oponente pierde 1 vida.');
+    expect([...sheet.querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(['Reliquia del rival']);
+    expect(sheet.querySelector('.relic-art .relic-icon')).not.toBeNull();
+    click(sheet);
+    playFromHand('snap', 'sheet-cast');
+    click(byTestId('card-soldier'));
+    settle();
+    expect(byTestId('life-1').textContent).toBe('19');
+    expect(byTestId('card-urn').dataset.fx).toContain('ability');
+    click(byTestId('btn-menu'));
+    click(byTestId('menu-log'));
+    expect([...byTestId('log-panel').querySelectorAll('li')].map((item) => item.textContent)).toContain('Se dispara tu Urna de almas.');
+    click(within(byTestId('log-panel')).getByTestId('log-card-urn'));
+    expect([...byTestId('card-sheet').querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(['Tu reliquia']);
+  });
+
+  it('leave the bar alone when no player has one', () => {
+    setup({ players: [{}, {}] });
+    expect(screen.queryByTestId('relics-0')).toBeNull();
+    expect(screen.queryByTestId('relics-1')).toBeNull();
+  });
+});
+
 describe('end of turn and game over', () => {
   it('asks to discard down to seven cards', () => {
     const { controller, settle } = setup({

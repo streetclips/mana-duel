@@ -4,8 +4,10 @@ import {
   OPENING_HAND,
   STARTING_LIFE,
   getCardDef,
+  getDeck,
   hasCardDef,
   hasDeck,
+  isRelicDef,
   nextRandom,
   normalizeSeed,
   shuffleInPlace,
@@ -15,9 +17,10 @@ import {
   type PlayerId,
   type RngHolder,
 } from '../engine';
-import { MAX_COPIES, isLandCard, spellPool } from './cardPool';
+import { MAX_COPIES, spellPool } from './cardPool';
 import type { Matchup, Perks, Replay, SeatPerks } from './controller';
 import type { DuelResult } from './duelTracker';
+import { duelPerks, isRelicId, relicOf, relicsOf, startsEveryDuel, type RelicId, type RelicOwner, type SeatRelics } from './relics';
 
 export type { DuelResult };
 
@@ -25,26 +28,9 @@ export const EXPEDITION_DECK_ID = 'expedition';
 export const DUELS = 7;
 export const RELIC_EVERY = 3;
 export const OFFERS = 3;
-export const RIVAL_LIFE: readonly number[] = [14, 16, 16, 18, 20, 22, 24];
-export const RIVAL_HAND: readonly number[] = [6, 6, 7, 7, 7, 7, 8];
-
-export type RelicId = 'vigor' | 'foresight' | 'banner' | 'cartographer' | 'hourglass';
-
-export interface Relic {
-  id: RelicId;
-  name: string;
-  text: string;
-}
-
-export const RELICS: readonly Relic[] = [
-  { id: 'vigor', name: 'Amuleto de vigor', text: 'Empiezas cada duelo con 5 vidas más.' },
-  { id: 'foresight', name: 'Ojo del augur', text: 'Tu mano inicial tiene una carta más.' },
-  { id: 'banner', name: 'Estandarte del alba', text: 'Empiezas cada duelo con una ficha de criatura Soldado blanca 1/1.' },
-  { id: 'cartographer', name: 'Mapa del cartógrafo', text: 'Empiezas cada duelo con una tierra más en el campo de batalla: la que más copias tiene tu mazo.' },
-  { id: 'hourglass', name: 'Reloj de arena', text: 'Empiezas tú cada duelo.' },
-];
-
-const BASIC_OF: Record<Color, string> = { W: 'plains', U: 'island', B: 'swamp', R: 'mountain', G: 'forest' };
+export const RIVAL_LIFE: readonly number[] = [14, 16, 16, 18, 20, 20, 20];
+export const RIVAL_HAND: readonly number[] = [6, 6, 6, 6, 6, 6, 6];
+export const RIVAL_RELICS: readonly number[] = [0, 0, 1, 1, 1, 2, 1];
 
 export interface BaseDeck {
   id: string;
@@ -57,6 +43,7 @@ export interface Rival {
   deck: string;
   life: number;
   openingHand: number;
+  relics: RelicId[];
   boss: boolean;
 }
 
@@ -75,12 +62,13 @@ export type Stage =
   | { kind: 'lost' };
 
 export interface ExpeditionRun {
-  version: 1;
+  version: 2;
   seed: number;
   rng: number;
   base: BaseDeck;
   deck: DeckEntry[];
   relics: RelicId[];
+  spent: RelicId[];
   rivals: Rival[];
   wins: number;
   stage: Stage;
@@ -109,31 +97,44 @@ function fail(run: ExpeditionRun, wanted: Stage['kind']): never {
   throw new Error(`the expedition is at its ${run.stage.kind} stage, not ${wanted}`);
 }
 
-export function relicOf(id: RelicId): Relic {
-  const relic = RELICS.find((candidate) => candidate.id === id);
-  if (!relic) throw new Error(`Unknown relic "${id}"`);
-  return relic;
+export interface RelicPools {
+  common: RelicId[];
+  boss: RelicId[];
+}
+
+export function shuffledRelicPools(holder: RngHolder): RelicPools {
+  const common = relicsOf(['any']);
+  shuffleInPlace(holder, common);
+  const boss = relicsOf(['boss']);
+  shuffleInPlace(holder, boss);
+  return { common, boss };
+}
+
+export function rivalAt(index: number, deck: string, pools: RelicPools): Rival {
+  const boss = index === DUELS - 1;
+  return {
+    deck,
+    life: RIVAL_LIFE[index] ?? STARTING_LIFE,
+    openingHand: RIVAL_HAND[index] ?? OPENING_HAND,
+    relics: [...(boss ? pools.boss.slice(0, 1) : []), ...pools.common.splice(0, RIVAL_RELICS[index] ?? 0)],
+    boss,
+  };
 }
 
 export function createRun(base: DeckDef, seed: number): ExpeditionRun {
   const holder: RngHolder = { rng: normalizeSeed(seed) };
   const others = DECK_LIST.map((deck) => deck.id).filter((id) => id !== base.id);
   shuffleInPlace(holder, others);
-  const rivals = others.slice(0, DUELS).map(
-    (deck, index): Rival => ({
-      deck,
-      life: RIVAL_LIFE[index] ?? STARTING_LIFE,
-      openingHand: RIVAL_HAND[index] ?? OPENING_HAND,
-      boss: index === DUELS - 1,
-    }),
-  );
+  const pools = shuffledRelicPools(holder);
+  const rivals = others.slice(0, DUELS).map((deck, index) => rivalAt(index, deck, pools));
   return {
-    version: 1,
+    version: 2,
     seed: normalizeSeed(seed),
     rng: holder.rng,
     base: { id: base.id, name: base.name, colors: [...base.colors], featured: base.featured },
     deck: base.cards.map((entry) => ({ ...entry })),
     relics: [],
+    spent: [],
     rivals,
     wins: 0,
     stage: { kind: 'duel' },
@@ -173,40 +174,32 @@ export function runDeck(run: ExpeditionRun): DeckDef {
   };
 }
 
-export function mostCommonLand(run: ExpeditionRun): string | null {
-  let best: DeckEntry | null = null;
-  for (const entry of run.deck) {
-    if (!isLandCard(entry.card)) continue;
-    if (!best || entry.count > best.count) best = entry;
-  }
-  if (best) return best.card;
-  const color = run.base.colors[0];
-  return color ? BASIC_OF[color] : null;
+function playerSeat(run: ExpeditionRun): SeatRelics {
+  return { relics: run.relics, deck: run.deck, colors: run.base.colors };
 }
 
-export function playerPerks(run: ExpeditionRun): Perks {
-  const perks: Perks = {};
-  if (run.relics.includes('vigor')) perks.life = STARTING_LIFE + 5;
-  if (run.relics.includes('foresight')) perks.openingHand = OPENING_HAND + 1;
-  const battlefield: string[] = [];
-  if (run.relics.includes('banner')) battlefield.push('soldier_token');
-  const land = run.relics.includes('cartographer') ? mostCommonLand(run) : null;
-  if (land) battlefield.push(land);
-  if (battlefield.length > 0) perks.battlefield = battlefield;
-  return perks;
+export function rivalSeat(rival: Rival): SeatRelics {
+  const deck = getDeck(rival.deck);
+  return { relics: rival.relics, deck: deck.cards, colors: deck.colors, life: rival.life, openingHand: rival.openingHand };
 }
 
-export function rivalPerks(rival: Rival): Perks {
-  const perks: Perks = {};
-  if (rival.life !== STARTING_LIFE) perks.life = rival.life;
-  if (rival.openingHand !== OPENING_HAND) perks.openingHand = rival.openingHand;
-  return perks;
+export function perksAgainst(run: ExpeditionRun, rival: Rival): SeatPerks {
+  return duelPerks([playerSeat(run), rivalSeat(rival)]);
+}
+
+export function rivalStart(run: ExpeditionRun, rival: Rival): { life: number; openingHand: number } {
+  const perks: Perks = perksAgainst(run, rival)[1];
+  return { life: perks.life ?? STARTING_LIFE, openingHand: perks.openingHand ?? OPENING_HAND };
+}
+
+export function phoenixReady(run: ExpeditionRun): boolean {
+  return run.relics.includes('phoenix') && !run.spent.includes('phoenix');
 }
 
 export function duelSetup(run: ExpeditionRun): DuelSetup {
   const rival = currentRival(run);
   if (!rival || run.stage.kind !== 'duel') fail(run, 'duel');
-  return { decks: [runDeck(run), rival.deck], perks: [playerPerks(run), rivalPerks(rival)] };
+  return { decks: [runDeck(run), rival.deck], perks: perksAgainst(run, rival) };
 }
 
 export function startDuel(run: ExpeditionRun): DuelStart {
@@ -215,7 +208,7 @@ export function startDuel(run: ExpeditionRun): DuelStart {
   const [flip, rng] = nextRandom(afterSeed);
   const next = copyRun(run);
   next.rng = rng;
-  const startingPlayer: PlayerId = run.relics.includes('hourglass') || flip < 0.5 ? 0 : 1;
+  const startingPlayer: PlayerId = startsEveryDuel(run.relics) || flip < 0.5 ? 0 : 1;
   return { run: next, seed: Math.floor(value * 2 ** 31), startingPlayer };
 }
 
@@ -232,7 +225,7 @@ function cardOffers(run: ExpeditionRun, holder: RngHolder): string[] {
 }
 
 function relicOffers(run: ExpeditionRun, holder: RngHolder): RelicId[] {
-  const left = RELICS.map((relic) => relic.id).filter((id) => !run.relics.includes(id));
+  const left = relicsOf(['any', 'player']).filter((id) => !run.relics.includes(id));
   shuffleInPlace(holder, left);
   return left.slice(0, OFFERS);
 }
@@ -259,7 +252,8 @@ export function recordDuel(run: ExpeditionRun, result: DuelResult, turns: number
   next.history.push({ rival: rival.deck, result, turns });
   if (result === 'draw') return next;
   if (result === 'lost') {
-    next.stage = { kind: 'lost' };
+    if (phoenixReady(run)) next.spent.push('phoenix');
+    else next.stage = { kind: 'lost' };
     return next;
   }
   next.wins += 1;
@@ -315,12 +309,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isRelicId(value: unknown): value is RelicId {
-  return RELICS.some((relic) => relic.id === value);
-}
-
 function isCard(value: unknown): value is string {
-  return typeof value === 'string' && hasCardDef(value) && !getCardDef(value).token;
+  return typeof value === 'string' && hasCardDef(value) && !getCardDef(value).token && !isRelicDef(getCardDef(value));
 }
 
 function isCount(value: unknown, min = 0): value is number {
@@ -339,10 +329,25 @@ function isBase(value: unknown): value is BaseDeck {
   );
 }
 
+function isRelicList(value: unknown, owners: readonly RelicOwner[]): value is RelicId[] {
+  return (
+    Array.isArray(value) &&
+    value.every((relic) => isRelicId(relic) && owners.includes(relicOf(relic).owner)) &&
+    new Set(value).size === value.length
+  );
+}
+
 function isRival(value: unknown): value is Rival {
   if (!isRecord(value)) return false;
-  const { deck, life, openingHand, boss } = value;
-  return typeof deck === 'string' && hasDeck(deck) && isCount(life, 1) && isCount(openingHand, 1) && typeof boss === 'boolean';
+  const { deck, life, openingHand, relics, boss } = value;
+  return (
+    typeof deck === 'string' &&
+    hasDeck(deck) &&
+    isCount(life, 1) &&
+    isCount(openingHand, 1) &&
+    isRelicList(relics, ['any', 'boss']) &&
+    typeof boss === 'boolean'
+  );
 }
 
 function isStage(value: unknown): value is Stage {
@@ -374,16 +379,17 @@ function isSavedDuel(value: unknown): value is Replay | null {
 }
 
 export function isExpeditionRun(value: unknown): value is ExpeditionRun {
-  if (!isRecord(value) || value.version !== 1) return false;
-  const { seed, rng, base, deck, relics, rivals, wins, stage, history, added, removed, duel } = value;
+  if (!isRecord(value) || value.version !== 2) return false;
+  const { seed, rng, base, deck, relics, spent, rivals, wins, stage, history, added, removed, duel } = value;
   return (
     isCount(seed) &&
     isCount(rng) &&
     isBase(base) &&
     Array.isArray(deck) &&
     deck.every((entry) => isRecord(entry) && isCard(entry.card) && isCount(entry.count, 1)) &&
-    Array.isArray(relics) &&
-    relics.every(isRelicId) &&
+    isRelicList(relics, ['any', 'player']) &&
+    isRelicList(spent, ['any', 'player']) &&
+    spent.every((relic) => relics.includes(relic)) &&
     Array.isArray(rivals) &&
     rivals.length > 0 &&
     rivals.every(isRival) &&

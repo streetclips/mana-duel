@@ -30,6 +30,7 @@ Reglas:
 - Una criatura muere cuando el daño marcado sobre ella alcanza su resistencia.
 - Los hechizos y las habilidades van a la pila y se resuelven del último al primero cuando los dos jugadores pasan la prioridad seguidos. Un hechizo cuyos objetivos han desaparecido todos no hace nada.
 - Las fichas ("token": true) son criaturas que crean los efectos. Una ficha que sale del campo de batalla deja de existir.
+- Las reliquias ("relics") acompañan a su jugador toda la partida, fuera del campo de batalla: nadie puede hacerlas objetivo ni quitarlas, y sus habilidades se disparan como las de un permanente. "Al comienzo de tu mantenimiento" se dispara una vez en cada turno de su jugador, antes de robar.
 - "damagedThisTurn": true marca a un jugador que recibió daño este turno, algo que comprueban algunas cartas. Perder vidas no es recibir daño. Se borra cuando empieza el turno siguiente.
 - Cuando un efecto obliga a un jugador a descartar, ese jugador elige las cartas. Una habilidad que sacrifica su criatura como coste la pone en el cementerio en el acto, como una muerte.
 - Palabras clave:
