@@ -43,8 +43,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 ## Verify a change
 
 1. After editing cards or decks, run `npm run cards` to regenerate `docs/CARDS.md` and `docs/CARDS.en.md`.
-2. Run `npm run verify` (lint, Knip, typecheck, unit tests, 196 AI-vs-AI games, one per matchup, with invariant checks,
-   production build). Done when it exits 0.
+2. Run `npm run format`, then `npm run verify` (format check, lint, Knip, typecheck, unit tests, 196 AI-vs-AI games,
+   one per matchup, with invariant checks, production build). Done when it exits 0.
 3. After changing cards, decks or the AI, check the balance with `npm run sim -- --games 3000 --quiet` (under a
    minute on ten CPUs: games run in one process per CPU, and `--workers N` changes how many, never the results): every
    `decks.*.winRate` should stay between about 0.42 and 0.58. With 196 matchups, smaller runs are noise, and one run

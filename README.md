@@ -112,9 +112,10 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 | `npm run sim -- --games 3000` | Headless AI games in all 196 deck matchups, one process per CPU, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup; `--duel 5` for an Expedition rival, `--relics1 bell` for a relic) |
 | `npm run test:e2e` | Playwright on the production build, two phone viewports and a desktop browser |
 | `npm run test:live` | Real OpenRouter calls, one per decision kind (needs `OPENROUTER_API_KEY`, spends credits; `OPENROUTER_MODEL` picks the model). `npm run sim -- --p1 llm --model <id> --log 1` plays a whole game against it |
+| `npm run format:check` | The code keeps oxfmt's layout (`.oxfmtrc.json`); `npm run format` applies it |
 | `npm run lint` | oxlint with type information: likely bugs, and the imports each layer may make (`.oxlintrc.json`); `npm run lint:fix` fixes what it can |
 | `npm run knip` | Knip: no export, file or dependency that nothing uses |
-| `npm run verify` | Lint, Knip, typecheck, tests, 196 simulated games (one per matchup) and the build, in one go |
+| `npm run verify` | Format check, lint, Knip, typecheck, tests, 196 simulated games (one per matchup) and the build, in one go |
 
 [`docs/VERIFICATION.md`](docs/VERIFICATION.md) maps every feature to its tests. With the game open,
 `manaDuel.runChecks()` runs the same feature checks inside the browser, and `manaDuel.help()` lists the rest of
