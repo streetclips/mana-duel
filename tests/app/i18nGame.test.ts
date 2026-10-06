@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { autoPassReason } from '../../src/app/autopass';
 import { GameController } from '../../src/app/controller';
-import { applyAction, createScenario } from '../../src/engine';
+import { applyAction } from '../../src/engine';
 import { setLocale } from '../../src/i18n';
+import { scenario } from '../helpers';
 
 const AUTO = { endTurnRequested: false, autoPass: true };
 
@@ -27,9 +28,9 @@ describe('the game controller in English', () => {
   });
 
   it('gives its auto-pass reasons in English', () => {
-    expect(autoPassReason(createScenario({ players: [{}, {}] }), 0, AUTO)).toBe('nothing to do');
-    expect(autoPassReason(createScenario({ players: [{ hand: ['forest'] }, {}] }), 0, { ...AUTO, endTurnRequested: true })).toBe('ending the turn');
-    let s = createScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
+    expect(autoPassReason(scenario({ players: [{}, {}] }), 0, AUTO)).toBe('nothing to do');
+    expect(autoPassReason(scenario({ players: [{ hand: ['forest'] }, {}] }), 0, { ...AUTO, endTurnRequested: true })).toBe('ending the turn');
+    let s = scenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
     s = applyAction(s, { type: 'pass', player: 1 });
     expect(autoPassReason(s, 0, AUTO)).toBe("the opponent's main phase");
   });

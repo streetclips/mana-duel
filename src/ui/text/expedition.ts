@@ -1,5 +1,5 @@
 import type { DuelResult } from '../../app/duelTracker';
-import { messages } from '../../i18n';
+import { count, messages, plural } from '../../i18n';
 
 export const expeditionText = messages({
   es: {
@@ -7,7 +7,7 @@ export const expeditionText = messages({
     countWords: ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'],
     ordinals: ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto', 'séptimo', 'octavo', 'noveno', 'décimo'],
     lastOrdinal: 'último',
-    lives: (count: number) => `${count} ${count === 1 ? 'vida' : 'vidas'}`,
+    lives: (amount: number) => count(amount, 'vida', 'vidas'),
     openingHand: (size: number) => ` · mano de ${size}`,
     duelLabel: (number: number, total: number, boss: boolean) => (boss ? `Jefe · duelo ${number} de ${total}` : `Duelo ${number} de ${total}`),
     duelBadge: (number: number, total: number, boss: boolean) => (boss ? 'Jefe' : `Duelo ${number}/${total}`),
@@ -21,7 +21,7 @@ export const expeditionText = messages({
     statusLost: (number: number, total: number) => `Terminada en el duelo ${number} de ${total}`,
     statusOngoing: (deck: string, wins: number, total: number) => `En curso con ${deck}: ${wins} de ${total} victorias`,
     results: { won: 'Victoria', lost: 'Derrota', draw: 'Empate' } satisfies Record<DuelResult, string>,
-    cards: (count: number) => `${count} ${count === 1 ? 'carta' : 'cartas'}`,
+    cards: (amount: number) => count(amount, 'carta', 'cartas'),
     noRelics: (every: string) => `Sin reliquias todavía: ganarás una cada ${every} victorias.`,
     used: 'Usada',
     bossOnly: 'Su habilidad especial: solo los jefes llevan esta reliquia.',
@@ -70,10 +70,10 @@ export const expeditionText = messages({
     wonNote: (rivals: number, deck: string) => `Has vencido a los ${rivals} rivales con ${deck}.`,
     lostNote: (number: number, total: number, rival: string | null) => `Caíste en el duelo ${number} de ${total}${rival ? `, ante ${rival}` : ''}.`,
     winsStat: 'victorias',
-    relicsStat: (count: number) => (count === 1 ? 'reliquia' : 'reliquias'),
-    newCardsStat: (count: number) => (count === 1 ? 'carta nueva' : 'cartas nuevas'),
+    relicsStat: (amount: number) => plural(amount, 'reliquia', 'reliquias'),
+    newCardsStat: (amount: number) => plural(amount, 'carta nueva', 'cartas nuevas'),
     duels: 'Duelos',
-    turns: (count: number) => `${count} ${count === 1 ? 'turno' : 'turnos'}`,
+    turns: (amount: number) => count(amount, 'turno', 'turnos'),
     viewFinalDeck: 'Ver el mazo final',
     mainMenu: 'Menú principal',
     newExpedition: 'Nueva expedición',
@@ -81,7 +81,7 @@ export const expeditionText = messages({
     abandonRun: 'Abandonar la expedición',
     abandonTitle: '¿Abandonar?',
     abandonWarning: (deck: string, wins: number, cards: number, relics: number) =>
-      `Perderás la expedición con ${deck}: ${wins} ${wins === 1 ? 'victoria' : 'victorias'}, ${cards} ${cards === 1 ? 'carta nueva' : 'cartas nuevas'} y ${relics} ${relics === 1 ? 'reliquia' : 'reliquias'}.`,
+      `Perderás la expedición con ${deck}: ${count(wins, 'victoria', 'victorias')}, ${count(cards, 'carta nueva', 'cartas nuevas')} y ${count(relics, 'reliquia', 'reliquias')}.`,
     keepGoing: 'Seguir',
   },
   en: {
@@ -103,7 +103,7 @@ export const expeditionText = messages({
     statusLost: (number: number, total: number) => `Ended at duel ${number} of ${total}`,
     statusOngoing: (deck: string, wins: number, total: number) => `Under way with ${deck}: ${wins} of ${total} wins`,
     results: { won: 'Win', lost: 'Loss', draw: 'Draw' },
-    cards: (count: number) => `${count} ${count === 1 ? 'card' : 'cards'}`,
+    cards: (amount: number) => count(amount, 'card', 'cards'),
     noRelics: (every: string) => `No relics yet: you'll earn one every ${every} wins.`,
     used: 'Used',
     bossOnly: 'Its special ability: only bosses carry this relic.',
@@ -152,10 +152,10 @@ export const expeditionText = messages({
     wonNote: (rivals: number, deck: string) => `You beat all ${rivals} rivals with ${deck}.`,
     lostNote: (number: number, total: number, rival: string | null) => `You fell in duel ${number} of ${total}${rival ? `, against ${rival}` : ''}.`,
     winsStat: 'wins',
-    relicsStat: (count: number) => (count === 1 ? 'relic' : 'relics'),
-    newCardsStat: (count: number) => (count === 1 ? 'new card' : 'new cards'),
+    relicsStat: (amount: number) => plural(amount, 'relic', 'relics'),
+    newCardsStat: (amount: number) => plural(amount, 'new card', 'new cards'),
     duels: 'Duels',
-    turns: (count: number) => `${count} ${count === 1 ? 'turn' : 'turns'}`,
+    turns: (amount: number) => count(amount, 'turn', 'turns'),
     viewFinalDeck: 'View the final deck',
     mainMenu: 'Main menu',
     newExpedition: 'New expedition',
@@ -163,7 +163,7 @@ export const expeditionText = messages({
     abandonRun: 'Abandon the expedition',
     abandonTitle: 'Abandon?',
     abandonWarning: (deck: string, wins: number, cards: number, relics: number) =>
-      `You'll lose the expedition with ${deck}: ${wins} ${wins === 1 ? 'win' : 'wins'}, ${cards} ${cards === 1 ? 'new card' : 'new cards'} and ${relics} ${relics === 1 ? 'relic' : 'relics'}.`,
+      `You'll lose the expedition with ${deck}: ${count(wins, 'win', 'wins')}, ${count(cards, 'new card', 'new cards')} and ${count(relics, 'relic', 'relics')}.`,
     keepGoing: 'Keep going',
   },
 });

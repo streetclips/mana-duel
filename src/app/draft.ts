@@ -359,6 +359,13 @@ export function matchSetup(run: DraftRun): Matchup {
   return [draftDeck(run), aiDraftDeck(run)];
 }
 
+export function resumeSetup(run: DraftRun): Matchup {
+  const [mine, theirs] = matchSetup(run);
+  const played = run.duel?.decks[0];
+  if (typeof played !== 'object') return [mine, theirs];
+  return [draftDeck({ ...run, name: played.name, featured: played.featured, deck: played.cards }), theirs];
+}
+
 export function startGame(run: DraftRun): GameStart {
   matchSetup(run);
   const [flip, rng] = nextRandom(run.rng);

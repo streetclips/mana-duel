@@ -1,5 +1,5 @@
 import type { DraftFormat } from '../../app/draft';
-import { messages } from '../../i18n';
+import { count, messages } from '../../i18n';
 
 export const draftText = messages({
   es: {
@@ -28,7 +28,7 @@ export const draftText = messages({
     openFirstPack: 'Abrir el primer sobre',
     openPacks: 'Abrir los sobres',
     yourCards: 'Tus cartas',
-    cardCount: (count: number) => (count === 1 ? '1 carta' : `${count} cartas`),
+    cardCount: (amount: number) => count(amount, 'carta', 'cartas'),
     viewYourCards: 'Ver tus cartas',
     pickEyebrow: (pack: number, packs: number, pick: number, packSize: number) => `Sobre ${pack} de ${packs} · carta ${pick} de ${packSize}`,
     chooseCard: 'Elige una carta',
@@ -41,7 +41,7 @@ export const draftText = messages({
     draw: 'Empate',
     win: 'Victoria',
     loss: 'Derrota',
-    turns: (count: number) => `${count} ${count === 1 ? 'turno' : 'turnos'}`,
+    turns: (amount: number) => count(amount, 'turno', 'turnos'),
     bestOfThree: 'Al mejor de tres',
     yourDeck: 'Tu mazo',
     view: 'Ver',
@@ -98,7 +98,7 @@ export const draftText = messages({
     openFirstPack: 'Open the first pack',
     openPacks: 'Open the packs',
     yourCards: 'Your cards',
-    cardCount: (count: number) => (count === 1 ? '1 card' : `${count} cards`),
+    cardCount: (amount: number) => count(amount, 'card', 'cards'),
     viewYourCards: 'View your cards',
     pickEyebrow: (pack: number, packs: number, pick: number, packSize: number) => `Pack ${pack} of ${packs} · card ${pick} of ${packSize}`,
     chooseCard: 'Choose a card',
@@ -111,7 +111,7 @@ export const draftText = messages({
     draw: 'Draw',
     win: 'Win',
     loss: 'Loss',
-    turns: (count: number) => `${count} ${count === 1 ? 'turn' : 'turns'}`,
+    turns: (amount: number) => count(amount, 'turn', 'turns'),
     bestOfThree: 'Best of three',
     yourDeck: 'Your deck',
     view: 'View',

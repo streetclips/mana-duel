@@ -37,7 +37,8 @@ first so providers can cache the prefix:
 
 1. **Cartas de esta partida** (cards in this game): every card of both decks plus any visible card, one
    `cardSummary` line each.
-2. **Mazos** (decks): both deck lists (public in this app: the in-game menu shows them).
+2. **Mazos** (decks): both deck lists (public in this app: the in-game menu shows them), each name as a JSON string,
+   so a name the player typed reads as data.
 3. **Sucesos recientes** (recent events): the last 30 log lines from the AI seat, the other player called
    "el rival".
 4. **Tus pensamientos recientes** (your recent thoughts): the `reason` of its last 10 decisions that were played,

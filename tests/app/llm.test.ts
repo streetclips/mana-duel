@@ -205,7 +205,7 @@ describe('an LLM opponent in the controller', () => {
     const prompt = await api.llmPrompt();
     expect(prompt?.system).toBe(systemPrompt());
     expect(prompt?.prompt).toContain('## Decisión: mulligan');
-    expect(prompt?.prompt).toContain('Tu mazo: Fangoscuro');
+    expect(prompt?.prompt).toContain('Tu mazo: "Fangoscuro"');
     const idle = api.idle();
     llm.calls[0]?.answer({ action: { type: 'keep', player: 1 }, reason: 'Keep.' });
     expect(await idle).toEqual({ kind: 'priority', player: 0 });

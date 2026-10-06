@@ -1,4 +1,4 @@
-import { messages } from '../../i18n';
+import { count, messages } from '../../i18n';
 
 export interface RelicText {
   name: string;
@@ -22,10 +22,7 @@ export const modesText = messages({
         text: 'La primera vez que pierdas un duelo, la pluma arde y lo repites en lugar de terminar la expedición.',
       }),
     },
-    changes: (count: number) => {
-      if (count === 0) return 'sin cambios';
-      return count === 1 ? 'con 1 carta nueva' : `con ${count} cartas nuevas`;
-    },
+    changes: (added: number) => (added === 0 ? 'sin cambios' : `con ${count(added, 'carta nueva', 'cartas nuevas')}`),
     runDeckDescription: (deck: string, changes: string) => `Tu mazo de la expedición: ${deck} ${changes}.`,
     defaultDraftName: 'Mi draft',
     aiDraftDeckName: 'Draft de la IA',
@@ -47,10 +44,7 @@ export const modesText = messages({
         text: 'The first time you lose a duel, the feather burns and you replay it instead of ending the expedition.',
       }),
     },
-    changes: (count: number) => {
-      if (count === 0) return 'unchanged';
-      return count === 1 ? 'with 1 new card' : `with ${count} new cards`;
-    },
+    changes: (added: number) => (added === 0 ? 'unchanged' : `with ${count(added, 'new card', 'new cards')}`),
     runDeckDescription: (deck: string, changes: string) => `Your expedition deck: ${deck}, ${changes}.`,
     defaultDraftName: 'My draft',
     aiDraftDeckName: "The AI's draft",

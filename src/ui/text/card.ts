@@ -1,5 +1,5 @@
-import type { Color, Keyword, TriggerCondition, TriggerEvent } from '../../engine';
-import { messages } from '../../i18n';
+import type { Keyword, TriggerCondition, TriggerEvent } from '../../engine';
+import { count, messages } from '../../i18n';
 
 function spanishPlural(name: string): string {
   if (/[aeiouáéíóú]$/i.test(name)) return `${name}s`;
@@ -33,7 +33,6 @@ export const cardText = messages({
       evolve: 'Evolucionar',
       prowess: 'Destreza',
     } satisfies Record<Keyword, string>,
-    manaNames: { W: 'blanco', U: 'azul', B: 'negro', R: 'rojo', G: 'verde' } satisfies Record<Color, string>,
     tap: 'girar',
     generic: (amount: string) => `${amount} genérico`,
     anyColor: 'cualquier color',
@@ -58,16 +57,16 @@ export const cardText = messages({
       bounce: 'a la mano',
       counter: 'contrarrestar',
       draw: (amount: number) => `robar ${amount}`,
-      gainLife: (amount: number) => `+${amount} ${amount === 1 ? 'vida' : 'vidas'}`,
-      loseLife: (amount: number, opponent: boolean) => `${opponent ? 'rival ' : ''}-${amount} ${amount === 1 ? 'vida' : 'vidas'}`,
+      gainLife: (amount: number) => `+${count(amount, 'vida', 'vidas')}`,
+      loseLife: (amount: number, opponent: boolean) => `${opponent ? 'rival ' : ''}-${count(amount, 'vida', 'vidas')}`,
       fight: 'luchar',
       bite: 'morder',
       team: (hint: string) => `todas ${hint}`,
-      counters: (amount: number) => `+${amount} ${amount === 1 ? 'contador' : 'contadores'}`,
-      tokens: (amount: number, name: string) => `+${amount} ${amount === 1 ? name : spanishPlural(name)}`,
+      counters: (amount: number) => `+${count(amount, 'contador', 'contadores')}`,
+      tokens: (amount: number, name: string) => `+${count(amount, name, spanishPlural(name))}`,
       discard: (amount: number, opponent: boolean) => (opponent ? `rival descarta ${amount}` : `descartar ${amount}`),
       returns: 'regresa',
-      extraLands: (amount: number) => `+${amount} ${amount === 1 ? 'tierra' : 'tierras'}`,
+      extraLands: (amount: number) => `+${count(amount, 'tierra', 'tierras')}`,
       search: (amount: number, name: string) => `busca ${amount === 1 ? name : `${amount} ${spanishPlural(name)}`}`,
       entersTapped: 'Entra girada. ',
     },
@@ -125,7 +124,6 @@ export const cardText = messages({
       evolve: 'Evolve',
       prowess: 'Prowess',
     },
-    manaNames: { W: 'white', U: 'blue', B: 'black', R: 'red', G: 'green' },
     tap: 'tap',
     generic: (amount: string) => `${amount} generic`,
     anyColor: 'any color',
@@ -155,11 +153,11 @@ export const cardText = messages({
       fight: 'fight',
       bite: 'bite',
       team: (hint: string) => `all ${hint}`,
-      counters: (amount: number) => `+${amount} ${amount === 1 ? 'counter' : 'counters'}`,
-      tokens: (amount: number, name: string) => `+${amount} ${amount === 1 ? name : englishPlural(name)}`,
+      counters: (amount: number) => `+${count(amount, 'counter', 'counters')}`,
+      tokens: (amount: number, name: string) => `+${count(amount, name, englishPlural(name))}`,
       discard: (amount: number, opponent: boolean) => (opponent ? `opponent discards ${amount}` : `discard ${amount}`),
       returns: 'returns',
-      extraLands: (amount: number) => `+${amount} ${amount === 1 ? 'land' : 'lands'}`,
+      extraLands: (amount: number) => `+${count(amount, 'land', 'lands')}`,
       search: (amount: number, name: string) => `search ${amount === 1 ? name : `${amount} ${englishPlural(name)}`}`,
       entersTapped: 'Enters tapped. ',
     },

@@ -1,8 +1,4 @@
-import { messages } from '../../i18n';
-
-function count(amount: number, one: string, many: string): string {
-  return `${amount} ${amount === 1 ? one : many}`;
-}
+import { count, messages } from '../../i18n';
 
 export const decksText = messages({
   es: {

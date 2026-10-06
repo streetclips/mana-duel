@@ -5,7 +5,6 @@ import {
   createGame,
   createScenario,
   deckIdOf,
-  defaultPlayerNames,
   describeEventParts,
   forcedAction,
   getLegalActions,
@@ -186,14 +185,13 @@ export class GameController {
   }
 
   private setupFrom(options: ControllerOptions, decks: Matchup, perks: SeatPerks): GameOptions {
-    const names = defaultPlayerNames();
     return {
       seed: options.seed ?? randomSeed(),
       skipMulligans: options.skipMulligans ?? false,
       startingPlayer: options.startingPlayer,
       players: [
-        { name: names[0], deck: decks[0], ...perks[0] },
-        { name: names[1], deck: decks[1], ...perks[1] },
+        { deck: decks[0], ...perks[0] },
+        { deck: decks[1], ...perks[1] },
       ],
     };
   }

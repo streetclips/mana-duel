@@ -7,6 +7,7 @@ import {
   PROWESS_TRIGGER,
   RELIC_DEFS,
   UNDYING_TRIGGER,
+  activatedText,
   allCardDefs,
   applyAction,
   cardSummary,
@@ -65,6 +66,29 @@ describe('English card and deck text', () => {
       expect(allCardDefs().find((def) => def.id === 'grove_tender')).toBe(english);
     });
     expect(getCardDef('grove_tender')).toBe(source);
+  });
+
+  it('writes the same lines of rules text for every card in both languages, none of them empty', () => {
+    const lines = (locale: 'es' | 'en') =>
+      withLocale(locale, () =>
+        allCardDefs().map((def) => ({
+          id: def.id,
+          rules: rulesText(def),
+          abilities: [
+            ...[...(def.triggers ?? []).keys(), UNDYING_TRIGGER, EVOLVE_TRIGGER, PROWESS_TRIGGER].map((index) => triggerText(def, index)),
+            ...[...(def.activated ?? []).keys()].map((index) => activatedText(def, index)),
+          ],
+        })),
+      );
+    const spanish = new Map(lines('es').map((card) => [card.id, card]));
+    const english = lines('en');
+    expect(english.map((card) => card.id)).toEqual([...spanish.keys()]);
+    for (const card of english) {
+      const other = spanish.get(card.id);
+      expect(card.rules, card.id).toHaveLength(other?.rules.length ?? -1);
+      expect(card.abilities, card.id).toHaveLength(other?.abilities.length ?? -1);
+      for (const line of [...card.rules, ...card.abilities, ...(other?.rules ?? []), ...(other?.abilities ?? [])]) expect(line, card.id).not.toBe('');
+    }
   });
 
   it('names the built-in decks in the current language and leaves the player’s own decks alone', () => {

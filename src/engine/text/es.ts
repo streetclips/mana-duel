@@ -1,37 +1,36 @@
+import { count, plural } from '../../i18n/plural';
 import { getCardDef } from '../registry';
 import type { Refusal } from '../refusals';
-import { EVOLVE_TRIGGER, PROWESS_TRIGGER, UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef, isRelicDef } from '../state';
 import { isPlayerTarget } from '../targets';
-import type {
-  CardDef,
-  CardId,
-  CardType,
-  Color,
-  Effect,
-  EffectTarget,
-  GameEvent,
-  GameState,
-  Keyword,
-  PlayerId,
-  Step,
-  Target,
-  TargetSpec,
-  TriggerCondition,
-  TriggerEvent,
-} from '../types';
 import {
-  capitalize,
-  capitalizeParts,
-  cardName,
-  formatModifier,
-  joined,
-  line,
-  lowerFirst,
-  mention,
-  plainText,
-  type TextPart,
-} from './parts';
-import type { EngineText } from './types';
+  COLORS,
+  type CardDef,
+  type CardId,
+  type CardType,
+  type Color,
+  type Effect,
+  type GameEvent,
+  type GameState,
+  type Keyword,
+  type PlayerId,
+  type Step,
+  type Target,
+  type TargetSpec,
+  type TriggerCondition,
+  type TriggerEvent,
+} from '../types';
+import { capitalize, capitalizeParts, formatModifier, joined, line, lowerFirst, mention, plainText, type TextPart } from './parts';
+import {
+  activatedText,
+  describeState,
+  rulesText,
+  triggerText,
+  type RulesGrammar,
+  type SentenceContext,
+  type StateWords,
+  type TargetRef,
+} from './shared';
+import type { ColorNoun, EngineText } from './types';
 
 const KEYWORD_NAMES: Record<Keyword, string> = {
   flying: 'Vuela',
@@ -124,10 +123,6 @@ const NUMBER_WORDS = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', '
 
 const RIVAL = 'el rival';
 
-function plural(count: number, one: string, many: string): string {
-  return count === 1 ? one : many;
-}
-
 function startsWithI(word: string): boolean {
   return /^h?[ií](?![aeiouáéíóú])/i.test(word);
 }
@@ -151,14 +146,12 @@ function typeLine(def: CardDef): string {
   return subtypes ? `${main} — ${subtypes}` : main;
 }
 
-const COLOR_COUNT = 5;
-
-const COLOR_WORDS: Record<Color, [string, string]> = {
-  W: ['blanca', 'blancas'],
-  U: ['azul', 'azules'],
-  B: ['negra', 'negras'],
-  R: ['roja', 'rojas'],
-  G: ['verde', 'verdes'],
+const COLOR_WORDS: Record<Color, Record<ColorNoun, string>> = {
+  W: { mana: 'blanco', card: 'blanca', cards: 'blancas' },
+  U: { mana: 'azul', card: 'azul', cards: 'azules' },
+  B: { mana: 'negro', card: 'negra', cards: 'negras' },
+  R: { mana: 'rojo', card: 'roja', cards: 'rojas' },
+  G: { mana: 'verde', card: 'verde', cards: 'verdes' },
 };
 
 function andList(items: string[]): string {
@@ -183,7 +176,7 @@ function formatPump(power: number, toughness: number, keywords: readonly Keyword
 
 function tokenDescription(defId: string, amount: number): string {
   const token = getCardDef(defId);
-  const form = amount === 1 ? 0 : 1;
+  const form = plural(amount, 'card', 'cards');
   const colors = token.colors?.length
     ? andList(token.colors.map((color) => COLOR_WORDS[color][form]))
     : plural(amount, 'incolora', 'incoloras');
@@ -251,8 +244,8 @@ function plusCounters(amount: number): string {
   return amount === 1 ? 'un contador +1/+1' : `${countWord(amount)} contadores +1/+1`;
 }
 
-function countersLabel(count: number): string {
-  return `${count} ${plural(count, 'contador', 'contadores')} +1/+1`;
+function countersLabel(amount: number): string {
+  return `${count(amount, 'contador', 'contadores')} +1/+1`;
 }
 
 function landCards(defId: string, amount: number): string {
@@ -277,11 +270,11 @@ function extraLandsText(amount: number): string {
 }
 
 function damagePoints(amount: number): string {
-  return `${amount} ${plural(amount, 'punto', 'puntos')} de daño`;
+  return `${count(amount, 'punto', 'puntos')} de daño`;
 }
 
 function lifeAmount(amount: number): string {
-  return `${amount} ${plural(amount, 'vida', 'vidas')}`;
+  return count(amount, 'vida', 'vidas');
 }
 
 function cardsCount(amount: number): string {
@@ -295,25 +288,11 @@ function gainsText(verb: 'obtiene' | 'obtienen', power: number, toughness: numbe
   return `${verb} ${formatModifier(power, toughness)} y ${gain} ${abilityPhrase(keywords)}`;
 }
 
-interface SelfReference {
-  subject: string;
-  object: string;
-}
-
-type Role = keyof SelfReference;
-
-interface SentenceContext {
-  subject: string;
-  on?: TriggerEvent;
-}
-
-const NO_SELF: SelfReference = { subject: '', object: '' };
-
 function withSubject(subject: string, predicate: string): string {
   return subject ? `${subject} ${predicate}` : predicate;
 }
 
-function effectSentence(effect: Effect, ref: (target: EffectTarget, role: Role) => string, context: SentenceContext): string {
+function effectSentence(effect: Effect, ref: TargetRef, context: SentenceContext): string {
   switch (effect.kind) {
     case 'damage':
       return withSubject(context.subject, `hace ${damagePoints(effect.amount)} ${withA(ref(effect.to, 'object'))}.`);
@@ -356,31 +335,6 @@ function effectSentence(effect: Effect, ref: (target: EffectTarget, role: Role) 
   }
 }
 
-function sentences(effects: Effect[], specs: TargetSpec[], context: SentenceContext, self: SelfReference): string {
-  const named = new Set<number>();
-  const ref = (target: EffectTarget, role: Role): string => {
-    if (target === 'self') return self[role];
-    const spec = specs[target];
-    if (!spec) return '';
-    if (named.has(target)) return repeatedPhrase(spec);
-    named.add(target);
-    return targetPhrase(spec);
-  };
-  const lines: string[] = [];
-  effects.forEach((effect, index) => {
-    const previous = effects[index - 1];
-    if (effect.kind === 'damage' && previous?.kind === 'damage' && lines.length > 0) {
-      lines.push(`${(lines.pop() as string).replace(/\.$/, '')} y ${damagePoints(effect.amount)} ${withA(ref(effect.to, 'object'))}.`);
-      return;
-    }
-    const text = capitalize(effectSentence(effect, ref, context));
-    if (effect.kind === 'discard' && effect.who !== 'opponent' && previous?.kind === 'draw' && lines.length > 0) {
-      lines.push(`${(lines.pop() as string).replace(/\.$/, '')} y luego ${lowerFirst(text)}`);
-    } else lines.push(text);
-  });
-  return lines.join(' ');
-}
-
 const TRIGGER_OPENERS: Record<TriggerEvent, string> = {
   upkeep: 'Al comienzo de tu mantenimiento',
   enters: 'Cuando esta criatura entre',
@@ -404,60 +358,11 @@ const TRIGGER_CONDITIONS: Record<TriggerCondition, string> = {
   emptyHand: 'si no tienes cartas en la mano',
 };
 
-const OPENER_NAMES_IT: ReadonlySet<TriggerEvent> = new Set(['enters', 'dies', 'attacks', 'damagesPlayer']);
-
 function manaChoice(colors: readonly Color[]): string {
-  if (colors.length === COLOR_COUNT) return 'un maná de cualquier color';
+  if (colors.length === COLORS.length) return 'un maná de cualquier color';
   const symbols = colors.map((color) => `{${color}}`);
   if (symbols.length === 1) return symbols.join('');
   return `${symbols.slice(0, -1).join(', ')} o ${symbols.at(-1)}`;
-}
-
-function rulesText(def: CardDef): string[] {
-  const lines: string[] = [];
-  if (def.keywords?.length) {
-    lines.push(`${def.keywords.map((keyword, i) => (i === 0 ? KEYWORD_NAMES[keyword] : lowerFirst(KEYWORD_NAMES[keyword]))).join(', ')}.`);
-  }
-  if (def.entersTapped) lines.push('Esta tierra entra girada.');
-  if (def.mana?.length) lines.push(`{T}: Agrega ${manaChoice(def.mana)}.`);
-  if (def.spell) {
-    lines.push(sentences(def.spell.effects, def.spell.targets, { subject: def.name }, NO_SELF));
-  }
-  (def.triggers ?? []).forEach((_, index) => lines.push(triggerText(def, index)));
-  (def.activated ?? []).forEach((_, index) => lines.push(activatedText(def, index)));
-  return lines;
-}
-
-function triggerText(def: CardDef, index: number): string {
-  if (index === UNDYING_TRIGGER) {
-    return `${TRIGGER_OPENERS.dies}, si no tenía contadores +1/+1 sobre ella, regrésala al campo de batalla bajo el control de su propietario con un contador +1/+1.`;
-  }
-  if (index === EVOLVE_TRIGGER) {
-    return `${TRIGGER_OPENERS.allyEnters}, si la fuerza o la resistencia de esa criatura es mayor que la de esta criatura, pon un contador +1/+1 sobre esta criatura.`;
-  }
-  if (index === PROWESS_TRIGGER) return KEYWORD_REMINDERS.prowess;
-  const trigger = def.triggers?.[index];
-  if (!trigger) return '';
-  const self: SelfReference = OPENER_NAMES_IT.has(trigger.on)
-    ? { subject: '', object: 'ella' }
-    : { subject: 'esta criatura', object: 'esta criatura' };
-  const condition = trigger.condition ? `${TRIGGER_CONDITIONS[trigger.condition]}, ` : '';
-  const opener = (isRelicDef(def) ? RELIC_OPENERS[trigger.on] : undefined) ?? TRIGGER_OPENERS[trigger.on];
-  return `${opener}, ${condition}${lowerFirst(sentences(trigger.effects, trigger.targets, { subject: self.subject, on: trigger.on }, self))}`;
-}
-
-function activatedText(def: CardDef, index: number): string {
-  const ability = def.activated?.[index];
-  if (!ability) return '';
-  const cost = [
-    ability.cost && ability.cost !== '{0}' ? ability.cost : '',
-    ability.tap ? '{T}' : '',
-    ability.sacrifice ? 'sacrificar esta criatura' : '',
-  ]
-    .filter(Boolean)
-    .join(', ');
-  const self: SelfReference = ability.sacrifice ? { subject: '', object: 'esta criatura' } : { subject: 'esta criatura', object: 'esta criatura' };
-  return `${capitalize(cost)}: ${sentences(ability.effects, ability.targets, { subject: self.subject }, self)}`;
 }
 
 function playerLabel(player: PlayerId, viewer: PlayerId): string {
@@ -508,9 +413,9 @@ function describeEventParts(s: GameState, event: GameEvent, viewer: PlayerId): T
     case 'mulligan':
       return line`${act(event.player, viewer, 'haces', 'hace')} mulligan (${event.count}).`;
     case 'keep':
-      return line`${act(event.player, viewer, 'te quedas', 'se queda')} con ${event.handSize} ${plural(event.handSize, 'carta', 'cartas')}.`;
+      return line`${act(event.player, viewer, 'te quedas', 'se queda')} con ${count(event.handSize, 'carta', 'cartas')}.`;
     case 'bottom':
-      return line`${act(event.player, viewer, 'pones', 'pone')} ${event.count} ${plural(event.count, 'carta', 'cartas')} en el fondo de ${event.player === viewer ? 'tu' : 'su'} biblioteca.`;
+      return line`${act(event.player, viewer, 'pones', 'pone')} ${count(event.count, 'carta', 'cartas')} en el fondo de ${event.player === viewer ? 'tu' : 'su'} biblioteca.`;
     case 'turn':
       return line`Turno ${event.turn} — ${event.player === viewer ? 'tu turno' : 'turno del rival'}.`;
     case 'draw':
@@ -587,50 +492,6 @@ function describeEventParts(s: GameState, event: GameEvent, viewer: PlayerId): T
   }
 }
 
-function permanentLabel(s: GameState, id: CardId): string {
-  const card = getCard(s, id);
-  const def = getCardDef(card.def);
-  const flags: string[] = [];
-  if (card.tapped) flags.push('girada');
-  if (card.summoningSick && isCreatureDef(def)) flags.push('mareo');
-  if (card.damage > 0) flags.push(`${card.damage} de daño`);
-  if (card.counters > 0) flags.push(countersLabel(card.counters));
-  if (s.combat?.attackers.includes(id)) flags.push('atacando');
-  const block = s.combat?.blocks.find((candidate) => candidate.blocker === id);
-  if (block) flags.push(`bloqueando a ${block.attacker}`);
-  const stats = isCreatureDef(def) ? ` ${getPower(s, id)}/${getToughness(s, id)}` : '';
-  return `${def.name}(${id})${stats}${flags.length ? ` [${flags.join(', ')}]` : ''}`;
-}
-
-function describeState(s: GameState, viewer: PlayerId, revealAll: boolean): string {
-  const lines: string[] = [];
-  lines.push(`Turno ${s.turn} · ${STEP_NAMES[s.step]} · activo: ${s.players[s.activePlayer].name} (p${s.activePlayer})`);
-  for (const player of [viewer, viewer === 0 ? 1 : 0] as PlayerId[]) {
-    const ps = s.players[player];
-    const showHand = revealAll || player === viewer;
-    const hand = showHand ? ps.hand.map((id) => `${cardName(s, id)}(${id})`).join(', ') : `${ps.hand.length} cartas`;
-    lines.push(`${ps.name} (p${player}): ${lifeAmount(ps.life)} · biblioteca ${ps.library.length} · cementerio ${ps.graveyard.length}`);
-    lines.push(`  mano: ${hand || '—'}`);
-    lines.push(`  campo de batalla: ${ps.battlefield.map((id) => permanentLabel(s, id)).join(', ') || '—'}`);
-    if (ps.command.length > 0) lines.push(`  reliquias: ${ps.command.map((id) => `${cardName(s, id)}(${id})`).join(', ')}`);
-  }
-  const stack = [...s.stack]
-    .reverse()
-    .map((item) => {
-      const source = item.kind === 'spell' ? item.card : item.source;
-      const label = item.kind === 'spell' ? cardName(s, source) : `habilidad de ${cardName(s, source)}`;
-      return `${label}${plainText(targetsSuffix(s, item.targets, viewer))}`;
-    })
-    .join(' ← ');
-  lines.push(`pila: ${stack || '—'}`);
-  const pending = s.pending;
-  if (pending) {
-    const who = pending.kind === 'gameOver' ? '' : ` (${s.players[pending.player].name})`;
-    lines.push(`esperando: ${pending.kind}${who}`);
-  }
-  return lines.join('\n');
-}
-
 function refusal(refused: Refusal): string {
   switch (refused.code) {
     case 'malformedAction':
@@ -656,7 +517,7 @@ function refusal(refused: Refusal): string {
     case 'cardsNotList':
       return 'las cartas deben ser una lista';
     case 'chooseExactly':
-      return `elige exactamente ${refused.count} ${plural(refused.count, 'carta', 'cartas')}`;
+      return `elige exactamente ${count(refused.count, 'carta', 'cartas')}`;
     case 'chosenNotInHand':
       return `${refused.card} no está en tu mano`;
     case 'chosenTwice':
@@ -722,25 +583,69 @@ function refusal(refused: Refusal): string {
   }
 }
 
+const RULES: RulesGrammar = {
+  keywordNames: KEYWORD_NAMES,
+  keywordLine: (keywords) => `${keywords}.`,
+  entersTapped: 'Esta tierra entra girada.',
+  manaAbility: (colors) => `{T}: Agrega ${manaChoice(colors)}.`,
+  triggerOpeners: TRIGGER_OPENERS,
+  relicOpeners: RELIC_OPENERS,
+  triggerConditions: TRIGGER_CONDITIONS,
+  undying: `${TRIGGER_OPENERS.dies}, si no tenía contadores +1/+1 sobre ella, regrésala al campo de batalla bajo el control de su propietario con un contador +1/+1.`,
+  evolve: `${TRIGGER_OPENERS.allyEnters}, si la fuerza o la resistencia de esa criatura es mayor que la de esta criatura, pon un contador +1/+1 sobre esta criatura.`,
+  prowess: KEYWORD_REMINDERS.prowess,
+  sacrificeCost: 'sacrificar esta criatura',
+  selves: {
+    pronoun: { subject: '', object: 'ella' },
+    creature: { subject: 'esta criatura', object: 'esta criatura' },
+    sacrificed: { subject: '', object: 'esta criatura' },
+  },
+  targetPhrase,
+  repeatedPhrase,
+  effectSentence,
+  moreDamage: (amount, target) => `y ${damagePoints(amount)} ${withA(target)}.`,
+  then: ' y luego ',
+};
+
+const STATE: StateWords = {
+  stepName: (step) => STEP_NAMES[step],
+  turn: 'Turno',
+  active: 'activo',
+  life: lifeAmount,
+  library: 'biblioteca',
+  graveyard: 'cementerio',
+  hand: 'mano',
+  hiddenHand: (cards) => `${cards} cartas`,
+  battlefield: 'campo de batalla',
+  relics: 'reliquias',
+  stack: 'pila',
+  ability: (source) => `habilidad de ${source}`,
+  targets: targetsSuffix,
+  waitingFor: 'esperando',
+  tapped: 'girada',
+  summoningSick: 'mareo',
+  damage: (amount) => `${amount} de daño`,
+  counters: countersLabel,
+  attacking: 'atacando',
+  blocking: (attacker) => `bloqueando a ${attacker}`,
+};
+
 export const es: EngineText = {
   playerNames: ['Tú', 'IA'],
   keywordName: (keyword) => KEYWORD_NAMES[keyword],
   keywordReminder: (keyword) => KEYWORD_REMINDERS[keyword],
   stepName: (step) => STEP_NAMES[step],
+  colorName: (color, noun) => COLOR_WORDS[color][noun],
   typeLine,
-  rulesText,
-  triggerText,
-  activatedText,
+  rulesText: (def) => rulesText(RULES, def),
+  triggerText: (def, index) => triggerText(RULES, def, index),
+  activatedText: (def, index) => activatedText(RULES, def, index),
   tokenDescription,
-  targetPhrase,
   targetChoice,
-  keywordList,
   formatPump,
   countersLabel,
-  manaChoice,
-  cardRefParts,
   targetRefParts,
   describeEventParts,
-  describeState,
+  describeState: (s, viewer, revealAll) => describeState(STATE, s, viewer, revealAll),
   refusal,
 };

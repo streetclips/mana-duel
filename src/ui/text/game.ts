@@ -1,4 +1,4 @@
-import { messages } from '../../i18n';
+import { count, messages, plural } from '../../i18n';
 
 export type PhaseId = 'beginning' | 'main1' | 'combat' | 'main2' | 'end';
 
@@ -22,13 +22,12 @@ export const gameText = messages({
     cancel: 'Cancelar',
     keepOpeningHand: '¿Te quedas con tu mano inicial?',
     keepCards: (count: number) => `¿Te quedas con ${count} cartas?`,
-    landsInHand: (count: number) => `${count} ${count === 1 ? 'tierra' : 'tierras'} en la mano`,
+    landsInHand: (amount: number) => `${count(amount, 'tierra', 'tierras')} en la mano`,
     willBottom: (count: number) => ` · pondrás ${count} en el fondo de tu biblioteca`,
     keep: 'Me quedo',
     mulligan: 'Mulligan',
-    chooseCards: (count: number, bottom: boolean) =>
-      `Elige ${count} ${count === 1 ? 'carta' : 'cartas'} para ${bottom ? 'poner en el fondo' : 'descartar'}`,
-    chosen: (chosen: number, count: number) => `${chosen}/${count} ${count === 1 ? 'elegida' : 'elegidas'}`,
+    chooseCards: (amount: number, bottom: boolean) => `Elige ${count(amount, 'carta', 'cartas')} para ${bottom ? 'poner en el fondo' : 'descartar'}`,
+    chosen: (chosen: number, amount: number) => `${chosen}/${count(amount, 'elegida', 'elegidas')}`,
     putOnBottom: 'Poner en el fondo',
     discard: 'Descartar',
     attack: (count: number) => (count ? `Atacar (${count})` : 'No atacar'),
@@ -67,7 +66,7 @@ export const gameText = messages({
     conceded: (mine: boolean) => (mine ? 'Te rendiste' : 'El rival se rindió'),
     turnLimit: 'Se alcanzó el límite de turnos',
     playerSummary: (name: string, life: number, hand: number, library: number, graveyard: number) =>
-      `${name}: ${life} ${life === 1 ? 'vida' : 'vidas'}, ${hand} en la mano, ${library} en la biblioteca, ${graveyard} en el cementerio`,
+      `${name}: ${count(life, 'vida', 'vidas')}, ${hand} en la mano, ${library} en la biblioteca, ${graveyard} en el cementerio`,
     target: (name: string) => `Objetivo: ${name}`,
     counts: (hand: number, library: number, graveyard: number) => `Mano ${hand} · Mazo ${library} · Cementerio ${graveyard}`,
     hasPriority: 'Tiene la prioridad',
@@ -100,7 +99,7 @@ export const gameText = messages({
     sfx: (on: boolean) => `Efectos de sonido: ${on ? 'sí' : 'no'}`,
     home: 'Menú principal',
     concede: 'Rendirse',
-    turns: (count: number) => (count === 1 ? 'turno' : 'turnos'),
+    turns: (amount: number) => plural(amount, 'turno', 'turnos'),
     yourLife: 'tus vidas',
     opponentLife: 'vidas del rival',
     playAgain: 'Jugar otra vez',
@@ -125,11 +124,11 @@ export const gameText = messages({
     cancel: 'Cancel',
     keepOpeningHand: 'Keep your opening hand?',
     keepCards: (count: number) => `Keep ${count} cards?`,
-    landsInHand: (count: number) => `${count} ${count === 1 ? 'land' : 'lands'} in hand`,
+    landsInHand: (amount: number) => `${count(amount, 'land', 'lands')} in hand`,
     willBottom: (count: number) => ` · you'll put ${count} on the bottom of your library`,
     keep: 'Keep',
     mulligan: 'Mulligan',
-    chooseCards: (count: number, bottom: boolean) => `Choose ${count} ${count === 1 ? 'card' : 'cards'} to ${bottom ? 'put on the bottom' : 'discard'}`,
+    chooseCards: (amount: number, bottom: boolean) => `Choose ${count(amount, 'card', 'cards')} to ${bottom ? 'put on the bottom' : 'discard'}`,
     chosen: (chosen: number, count: number) => `${chosen}/${count} chosen`,
     putOnBottom: 'Put on the bottom',
     discard: 'Discard',
@@ -202,7 +201,7 @@ export const gameText = messages({
     sfx: (on: boolean) => `Sound effects: ${on ? 'on' : 'off'}`,
     home: 'Main menu',
     concede: 'Concede',
-    turns: (count: number) => (count === 1 ? 'turn' : 'turns'),
+    turns: (amount: number) => plural(amount, 'turn', 'turns'),
     yourLife: 'your life',
     opponentLife: "opponent's life",
     playAgain: 'Play again',

@@ -154,8 +154,8 @@ describe('the LLM prompt', () => {
     const s = mainPhase();
     const events = Array.from({ length: 40 }, (_, i) => `Event ${i}.`);
     const { prompt } = buildPrompt(s, 1, decisionFor(s, 1), { decks: ['emberwild', 'duskmire'], recentEvents: events });
-    expect(prompt).toContain('Tu mazo: Fangoscuro');
-    expect(prompt).toContain('Mazo del rival: Brasalvaje');
+    expect(prompt).toContain('Tu mazo: "Fangoscuro"');
+    expect(prompt).toContain('Mazo del rival: "Brasalvaje"');
     expect(prompt).toContain('- Dragón del risco · {3}{R}{R}');
     expect(prompt).toContain('- Event 39.');
     expect(prompt).toContain('- Event 10.');

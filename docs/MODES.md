@@ -146,7 +146,8 @@ src/ui/deckLibraryStore.ts   the decks in localStorage under manaDuel.customDeck
   14-20 and a color that no card of the deck can pay.
 - **A deck**: its colors are those of its spells (of its lands when it has none), its box shows the card you put on it
   or else its most expensive spell, and its description counts its creatures, spells and lands. Ids are `mine-<n>`;
-  names have at most 22 characters, and a new deck gets the first free *Mi mazo*, *Mi mazo 2*…
+  names are one line of at most 22 characters (line breaks and control characters become spaces, and a stored deck
+  whose name breaks this is dropped), and a new deck gets the first free *Mi mazo*, *Mi mazo 2*…
 - **The builder** shows the deck by type with a stepper per card, the pool with a search and filters by color and type,
   the count, the colors and the mana curve. *Completar con tierras básicas* adds the basics that bring the deck to 40,
   shared as the colored mana symbols of its spells. Leaving with changes asks first.

@@ -159,18 +159,20 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   no deck; a `createTokens` effect names it. Tokens get ids `tk<n>` and, once they leave the battlefield, stay in
   `state.cards` with zone `gone` so the log and the animations can still name them.
 - A new effect, trigger or keyword touches `src/engine/types.ts`, its behaviour where it happens (`effects.ts`,
-  `combat.ts`, `rules.ts` for timing, `game.ts` for cast triggers and costs, `state.ts` `moveCard` for enters, dies
-  and "another creature" triggers), its text in `src/engine/text/es.ts` and `en.ts`, its short label in
-  `src/ui/cardInfo.ts` (a keyword, its icon in `src/ui/components/KeywordIcon.tsx`), and `src/ai/evaluate.ts` when
-  it changes what a creature is worth. An effect that waits for a player's choice sets `state.pending` during
-  resolution (see the `discard` effect) and needs a case in `src/ai/rollout.ts`. State a
-  creature keeps on the battlefield, like +1/+1 counters, also needs its reset in `moveCard`, a rule in
-  `invariants.ts`, a scenario field and a place in `src/llm/view.ts`; state a player keeps for the turn, like
+  `combat.ts`, `rules.ts` for timing, `game.ts` for cast triggers and costs, `state.ts` `moveCard` for enters, dies and
+  "another creature" triggers), its text in `src/engine/text/es.ts` and `en.ts`, which lend their words to the
+  structure both languages share in `shared.ts` (the order of a card's lines, the merged sentences, the keyword
+  triggers, the state for developers), its short label in `src/ui/cardInfo.ts` (a keyword, its icon in
+  `src/ui/components/KeywordIcon.tsx`), and `src/ai/evaluate.ts` when it changes what a creature is worth. An effect
+  that waits for a player's choice sets `state.pending` during resolution (see the `discard` effect) and needs a case
+  in `src/ai/rollout.ts`. State a creature keeps on the battlefield, like +1/+1 counters, also needs its reset in
+  `moveCard`, a rule in `invariants.ts`, a scenario field, a place in `src/llm/view.ts` and a flag in `permanentLabel`
+  (`src/engine/text/shared.ts`, its word in each language's `StateWords`); state a player keeps for the turn, like
   `damagedThisTurn`, resets in `goToNextStep` and needs the same scenario field and view. A keyword that triggers
   (undying, evolve, prowess) is a negative ability index in `state.ts` (`UNDYING_TRIGGER`, `EVOLVE_TRIGGER`,
-  `PROWESS_TRIGGER`) with its text in `triggerText`; a trigger's `condition` (bloodthirst's `opponentDamaged`) is
-  checked by `conditionHolds` when it would trigger. Cover it with a scenario test in `tests/engine` and a check in
-  `src/app/checks.ts`.
+  `PROWESS_TRIGGER`) that `triggerText` in `shared.ts` turns into its text in each language's `RulesGrammar`; a
+  trigger's `condition` (bloodthirst's `opponentDamaged`) is checked by `conditionHolds` when it would trigger. Cover
+  it with a scenario test in `tests/engine` and a check in `src/app/checks.ts`.
 - A relic that acts during a duel is a `CardDef` of type `relic` in `src/engine/relics.ts`: only triggered abilities
   without targets, on what a relic sees (`upkeep`, `spell`, `allyEnters`, `allyDies`, `lifeGain`, `landfall`), which
   `validateCardDef` checks. A player gets it from `PlayerSetup.relics` (or a scenario's `relics`) and it triggers from
@@ -188,11 +190,12 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 - Code, docs, tests, commit messages and developer-facing strings (`manaDuel.help()`, check titles, programmer
   errors, the output of `npm run sim`) are English. Code carries no comments: names and tests explain it.
 - Every text the player reads exists in Spanish and English: card and deck names, rules text, the UI, the log, engine
-  refusals (they reach toasts and prompts) and the LLM prompt (its reasons reach the log). The engine writes its text in
-  `src/engine/text/es.ts` and `en.ts` on the official templates of Magic in each language, and the log and the prompts
-  call the other player «el rival» or "the opponent"; every other layer keeps a `messages({ es, en })` catalog in its
-  `text/` folder, where a missing English key fails `tsc`, and reads it each time it renders (a value read at import
-  keeps the language of that moment). Spanish is the default and the tests' language: an English test calls
+  refusals (they reach toasts and prompts) and the LLM prompt (its reasons reach the log). The engine writes its text
+  in `src/engine/text/es.ts` and `en.ts` on the official templates of Magic in each language, and the log and the
+  prompts call the other player «el rival» or "the opponent"; every other layer keeps a `messages({ es, en })` catalog
+  in its `text/` folder, where a missing English key fails `tsc`, and reads it each time it renders (a value read at
+  import keeps the language of that moment). Counts take their noun from `count` and `plural` (`src/i18n`), and colors
+  their word from the engine's `colorName`. Spanish is the default and the tests' language: an English test calls
   `setLocale('en')` and expects `spanishIn(shownText(...))` (`tests/i18n.ts`) to find nothing. Ids of cards, decks,
   test hooks and URL parameters keep their English names.
 - Tests build positions with `scenario(...)` and explicit card ids (`tests/helpers.ts`); seeds are for whole games.

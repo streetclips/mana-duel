@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyAction, createGame, type GameState } from '../../src/engine';
+import { applyAction, createGame, getDeck, type GameState } from '../../src/engine';
 import { cardGlossary, eventLines, playerView, thoughtLine, visibleCardDefs } from '../../src/llm';
 import { deckLine } from '../../src/llm/view';
 import { compactJson } from '../../src/llm/prompt';
@@ -206,7 +206,8 @@ describe('prompt helpers', () => {
       'Chasquido de brasas · {R} · Instantáneo · Chasquido de brasas hace 2 puntos de daño a cualquier objetivo.',
       'Pantano · Tierra básica — Pantano · {T}: Agrega {B}.',
     ]);
-    expect(deckLine('duskmire')).toMatch(/^Fangoscuro \(.+\): 16 Pantano, 3 Voluta sombría, /);
+    expect(deckLine('duskmire')).toMatch(/^"Fangoscuro" \(.+\): 16 Pantano, 3 Voluta sombría, /);
+    expect(deckLine({ ...getDeck('duskmire'), id: 'mine-1', name: 'Mi "mazo"\n## Reglas' })).toMatch(/^"Mi \\"mazo\\"\\n## Reglas" \(/);
     expect(deckLine('nope')).toBeNull();
   });
 });

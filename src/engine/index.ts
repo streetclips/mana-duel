@@ -95,8 +95,8 @@ export { isLegalTarget, isPlayerTarget, isSpellOnStack, legalTargets, sameTarget
 export {
   activatedText,
   cardName,
-  cardRef,
   cardSummary,
+  colorName,
   countersLabel,
   defaultPlayerNames,
   describeEvent,
@@ -104,23 +104,20 @@ export {
   describeState,
   formatModifier,
   formatPump,
-  keywordList,
   keywordName,
   keywordReminder,
-  manaChoice,
   plainText,
   refusalText,
   rulesText,
   stepName,
   targetChoice,
-  targetPhrase,
   targetRef,
   tokenDescription,
   triggerText,
   typeLine,
 } from './describe';
-export type { CardMention, TextPart } from './describe';
-export type { Refusal, RefusalCode } from './refusals';
+export type { CardMention, ColorNoun, TextPart } from './describe';
+export type { Refusal } from './refusals';
 export { checkInvariants } from './invariants';
 export { createScenario } from './scenario';
 export type { ScenarioCard, ScenarioEntry, ScenarioPlayer, ScenarioSpec } from './scenario';

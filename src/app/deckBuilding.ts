@@ -9,6 +9,8 @@ export const CUSTOM_PREFIX = 'mine-';
 
 const BASIC_OF: Record<Color, string> = { W: 'plains', U: 'island', B: 'swamp', R: 'mountain', G: 'forest' };
 
+const LINE_BREAK_OR_CONTROL = /[\p{Cc}\p{Zl}\p{Zp}]/u;
+
 export interface Allowance {
   card: string;
   max: number | null;
@@ -92,7 +94,7 @@ export function deckDescription(cards: readonly DeckEntry[]): string {
 export function draftProblems(draft: DeckDraft, pool: readonly Allowance[]): string[] {
   const text = deckBuildingText();
   const problems: string[] = [];
-  if (!draft.name.trim()) problems.push(text.unnamed);
+  if (!deckName(draft.name)) problems.push(text.unnamed);
   const size = countCards(draft.cards);
   if (size < MIN_DECK) problems.push(text.tooFew(MIN_DECK - size, MIN_DECK));
   if (size > MAX_DECK) problems.push(text.tooMany(size - MAX_DECK, MAX_DECK));
@@ -152,12 +154,16 @@ export function checkDraft(draft: DeckDraft): void {
   }
 }
 
+function deckName(name: string): string {
+  return name.split(LINE_BREAK_OR_CONTROL).join(' ').trim().slice(0, MAX_NAME);
+}
+
 export function buildDeck(draft: DeckDraft, id: string): DeckDef {
   const cards = draft.cards.filter((entry) => entry.count > 0).map((entry) => ({ ...entry }));
   const featured = draft.featured && cards.some((entry) => entry.card === draft.featured) ? draft.featured : suggestedFeatured(cards);
   return {
     id,
-    name: draft.name.trim().slice(0, MAX_NAME),
+    name: deckName(draft.name),
     description: deckDescription(cards),
     colors: deckColors(cards),
     featured,
@@ -194,6 +200,8 @@ export function isCustomDeck(value: unknown): value is DeckDef {
     id.startsWith(CUSTOM_PREFIX) &&
     typeof name === 'string' &&
     name.trim().length > 0 &&
+    name.length <= MAX_NAME &&
+    !LINE_BREAK_OR_CONTROL.test(name) &&
     typeof description === 'string' &&
     Array.isArray(colors) &&
     colors.every((color) => (COLORS as readonly unknown[]).includes(color)) &&

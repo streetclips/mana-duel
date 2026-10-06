@@ -1,7 +1,6 @@
-import { getLocale, type Locale } from '../i18n/locale';
 import { costColors } from './mana';
 import { getCardDef, getCost } from './registry';
-import { DECK_TEXTS } from './text/content';
+import { DECK_TEXTS, localizer } from './text/content';
 import type { CardDef, Color } from './types';
 
 export interface DeckEntry {
@@ -415,17 +414,10 @@ export function hasDeck(id: string): boolean {
   return Object.hasOwn(DECKS, id);
 }
 
-const translated = new Map<Locale, Map<string, DeckDef>>();
+const translations = localizer<DeckDef>(DECK_TEXTS);
 
 export function localizeDeck(deck: DeckDef): DeckDef {
-  const locale = getLocale();
-  const text = DECK_TEXTS[locale]?.[deck.id];
-  if (!text || !hasDeck(deck.id) || DECKS[deck.id] !== deck) return deck;
-  let decks = translated.get(locale);
-  if (!decks) translated.set(locale, (decks = new Map()));
-  let copy = decks.get(deck.id);
-  if (!copy) decks.set(deck.id, (copy = { ...deck, ...text }));
-  return copy;
+  return DECKS[deck.id] === deck ? translations.localize(deck) : deck;
 }
 
 export function getDeck(id: string): DeckDef {

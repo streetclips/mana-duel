@@ -1,8 +1,5 @@
+import { count, plural } from '../../i18n';
 import type { LlmText } from './types';
-
-function count(amount: number, one: string, many: string): string {
-  return `${amount} ${amount === 1 ? one : many}`;
-}
 
 export const es: LlmText = {
   systemPrompt: (keywordLines) => `Eres un jugador experto de Duelo de Maná, un juego de cartas para dos jugadores basado en las reglas básicas de Magic: The Gathering. Juegas en el asiento llamado "you"; el otro asiento es "opponent", el rival. Ganas cuando las vidas del rival llegan a 0 o cuando tiene que robar de una biblioteca vacía.
@@ -76,7 +73,7 @@ Para jugar bien: juega una tierra cada turno y gasta tu maná; ataca cuando el i
     notAnOption: (choice) => `"${choice}" no es una de las opciones de la lista`,
     attackShape: 'Para cada criatura que puede atacar: true para atacar con ella, false para dejarla atrás.',
     attackQuestion: (untapped, blockers) =>
-      `Declara las atacantes. El rival tiene ${count(untapped, 'criatura enderezada', 'criaturas enderezadas')} que ${untapped === 1 ? 'podría' : 'podrían'} bloquear${blockers ? `: ${blockers}` : ''}.`,
+      `Declara las atacantes. El rival tiene ${count(untapped, 'criatura enderezada', 'criaturas enderezadas')} que ${plural(untapped, 'podría', 'podrían')} bloquear${blockers ? `: ${blockers}` : ''}.`,
     attackAnswer: 'Responde con "attack": un objeto con el id de cada criatura de la lista a true (ataca) o false (se queda atrás).',
     blockerShape: (creature) => `${creature}: el id de la atacante a la que bloquea, o "none"`,
     blocksShape: 'Para cada una de tus criaturas que puede bloquear: la atacante a la que bloquea, o "none".',

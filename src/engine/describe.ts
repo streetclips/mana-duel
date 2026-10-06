@@ -6,11 +6,12 @@ import { isCreatureDef } from './state';
 import { en } from './text/en';
 import { es } from './text/es';
 import { plainText, type TextPart } from './text/parts';
-import type { EngineText } from './text/types';
-import type { CardDef, CardId, Color, GameEvent, GameState, Keyword, PlayerId, Step, Target, TargetSpec } from './types';
+import type { ColorNoun, EngineText } from './text/types';
+import type { CardDef, Color, GameEvent, GameState, Keyword, PlayerId, Step, Target, TargetSpec } from './types';
 
 export { cardName, formatModifier, plainText } from './text/parts';
 export type { CardMention, TextPart } from './text/parts';
+export type { ColorNoun } from './text/types';
 
 const TEXTS: Record<Locale, EngineText> = { es, en };
 
@@ -34,6 +35,10 @@ export function stepName(step: Step): string {
   return text().stepName(step);
 }
 
+export function colorName(color: Color, noun: ColorNoun): string {
+  return text().colorName(color, noun);
+}
+
 export function typeLine(def: CardDef): string {
   return text().typeLine(def);
 }
@@ -54,16 +59,8 @@ export function tokenDescription(defId: string, amount = 1): string {
   return text().tokenDescription(defId, amount);
 }
 
-export function targetPhrase(spec: TargetSpec): string {
-  return text().targetPhrase(spec);
-}
-
 export function targetChoice(spec: TargetSpec): string {
   return text().targetChoice(spec);
-}
-
-export function keywordList(keywords: readonly Keyword[]): string {
-  return text().keywordList(keywords);
 }
 
 export function formatPump(power: number, toughness: number, keywords: readonly Keyword[] = []): string {
@@ -72,10 +69,6 @@ export function formatPump(power: number, toughness: number, keywords: readonly 
 
 export function countersLabel(count: number): string {
   return text().countersLabel(count);
-}
-
-export function manaChoice(colors: readonly Color[]): string {
-  return text().manaChoice(colors);
 }
 
 export function cardSummary(defId: string): string {
@@ -87,10 +80,6 @@ export function cardSummary(defId: string): string {
   const lines = rulesText(def);
   if (lines.length) parts.push(lines.join(' '));
   return parts.join(' · ');
-}
-
-export function cardRef(s: GameState, id: CardId, viewer: PlayerId): string {
-  return plainText(text().cardRefParts(s, id, viewer));
 }
 
 export function targetRef(s: GameState, target: Target, viewer: PlayerId): string {

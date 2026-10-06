@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { isBasicLand } from '../../src/app/cardPool';
+import { chooseAction } from '../../src/ai';
+import { isBasicLand, isLandCard } from '../../src/app/cardPool';
 import { GameController } from '../../src/app/controller';
 import { countCards, deckColors, draftProblems } from '../../src/app/deckBuilding';
 import { DeckLibrary } from '../../src/app/deckLibrary';
@@ -26,7 +27,7 @@ import {
 } from '../../src/app/draft';
 import { DraftController, type DraftStore } from '../../src/app/draftController';
 import { createTestApi } from '../../src/app/testApi';
-import { cardColors, getCardDef, resolveDeck } from '../../src/engine';
+import { cardColors, getCardDef, resolveDeck, type DeckEntry } from '../../src/engine';
 
 function pickAll(run: DraftRun): DraftRun {
   let next = run;
@@ -180,6 +181,18 @@ describe('the match', () => {
   });
 });
 
+function swapOneSpell(run: DraftRun, cards: DeckEntry[]): DeckEntry[] {
+  const used = new Map(cards.map((entry) => [entry.card, entry.count]));
+  const spare = allowances(run).find((allowance) => allowance.max !== null && !isLandCard(allowance.card) && (used.get(allowance.card) ?? 0) < allowance.max);
+  const dropped = cards.find((entry) => !isLandCard(entry.card) && entry.card !== spare?.card);
+  if (!spare || !dropped) throw new Error('no spell to swap');
+  const swapped = cards.map((entry) => (entry === dropped ? { ...entry, count: entry.count - 1 } : { ...entry })).filter((entry) => entry.count > 0);
+  const added = swapped.find((entry) => entry.card === spare.card);
+  if (added) added.count += 1;
+  else swapped.push({ card: spare.card, count: 1 });
+  return swapped;
+}
+
 function memoryStore(): DraftStore & { saved: unknown } {
   const store = {
     saved: null as unknown,
@@ -231,6 +244,27 @@ describe('the draft controller', () => {
     resumed.play();
     expect(later.state).toEqual(state);
     expect(resumed.inGame).toBe(true);
+  });
+
+  it('resumes a game in progress with the deck it began with, even after the deck changes', () => {
+    const controller = new GameController({ seed: 5, aiDelayMs: 0 });
+    const draft = new DraftController(controller, memoryStore());
+    draft.start('sealed', 8);
+    const cards = suggestedDeck(draft.run as DraftRun);
+    draft.saveDeck({ id: null, name: 'Mi draft', featured: null, cards });
+    draft.play();
+    for (let decisions = 0; decisions < 30; decisions++) {
+      controller.settle();
+      if (!controller.isHumanTurnToDecide()) break;
+      controller.dispatch(chooseAction(controller.state, 0));
+    }
+    draft.flush();
+    expect(draft.run?.duel?.actions.length).toBeGreaterThan(30);
+    const state = controller.state;
+    draft.saveDeck({ id: null, name: 'Mi draft', featured: null, cards: swapOneSpell(draft.run as DraftRun, cards) });
+    draft.play();
+    expect(controller.state).toEqual(state);
+    expect(draft.currentGame?.number).toBe(1);
   });
 
   it('drives a whole draft through window.manaDuel', () => {

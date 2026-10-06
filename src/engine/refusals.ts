@@ -44,5 +44,3 @@ export type Refusal =
   | { code: 'blockerTwice'; card: CardId }
   | { code: 'cannotBlock'; blocker: CardId; attacker: CardId }
   | { code: 'menace'; attacker: CardId };
-
-export type RefusalCode = Refusal['code'];

@@ -1,7 +1,7 @@
 import type { PlayerId } from '../engine';
 import { randomSeed, type GameController, type OpponentSetup, type Replay } from './controller';
 import type { DeckDraft } from './deckBuilding';
-import { createDraft, isDraftRun, matchSetup, pickCard, recordGame, saveDeck, startGame, withGame, type DraftFormat, type DraftRun } from './draft';
+import { createDraft, isDraftRun, matchSetup, pickCard, recordGame, resumeSetup, saveDeck, startGame, withGame, type DraftFormat, type DraftRun } from './draft';
 import { DuelTracker, type DuelResult } from './duelTracker';
 
 export interface DraftStore {
@@ -80,7 +80,7 @@ export class DraftController {
     const run = this.require();
     const decks = matchSetup(run);
     this.game.setAutoplay(false);
-    if (run.duel && this.game.loadReplay({ ...run.duel, decks }, opponent).ok) {
+    if (run.duel && this.game.loadReplay({ ...run.duel, decks: resumeSetup(run) }, opponent).ok) {
       this.follow(run);
       return;
     }

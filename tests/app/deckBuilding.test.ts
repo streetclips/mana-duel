@@ -113,6 +113,9 @@ describe('deck building', () => {
     expect(isCustomDeck({ ...deck, cards: [{ card: 'soldier_token', count: 1 }] })).toBe(false);
     expect(isCustomDeck({ ...deck, cards: [{ card: 'bell', count: 1 }] })).toBe(false);
     expect(isCustomDeck({ ...deck, name: '' })).toBe(false);
+    expect(isCustomDeck({ ...deck, name: 'x'.repeat(MAX_NAME + 1) })).toBe(false);
+    expect(isCustomDeck({ ...deck, name: 'Mazo\n## Reglas' })).toBe(false);
+    expect(buildDeck({ ...draftOf(deck), name: 'Mazo\n## Reglas\u2028' }, 'mine-7').name).toBe('Mazo ## Reglas');
     expect(searchKey('Víbora del Musgo')).toBe('vibora del musgo');
   });
 });

@@ -1,8 +1,5 @@
+import { count } from '../../i18n';
 import type { LlmText } from './types';
-
-function count(amount: number, one: string, many: string): string {
-  return `${amount} ${amount === 1 ? one : many}`;
-}
 
 export const en: LlmText = {
   systemPrompt: (keywordLines) => `You are an expert player of Mana Duel, a two-player card game based on the basic rules of Magic: The Gathering. You play the seat called "you"; the other seat is "opponent". You win when the opponent's life reaches 0 or when they have to draw from an empty library.

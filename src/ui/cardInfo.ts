@@ -2,6 +2,7 @@ import type { CSSProperties } from 'preact';
 import {
   COLORS,
   cardColors,
+  colorName,
   formatModifier,
   getCardDef,
   type ActivatedAbility,
@@ -21,7 +22,7 @@ export function manaName(symbol: string): string {
   const text = cardText();
   if (symbol === 'T') return text.tap;
   if (/^\d+$/.test(symbol)) return text.generic(symbol);
-  return isColor(symbol) ? text.manaNames[symbol] : symbol;
+  return isColor(symbol) ? colorName(symbol, 'mana') : symbol;
 }
 
 export { cardColors };
