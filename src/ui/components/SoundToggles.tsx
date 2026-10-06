@@ -24,19 +24,50 @@ export function MusicIcon({ off = false }: { off?: boolean }) {
 export function SoundIcon({ off = false }: { off?: boolean }) {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path d="M2.8 7.1h2.6L8.8 4.3v9.4l-3.4-2.8H2.8z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
+      <path
+        d="M2.8 7.1h2.6L8.8 4.3v9.4l-3.4-2.8H2.8z"
+        fill="currentColor"
+        stroke="currentColor"
+        stroke-width="1.2"
+        stroke-linejoin="round"
+      />
       {off ? (
         <path d="M11.6 7l4 4M15.6 7l-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
       ) : (
-        <path d="M11.6 6.4a3.7 3.7 0 0 1 0 5.2M13.8 4.4a6.6 6.6 0 0 1 0 9.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <path
+          d="M11.6 6.4a3.7 3.7 0 0 1 0 5.2M13.8 4.4a6.6 6.6 0 0 1 0 9.2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
       )}
     </svg>
   );
 }
 
-function SoundRow({ testId, label, on, icon, onToggle }: { testId: string; label: string; on: boolean; icon: ComponentChildren; onToggle: () => void }) {
+function SoundRow({
+  testId,
+  label,
+  on,
+  icon,
+  onToggle,
+}: {
+  testId: string;
+  label: string;
+  on: boolean;
+  icon: ComponentChildren;
+  onToggle: () => void;
+}) {
   return (
-    <button type="button" class="setting-row" aria-pressed={on} aria-label={label} data-testid={testId} onClick={onToggle}>
+    <button
+      type="button"
+      class="setting-row"
+      aria-pressed={on}
+      aria-label={label}
+      data-testid={testId}
+      onClick={onToggle}
+    >
       <span class="mode-icon">{icon}</span>
       <span class="mode-text">
         <b>{label}</b>
@@ -53,8 +84,20 @@ export function SoundToggles({ audio }: { audio: AudioToggles }) {
       <h2 id="sound-label" class="section-label">
         {text.sound}
       </h2>
-      <SoundRow testId="btn-music" label={text.music} on={audio.music} icon={<MusicIcon off={!audio.music} />} onToggle={audio.onToggleMusic} />
-      <SoundRow testId="btn-sfx" label={text.sfx} on={audio.sfx} icon={<SoundIcon off={!audio.sfx} />} onToggle={audio.onToggleSfx} />
+      <SoundRow
+        testId="btn-music"
+        label={text.music}
+        on={audio.music}
+        icon={<MusicIcon off={!audio.music} />}
+        onToggle={audio.onToggleMusic}
+      />
+      <SoundRow
+        testId="btn-sfx"
+        label={text.sfx}
+        on={audio.sfx}
+        icon={<SoundIcon off={!audio.sfx} />}
+        onToggle={audio.onToggleSfx}
+      />
     </section>
   );
 }

@@ -101,7 +101,8 @@ function Battlefield({ s, player, items, children }: BattlefieldProps) {
     const measure = (): void => {
       const style = getComputedStyle(element);
       const width = element.clientWidth - parseFloat(style.paddingLeft || '0') - parseFloat(style.paddingRight || '0');
-      const height = element.clientHeight - parseFloat(style.paddingTop || '0') - parseFloat(style.paddingBottom || '0');
+      const height =
+        element.clientHeight - parseFloat(style.paddingTop || '0') - parseFloat(style.paddingBottom || '0');
       setBox((previous) => (previous.width === width && previous.height === height ? previous : { width, height }));
     };
     measure();
@@ -122,7 +123,11 @@ function Battlefield({ s, player, items, children }: BattlefieldProps) {
   const scale = fitCardScale(box.width, box.height - ATTACK_OFFSET, slots, cardWidth, cardHeight);
   const style =
     scale < 1
-      ? ({ '--card-w': `${cardWidth * scale}px`, '--card-h': `${cardHeight * scale}px`, '--s': String(scale) } as CSSProperties)
+      ? ({
+          '--card-w': `${cardWidth * scale}px`,
+          '--card-h': `${cardHeight * scale}px`,
+          '--s': String(scale),
+        } as CSSProperties)
       : undefined;
   return (
     <div
@@ -185,7 +190,9 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
   const actions = useMemo(() => controller.legalActions(), [s, controller.autoplay]);
   const targets = useMemo(() => selectableTargets(actions, current), [actions, current]);
   const plainBar = barModel(s, human, current, controller.busy, controller.lastEventText());
-  const continueButton: UiButton | null = mode ? { id: 'mode-next', label: mode.continueLabel, command: { kind: 'newGame' }, tone: 'primary' } : null;
+  const continueButton: UiButton | null = mode
+    ? { id: 'mode-next', label: mode.continueLabel, command: { kind: 'newGame' }, tone: 'primary' }
+    : null;
   const bar = continueButton && pending?.kind === 'gameOver' ? { ...plainBar, buttons: [continueButton] } : plainBar;
   const hand = s.players[human].hand;
   const overlap = useHandOverlap(hand.length);
@@ -365,7 +372,12 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
       <Battlefield s={s} player={player} items={items}>
         {items.map((item) =>
           'ghost' in item ? (
-            <GhostCard key={`ghost-${item.ghost.key}`} ghost={item.ghost} fx={fx.cards.get(item.ghost.card)} rise={player !== human} />
+            <GhostCard
+              key={`ghost-${item.ghost.key}`}
+              ghost={item.ghost}
+              fx={fx.cards.get(item.ghost.card)}
+              rise={player !== human}
+            />
           ) : (
             <PermanentCard
               key={item.id}
@@ -388,10 +400,19 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
   const gameOver = pending?.kind === 'gameOver';
   const llmModel = controller.opponent.kind === 'llm' ? controller.opponent.model : null;
   const llmEffort =
-    controller.opponent.kind === 'llm' && controller.opponent.effort ? ` · ${text.effort(commonText().efforts[controller.opponent.effort].toLowerCase())}` : '';
-  const llmState = llmModel ? (controller.llmUnavailable ? 'unavailable' : controller.llmThinking ? 'thinking' : 'ready') : undefined;
+    controller.opponent.kind === 'llm' && controller.opponent.effort
+      ? ` · ${text.effort(commonText().efforts[controller.opponent.effort].toLowerCase())}`
+      : '';
+  const llmState = llmModel
+    ? controller.llmUnavailable
+      ? 'unavailable'
+      : controller.llmThinking
+        ? 'thinking'
+        : 'ready'
+    : undefined;
   const thinkerName = s.players[decider ?? opponent].name;
-  const thinkerLabel = controller.llmThinking && llmModel ? `${thinkerName} · ${llmModel.split('/').pop()}` : thinkerName;
+  const thinkerLabel =
+    controller.llmThinking && llmModel ? `${thinkerName} · ${llmModel.split('/').pop()}` : thinkerName;
 
   return (
     <div
@@ -409,7 +430,13 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
       style={cssVars({ '--fx-time': String(fxTime(controller.fxSpeed)) })}
     >
       <div class="top-actions">
-        <button type="button" class="icon-btn" aria-label={text.menu} data-testid="btn-menu" onClick={() => setMenuOpen(true)}>
+        <button
+          type="button"
+          class="icon-btn"
+          aria-label={text.menu}
+          data-testid="btn-menu"
+          onClick={() => setMenuOpen(true)}
+        >
           <MenuIcon />
         </button>
       </div>
@@ -423,7 +450,12 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
           badge={mode?.badge}
           tag={
             llmModel
-              ? { text: 'LLM', title: controller.llmUnavailable ? text.llmUnavailable(controller.llmUnavailable) : `OpenRouter · ${llmModel}${llmEffort}` }
+              ? {
+                  text: 'LLM',
+                  title: controller.llmUnavailable
+                    ? text.llmUnavailable(controller.llmUnavailable)
+                    : `OpenRouter · ${llmModel}${llmEffort}`,
+                }
               : undefined
           }
           targetable={targeting && targets.has(targetKey({ player: opponent }))}
@@ -487,7 +519,13 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
       {controller.llmUnavailable && !llmNoticeHidden && (
         <div class="llm-notice" role="status" data-testid="llm-notice">
           <span data-testid="llm-notice-text">{text.llmNotice(controller.llmUnavailable)}</span>
-          <button type="button" class="icon-btn" aria-label={text.hide} data-testid="llm-notice-hide" onClick={() => setLlmNoticeHidden(true)}>
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label={text.hide}
+            data-testid="llm-notice-hide"
+            onClick={() => setLlmNoticeHidden(true)}
+          >
             <CloseIcon />
           </button>
         </div>
@@ -581,7 +619,15 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
         />
       )}
 
-      {logOpen && <LogPanel key={controller.session} s={s} human={human} entries={controller.log} onClose={() => setLogOpen(false)} />}
+      {logOpen && (
+        <LogPanel
+          key={controller.session}
+          s={s}
+          human={human}
+          entries={controller.log}
+          onClose={() => setLogOpen(false)}
+        />
+      )}
 
       {decksOpen && decks && (
         <DeckViewer

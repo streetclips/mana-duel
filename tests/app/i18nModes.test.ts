@@ -27,7 +27,13 @@ describe('the modes in English', () => {
     setLocale('en');
     for (const relic of RELICS) expect(spanishIn(`${relic.name} ${relic.text}`), relic.id).toEqual([]);
     expect(new Set(RELICS.map((relic) => relic.name)).size).toBe(RELICS.length);
-    expect(relicOf('vigor')).toEqual({ id: 'vigor', name: 'Amulet of Vigor', text: `You start each duel with ${VIGOR_LIFE} more life.`, kind: 'start', owner: 'any' });
+    expect(relicOf('vigor')).toEqual({
+      id: 'vigor',
+      name: 'Amulet of Vigor',
+      text: `You start each duel with ${VIGOR_LIFE} more life.`,
+      kind: 'start',
+      owner: 'any',
+    });
     expect(relicOf('banner').text).toBe('You start each duel with a 1/1 white Soldier creature token.');
     expect(relicOf('bell')).toEqual({
       id: 'bell',
@@ -43,7 +49,9 @@ describe('the modes in English', () => {
     expect(vigor.name).toBe('Amuleto de vigor');
     setLocale('en');
     expect(vigor.name).toBe('Amulet of Vigor');
-    expect(relicOf('phoenix').text).toBe('The first time you lose a duel, the feather burns and you replay it instead of ending the expedition.');
+    expect(relicOf('phoenix').text).toBe(
+      'The first time you lose a duel, the feather burns and you replay it instead of ending the expedition.',
+    );
     setLocale('es');
     expect(vigor.text).toBe(`Empiezas cada duelo con ${VIGOR_LIFE} vidas más.`);
   });
@@ -53,7 +61,10 @@ describe('the modes in English', () => {
     expect(run.base.name).toBe('Brasalvaje');
     setLocale('en');
     expect(baseName(run)).toBe('Emberwild');
-    expect(runDeck(run)).toMatchObject({ name: 'Emberwild', description: 'Your expedition deck: Emberwild, unchanged.' });
+    expect(runDeck(run)).toMatchObject({
+      name: 'Emberwild',
+      description: 'Your expedition deck: Emberwild, unchanged.',
+    });
     expect(changesLabel({ ...run, added: ['ember_snap'] })).toBe('with 1 new card');
     expect(changesLabel({ ...run, added: ['ember_snap', 'magma_lance'] })).toBe('with 2 new cards');
     const mine: DeckDef = { ...getDeck('emberwild'), id: 'mine-1', name: 'Mi mazo rojo' };
@@ -65,9 +76,15 @@ describe('the modes in English', () => {
     expect(defaultDraftName()).toBe('My draft');
     const run = createDraft('sealed', 3);
     expect(run.name).toBe('My draft');
-    expect(aiDraftDeck(run)).toMatchObject({ name: "The AI's draft", description: 'The deck the AI built from its cards.' });
+    expect(aiDraftDeck(run)).toMatchObject({
+      name: "The AI's draft",
+      description: 'The deck the AI built from its cards.',
+    });
     setLocale('es');
-    expect(aiDraftDeck(run)).toMatchObject({ name: 'Draft de la IA', description: 'El mazo que la IA se construyó con sus cartas.' });
+    expect(aiDraftDeck(run)).toMatchObject({
+      name: 'Draft de la IA',
+      description: 'El mazo que la IA se construyó con sus cartas.',
+    });
   });
 
   it('resume a duel saved in Spanish with the English names of its decks', () => {
@@ -85,6 +102,9 @@ describe('the modes in English', () => {
     const later = new GameController({ seed: 5, aiDelayMs: 0 });
     new ExpeditionController(later, store).fight();
     expect(later.state.actionCount).toBe(state.actionCount);
-    expect(resolveDeck(later.decks?.[0] ?? 'emberwild')).toMatchObject({ name: 'Cindermaw', description: 'Your expedition deck: Cindermaw, unchanged.' });
+    expect(resolveDeck(later.decks?.[0] ?? 'emberwild')).toMatchObject({
+      name: 'Cindermaw',
+      description: 'Your expedition deck: Cindermaw, unchanged.',
+    });
   });
 });

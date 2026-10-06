@@ -2,7 +2,9 @@ import type { JSX } from 'preact';
 import type { RelicId } from '../../app/relics';
 
 const RELIC_GLYPHS: Record<RelicId, () => JSX.Element> = {
-  vigor: () => <path d="M10 16.4 C4.6 12.6 2.4 9.9 2.4 7 C2.4 4.8 4.1 3.2 6.2 3.2 C7.7 3.2 9 4 10 5.4 C11 4 12.3 3.2 13.8 3.2 C15.9 3.2 17.6 4.8 17.6 7 C17.6 9.9 15.4 12.6 10 16.4 Z" />,
+  vigor: () => (
+    <path d="M10 16.4 C4.6 12.6 2.4 9.9 2.4 7 C2.4 4.8 4.1 3.2 6.2 3.2 C7.7 3.2 9 4 10 5.4 C11 4 12.3 3.2 13.8 3.2 C15.9 3.2 17.6 4.8 17.6 7 C17.6 9.9 15.4 12.6 10 16.4 Z" />
+  ),
   foresight: () => (
     <>
       <path
@@ -19,7 +21,9 @@ const RELIC_GLYPHS: Record<RelicId, () => JSX.Element> = {
       d="M2.4 4.6 L7.2 2.8 L12.8 4.8 L17.6 3 V15.4 L12.8 17.2 L7.2 15.2 L2.4 17 Z M7.9 4.6 V13.9 L12.1 15.4 V6.1 Z"
     />
   ),
-  hourglass: () => <path d="M4.6 2.4 H15.4 V4 H14.2 C14.2 7 12.4 8.6 11 10 C12.4 11.4 14.2 13 14.2 16 H15.4 V17.6 H4.6 V16 H5.8 C5.8 13 7.6 11.4 9 10 C7.6 8.6 5.8 7 5.8 4 H4.6 Z M7.6 16 H12.4 C12.4 14.2 11.2 13 10 12 C8.8 13 7.6 14.2 7.6 16 Z" />,
+  hourglass: () => (
+    <path d="M4.6 2.4 H15.4 V4 H14.2 C14.2 7 12.4 8.6 11 10 C12.4 11.4 14.2 13 14.2 16 H15.4 V17.6 H4.6 V16 H5.8 C5.8 13 7.6 11.4 9 10 C7.6 8.6 5.8 7 5.8 4 H4.6 Z M7.6 16 H12.4 C12.4 14.2 11.2 13 10 12 C8.8 13 7.6 14.2 7.6 16 Z" />
+  ),
   bell: () => (
     <>
       <circle cx="10" cy="2.7" r="1.3" />
@@ -120,7 +124,17 @@ export function RelicIcon({ relic }: { relic: RelicId }) {
 
 export function MapIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
       <path d="M3 5.2 L7.4 3.4 L12.6 5.4 L17 3.6 V14.8 L12.6 16.6 L7.4 14.6 L3 16.4 Z" />
       <path d="M7.4 3.4 V14.6 M12.6 5.4 V16.6" />
     </svg>
@@ -130,7 +144,14 @@ export function MapIcon() {
 export function ChevronRightIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-      <path d="M5 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      <path
+        d="M5 3l4 4-4 4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   );
 }
@@ -138,14 +159,30 @@ export function ChevronRightIcon() {
 export function BackIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path d="M11 4l-5 5 5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+      <path
+        d="M11 4l-5 5 5 5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   );
 }
 
 export function GearIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 18 18"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.4"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
       <path d="M7.47 3.3 L7.66 1.42 A7.7 7.7 0 0 1 10.34 1.42 L10.53 3.3 A5.9 5.9 0 0 1 11.95 3.89 L13.42 2.69 A7.7 7.7 0 0 1 15.31 4.58 L14.11 6.05 A5.9 5.9 0 0 1 14.7 7.47 L16.58 7.66 A7.7 7.7 0 0 1 16.58 10.34 L14.7 10.53 A5.9 5.9 0 0 1 14.11 11.95 L15.31 13.42 A7.7 7.7 0 0 1 13.42 15.31 L11.95 14.11 A5.9 5.9 0 0 1 10.53 14.7 L10.34 16.58 A7.7 7.7 0 0 1 7.66 16.58 L7.47 14.7 A5.9 5.9 0 0 1 6.05 14.11 L4.58 15.31 A7.7 7.7 0 0 1 2.69 13.42 L3.89 11.95 A5.9 5.9 0 0 1 3.3 10.53 L1.42 10.34 A7.7 7.7 0 0 1 1.42 7.66 L3.3 7.47 A5.9 5.9 0 0 1 3.89 6.05 L2.69 4.58 A7.7 7.7 0 0 1 4.58 2.69 L6.05 3.89 A5.9 5.9 0 0 1 7.47 3.3 Z" />
       <circle cx="9" cy="9" r="2.4" />
     </svg>
@@ -155,7 +192,14 @@ export function GearIcon() {
 export function CheckIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-      <path d="M3 7.4l2.6 2.6L11 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+      <path
+        d="M3 7.4l2.6 2.6L11 4.6"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   );
 }
@@ -170,7 +214,16 @@ export function CrownIcon() {
 
 export function CardsIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
       <rect x="6.2" y="2.6" width="9.4" height="13" rx="1.6" transform="rotate(8 10.9 9.1)" />
       <rect x="3.6" y="4.4" width="9.4" height="13" rx="1.6" fill="var(--surface-2)" />
     </svg>
@@ -195,7 +248,17 @@ export function MinusIcon() {
 
 export function TrashIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
       <path d="M3.5 5h11M7.2 5V3.4h3.6V5M5 5l.7 9.6h6.6L13 5M7.6 7.6v4.6M10.4 7.6v4.6" />
     </svg>
   );
@@ -203,7 +266,16 @@ export function TrashIcon() {
 
 export function PackIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
       <path d="M4.5 3.2h11l-1 2 1 2v9.6h-11V7.2l1-2z" />
       <path d="M4.5 7.2h11M7.6 11.2l2.4-1.8 2.4 1.8-2.4 3.2z" />
     </svg>

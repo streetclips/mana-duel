@@ -32,7 +32,9 @@ function type(id: string, value: string): void {
 }
 
 function savedInSpanish(name: string): DeckDef {
-  return withLocale('es', () => buildDeck({ id: 'mine-1', name, featured: null, cards: getDeck('cindermaw').cards }, 'mine-1'));
+  return withLocale('es', () =>
+    buildDeck({ id: 'mine-1', name, featured: null, cards: getDeck('cindermaw').cards }, 'mine-1'),
+  );
 }
 
 function openDecks(decks: DeckDef[] = []) {
@@ -51,7 +53,14 @@ describe('the deck pickers in English', () => {
     const { container } = render(
       <>
         <Versus choice={choice} customs={library.decks} picking={0} names={['You', 'AI']} onPick={() => undefined} />
-        <DeckPicker seat={0} choice={choice} customs={library.decks} onChange={() => undefined} onView={() => undefined} onDone={() => undefined} />
+        <DeckPicker
+          seat={0}
+          choice={choice}
+          customs={library.decks}
+          onChange={() => undefined}
+          onView={() => undefined}
+          onDone={() => undefined}
+        />
       </>,
     );
     expect(byTestId('seat-0').getAttribute('aria-label')).toBe('You: Emberwild');
@@ -69,17 +78,31 @@ describe('the deck pickers in English', () => {
   });
 
   it('describes the random choice', () => {
-    render(<DeckPicker seat={1} choice={DEFAULT_CHOICE} onChange={() => undefined} onView={() => undefined} onDone={() => undefined} />);
+    render(
+      <DeckPicker
+        seat={1}
+        choice={DEFAULT_CHOICE}
+        onChange={() => undefined}
+        onView={() => undefined}
+        onDone={() => undefined}
+      />,
+    );
     expect(byTestId('deck-picker').getAttribute('aria-label')).toBe("The AI's deck");
-    expect(byTestId('deck-detail').textContent).toBe('RandomA different deck every game: one of the 14, chosen at the start.');
+    expect(byTestId('deck-detail').textContent).toBe(
+      'RandomA different deck every game: one of the 14, chosen at the start.',
+    );
   });
 });
 
 describe('the deck viewer in English', () => {
   it('shows the groups, the counts and the mana curve of a deck, even from its Spanish definition', () => {
-    const { container } = render(<DeckViewer tabs={[{ key: 'emberwild', label: 'Emberwild', deck: EMBERWILD }]} onClose={() => undefined} />);
+    const { container } = render(
+      <DeckViewer tabs={[{ key: 'emberwild', label: 'Emberwild', deck: EMBERWILD }]} onClose={() => undefined} />,
+    );
     expect(byTestId('deck-viewer').getAttribute('aria-label')).toBe('Deck: Emberwild');
-    expect(byTestId('deck-viewer').textContent).toContain('Red and green: fast attackers, direct damage, reach, and big creatures that trample.');
+    expect(byTestId('deck-viewer').textContent).toContain(
+      'Red and green: fast attackers, direct damage, reach, and big creatures that trample.',
+    );
     expect(byTestId('deck-stats').textContent).toBe('40 cards · 17 creatures · 7 spells · 16 lands');
     expect([...container.querySelectorAll('.deck-section h3')].map((heading) => heading.textContent)).toEqual([
       'Creatures 17',
@@ -124,7 +147,9 @@ describe('your decks in English', () => {
     expect(byTestId('btn-new-deck').textContent).toBe('New empty deck');
     expect(spanishIn(shownText(container))).toEqual([]);
     click(byTestId('btn-delete-mine-1'));
-    expect(byTestId('deck-delete').textContent).toBe('Delete Night Fire?The deck will disappear from this browser.Delete the deckKeep it');
+    expect(byTestId('deck-delete').textContent).toBe(
+      'Delete Night Fire?The deck will disappear from this browser.Delete the deckKeep it',
+    );
     click(byTestId('btn-delete-no'));
     click(byTestId('copy-dawntide'));
     expect((byTestId('builder-name') as HTMLInputElement).value).toBe('My Dawntide');
@@ -134,7 +159,9 @@ describe('your decks in English', () => {
 
   it('explains what to do when you have no decks yet', () => {
     const { container } = openDecks();
-    expect(byTestId('decks-screen').textContent).toContain('at least 40 cards and up to four copies of each, except basic lands');
+    expect(byTestId('decks-screen').textContent).toContain(
+      'at least 40 cards and up to four copies of each, except basic lands',
+    );
     expect(spanishIn(shownText(container))).toEqual([]);
     click(byTestId('btn-new-deck'));
     expect((byTestId('builder-name') as HTMLInputElement).value).toBe('My deck');
@@ -154,17 +181,26 @@ describe('your decks in English', () => {
     expect(spanishIn(shownText(byTestId('deck-builder')))).toEqual([]);
     click(byTestId('builder-tab-pool'));
     expect(byTestId('builder-search').getAttribute('placeholder')).toBe('Search by name');
-    expect(['all', 'creature', 'spell', 'land'].map((kind) => byTestId(`builder-kind-${kind}`).textContent)).toEqual(['All', 'Creatures', 'Spells', 'Lands']);
+    expect(['all', 'creature', 'spell', 'land'].map((kind) => byTestId(`builder-kind-${kind}`).textContent)).toEqual([
+      'All',
+      'Creatures',
+      'Spells',
+      'Lands',
+    ]);
     type('builder-search', 'crag dragon');
     expect(byTestId('builder-results').textContent).toBe('1 card');
     expect(byTestId('remove-crag_dragon').getAttribute('aria-label')).toBe('Remove Crag Dragon');
     click(byTestId('add-crag_dragon'));
-    expect(byTestId('builder-problems').textContent).toBe("Nothing in the deck makes red mana: your red cards can't be paid for.");
+    expect(byTestId('builder-problems').textContent).toBe(
+      "Nothing in the deck makes red mana: your red cards can't be paid for.",
+    );
     type('builder-search', 'dragon del risco');
     expect(byTestId('builder-results').textContent).toBe('0 cards');
     expect(spanishIn(shownText(byTestId('deck-builder')))).toEqual([]);
     click(byTestId('btn-builder-back'));
-    expect(byTestId('builder-leave').textContent).toBe("Leave without saving?You'll lose the changes to My Dawntide.Leave without savingKeep editing");
+    expect(byTestId('builder-leave').textContent).toBe(
+      "Leave without saving?You'll lose the changes to My Dawntide.Leave without savingKeep editing",
+    );
   });
 
   it('counts your decks on the start screen', () => {

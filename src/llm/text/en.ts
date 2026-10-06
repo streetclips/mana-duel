@@ -2,7 +2,9 @@ import { count } from '../../i18n';
 import type { LlmText } from './types';
 
 export const en: LlmText = {
-  systemPrompt: (keywordLines) => `You are an expert player of Mana Duel, a two-player card game based on the basic rules of Magic: The Gathering. You play the seat called "you"; the other seat is "opponent". You win when the opponent's life reaches 0 or when they have to draw from an empty library.
+  systemPrompt: (
+    keywordLines,
+  ) => `You are an expert player of Mana Duel, a two-player card game based on the basic rules of Magic: The Gathering. You play the seat called "you"; the other seat is "opponent". You win when the opponent's life reaches 0 or when they have to draw from an empty library.
 
 Rules:
 - Both players start with 20 life, a 40-card deck and a hand of 7. You can play one land per turn, in your main phase, while the stack is empty; "extraLandsThisTurn" counts the additional lands an effect lets you play this turn. A land that "enters tapped" gives no mana until your next turn.
@@ -44,8 +46,10 @@ To play well: play a land every turn and spend your mana; attack when the trade 
     passResolves: "Pass priority: you don't respond; the top of the stack resolves when both players pass",
     passEndStep: 'Pass priority: you do nothing else this turn',
     passMovesOn: (step) => `Pass priority: you do nothing now; when both players pass, the game moves on to: ${step}`,
-    keep: (handSize, bottom) => `Keep this hand of ${handSize} cards${bottom > 0 ? ` and then put ${count(bottom, 'card', 'cards')} from it on the bottom` : ''}`,
-    mulligan: (bottom) => `Mulligan: shuffle this hand away, draw a new hand of 7 and put ${count(bottom, 'card', 'cards')} on the bottom`,
+    keep: (handSize, bottom) =>
+      `Keep this hand of ${handSize} cards${bottom > 0 ? ` and then put ${count(bottom, 'card', 'cards')} from it on the bottom` : ''}`,
+    mulligan: (bottom) =>
+      `Mulligan: shuffle this hand away, draw a new hand of 7 and put ${count(bottom, 'card', 'cards')} on the bottom`,
     playLand: (name, id) => `Play the land ${name} (${id})`,
     cast: (name, id, cost, targets) => `Cast ${name} (${id}) for ${cost}${targets}`,
     activate: (source, text, targets) => `Activate ${source}: "${text}"${targets}`,
@@ -54,7 +58,8 @@ To play well: play a land every turn and spend your mana; attack when the trade 
     attack: (cards) => `Attack with ${cards}`,
     noBlock: "Don't block",
     block: (blocks) => `Block: ${blocks}`,
-    blocks: (blocker, blockerId, attacker, attackerId) => `${blocker} (${blockerId}) blocks ${attacker} (${attackerId})`,
+    blocks: (blocker, blockerId, attacker, attackerId) =>
+      `${blocker} (${blockerId}) blocks ${attacker} (${attackerId})`,
     bottom: (cards) => `Put ${cards} on the bottom`,
     discard: (cards) => `Discard ${cards}`,
     concede: 'Concede',
@@ -73,14 +78,17 @@ To play well: play a land every turn and spend your mana; attack when the trade 
     attackShape: 'For each creature that can attack: true to attack with it, false to hold it back.',
     attackQuestion: (untapped, blockers) =>
       `Declare attackers. The opponent has ${count(untapped, 'untapped creature', 'untapped creatures')} that could block${blockers ? `: ${blockers}` : ''}.`,
-    attackAnswer: 'Answer with "attack": an object that sets the id of each listed creature to true (attacks) or false (stays back).',
+    attackAnswer:
+      'Answer with "attack": an object that sets the id of each listed creature to true (attacks) or false (stays back).',
     blockerShape: (creature) => `${creature}: the id of the attacker it blocks, or "none"`,
     blocksShape: 'For each of your creatures that can block: the attacker it blocks, or "none".',
     blockQuestion: (attackers) =>
       `The opponent attacks with ${attackers}. Declare blockers: each of your creatures blocks at most one attacker, and several can block the same attacker.`,
     blockOption: (id, creature, attackers) => `${id}: ${creature} — can block ${attackers}`,
-    blockAnswer: 'Answer with "blocks": an object that maps each listed blocker id to the id of the attacker it blocks, or "none".',
-    cleanupDiscard: (amount) => `Cleanup: you have more than 7 cards in hand. Discard ${count(amount, 'card', 'cards')}.`,
+    blockAnswer:
+      'Answer with "blocks": an object that maps each listed blocker id to the id of the attacker it blocks, or "none".',
+    cleanupDiscard: (amount) =>
+      `Cleanup: you have more than 7 cards in hand. Discard ${count(amount, 'card', 'cards')}.`,
     forcedDiscard: (source, amount) => `${source} makes you discard ${count(amount, 'card', 'cards')}: choose which.`,
     yourSource: (name) => `Your ${name}`,
     opponentSource: (name) => `The opponent's ${name}`,
@@ -88,8 +96,10 @@ To play well: play a land every turn and spend your mana; attack when the trade 
     bottomQuestion: (mulligans, amount) =>
       `You kept your hand after ${count(mulligans, 'mulligan', 'mulligans')}: put ${count(amount, 'card', 'cards')} from your hand on the bottom of your library.`,
     cardsAnswer: (amount) => `Answer with "cards": exactly ${count(amount, 'card id', 'card ids')} from the list.`,
-    wrongCardCount: (amount, chosen) => `choose exactly ${count(amount, 'different card', 'different cards')} from your hand, not ${chosen}`,
-    mulliganQuestion: (mulligans) => `Opening hand: keep it or mulligan? You have taken ${count(mulligans, 'mulligan', 'mulligans')}.`,
+    wrongCardCount: (amount, chosen) =>
+      `choose exactly ${count(amount, 'different card', 'different cards')} from your hand, not ${chosen}`,
+    mulliganQuestion: (mulligans) =>
+      `Opening hand: keep it or mulligan? You have taken ${count(mulligans, 'mulligan', 'mulligans')}.`,
   },
   player: {
     noEndpoint: 'OpenRouter 404: no provider of this model accepts the JSON schema (or the reasoning effort)',
@@ -97,7 +107,8 @@ To play well: play a land every turn and spend your mana; attack when the trade 
     illegalAnswer: (message) => `illegal answer: ${message}`,
     noAnswer: (duration) => `no answer in ${duration}`,
     output: (kind) => `Your answer to the "${kind}" decision.`,
-    refused: (error) => `\n\nYour previous answer was refused (${error}). Answer again and choose only among the listed options.`,
+    refused: (error) =>
+      `\n\nYour previous answer was refused (${error}). Answer again and choose only among the listed options.`,
     cancelled: 'the decision was cancelled',
   },
 };

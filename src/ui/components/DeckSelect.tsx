@@ -17,7 +17,14 @@ function deckName(id: string, customs: readonly DeckDef[]): string {
 function ChevronIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-      <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      <path
+        d="M3 4.5l3 3 3-3"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   );
 }
@@ -75,7 +82,12 @@ export function Versus({ choice, customs = [], picking, names, onPick }: VersusP
     />
   );
   return (
-    <div class={`versus${picking === null ? '' : ' picking'}`} role="group" aria-label={decksText().picker.matchup} data-testid="versus">
+    <div
+      class={`versus${picking === null ? '' : ' picking'}`}
+      role="group"
+      aria-label={decksText().picker.matchup}
+      data-testid="versus"
+    >
       {seat(0)}
       <span key={`${choice.deck}:${choice.opponent}`} class="vs" aria-hidden="true">
         vs
@@ -132,7 +144,8 @@ export function DeckPicker({ seat, choice, customs = [], onChange, onView, onDon
     const option = list?.querySelector<HTMLElement>('[aria-checked="true"]');
     const first = list?.firstElementChild;
     if (!list || !option || !(first instanceof HTMLElement)) return;
-    const hidden = option.offsetTop < list.scrollTop || option.offsetTop + option.offsetHeight > list.scrollTop + list.clientHeight;
+    const hidden =
+      option.offsetTop < list.scrollTop || option.offsetTop + option.offsetHeight > list.scrollTop + list.clientHeight;
     if (hidden) list.scrollTop = option.offsetTop - first.offsetTop;
   }, [seat]);
 

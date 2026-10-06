@@ -1,4 +1,13 @@
-import { DECK_LIST, getDeck, hasDeck, type Color, type DeckDef, type DeckSpec, type GameState, type PlayerId } from '../engine';
+import {
+  DECK_LIST,
+  getDeck,
+  hasDeck,
+  type Color,
+  type DeckDef,
+  type DeckSpec,
+  type GameState,
+  type PlayerId,
+} from '../engine';
 
 export const MOODS = ['calm', 'danger', 'combat', 'over'] as const;
 export type Mood = (typeof MOODS)[number];
@@ -278,30 +287,53 @@ export function notesAt(theme: Theme, mood: Mood, step: number): Note[] {
   const shape = MOOD_SHAPES[mood];
   if (mood === 'over') {
     if (beat !== 0 || bar % 2 !== 0) return [];
-    return chordAt(theme, 0).map((midi) => ({ voice: 'pad', midi, velocity: shape.pad, steps: 2 * STEPS_PER_BAR, bright: shape.bright }));
+    return chordAt(theme, 0).map((midi) => ({
+      voice: 'pad',
+      midi,
+      velocity: shape.pad,
+      steps: 2 * STEPS_PER_BAR,
+      bright: shape.bright,
+    }));
   }
   const chord = chordAt(theme, bar);
   const notes: Note[] = [];
   if (beat === 0) {
-    for (const midi of chord) notes.push({ voice: 'pad', midi, velocity: shape.pad, steps: STEPS_PER_BAR, bright: shape.bright });
+    for (const midi of chord)
+      notes.push({ voice: 'pad', midi, velocity: shape.pad, steps: STEPS_PER_BAR, bright: shape.bright });
   }
   const bass = shape.bass[beat] ?? 0;
   if (bass > 0) {
     const midi = (bass === 2 ? (chord[2] ?? 0) : (chord[0] ?? 0)) - 12;
-    notes.push({ voice: 'bass', midi, velocity: shape.bassVelocity * accent(beat), steps: shape.bassSteps, bright: shape.bright });
+    notes.push({
+      voice: 'bass',
+      midi,
+      velocity: shape.bassVelocity * accent(beat),
+      steps: shape.bassSteps,
+      bright: shape.bright,
+    });
   }
   if (shape.lead > 0 && beat % shape.leadEvery === 0) {
     const second = bar % FORM_BARS >= FORM_BARS / 2;
     const index = theme.arp[second ? STEPS_PER_BAR - 1 - beat : beat] ?? -1;
     if (index >= 0) {
-      notes.push({ voice: 'lead', midi: leadMidi(chord, index), velocity: shape.lead * accent(beat), steps: 2, bright: shape.bright, timbre: theme.lead });
+      notes.push({
+        voice: 'lead',
+        midi: leadMidi(chord, index),
+        velocity: shape.lead * accent(beat),
+        steps: 2,
+        bright: shape.bright,
+        timbre: theme.lead,
+      });
     }
   }
   const kit = shape.drums === 'theme' ? theme.drums : shape.drums === 'heartbeat' ? HEARTBEAT : null;
   if (kit) {
-    if (kit.kick.includes(beat)) notes.push({ voice: 'kick', midi: KICK, velocity: 0.9 * accent(beat), steps: 1, bright: shape.bright });
-    if (kit.snare.includes(beat)) notes.push({ voice: 'snare', midi: SNARE, velocity: 0.7 * accent(beat), steps: 1, bright: shape.bright });
-    if (kit.hat.includes(beat)) notes.push({ voice: 'hat', midi: HAT, velocity: beat % 4 === 2 ? 0.55 : 0.4, steps: 1, bright: shape.bright });
+    if (kit.kick.includes(beat))
+      notes.push({ voice: 'kick', midi: KICK, velocity: 0.9 * accent(beat), steps: 1, bright: shape.bright });
+    if (kit.snare.includes(beat))
+      notes.push({ voice: 'snare', midi: SNARE, velocity: 0.7 * accent(beat), steps: 1, bright: shape.bright });
+    if (kit.hat.includes(beat))
+      notes.push({ voice: 'hat', midi: HAT, velocity: beat % 4 === 2 ? 0.55 : 0.4, steps: 1, bright: shape.bright });
   }
   return notes;
 }

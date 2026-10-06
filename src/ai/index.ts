@@ -28,7 +28,9 @@ function helpsThisCombat(def: CardDef): boolean {
     (trigger) =>
       trigger.on === 'enters' &&
       trigger.effects.some(
-        (effect) => effect.kind === 'pumpTeam' || (effect.kind === 'createTokens' && (getCardDef(effect.token).keywords ?? []).includes('haste')),
+        (effect) =>
+          effect.kind === 'pumpTeam' ||
+          (effect.kind === 'createTokens' && (getCardDef(effect.token).keywords ?? []).includes('haste')),
       ),
   );
 }
@@ -36,7 +38,9 @@ function helpsThisCombat(def: CardDef): boolean {
 function growsWithNewCreatures(s: GameState, player: PlayerId): boolean {
   return s.players[player].battlefield.some((id) => {
     const def = getCardDef(s.cards[id]?.def ?? '');
-    return (def.keywords ?? []).includes('evolve') || (def.triggers ?? []).some((trigger) => trigger.on === 'allyEnters');
+    return (
+      (def.keywords ?? []).includes('evolve') || (def.triggers ?? []).some((trigger) => trigger.on === 'allyEnters')
+    );
   });
 }
 
@@ -73,7 +77,10 @@ function choosePriorityAction(s: GameState, player: PlayerId): Action {
   let best: Action = pass;
   let bestValue = actionValue(s, pass, player) + MIN_GAIN;
   for (const action of candidates) {
-    const value = action.type === 'activate' ? repeatedActionValue(s, action, player) : actionValue(s, action, player) + extraLandValue(s, action);
+    const value =
+      action.type === 'activate'
+        ? repeatedActionValue(s, action, player)
+        : actionValue(s, action, player) + extraLandValue(s, action);
     if (value > bestValue) {
       best = action;
       bestValue = value;

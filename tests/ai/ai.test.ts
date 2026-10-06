@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { chooseAction, chooseAttackers, chooseBlocks, rollout } from '../../src/ai';
 import { DECK_LIST, applyAction, createGame, getLegalActions, type Action } from '../../src/engine';
-import { act, attack, block, cast, finishCombat, lcg, life, pass, passTo, scenario, scrambleHiddenInformation } from '../helpers';
+import {
+  act,
+  attack,
+  block,
+  cast,
+  finishCombat,
+  lcg,
+  life,
+  pass,
+  passTo,
+  scenario,
+  scrambleHiddenInformation,
+} from '../helpers';
 
 describe('AI main-phase decisions', () => {
   it('plays a land first', () => {
@@ -29,7 +41,10 @@ describe('AI main-phase decisions', () => {
   it('casts burn at the opponent when it is lethal', () => {
     const s = scenario({
       activePlayer: 1,
-      players: [{ life: 2, battlefield: ['canopy_spider'] }, { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }],
+      players: [
+        { life: 2, battlefield: ['canopy_spider'] },
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+      ],
     });
     expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] });
   });
@@ -60,7 +75,10 @@ describe('AI main-phase decisions', () => {
     const s = scenario({
       activePlayer: 1,
       step: 'main2',
-      players: [{}, { hand: [{ card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest'] }],
+      players: [
+        {},
+        { hand: [{ card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest'] },
+      ],
     });
     expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'rhino', targets: [] });
   });
@@ -93,7 +111,10 @@ describe('AI instant-speed decisions', () => {
     let s = scenario({
       players: [
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'cinderwing_drake', id: 'drake' }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'cinderwing_drake', id: 'drake' }],
+        },
       ],
     });
     s = pass(cast(s, 'snap', [{ card: 'drake' }]));
@@ -105,7 +126,10 @@ describe('AI instant-speed decisions', () => {
       activePlayer: 1,
       players: [
         { battlefield: [{ card: 'bramble_warden', id: 'warden' }] },
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'ember_hound', id: 'hound' }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'ember_hound', id: 'hound' }],
+        },
       ],
     });
     s = attack(s, ['hound']);
@@ -121,7 +145,11 @@ describe('AI instant-speed decisions', () => {
         activePlayer: 1,
         step: 'main2',
         players: [
-          { life: 5, hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'timberland_rhino', id: 'rhino' }] },
+          {
+            life: 5,
+            hand: [{ card: 'verdant_surge', id: 'surge' }],
+            battlefield: ['forest', { card: 'timberland_rhino', id: 'rhino' }],
+          },
           { battlefield: ['ember_hound', 'ember_hound', 'ember_hound', 'ember_hound'] },
         ],
       }),
@@ -148,7 +176,10 @@ describe('AI with the Dawntide and Duskmire answers', () => {
       cast(
         scenario({
           players: [
-            { hand: [{ card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest'] },
+            {
+              hand: [{ card: 'timberland_rhino', id: 'rhino' }],
+              battlefield: ['forest', 'forest', 'forest', 'forest'],
+            },
             { hand: [{ card: 'turn_the_tide', id: 'tide' }], battlefield: ['island', 'island', 'island'] },
           ],
         }),
@@ -207,17 +238,30 @@ describe('AI with the Dawntide and Duskmire answers', () => {
   it('kills a creature with Withering Touch and aims Grave Sentence at the biggest threat', () => {
     const touch = scenario({
       activePlayer: 1,
-      players: [{ battlefield: [{ card: 'ember_hound', id: 'hound' }] }, { hand: [{ card: 'withering_touch', id: 'touch' }], battlefield: ['swamp'] }],
+      players: [
+        { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
+        { hand: [{ card: 'withering_touch', id: 'touch' }], battlefield: ['swamp'] },
+      ],
     });
     expect(chooseAction(touch, 1)).toEqual({ type: 'cast', player: 1, card: 'touch', targets: [{ card: 'hound' }] });
     const sentence = scenario({
       activePlayer: 1,
       players: [
-        { battlefield: [{ card: 'grove_tender', id: 'elf' }, { card: 'crag_dragon', id: 'dragon' }] },
+        {
+          battlefield: [
+            { card: 'grove_tender', id: 'elf' },
+            { card: 'crag_dragon', id: 'dragon' },
+          ],
+        },
         { hand: [{ card: 'grave_sentence', id: 'sentence' }], battlefield: ['swamp', 'swamp', 'swamp', 'swamp'] },
       ],
     });
-    expect(chooseAction(sentence, 1)).toEqual({ type: 'cast', player: 1, card: 'sentence', targets: [{ card: 'dragon' }] });
+    expect(chooseAction(sentence, 1)).toEqual({
+      type: 'cast',
+      player: 1,
+      card: 'sentence',
+      targets: [{ card: 'dragon' }],
+    });
   });
 
   it("pays life for Night's Bargain only when it can afford to", () => {
@@ -239,7 +283,11 @@ describe('AI with the Stormglass and Sunmeadow cards', () => {
         scenario({
           players: [
             { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
-            { life: 3, hand: [{ card: 'glassreef_sentinel', id: 'sentinel' }], battlefield: ['island', 'island', 'island'] },
+            {
+              life: 3,
+              hand: [{ card: 'glassreef_sentinel', id: 'sentinel' }],
+              battlefield: ['island', 'island', 'island'],
+            },
           ],
         }),
         ['rhino'],
@@ -253,7 +301,10 @@ describe('AI with the Stormglass and Sunmeadow cards', () => {
       activePlayer: 1,
       players: [
         { life: 2, battlefield: [{ card: 'test_bear', id: 'bear' }] },
-        { hand: [{ card: 'static_jolt', id: 'jolt' }], battlefield: ['mountain', { card: 'galvanic_channeler', id: 'channeler' }] },
+        {
+          hand: [{ card: 'static_jolt', id: 'jolt' }],
+          battlefield: ['mountain', { card: 'galvanic_channeler', id: 'channeler' }],
+        },
       ],
     });
     expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'jolt', targets: [{ player: 0 }] });
@@ -270,7 +321,12 @@ describe('AI with the Stormglass and Sunmeadow cards', () => {
               {},
               {
                 hand: [{ card: 'bloomcaller_druid', id: 'druid' }],
-                battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }, { card: 'skyguard_griffin', id: 'griffin' }],
+                battlefield: [
+                  'forest',
+                  'forest',
+                  { card: 'test_bear', id: 'bear' },
+                  { card: 'skyguard_griffin', id: 'griffin' },
+                ],
               },
             ],
           }),
@@ -285,12 +341,27 @@ describe('AI with the Stormglass and Sunmeadow cards', () => {
     let s = scenario({
       activePlayer: 1,
       players: [
-        { battlefield: [{ card: 'test_bear', id: 'b0' }, { card: 'test_bear', id: 'b1' }] },
-        { hand: [{ card: 'rally_the_meadow', id: 'rally' }], battlefield: ['plains', 'plains', { card: 'test_bear', id: 'a0' }, { card: 'test_bear', id: 'a1' }] },
+        {
+          battlefield: [
+            { card: 'test_bear', id: 'b0' },
+            { card: 'test_bear', id: 'b1' },
+          ],
+        },
+        {
+          hand: [{ card: 'rally_the_meadow', id: 'rally' }],
+          battlefield: ['plains', 'plains', { card: 'test_bear', id: 'a0' }, { card: 'test_bear', id: 'a1' }],
+        },
       ],
     });
     s = passTo(attack(s, ['a0', 'a1']), 'declareBlockers');
-    s = act(s, { type: 'declareBlockers', player: 0, blocks: [{ blocker: 'b0', attacker: 'a0' }, { blocker: 'b1', attacker: 'a1' }] });
+    s = act(s, {
+      type: 'declareBlockers',
+      player: 0,
+      blocks: [
+        { blocker: 'b0', attacker: 'a0' },
+        { blocker: 'b1', attacker: 'a1' },
+      ],
+    });
     expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'rally', targets: [] });
   });
 
@@ -300,7 +371,10 @@ describe('AI with the Stormglass and Sunmeadow cards', () => {
         scenario({
           players: [
             { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
-            { hand: [{ card: 'wild_blossom', id: 'blossom' }], battlefield: ['forest', 'forest', { card: 'skyguard_griffin', id: 'griffin' }] },
+            {
+              hand: [{ card: 'wild_blossom', id: 'blossom' }],
+              battlefield: ['forest', 'forest', { card: 'skyguard_griffin', id: 'griffin' }],
+            },
           ],
         }),
         'snap',
@@ -311,11 +385,24 @@ describe('AI with the Stormglass and Sunmeadow cards', () => {
     const fight = scenario({
       activePlayer: 1,
       players: [
-        { battlefield: [{ card: 'cinder_adept', id: 'adept' }, { card: 'grove_tender', id: 'elf' }] },
-        { hand: [{ card: 'pack_pounce', id: 'pounce' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] },
+        {
+          battlefield: [
+            { card: 'cinder_adept', id: 'adept' },
+            { card: 'grove_tender', id: 'elf' },
+          ],
+        },
+        {
+          hand: [{ card: 'pack_pounce', id: 'pounce' }],
+          battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }],
+        },
       ],
     });
-    expect(chooseAction(fight, 1)).toEqual({ type: 'cast', player: 1, card: 'pounce', targets: [{ card: 'bear' }, { card: 'adept' }] });
+    expect(chooseAction(fight, 1)).toEqual({
+      type: 'cast',
+      player: 1,
+      card: 'pounce',
+      targets: [{ card: 'bear' }, { card: 'adept' }],
+    });
   });
 });
 
@@ -327,7 +414,15 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
         {},
         {
           hand: [{ card: 'brightforge_warlord', id: 'warlord' }],
-          battlefield: ['mountain', 'mountain', 'mountain', 'plains', 'plains', { card: 'sunsteel_lancer', id: 'lancer' }, { card: 'soldier_token', id: 'soldier', sick: true }],
+          battlefield: [
+            'mountain',
+            'mountain',
+            'mountain',
+            'plains',
+            'plains',
+            { card: 'sunsteel_lancer', id: 'lancer' },
+            { card: 'soldier_token', id: 'soldier', sick: true },
+          ],
         },
       ],
     });
@@ -341,7 +436,12 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
         {},
         {
           hand: [{ card: 'muster_sergeant', id: 'sergeant' }],
-          battlefield: ['plains', 'plains', { card: 'forge_cadet', id: 'cadet' }, { card: 'sunsteel_lancer', id: 'lancer' }],
+          battlefield: [
+            'plains',
+            'plains',
+            { card: 'forge_cadet', id: 'cadet' },
+            { card: 'sunsteel_lancer', id: 'lancer' },
+          ],
         },
       ],
     });
@@ -378,7 +478,12 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
         step: 'main2',
         players: [{ hand }, { hand: [{ card: 'rob_the_mind', id: 'rob' }], battlefield: ['swamp', 'swamp', 'swamp'] }],
       });
-    expect(chooseAction(rob(['timberland_rhino', 'ember_snap', 'forest']), 1)).toEqual({ type: 'cast', player: 1, card: 'rob', targets: [] });
+    expect(chooseAction(rob(['timberland_rhino', 'ember_snap', 'forest']), 1)).toEqual({
+      type: 'cast',
+      player: 1,
+      card: 'rob',
+      targets: [],
+    });
     expect(chooseAction(rob([]), 1)).toEqual({ type: 'pass', player: 1 });
   });
 
@@ -388,7 +493,14 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
         scenario({
           players: [
             { hand: [{ card: 'rob_the_mind', id: 'rob' }], battlefield: ['swamp', 'swamp', 'swamp'] },
-            { hand: [{ card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }, { card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest', 'forest'] },
+            {
+              hand: [
+                { card: 'forest', id: 'f1' },
+                { card: 'forest', id: 'f2' },
+                { card: 'timberland_rhino', id: 'rhino' },
+              ],
+              battlefield: ['forest', 'forest', 'forest', 'forest', 'forest'],
+            },
           ],
         }),
         'rob',
@@ -402,16 +514,28 @@ describe('AI with the Brightforge, Mistgrave and Gloamwood cards', () => {
   it('sacrifices Bonewood Stalker to kill a creature worth more', () => {
     const s = scenario({
       activePlayer: 1,
-      players: [{ battlefield: [{ card: 'cinderwing_drake', id: 'drake' }] }, { battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] }],
+      players: [
+        { battlefield: [{ card: 'cinderwing_drake', id: 'drake' }] },
+        { battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] },
+      ],
     });
-    expect(chooseAction(s, 1)).toEqual({ type: 'activate', player: 1, card: 'stalker', ability: 0, targets: [{ card: 'drake' }] });
+    expect(chooseAction(s, 1)).toEqual({
+      type: 'activate',
+      player: 1,
+      card: 'stalker',
+      ability: 0,
+      targets: [{ card: 'drake' }],
+    });
   });
 
   it('attacks with a skulking creature that no blocker is allowed to stop', () => {
     const s = passTo(
       scenario({
         activePlayer: 1,
-        players: [{ battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, { battlefield: [{ card: 'fogslip_thief', id: 'thief' }] }],
+        players: [
+          { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+          { battlefield: [{ card: 'fogslip_thief', id: 'thief' }] },
+        ],
       }),
       'declareAttackers',
     );
@@ -425,7 +549,10 @@ describe('AI with the Vesperhall, Cindermaw and Deepgrove cards', () => {
       activePlayer: 1,
       players: [
         {},
-        { hand: [{ card: 'blistering_hellion', id: 'hellion' }], battlefield: ['mountain', 'mountain', 'mountain', { card: 'test_bear', id: 'bear' }] },
+        {
+          hand: [{ card: 'blistering_hellion', id: 'hellion' }],
+          battlefield: ['mountain', 'mountain', 'mountain', { card: 'test_bear', id: 'bear' }],
+        },
       ],
     });
     expect(chooseAction(s, 1)).toEqual({ type: 'pass', player: 1 });
@@ -434,7 +561,12 @@ describe('AI with the Vesperhall, Cindermaw and Deepgrove cards', () => {
       if (!pending || pending.kind === 'gameOver') break;
       s = act(s, chooseAction(s, pending.player));
     }
-    expect([s.step, s.players[0].life, s.cards.hellion?.zone, s.cards.hellion?.counters]).toEqual(['main2', 18, 'battlefield', 2]);
+    expect([s.step, s.players[0].life, s.cards.hellion?.zone, s.cards.hellion?.counters]).toEqual([
+      'main2',
+      18,
+      'battlefield',
+      2,
+    ]);
   });
 
   it('casts a creature before combat when it makes an evolving attacker grow', () => {
@@ -442,7 +574,10 @@ describe('AI with the Vesperhall, Cindermaw and Deepgrove cards', () => {
       activePlayer: 1,
       players: [
         {},
-        { hand: [{ card: 'mossfin_lurker', id: 'lurker' }], battlefield: ['forest', 'forest', 'forest', { card: 'shoal_hatchling', id: 'hatchling' }] },
+        {
+          hand: [{ card: 'mossfin_lurker', id: 'lurker' }],
+          battlefield: ['forest', 'forest', 'forest', { card: 'shoal_hatchling', id: 'hatchling' }],
+        },
       ],
     });
     expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'lurker', targets: [] });
@@ -454,7 +589,10 @@ describe('AI with the Vesperhall, Cindermaw and Deepgrove cards', () => {
         scenario({
           players: [
             { hand: [{ card: 'magma_lance', id: 'lance' }], battlefield: ['mountain', 'mountain', 'mountain'] },
-            { hand: [{ card: 'shell_of_the_deep', id: 'shell' }], battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }] },
+            {
+              hand: [{ card: 'shell_of_the_deep', id: 'shell' }],
+              battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }],
+            },
           ],
         }),
         'lance',
@@ -469,12 +607,24 @@ describe('AI with the Flamecrest, Wildland and Crossroads cards', () => {
   it('plays an untapped land when it casts a spell this turn, and a land that enters tapped when it would cast nothing', () => {
     const now = scenario({
       activePlayer: 1,
-      players: [{}, { hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'plains', id: 'plains' }, 'sky_messenger'], battlefield: ['island'] }],
+      players: [
+        {},
+        {
+          hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'plains', id: 'plains' }, 'sky_messenger'],
+          battlefield: ['island'],
+        },
+      ],
     });
     expect(chooseAction(now, 1)).toEqual({ type: 'playLand', player: 1, card: 'plains' });
     const later = scenario({
       activePlayer: 1,
-      players: [{}, { hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'plains', id: 'plains' }, 'test_giant'], battlefield: ['island'] }],
+      players: [
+        {},
+        {
+          hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'plains', id: 'plains' }, 'test_giant'],
+          battlefield: ['island'],
+        },
+      ],
     });
     expect(chooseAction(later, 1)).toEqual({ type: 'playLand', player: 1, card: 'spire' });
   });
@@ -482,7 +632,10 @@ describe('AI with the Flamecrest, Wildland and Crossroads cards', () => {
   it('casts Open Path when it holds another land to play, and not otherwise', () => {
     const withLand = scenario({
       activePlayer: 1,
-      players: [{}, { hand: [{ card: 'open_path', id: 'path' }, 'forest'], battlefield: ['forest', 'forest'], landsPlayed: 1 }],
+      players: [
+        {},
+        { hand: [{ card: 'open_path', id: 'path' }, 'forest'], battlefield: ['forest', 'forest'], landsPlayed: 1 },
+      ],
     });
     expect(chooseAction(withLand, 1)).toEqual({ type: 'cast', player: 1, card: 'path', targets: [] });
     const withoutLand = scenario({
@@ -497,20 +650,42 @@ describe('AI with the Flamecrest, Wildland and Crossroads cards', () => {
       activePlayer: 1,
       players: [
         { battlefield: [{ card: 'test_bear', id: 'bear' }] },
-        { hand: [{ card: 'palm_strike', id: 'palm' }], battlefield: ['mountain', { card: 'cloister_lancer', id: 'lancer' }] },
+        {
+          hand: [{ card: 'palm_strike', id: 'palm' }],
+          battlefield: ['mountain', { card: 'cloister_lancer', id: 'lancer' }],
+        },
       ],
     });
-    s = act(passTo(attack(s, ['lancer']), 'declareBlockers'), { type: 'declareBlockers', player: 0, blocks: [{ blocker: 'bear', attacker: 'lancer' }] });
+    s = act(passTo(attack(s, ['lancer']), 'declareBlockers'), {
+      type: 'declareBlockers',
+      player: 0,
+      blocks: [{ blocker: 'bear', attacker: 'lancer' }],
+    });
     expect(chooseAction(s, 1)).toEqual({ type: 'cast', player: 1, card: 'palm', targets: [{ card: 'lancer' }] });
   });
 
   it('sacrifices Tribe Elder for a Forest when it blocks and would die anyway, and keeps it otherwise', () => {
-    const idle = scenario({ activePlayer: 1, players: [{}, { battlefield: [{ card: 'tribe_elder', id: 'elder' }], library: Array.from({ length: 8 }, () => 'forest') }] });
+    const idle = scenario({
+      activePlayer: 1,
+      players: [
+        {},
+        { battlefield: [{ card: 'tribe_elder', id: 'elder' }], library: Array.from({ length: 8 }, () => 'forest') },
+      ],
+    });
     expect(chooseAction(idle, 1)).toEqual({ type: 'pass', player: 1 });
     let s = scenario({
-      players: [{ battlefield: [{ card: 'test_bear', id: 'bear' }] }, { battlefield: [{ card: 'tribe_elder', id: 'elder' }], library: Array.from({ length: 8 }, () => 'forest') }],
+      players: [
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+        { battlefield: [{ card: 'tribe_elder', id: 'elder' }], library: Array.from({ length: 8 }, () => 'forest') },
+      ],
     });
-    s = pass(act(passTo(attack(s, ['bear']), 'declareBlockers'), { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elder', attacker: 'bear' }] }));
+    s = pass(
+      act(passTo(attack(s, ['bear']), 'declareBlockers'), {
+        type: 'declareBlockers',
+        player: 1,
+        blocks: [{ blocker: 'elder', attacker: 'bear' }],
+      }),
+    );
     expect(chooseAction(s, 1)).toEqual({ type: 'activate', player: 1, card: 'elder', ability: 0, targets: [] });
   });
 });
@@ -519,7 +694,10 @@ describe('AI rollouts', () => {
   it('aim a death trigger at the most valuable target it can kill, not at its own controller', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain', { card: 'grove_tender', id: 'elf' }, { card: 'timberland_rhino', id: 'rhino' }] },
+        {
+          hand: [{ card: 'ember_snap', id: 'snap' }],
+          battlefield: ['mountain', { card: 'grove_tender', id: 'elf' }, { card: 'timberland_rhino', id: 'rhino' }],
+        },
         { battlefield: [{ card: 'test_dies_pinger', id: 'pinger' }] },
       ],
     });
@@ -536,7 +714,10 @@ describe('AI activated abilities', () => {
     let s = scenario({
       activePlayer: 1,
       players: [
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'canopy_spider', id: 'spider' }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'canopy_spider', id: 'spider' }],
+        },
         { battlefield: ['mountain', 'mountain', { card: 'crag_dragon', id: 'dragon' }] },
       ],
     });
@@ -588,7 +769,13 @@ describe('AI combat', () => {
         activePlayer: 1,
         players: [
           { life: 5, battlefield: ['canopy_spider'] },
-          { battlefield: [{ card: 'ember_hound', id: 'h1' }, { card: 'ember_hound', id: 'h2' }, { card: 'ember_hound', id: 'h3' }] },
+          {
+            battlefield: [
+              { card: 'ember_hound', id: 'h1' },
+              { card: 'ember_hound', id: 'h2' },
+              { card: 'ember_hound', id: 'h3' },
+            ],
+          },
         ],
       }),
       'declareAttackers',
@@ -632,8 +819,19 @@ describe('AI combat', () => {
   it('chumps with several creatures when one is not enough', () => {
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'test_giant', id: 'g1' }, { card: 'test_giant', id: 'g2' }] },
-        { life: 6, battlefield: [{ card: 'grove_tender', id: 'e1' }, { card: 'moss_viper', id: 'v1' }] },
+        {
+          battlefield: [
+            { card: 'test_giant', id: 'g1' },
+            { card: 'test_giant', id: 'g2' },
+          ],
+        },
+        {
+          life: 6,
+          battlefield: [
+            { card: 'grove_tender', id: 'e1' },
+            { card: 'moss_viper', id: 'v1' },
+          ],
+        },
       ],
     });
     s = passTo(attack(s, ['g1', 'g2']), 'declareBlockers');
@@ -645,8 +843,19 @@ describe('AI combat', () => {
   it('chumps with its cheapest creature when that is enough, and keeps the better one for another block', () => {
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'bog_lurker', id: 'lurker' }, { card: 'mist_sprite', id: 'sprite' }] },
-        { life: 3, battlefield: [{ card: 'reefshell_crab', id: 'crab' }, { card: 'cloudrider_knight', id: 'knight' }] },
+        {
+          battlefield: [
+            { card: 'bog_lurker', id: 'lurker' },
+            { card: 'mist_sprite', id: 'sprite' },
+          ],
+        },
+        {
+          life: 3,
+          battlefield: [
+            { card: 'reefshell_crab', id: 'crab' },
+            { card: 'cloudrider_knight', id: 'knight' },
+          ],
+        },
       ],
     });
     s = passTo(attack(s, ['lurker', 'sprite']), 'declareBlockers');
@@ -660,7 +869,12 @@ describe('AI combat', () => {
     const soldiers = ['t1', 't2', 't3', 't4'].map((id) => ({ card: 'soldier_token', id }));
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'timberland_rhino', id: 'r1' }, { card: 'timberland_rhino', id: 'r2' }] },
+        {
+          battlefield: [
+            { card: 'timberland_rhino', id: 'r1' },
+            { card: 'timberland_rhino', id: 'r2' },
+          ],
+        },
         { life: 6, battlefield: soldiers },
       ],
     });
@@ -673,8 +887,19 @@ describe('AI combat', () => {
   it('keeps its only flying blocker for the flying attacker when both attackers must be blocked', () => {
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'sunantler_monarch', id: 'monarch' }, { card: 'crag_dragon', id: 'dragon' }] },
-        { life: 4, battlefield: [{ card: 'spirit_token', id: 'spirit' }, { card: 'bramble_warden', id: 'warden' }] },
+        {
+          battlefield: [
+            { card: 'sunantler_monarch', id: 'monarch' },
+            { card: 'crag_dragon', id: 'dragon' },
+          ],
+        },
+        {
+          life: 4,
+          battlefield: [
+            { card: 'spirit_token', id: 'spirit' },
+            { card: 'bramble_warden', id: 'warden' },
+          ],
+        },
       ],
     });
     s = passTo(attack(s, ['monarch', 'dragon']), 'declareBlockers');
@@ -687,8 +912,19 @@ describe('AI combat', () => {
   it('still blocks to take as little damage as it can when the attack is lethal anyway', () => {
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'timberland_rhino', id: 'r1' }, { card: 'timberland_rhino', id: 'r2' }] },
-        { life: 3, battlefield: [{ card: 'soldier_token', id: 't1' }, { card: 'soldier_token', id: 't2' }] },
+        {
+          battlefield: [
+            { card: 'timberland_rhino', id: 'r1' },
+            { card: 'timberland_rhino', id: 'r2' },
+          ],
+        },
+        {
+          life: 3,
+          battlefield: [
+            { card: 'soldier_token', id: 't1' },
+            { card: 'soldier_token', id: 't2' },
+          ],
+        },
       ],
     });
     s = passTo(attack(s, ['r1', 'r2']), 'declareBlockers');
@@ -698,7 +934,13 @@ describe('AI combat', () => {
   it('blocks to survive the combat damage even when any dying blocker would drain the attacker out', () => {
     let s = scenario({
       players: [
-        { life: 1, battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'bramble_warden', id: 'warden' }] },
+        {
+          life: 1,
+          battlefield: [
+            { card: 'timberland_rhino', id: 'rhino' },
+            { card: 'bramble_warden', id: 'warden' },
+          ],
+        },
         { life: 5, relics: ['urn'], battlefield: [{ card: 'soldier_token', id: 's1' }] },
       ],
     });
@@ -711,7 +953,13 @@ describe('AI combat', () => {
   it('stacks chump blockers on a trampler even when one dying would drain the attacker out', () => {
     let s = scenario({
       players: [
-        { life: 1, battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'bramble_warden', id: 'warden' }] },
+        {
+          life: 1,
+          battlefield: [
+            { card: 'timberland_rhino', id: 'rhino' },
+            { card: 'bramble_warden', id: 'warden' },
+          ],
+        },
         { life: 3, relics: ['urn'], battlefield: ['s1', 's2', 's3'].map((id) => ({ card: 'soldier_token', id })) },
       ],
     });
@@ -724,9 +972,17 @@ describe('AI combat', () => {
 
 describe('AI setup decisions', () => {
   it('mulligans hands without lands or with only lands', () => {
-    const noLands = createGame({ seed: 1, startingPlayer: 1, players: [{}, { deck: Array.from({ length: 40 }, () => 'ember_hound') }] });
+    const noLands = createGame({
+      seed: 1,
+      startingPlayer: 1,
+      players: [{}, { deck: Array.from({ length: 40 }, () => 'ember_hound') }],
+    });
     expect(chooseAction(noLands, 1)).toEqual({ type: 'mulligan', player: 1 });
-    const allLands = createGame({ seed: 1, startingPlayer: 1, players: [{}, { deck: Array.from({ length: 40 }, () => 'forest') }] });
+    const allLands = createGame({
+      seed: 1,
+      startingPlayer: 1,
+      players: [{}, { deck: Array.from({ length: 40 }, () => 'forest') }],
+    });
     expect(chooseAction(allLands, 1)).toEqual({ type: 'mulligan', player: 1 });
   });
 
@@ -754,7 +1010,11 @@ describe('AI setup decisions', () => {
   });
 
   it('bottoms and discards the cards it needs least', () => {
-    let s = createGame({ seed: 3, startingPlayer: 1, players: [{}, { deck: Array.from({ length: 40 }, () => 'forest') }] });
+    let s = createGame({
+      seed: 3,
+      startingPlayer: 1,
+      players: [{}, { deck: Array.from({ length: 40 }, () => 'forest') }],
+    });
     s = applyAction(s, { type: 'mulligan', player: 1 });
     s = applyAction(s, { type: 'keep', player: 1 });
     const bottom = chooseAction(s, 1);
@@ -767,7 +1027,17 @@ describe('AI setup decisions', () => {
       players: [
         {},
         {
-          hand: ['forest', 'forest', 'forest', 'forest', 'ember_hound', 'timberland_rhino', 'crag_dragon', 'moss_viper', 'ember_snap'],
+          hand: [
+            'forest',
+            'forest',
+            'forest',
+            'forest',
+            'ember_hound',
+            'timberland_rhino',
+            'crag_dragon',
+            'moss_viper',
+            'ember_snap',
+          ],
           battlefield: ['forest', 'forest', 'forest', 'mountain', 'mountain', 'mountain'],
         },
       ],
@@ -826,7 +1096,10 @@ describe('AI strength', () => {
     const games = 15;
     for (let seed = 1; seed <= games; seed++) {
       const rand = lcg(seed);
-      let s = createGame({ seed, players: [{ deck: decks[seed % decks.length] }, { deck: decks[(seed + 1) % decks.length] }] });
+      let s = createGame({
+        seed,
+        players: [{ deck: decks[seed % decks.length] }, { deck: decks[(seed + 1) % decks.length] }],
+      });
       while (s.pending && s.pending.kind !== 'gameOver') {
         const player = s.pending.player;
         let action: Action;

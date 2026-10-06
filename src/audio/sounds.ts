@@ -44,5 +44,12 @@ export function isSoundId(value: unknown): value is SoundId {
 }
 
 export function soundEvent(sound: SoundId, options: Partial<Omit<SoundEvent, 'sound'>> = {}): SoundEvent {
-  return { sound, seq: options.seq ?? 0, at: options.at ?? 0, gain: options.gain ?? 1, pitch: options.pitch ?? 0, color: options.color ?? null };
+  return {
+    sound,
+    seq: options.seq ?? 0,
+    at: options.at ?? 0,
+    gain: options.gain ?? 1,
+    pitch: options.pitch ?? 0,
+    color: options.color ?? null,
+  };
 }

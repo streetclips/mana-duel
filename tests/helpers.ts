@@ -90,7 +90,9 @@ const TEST_CARDS: CardDef[] = [
     cost: '{1}{R}',
     power: 1,
     toughness: 1,
-    activated: [{ cost: '{R}', tap: true, targets: [{ kind: 'any' }], effects: [{ kind: 'damage', amount: 1, to: 0 }] }],
+    activated: [
+      { cost: '{R}', tap: true, targets: [{ kind: 'any' }], effects: [{ kind: 'damage', amount: 1, to: 0 }] },
+    ],
   },
   {
     id: 'test_murder',
@@ -144,7 +146,10 @@ export function act(s: GameState, action: Action): GameState {
   return next;
 }
 
-export function pendingOf<K extends PendingDecision['kind']>(s: GameState, kind: K): Extract<PendingDecision, { kind: K }> {
+export function pendingOf<K extends PendingDecision['kind']>(
+  s: GameState,
+  kind: K,
+): Extract<PendingDecision, { kind: K }> {
   expect(s.pending?.kind).toBe(kind);
   return s.pending as Extract<PendingDecision, { kind: K }>;
 }
@@ -240,10 +245,7 @@ export function scrambleHiddenInformation(s: GameState, viewer: PlayerId, seed: 
   const copy = structuredClone(s);
   const rand = lcg(seed);
   const other = viewer === 0 ? 1 : 0;
-  const groups = [
-    [...copy.players[other].hand, ...copy.players[other].library],
-    [...copy.players[viewer].library],
-  ];
+  const groups = [[...copy.players[other].hand, ...copy.players[other].library], [...copy.players[viewer].library]];
   for (const ids of groups) {
     const defs = ids.map((id) => copy.cards[id]?.def as string);
     for (let i = defs.length - 1; i > 0; i--) {

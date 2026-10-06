@@ -70,7 +70,10 @@ export function App({
   library: libraryProp,
 }: AppProps) {
   const [screen, setScreen] = useState<Screen>(initialScreen);
-  const expedition = useMemo(() => expeditionProp ?? new ExpeditionController(controller), [expeditionProp, controller]);
+  const expedition = useMemo(
+    () => expeditionProp ?? new ExpeditionController(controller),
+    [expeditionProp, controller],
+  );
   useEffect(() => (expeditionProp ? undefined : () => expedition.dispose()), [expedition, expeditionProp]);
   useSubscription(expedition);
   const draft = useMemo(() => draftProp ?? new DraftController(controller), [draftProp, controller]);
@@ -133,7 +136,11 @@ export function App({
   };
 
   const play = (autoplay: boolean): void => {
-    controller.newGame({ autoplay, decks: resolveMatchup(choice, randomDeckId, customs), opponent: opponentSetup(opponent) });
+    controller.newGame({
+      autoplay,
+      decks: resolveMatchup(choice, randomDeckId, customs),
+      opponent: opponentSetup(opponent),
+    });
     setViewing(null);
     setScreen('game');
   };
@@ -168,7 +175,15 @@ export function App({
   if (screen === 'decks') return <DecksScreen library={library} onHome={() => setScreen('start')} />;
 
   if (screen === 'draft') {
-    return <DraftScreen draft={draft} library={library} problem={problem} onPlay={playDraft} onHome={() => setScreen('start')} />;
+    return (
+      <DraftScreen
+        draft={draft}
+        library={library}
+        problem={problem}
+        onPlay={playDraft}
+        onHome={() => setScreen('start')}
+      />
+    );
   }
 
   if (screen === 'expedition') {
@@ -222,7 +237,13 @@ export function App({
       onContinue: leaveGame,
     };
   } else if (draftGame) {
-    mode = { badge: gameBadge(draftGame), outcome: gameOutcome(draftGame), continueLabel: common.continueDraft, homeLabel: common.backToDraft, onContinue: leaveGame };
+    mode = {
+      badge: gameBadge(draftGame),
+      outcome: gameOutcome(draftGame),
+      continueLabel: common.continueDraft,
+      homeLabel: common.backToDraft,
+      onContinue: leaveGame,
+    };
   }
   return <Game controller={controller} audio={toggles} mode={mode} onHome={leaveGame} />;
 }

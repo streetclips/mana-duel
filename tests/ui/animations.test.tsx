@@ -32,7 +32,9 @@ function castFromHand(card: string): void {
 
 describe('animations of life totals', () => {
   it('pop the change beside the life total, which keeps showing only the number', () => {
-    const { run, settle } = setup({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, {}] });
+    const { run, settle } = setup({
+      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, {}],
+    });
     castFromHand('snap');
     run(() => fireEvent.click(byTestId('player-1')));
     settle();
@@ -60,7 +62,10 @@ describe('animations of tokens and keyword grants', () => {
     const { settle } = setup({
       players: [
         {
-          hand: [{ card: 'charge_of_the_forge', id: 'charge' }, { card: 'ember_snap', id: 'snap' }],
+          hand: [
+            { card: 'charge_of_the_forge', id: 'charge' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
           battlefield: ['mountain', 'mountain', 'plains', { card: 'soldier_token', id: 'soldier' }],
         },
         { battlefield: [{ card: 'soldier_token', id: 'theirs' }] },
@@ -111,7 +116,10 @@ describe('animations of plays', () => {
     const { controller, settle } = setup({
       activePlayer: 1,
       players: [
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'grove_tender', id: 'elf' }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'grove_tender', id: 'elf' }],
+        },
         { hand: [{ card: 'magma_lance', id: 'lance' }], battlefield: ['mountain', 'mountain', 'mountain'] },
       ],
     });
@@ -127,7 +135,10 @@ describe('animations of plays', () => {
   });
 
   it('reveal the land the opponent plays and pop it into its lands', () => {
-    const { settle } = setup({ activePlayer: 1, players: [{ hand: ['forest'] }, { hand: [{ card: 'mountain', id: 'land' }] }] });
+    const { settle } = setup({
+      activePlayer: 1,
+      players: [{ hand: ['forest'] }, { hand: [{ card: 'mountain', id: 'land' }] }],
+    });
     settle();
     expect(byTestId('fx-reveal').dataset.def).toBe('mountain');
     expect(byTestId('fx-reveal').textContent).toContain('El rival juega');
@@ -135,7 +146,18 @@ describe('animations of plays', () => {
   });
 
   it('never reveal your own plays, but still pop them into place', () => {
-    const { run, settle } = setup({ players: [{ hand: [{ card: 'ember_hound', id: 'hound' }, { card: 'mountain', id: 'land' }], battlefield: ['mountain'] }, {}] });
+    const { run, settle } = setup({
+      players: [
+        {
+          hand: [
+            { card: 'ember_hound', id: 'hound' },
+            { card: 'mountain', id: 'land' },
+          ],
+          battlefield: ['mountain'],
+        },
+        {},
+      ],
+    });
     fireEvent.click(byTestId('card-land'));
     run(() => fireEvent.click(byTestId('sheet-playLand')));
     expect(fxOf(byTestId('card-land'))).toContain('enter');
@@ -164,7 +186,10 @@ describe('animations of plays', () => {
 
 describe('animations of draws and turns', () => {
   it('announce your turn and slide the card you draw into your hand', () => {
-    const { controller, settle } = setup({ activePlayer: 1, players: [{ library: [{ card: 'forest', id: 'top' }] }, {}] });
+    const { controller, settle } = setup({
+      activePlayer: 1,
+      players: [{ library: [{ card: 'forest', id: 'top' }] }, {}],
+    });
     settle();
     expect(controller.state.activePlayer).toBe(0);
     expect(byTestId('fx-turn').textContent).toContain('Tu turno');
@@ -172,7 +197,9 @@ describe('animations of draws and turns', () => {
   });
 
   it('show the opponent drawing, without revealing the card', () => {
-    const { run, settle } = setup({ players: [{ hand: ['forest'], landsPlayed: 1 }, { library: [{ card: 'ember_snap', id: 'secret' }] }] });
+    const { run, settle } = setup({
+      players: [{ hand: ['forest'], landsPlayed: 1 }, { library: [{ card: 'ember_snap', id: 'secret' }] }],
+    });
     run(() => fireEvent.click(byTestId('btn-end-turn')));
     settle();
     expect(byTestId('fx-drawn-1').textContent).toBe('+1');
@@ -190,7 +217,9 @@ describe('animations of draws and turns', () => {
 
 describe('animation hooks', () => {
   it('stay on the page until a newer action animates something, and tell which action they belong to', () => {
-    const { controller, run, settle } = setup({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, {}] });
+    const { controller, run, settle } = setup({
+      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, {}],
+    });
     castFromHand('snap');
     run(() => fireEvent.click(byTestId('player-1')));
     settle();

@@ -53,7 +53,15 @@ function signature(s: GameState, id: CardId): string {
   const effects = s.effects
     .filter((effect) => effect.card === id)
     .map((effect) => `${effect.power}/${effect.toughness}/${(effect.keywords ?? []).join(',')}`);
-  const state = [card.def, card.controller, card.counters, card.damage, card.deathtouchDamage, card.tapped, card.summoningSick];
+  const state = [
+    card.def,
+    card.controller,
+    card.counters,
+    card.damage,
+    card.deathtouchDamage,
+    card.tapped,
+    card.summoningSick,
+  ];
   return [...state, ...effects].join('|');
 }
 
@@ -169,8 +177,15 @@ function lowerDamage(
         gain = { damage: outcome.damage - after.damage, value: after.value - outcome.value };
         gains.set(key, gain);
       }
-      const flexibility = candidate.next.slice(blocks.length).reduce((sum, block) => sum + (options[block.blocker]?.length ?? 0), 0);
-      const defense = { blocks: candidate.next, damage: outcome.damage - gain.damage, value: outcome.value + gain.value, flexibility };
+      const flexibility = candidate.next
+        .slice(blocks.length)
+        .reduce((sum, block) => sum + (options[block.blocker]?.length ?? 0), 0);
+      const defense = {
+        blocks: candidate.next,
+        damage: outcome.damage - gain.damage,
+        value: outcome.value + gain.value,
+        flexibility,
+      };
       if (!best || prefer(defense, best)) best = defense;
     }
     if (!best || best.damage >= outcome.damage) return { blocks, damage: outcome.damage, score };
@@ -239,7 +254,13 @@ function allNonEmptySubsets(items: CardId[]): CardId[][] {
   return result;
 }
 
-function improveAttack(s: GameState, player: PlayerId, eligible: CardId[], start: CardId[], startValue: number): CardId[] {
+function improveAttack(
+  s: GameState,
+  player: PlayerId,
+  eligible: CardId[],
+  start: CardId[],
+  startValue: number,
+): CardId[] {
   let current = start;
   let currentValue = startValue;
   for (let round = 0; round < eligible.length * 2; round++) {

@@ -25,7 +25,17 @@ import {
 
 describe('lands', () => {
   it('allows one land per turn during your main phase', () => {
-    let s = scenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }] }, {}] });
+    let s = scenario({
+      players: [
+        {
+          hand: [
+            { card: 'forest', id: 'f1' },
+            { card: 'forest', id: 'f2' },
+          ],
+        },
+        {},
+      ],
+    });
     s = playLand(s, 'f1');
     expect(zoneOf(s, 'f1')).toBe('battlefield');
     expect(s.players[0].landsPlayedThisTurn).toBe(1);
@@ -41,7 +51,13 @@ describe('lands', () => {
   it('cannot be played with a spell on the stack or during the opponent’s turn', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'forest', id: 'f1' }], battlefield: ['mountain'] },
+        {
+          hand: [
+            { card: 'ember_snap', id: 'snap' },
+            { card: 'forest', id: 'f1' },
+          ],
+          battlefield: ['mountain'],
+        },
         {},
       ],
     });
@@ -69,7 +85,10 @@ describe('timing', () => {
       activePlayer: 1,
       players: [
         {
-          hand: [{ card: 'ember_hound', id: 'hound' }, { card: 'ember_snap', id: 'snap' }],
+          hand: [
+            { card: 'ember_hound', id: 'hound' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
           battlefield: ['mountain', 'mountain'],
         },
         {},
@@ -89,7 +108,11 @@ describe('timing', () => {
       activePlayer: 1,
       players: [
         {
-          hand: [{ card: 'squall_skimmer', id: 'skimmer' }, { card: 'glassreef_sentinel', id: 'sentinel' }, { card: 'galewing_falcon', id: 'falcon' }],
+          hand: [
+            { card: 'squall_skimmer', id: 'skimmer' },
+            { card: 'glassreef_sentinel', id: 'sentinel' },
+            { card: 'galewing_falcon', id: 'falcon' },
+          ],
           battlefield: ['island', 'island', 'island', 'island', 'island'],
         },
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
@@ -112,7 +135,10 @@ describe('timing', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'ember_hound', id: 'hound' }],
+          hand: [
+            { card: 'ember_snap', id: 'snap' },
+            { card: 'ember_hound', id: 'hound' },
+          ],
           battlefield: ['mountain', 'mountain', 'mountain'],
         },
         {},
@@ -170,7 +196,10 @@ describe('priority and the stack', () => {
   it('removes damage and "until end of turn" effects during cleanup', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'canopy_spider', id: 'spider', damage: 2 }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'canopy_spider', id: 'spider', damage: 2 }],
+        },
         {},
       ],
     });
@@ -224,7 +253,10 @@ describe('summoning sickness', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'ember_hound', id: 'hound' }, { card: 'canopy_spider', id: 'spider' }],
+          hand: [
+            { card: 'ember_hound', id: 'hound' },
+            { card: 'canopy_spider', id: 'spider' },
+          ],
           battlefield: ['mountain', 'mountain', 'forest', 'forest'],
         },
         {},
@@ -238,11 +270,17 @@ describe('summoning sickness', () => {
 
   it('stops new mana creatures from tapping for mana', () => {
     const sick = scenario({
-      players: [{ hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', sick: true }] }, {}],
+      players: [
+        { hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', sick: true }] },
+        {},
+      ],
     });
     expect(castBlocker(sick, 0, 'viper')).toEqual({ code: 'notEnoughMana' });
     let ready = scenario({
-      players: [{ hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', id: 'elf' }] }, {}],
+      players: [
+        { hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', id: 'elf' }] },
+        {},
+      ],
     });
     ready = cast(ready, 'viper');
     expect(ready.cards.elf?.tapped).toBe(true);
@@ -267,7 +305,9 @@ describe('activated abilities', () => {
   });
 
   it('respects {T} costs and summoning sickness', () => {
-    const sick = scenario({ players: [{ battlefield: [{ card: 'test_pinger', id: 'pinger', sick: true }, 'mountain'] }, {}] });
+    const sick = scenario({
+      players: [{ battlefield: [{ card: 'test_pinger', id: 'pinger', sick: true }, 'mountain'] }, {}],
+    });
     expect(activationBlocker(sick, 0, 'pinger', 0)).toEqual({ code: 'summoningSick' });
     let s = scenario({ players: [{ battlefield: [{ card: 'test_pinger', id: 'pinger' }, 'mountain'] }, {}] });
     s = activate(s, 'pinger', 0, [{ player: 1 }]);

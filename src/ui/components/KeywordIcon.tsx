@@ -59,7 +59,9 @@ const GLYPHS: Record<IconName, () => JSX.Element> = {
   defender: () => (
     <path d="M1.4 2.4 H7.6 V5.2 H1.4 Z M8.4 2.4 H14.6 V5.2 H8.4 Z M1.4 6 H4.4 V8.8 H1.4 Z M5.2 6 H10.8 V8.8 H5.2 Z M11.6 6 H14.6 V8.8 H11.6 Z M1.4 9.6 H7.6 V12.4 H1.4 Z M8.4 9.6 H14.6 V12.4 H8.4 Z M1.4 13.2 H14.6 V14.4 H1.4 Z" />
   ),
-  flash: () => <path d="M8 0.8 C8.5 5.1 10.9 7.5 15.2 8 C10.9 8.5 8.5 10.9 8 15.2 C7.5 10.9 5.1 8.5 0.8 8 C5.1 7.5 7.5 5.1 8 0.8 Z" />,
+  flash: () => (
+    <path d="M8 0.8 C8.5 5.1 10.9 7.5 15.2 8 C10.9 8.5 8.5 10.9 8 15.2 C7.5 10.9 5.1 8.5 0.8 8 C5.1 7.5 7.5 5.1 8 0.8 Z" />
+  ),
   skulk: () => (
     <path
       fill-rule="evenodd"
@@ -68,7 +70,13 @@ const GLYPHS: Record<IconName, () => JSX.Element> = {
   ),
   undying: () => (
     <>
-      <path d="M12.9 9.4 A5.1 5.1 0 1 1 10.3 3.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" />
+      <path
+        d="M12.9 9.4 A5.1 5.1 0 1 1 10.3 3.5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.3"
+        stroke-linecap="round"
+      />
       <path d="M8.6 0.6 L14 2.9 L10 7 Z" />
     </>
   ),
@@ -78,14 +86,22 @@ const GLYPHS: Record<IconName, () => JSX.Element> = {
       d="M8 1.1 L14 3.2 V7.6 C14 11.2 11.5 13.7 8 15.1 C4.5 13.7 2 11.2 2 7.6 V3.2 Z M8 5.3 A2.4 2.4 0 1 0 8 10.1 A2.4 2.4 0 1 0 8 5.3 Z"
     />
   ),
-  evolve: () => <path d="M8 1.4 L13.8 7.2 H10.9 L8 4.3 L5.1 7.2 H2.2 Z M8 7.6 L13.8 13.4 H10.9 L8 10.5 L5.1 13.4 H2.2 Z" />,
+  evolve: () => (
+    <path d="M8 1.4 L13.8 7.2 H10.9 L8 4.3 L5.1 7.2 H2.2 Z M8 7.6 L13.8 13.4 H10.9 L8 10.5 L5.1 13.4 H2.2 Z" />
+  ),
   prowess: () => (
     <>
       <path
         fill-rule="evenodd"
         d="M3.4 5.4 C3.4 4.3 4.2 3.5 5.2 3.5 H11.4 C12.6 3.5 13.5 4.4 13.5 5.6 V10.4 C13.5 12.8 11.7 14.6 9.3 14.6 H7.1 C5 14.6 3.4 13 3.4 10.9 Z M5.9 3.5 H6.5 V7.4 H5.9 Z M8.4 3.5 H9 V7.4 H8.4 Z M10.9 3.5 H11.5 V7.4 H10.9 Z M3.4 8.3 H9.2 C10 8.3 10.6 8.9 10.6 9.7 C10.6 10.5 10 11.1 9.2 11.1 H3.4 Z"
       />
-      <path d="M1 6 H2.4 M0.8 8.6 H2.2 M1 11.2 H2.4" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" />
+      <path
+        d="M1 6 H2.4 M0.8 8.6 H2.2 M1 11.2 H2.4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="0.9"
+        stroke-linecap="round"
+      />
     </>
   ),
   trigger: () => <path d="M2.6 3.4 H13.4 V5.2 H2.6 Z M2.6 7.1 H13.4 V8.9 H2.6 Z M2.6 10.8 H9.8 V12.6 H2.6 Z" />,

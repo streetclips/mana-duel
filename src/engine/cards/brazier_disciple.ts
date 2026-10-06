@@ -9,6 +9,12 @@ export const brazierDisciple: CardDef = {
   power: 1,
   toughness: 2,
   keywords: ['prowess'],
-  triggers: [{ on: 'spell', targets: [], effects: [{ kind: 'pump', power: 0, toughness: 0, to: 'self', keywords: ['firstStrike'] }] }],
+  triggers: [
+    {
+      on: 'spell',
+      targets: [],
+      effects: [{ kind: 'pump', power: 0, toughness: 0, to: 'self', keywords: ['firstStrike'] }],
+    },
+  ],
   flavor: 'Aprendió a respirar al ritmo del fuego.',
 };

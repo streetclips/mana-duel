@@ -1,9 +1,23 @@
 import type { Color } from '../engine';
 import { MOODS, STEPS_PER_BAR, findTheme, notesAt, stepSeconds, type Mood } from './music';
 import { isSoundId, soundEvent, type SoundId } from './sounds';
-import { MASTER_LEVEL, MUSIC_LEVEL, REVERB_SECONDS, SFX_LEVEL, createMix, layersSeconds, noteLayers, playLayers, soundLayers, type Layer } from './synth';
+import {
+  MASTER_LEVEL,
+  MUSIC_LEVEL,
+  REVERB_SECONDS,
+  SFX_LEVEL,
+  createMix,
+  layersSeconds,
+  noteLayers,
+  playLayers,
+  soundLayers,
+  type Layer,
+} from './synth';
 
-export type RenderTarget = SoundId | { sound: SoundId; color?: Color | null; pitch?: number } | { theme: string; mood?: Mood; bars?: number };
+export type RenderTarget =
+  | SoundId
+  | { sound: SoundId; color?: Color | null; pitch?: number }
+  | { theme: string; mood?: Mood; bars?: number };
 
 export interface RenderResult {
   seconds: number;
@@ -36,7 +50,12 @@ function scheduleOf(target: RenderTarget): { bus: 'music' | 'sfx'; parts: Schedu
   if (typeof target === 'string' || 'sound' in target) {
     const spec = typeof target === 'string' ? { sound: target } : target;
     if (!isSoundId(spec.sound)) throw new Error(`Unknown sound: ${String(spec.sound)}`);
-    const layers = soundLayers(soundEvent(spec.sound, { color: 'color' in spec ? (spec.color ?? null) : null, pitch: 'pitch' in spec ? (spec.pitch ?? 0) : 0 }));
+    const layers = soundLayers(
+      soundEvent(spec.sound, {
+        color: 'color' in spec ? (spec.color ?? null) : null,
+        pitch: 'pitch' in spec ? (spec.pitch ?? 0) : 0,
+      }),
+    );
     return { bus: 'sfx', parts: [{ at: LEAD_IN, layers }], active: LEAD_IN + layersSeconds(layers) };
   }
   const theme = findTheme(target.theme);

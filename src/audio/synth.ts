@@ -61,11 +61,24 @@ function colorHz(color: Color | null): number {
   return midiHz(color ? COLOR_NOTES[color] : COLORLESS_NOTE);
 }
 
-function tone(wave: Wave, hz: number, gain: number, attack: number, release: number, extra: Partial<Omit<ToneLayer, 'kind'>> = {}): ToneLayer {
+function tone(
+  wave: Wave,
+  hz: number,
+  gain: number,
+  attack: number,
+  release: number,
+  extra: Partial<Omit<ToneLayer, 'kind'>> = {},
+): ToneLayer {
   return { kind: 'tone', wave, hz, gain, attack, release, ...extra };
 }
 
-function noise(filter: FilterSpec, gain: number, attack: number, release: number, extra: Partial<Omit<NoiseLayer, 'kind'>> = {}): NoiseLayer {
+function noise(
+  filter: FilterSpec,
+  gain: number,
+  attack: number,
+  release: number,
+  extra: Partial<Omit<NoiseLayer, 'kind'>> = {},
+): NoiseLayer {
   return { kind: 'noise', filter, gain, attack, release, ...extra };
 }
 
@@ -88,9 +101,14 @@ function arpeggio(hz: number, semitones: readonly number[], gain: number, gap: n
 function flourish(color: Color | null, hz: number): Layer[] {
   switch (color) {
     case 'W':
-      return [tone('sine', hz * 2, 0.035, 0.01, 0.7, { delay: 0.12 }), tone('sine', hz * 3, 0.02, 0.01, 0.5, { delay: 0.16 })];
+      return [
+        tone('sine', hz * 2, 0.035, 0.01, 0.7, { delay: 0.12 }),
+        tone('sine', hz * 3, 0.02, 0.01, 0.5, { delay: 0.16 }),
+      ];
     case 'U':
-      return [tone('sine', hz, 0.07, 0.04, 0.45, { delay: 0.05, to: hz * 2, glide: 0.3, vibrato: { hz: 5.5, cents: 25 } })];
+      return [
+        tone('sine', hz, 0.07, 0.04, 0.45, { delay: 0.05, to: hz * 2, glide: 0.3, vibrato: { hz: 5.5, cents: 25 } }),
+      ];
     case 'B':
       return [
         tone('sawtooth', hz / 2, 0.06, 0.15, 0.5, { filter: { type: 'lowpass', hz: 300, to: 900, q: 1.2 } }),
@@ -102,24 +120,45 @@ function flourish(color: Color | null, hz: number): Layer[] {
         tone('sawtooth', hz / 2, 0.05, 0.005, 0.22, { to: hz, filter: { type: 'lowpass', hz: 1500, q: 1 } }),
       ];
     case 'G':
-      return [tone('triangle', hz / 2, 0.14, 0.003, 0.26), noise({ type: 'bandpass', hz: 420, q: 2 }, 0.07, 0.002, 0.05)];
+      return [
+        tone('triangle', hz / 2, 0.14, 0.003, 0.26),
+        noise({ type: 'bandpass', hz: 420, q: 2 }, 0.07, 0.002, 0.05),
+      ];
     default:
       return [tone('sine', hz * 2, 0.04, 0.01, 0.5, { delay: 0.1 })];
   }
 }
 
-function fanfare(notes: readonly number[], gap: number, wave: Wave, last: { hold: number; release: number }, filter?: FilterSpec): Layer[] {
+function fanfare(
+  notes: readonly number[],
+  gap: number,
+  wave: Wave,
+  last: { hold: number; release: number },
+  filter?: FilterSpec,
+): Layer[] {
   return notes.flatMap((hz, index) => {
     const final = index === notes.length - 1;
     const release = final ? last.release : 0.38;
     return [
-      tone(wave, hz, 0.12, 0.008, release, { delay: index * gap, hold: final ? last.hold : 0, ...(filter ? { filter } : {}) }),
+      tone(wave, hz, 0.12, 0.008, release, {
+        delay: index * gap,
+        hold: final ? last.hold : 0,
+        ...(filter ? { filter } : {}),
+      }),
       tone('sine', hz * 2, 0.03, 0.008, release * 0.6, { delay: index * gap }),
     ];
   });
 }
 
-function chord(notes: readonly number[], delay: number, filter: FilterSpec, gain: number, attack: number, hold: number, release: number): Layer[] {
+function chord(
+  notes: readonly number[],
+  delay: number,
+  filter: FilterSpec,
+  gain: number,
+  attack: number,
+  hold: number,
+  release: number,
+): Layer[] {
   return notes.map((hz) => tone('sawtooth', hz, gain, attack, release, { delay, hold, filter }));
 }
 
@@ -128,7 +167,9 @@ type Recipe = (event: SoundEvent) => Layer[];
 const ATTACK_FILTER: FilterSpec = { type: 'lowpass', hz: 400, to: 1600, q: 2 };
 
 const RECIPES: Record<SoundId, Recipe> = {
-  draw: ({ pitch }) => [noise({ type: 'bandpass', hz: 1700 * ratio(pitch), to: 3600 * ratio(pitch), q: 1.1 }, 0.45, 0.004, 0.09)],
+  draw: ({ pitch }) => [
+    noise({ type: 'bandpass', hz: 1700 * ratio(pitch), to: 3600 * ratio(pitch), q: 1.1 }, 0.45, 0.004, 0.09),
+  ],
   discard: () => [
     noise({ type: 'bandpass', hz: 1400, to: 500, q: 0.9 }, 0.3, 0.005, 0.16),
     tone('triangle', 260, 0.18, 0.003, 0.09, { to: 150 }),
@@ -178,24 +219,40 @@ const RECIPES: Record<SoundId, Recipe> = {
     tone('triangle', 116.54, 0.06, 0.02, 0.5),
     tone('triangle', 123.47, 0.06, 0.02, 0.5),
   ],
-  drain: () => [tone('sine', 210, 0.38, 0.003, 0.17, { to: 92 }), noise({ type: 'lowpass', hz: 1800, to: 400 }, 0.15, 0.002, 0.08)],
+  drain: () => [
+    tone('sine', 210, 0.38, 0.003, 0.17, { to: 92 }),
+    noise({ type: 'lowpass', hz: 1800, to: 400 }, 0.15, 0.002, 0.08),
+  ],
   heal: () => [
     ...[1046.5, 1318.5, 1568].map((hz, index) => tone('sine', hz, 0.07, 0.008, 0.55, { delay: index * 0.06 })),
     noise({ type: 'highpass', hz: 6000 }, 0.02, 0.05, 0.3),
   ],
   pump: () => [
-    tone('sawtooth', 220, 0.08, 0.02, 0.2, { hold: 0.1, to: 440, glide: 0.3, filter: { type: 'lowpass', hz: 400, to: 3200, q: 4 } }),
+    tone('sawtooth', 220, 0.08, 0.02, 0.2, {
+      hold: 0.1,
+      to: 440,
+      glide: 0.3,
+      filter: { type: 'lowpass', hz: 400, to: 3200, q: 4 },
+    }),
     tone('sine', 440, 0.06, 0.02, 0.3, { to: 880 }),
   ],
   shrink: () => [
-    tone('sawtooth', 440, 0.08, 0.01, 0.24, { hold: 0.08, to: 165, glide: 0.32, filter: { type: 'lowpass', hz: 2600, to: 300, q: 3 } }),
+    tone('sawtooth', 440, 0.08, 0.01, 0.24, {
+      hold: 0.08,
+      to: 165,
+      glide: 0.32,
+      filter: { type: 'lowpass', hz: 2600, to: 300, q: 3 },
+    }),
     tone('sine', 660, 0.05, 0.01, 0.3, { to: 220 }),
   ],
   dies: ({ pitch }) => [
     tone('triangle', 330 * ratio(pitch), 0.16, 0.01, 0.62, { to: 98, filter: { type: 'lowpass', hz: 1800, to: 200 } }),
     noise({ type: 'bandpass', hz: 1200, to: 300, q: 1 }, 0.1, 0.02, 0.5),
   ],
-  bounce: () => [noise({ type: 'bandpass', hz: 400, to: 4200, q: 1.2 }, 0.3, 0.04, 0.22), tone('sine', 300, 0.09, 0.03, 0.2, { to: 900 })],
+  bounce: () => [
+    noise({ type: 'bandpass', hz: 400, to: 4200, q: 1.2 }, 0.3, 0.04, 0.22),
+    tone('sine', 300, 0.09, 0.03, 0.2, { to: 900 }),
+  ],
   counter: () => [
     tone('square', 659.25, 0.06, 0.003, 0.11, { filter: { type: 'lowpass', hz: 2000 } }),
     tone('square', 440, 0.06, 0.003, 0.16, { delay: 0.09, filter: { type: 'lowpass', hz: 2000 } }),
@@ -213,10 +270,19 @@ const RECIPES: Record<SoundId, Recipe> = {
     ...chord([261.63, 329.63, 392], 0.36, { type: 'lowpass', hz: 1400, q: 0.7 }, 0.03, 0.3, 0.6, 1),
   ],
   defeat: () => [
-    ...fanfare([392, 311.13, 293.66, 261.63], 0.22, 'triangle', { hold: 0.4, release: 1.2 }, { type: 'lowpass', hz: 1200 }),
+    ...fanfare(
+      [392, 311.13, 293.66, 261.63],
+      0.22,
+      'triangle',
+      { hold: 0.4, release: 1.2 },
+      { type: 'lowpass', hz: 1200 },
+    ),
     ...chord([130.81, 155.56, 196], 0.66, { type: 'lowpass', hz: 700, q: 0.7 }, 0.035, 0.4, 0.8, 1.2),
   ],
-  stalemate: () => [...[261.63, 349.23, 392].map((hz) => tone('sine', hz, 0.05, 0.2, 1, { hold: 0.6 })), ...bell(523.25, 0.08, 1.2)],
+  stalemate: () => [
+    ...[261.63, 349.23, 392].map((hz) => tone('sine', hz, 0.05, 0.2, 1, { hold: 0.6 })),
+    ...bell(523.25, 0.08, 1.2),
+  ],
 };
 
 function scaled(layers: Layer[], gain: number): Layer[] {
@@ -236,11 +302,23 @@ function leadLayers(timbre: Timbre, hz: number, velocity: number, bright: number
         tone('sine', hz * 3, 0.015 * velocity, 0.004, 0.25),
       ];
     case 'glass':
-      return [tone('sine', hz, 0.11 * velocity, 0.01, 0.7, { vibrato: { hz: 5.2, cents: 9 } }), tone('triangle', hz * 2, 0.02 * velocity, 0.01, 0.4)];
+      return [
+        tone('sine', hz, 0.11 * velocity, 0.01, 0.7, { vibrato: { hz: 5.2, cents: 9 } }),
+        tone('triangle', hz * 2, 0.02 * velocity, 0.01, 0.4),
+      ];
     case 'reed':
-      return [tone('square', hz, 0.05 * velocity, 0.03, 0.25, { hold: length * 0.5, filter: { type: 'lowpass', hz: 900 + 900 * bright, q: 1 } })];
+      return [
+        tone('square', hz, 0.05 * velocity, 0.03, 0.25, {
+          hold: length * 0.5,
+          filter: { type: 'lowpass', hz: 900 + 900 * bright, q: 1 },
+        }),
+      ];
     case 'pulse':
-      return [tone('sawtooth', hz, 0.06 * velocity, 0.004, 0.22, { filter: { type: 'lowpass', hz: 1200 + 1800 * bright, to: 500, q: 3 } })];
+      return [
+        tone('sawtooth', hz, 0.06 * velocity, 0.004, 0.22, {
+          filter: { type: 'lowpass', hz: 1200 + 1800 * bright, to: 500, q: 3 },
+        }),
+      ];
     case 'pluck':
       return [
         tone('triangle', hz, 0.14 * velocity, 0.002, 0.32, { filter: { type: 'lowpass', hz: 3000, to: 700 } }),
@@ -257,10 +335,17 @@ export function noteLayers(note: Note, stepSeconds: number): Layer[] {
     case 'pad': {
       const filter: FilterSpec = { type: 'lowpass', hz: 500 + 1800 * note.bright, q: 0.6 };
       const attack = Math.min(0.6, length / 2);
-      return [-7, 7].map((detune) => tone('sawtooth', hz, 0.045 * velocity, attack, 0.9, { hold: length - attack, detune, filter }));
+      return [-7, 7].map((detune) =>
+        tone('sawtooth', hz, 0.045 * velocity, attack, 0.9, { hold: length - attack, detune, filter }),
+      );
     }
     case 'bass':
-      return [tone('triangle', hz, 0.3 * velocity, 0.008, 0.18, { hold: length * 0.6, filter: { type: 'lowpass', hz: 300 + 900 * note.bright, q: 0.7 } })];
+      return [
+        tone('triangle', hz, 0.3 * velocity, 0.008, 0.18, {
+          hold: length * 0.6,
+          filter: { type: 'lowpass', hz: 300 + 900 * note.bright, q: 0.7 },
+        }),
+      ];
     case 'lead':
       return leadLayers(note.timbre ?? 'bell', hz, velocity, note.bright, length);
     case 'kick':
@@ -270,7 +355,10 @@ export function noteLayers(note: Note, stepSeconds: number): Layer[] {
         noise({ type: 'lowpass', hz: 2000 }, 0.06 * velocity, 0.001, 0.015),
       ];
     case 'snare':
-      return [noise({ type: 'highpass', hz: 1400 }, 0.18 * velocity, 0.001, 0.13), tone('triangle', 190, 0.1 * velocity, 0.001, 0.08, { to: 160 })];
+      return [
+        noise({ type: 'highpass', hz: 1400 }, 0.18 * velocity, 0.001, 0.13),
+        tone('triangle', 190, 0.1 * velocity, 0.001, 0.08, { to: 160 }),
+      ];
     case 'hat':
       return [noise({ type: 'highpass', hz: 7500 }, 0.07 * velocity, 0.001, 0.035)];
   }
@@ -390,12 +478,22 @@ function oscillator(ctx: BaseAudioContext, layer: ToneLayer, start: number, end:
   const osc = ctx.createOscillator();
   osc.type = layer.wave;
   osc.frequency.setValueAtTime(layer.hz, start);
-  if (layer.to !== undefined) osc.frequency.exponentialRampToValueAtTime(layer.to, start + Math.max(0.001, Math.min(layer.glide ?? end - start, end - start)));
+  if (layer.to !== undefined)
+    osc.frequency.exponentialRampToValueAtTime(
+      layer.to,
+      start + Math.max(0.001, Math.min(layer.glide ?? end - start, end - start)),
+    );
   if (layer.detune) osc.detune.setValueAtTime(layer.detune, start);
   return osc;
 }
 
-function lfo(ctx: BaseAudioContext, hz: number, depth: number, start: number, target: AudioParam): { source: OscillatorNode; amount: GainNode } {
+function lfo(
+  ctx: BaseAudioContext,
+  hz: number,
+  depth: number,
+  start: number,
+  target: AudioParam,
+): { source: OscillatorNode; amount: GainNode } {
   const source = ctx.createOscillator();
   source.frequency.setValueAtTime(hz, start);
   const amount = ctx.createGain();

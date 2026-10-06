@@ -33,7 +33,10 @@ export function DecksScreen({ library, onHome }: DecksScreenProps) {
 
   const startFrom = (deck: DeckDef): void => {
     const draft = draftOf(deck, true);
-    setEditing({ draft: { ...draft, name: library.nextName(text.copyName(deck.name)) }, title: text.copyTitle(deck.name) });
+    setEditing({
+      draft: { ...draft, name: library.nextName(text.copyName(deck.name)) },
+      title: text.copyTitle(deck.name),
+    });
   };
 
   return (
@@ -47,13 +50,20 @@ export function DecksScreen({ library, onHome }: DecksScreenProps) {
             {library.decks.map((deck) => {
               const problems = library.problems(deck);
               return (
-                <li key={deck.id} class="my-deck" data-testid={`my-deck-${deck.id}`} data-playable={problems.length === 0}>
+                <li
+                  key={deck.id}
+                  class="my-deck"
+                  data-testid={`my-deck-${deck.id}`}
+                  data-playable={problems.length === 0}
+                >
                   <span class="floor-box">
                     <DeckBox deck={deck} open={false} />
                   </span>
                   <span class="floor-text">
                     <b>{deck.name}</b>
-                    <span class={problems.length > 0 ? 'problem' : undefined}>{text.deckLine(countCards(deck.cards), problems.length === 0)}</span>
+                    <span class={problems.length > 0 ? 'problem' : undefined}>
+                      {text.deckLine(countCards(deck.cards), problems.length === 0)}
+                    </span>
                   </span>
                   <button
                     type="button"
@@ -63,7 +73,13 @@ export function DecksScreen({ library, onHome }: DecksScreenProps) {
                   >
                     {text.edit}
                   </button>
-                  <button type="button" class="icon-btn" aria-label={text.deleteDeck(deck.name)} data-testid={`btn-delete-${deck.id}`} onClick={() => setDeleting(deck)}>
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    aria-label={text.deleteDeck(deck.name)}
+                    data-testid={`btn-delete-${deck.id}`}
+                    onClick={() => setDeleting(deck)}
+                  >
                     <TrashIcon />
                   </button>
                 </li>
@@ -78,7 +94,14 @@ export function DecksScreen({ library, onHome }: DecksScreenProps) {
           <p class="run-note">{text.startFromNote}</p>
           <div class="picker-grid" role="group" aria-label={text.gameDecks}>
             {DECK_LIST.map(localizeDeck).map((deck, index) => (
-              <DeckOption key={deck.id} deck={deck} index={index} checked={false} testId={`copy-${deck.id}`} onSelect={() => startFrom(deck)} />
+              <DeckOption
+                key={deck.id}
+                deck={deck}
+                index={index}
+                checked={false}
+                testId={`copy-${deck.id}`}
+                onSelect={() => startFrom(deck)}
+              />
             ))}
           </div>
         </section>
@@ -88,7 +111,12 @@ export function DecksScreen({ library, onHome }: DecksScreenProps) {
           type="button"
           class="btn"
           data-testid="btn-new-deck"
-          onClick={() => setEditing({ draft: { id: null, name: library.nextName(defaultDeckName()), featured: null, cards: [] }, title: text.newTitle })}
+          onClick={() =>
+            setEditing({
+              draft: { id: null, name: library.nextName(defaultDeckName()), featured: null, cards: [] },
+              title: text.newTitle,
+            })
+          }
         >
           {text.newDeck}
         </button>
@@ -110,7 +138,12 @@ export function DecksScreen({ library, onHome }: DecksScreenProps) {
 
       {deleting && (
         <div class="scrim center-modal" data-testid="deck-delete" onClick={() => setDeleting(null)}>
-          <div class="modal" role="dialog" aria-label={text.deleteDeck(deleting.name)} onClick={(event) => event.stopPropagation()}>
+          <div
+            class="modal"
+            role="dialog"
+            aria-label={text.deleteDeck(deleting.name)}
+            onClick={(event) => event.stopPropagation()}
+          >
             <h2 class="modal-title">{text.deleteQuestion(deleting.name)}</h2>
             <p>{text.deleteWarning}</p>
             <div class="sheet-actions">

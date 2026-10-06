@@ -14,8 +14,10 @@ export function checkInvariants(s: GameState): string[] {
   for (const player of [0, 1] as PlayerId[]) {
     const ps = s.players[player];
     if (!Number.isInteger(ps.life)) problems.push(`p${player} life is not an integer`);
-    if (!Number.isInteger(ps.extraLandsThisTurn) || ps.extraLandsThisTurn < 0) problems.push(`p${player} has invalid extra land plays`);
-    if (player === s.activePlayer && ps.landsPlayedThisTurn > 1 + ps.extraLandsThisTurn) problems.push(`p${player} played more lands than allowed`);
+    if (!Number.isInteger(ps.extraLandsThisTurn) || ps.extraLandsThisTurn < 0)
+      problems.push(`p${player} has invalid extra land plays`);
+    if (player === s.activePlayer && ps.landsPlayedThisTurn > 1 + ps.extraLandsThisTurn)
+      problems.push(`p${player} played more lands than allowed`);
     for (const zone of ['library', 'hand', 'graveyard', 'battlefield', 'command'] as const) {
       for (const id of ps[zone]) {
         note(id, `p${player}.${zone}`);
@@ -31,7 +33,11 @@ export function checkInvariants(s: GameState): string[] {
           problems.push(`token ${id} exists outside the battlefield`);
         }
         if (hasCardDef(card.def) && (zone === 'command') !== isRelicDef(getCardDef(card.def))) {
-          problems.push(zone === 'command' ? `${id} is in p${player}.command but is not a relic` : `relic ${id} is outside the command zone`);
+          problems.push(
+            zone === 'command'
+              ? `${id} is in p${player}.command but is not a relic`
+              : `relic ${id} is outside the command zone`,
+          );
         }
       }
     }
@@ -51,7 +57,8 @@ export function checkInvariants(s: GameState): string[] {
     } else if (!seen.has(id)) problems.push(`${id} is in no zone`);
     if (!hasCardDef(card.def)) problems.push(`${id} has an unknown definition ${card.def}`);
     if (card.damage < 0 || !Number.isInteger(card.damage)) problems.push(`${id} has invalid damage ${card.damage}`);
-    if (card.counters < 0 || !Number.isInteger(card.counters)) problems.push(`${id} has invalid counters ${card.counters}`);
+    if (card.counters < 0 || !Number.isInteger(card.counters))
+      problems.push(`${id} has invalid counters ${card.counters}`);
     if (card.zone !== 'battlefield' && (card.tapped || card.damage > 0 || card.summoningSick || card.counters > 0)) {
       problems.push(`${id} keeps battlefield state outside the battlefield`);
     }
@@ -75,12 +82,15 @@ export function checkInvariants(s: GameState): string[] {
     }
     for (const block of s.combat.blocks) {
       const card = s.cards[block.blocker];
-      if (!card || card.zone !== 'battlefield' || card.controller === s.activePlayer) problems.push(`invalid blocker ${block.blocker}`);
-      if (!s.combat.attackers.includes(block.attacker)) problems.push(`${block.blocker} blocks a creature that is not attacking`);
+      if (!card || card.zone !== 'battlefield' || card.controller === s.activePlayer)
+        problems.push(`invalid blocker ${block.blocker}`);
+      if (!s.combat.attackers.includes(block.attacker))
+        problems.push(`${block.blocker} blocks a creature that is not attacking`);
     }
   }
   for (const effect of s.effects) {
-    if (s.cards[effect.card]?.zone !== 'battlefield') problems.push(`effect ${effect.id} points to a card off the battlefield`);
+    if (s.cards[effect.card]?.zone !== 'battlefield')
+      problems.push(`effect ${effect.id} points to a card off the battlefield`);
   }
   for (const trigger of s.triggers) {
     if (!s.cards[trigger.source]) problems.push(`trigger ${trigger.id} has an unknown source`);

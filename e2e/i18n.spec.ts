@@ -14,7 +14,8 @@ function shownText(page: Page): Promise<string> {
   return page.evaluate(() => {
     const parts: string[] = [];
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
-      acceptNode: (node) => (node instanceof Element && node.hasAttribute('lang') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+      acceptNode: (node) =>
+        node instanceof Element && node.hasAttribute('lang') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
     });
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       if (!(node instanceof Element)) parts.push(node.textContent ?? '');
@@ -75,7 +76,9 @@ test('every English card name fits two lines in hand, with no Spanish on the boa
       .cards()
       .filter((card) => !card.token)
       .map((card) => card.id);
-    window.manaDuel.loadScenario({ players: [{ hand: cards, battlefield: ['mountain', { card: 'crag_dragon', id: 'dragon' }] }, {}] });
+    window.manaDuel.loadScenario({
+      players: [{ hand: cards, battlefield: ['mountain', { card: 'crag_dragon', id: 'dragon' }] }, {}],
+    });
     return cards;
   });
   await expect(page.getByTestId('hand').locator('.card .name')).toHaveCount(cards.length);
@@ -89,7 +92,9 @@ test('every English card name fits two lines in hand, with no Spanish on the boa
   await page.getByTestId('card-dragon').click({ button: 'right' });
   await expect(page.getByTestId('card-sheet')).toContainText('Crag Dragon');
   await expect(page.getByTestId('card-sheet')).toContainText(': This creature gets +1/+0 until end of turn.');
-  await expect(page.getByTestId('card-sheet')).toContainText("Flying: Can't be blocked except by creatures with flying or reach.");
+  await expect(page.getByTestId('card-sheet')).toContainText(
+    "Flying: Can't be blocked except by creatures with flying or reach.",
+  );
   expect(spanishIn(await shownText(page))).toEqual([]);
   expect(errors).toEqual([]);
 });

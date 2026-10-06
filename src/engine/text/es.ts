@@ -19,7 +19,17 @@ import {
   type TriggerCondition,
   type TriggerEvent,
 } from '../types';
-import { capitalize, capitalizeParts, formatModifier, joined, line, lowerFirst, mention, plainText, type TextPart } from './parts';
+import {
+  capitalize,
+  capitalizeParts,
+  formatModifier,
+  joined,
+  line,
+  lowerFirst,
+  mention,
+  plainText,
+  type TextPart,
+} from './parts';
 import {
   activatedText,
   describeState,
@@ -89,7 +99,8 @@ const KEYWORD_REMINDERS: Record<Keyword, string> = {
   undying: 'Cuando muere, si no tenía contadores +1/+1, regresa al campo de batalla con un contador +1/+1.',
   hexproof: 'No puede ser objetivo de hechizos o habilidades que controlan tus oponentes.',
   evolve: 'Recibe un contador +1/+1 siempre que otra criatura con más fuerza o más resistencia entre bajo tu control.',
-  prowess: 'Siempre que lances un hechizo que no sea de criatura, esta criatura obtiene +1/+1 hasta el final del turno.',
+  prowess:
+    'Siempre que lances un hechizo que no sea de criatura, esta criatura obtiene +1/+1 hasta el final del turno.',
 };
 
 const STEP_NAMES: Record<Step, string> = {
@@ -142,7 +153,9 @@ function typeLine(def: CardDef): string {
     ...(def.supertypes ?? []).map((supertype) => SUPERTYPE_NAMES[supertype] ?? supertype),
   ];
   const main = words.map((word, index) => (index === 0 ? word : lowerFirst(word))).join(' ');
-  const subtypes = (def.subtypes ?? []).map((subtype, index) => (index === 0 ? subtype : lowerFirst(subtype))).join(' ');
+  const subtypes = (def.subtypes ?? [])
+    .map((subtype, index) => (index === 0 ? subtype : lowerFirst(subtype)))
+    .join(' ');
   return subtypes ? `${main} — ${subtypes}` : main;
 }
 
@@ -261,7 +274,8 @@ function searchLandSentence(land: string, battlefield: number, hand: number, tap
     const turned = tapped ? (battlefield === 1 ? ' girada' : ' giradas') : '';
     return `${search}, ${put} en el campo de batalla${turned} y luego baraja.`;
   }
-  if (battlefield === 0) return `${search}, ${hand === 1 ? 'revélala, ponla' : 'revélalas, ponlas'} en tu mano y luego baraja.`;
+  if (battlefield === 0)
+    return `${search}, ${hand === 1 ? 'revélala, ponla' : 'revélalas, ponlas'} en tu mano y luego baraja.`;
   return `${search}, pon una en el campo de batalla${tapped ? ' girada' : ''} y la otra en tu mano, y luego baraja.`;
 }
 
@@ -281,7 +295,12 @@ function cardsCount(amount: number): string {
   return amount === 1 ? 'una carta' : `${countWord(amount)} cartas`;
 }
 
-function gainsText(verb: 'obtiene' | 'obtienen', power: number, toughness: number, keywords: readonly Keyword[] = []): string {
+function gainsText(
+  verb: 'obtiene' | 'obtienen',
+  power: number,
+  toughness: number,
+  keywords: readonly Keyword[] = [],
+): string {
   const gain = verb === 'obtiene' ? 'gana' : 'ganan';
   if (keywords.length === 0) return `${verb} ${formatModifier(power, toughness)}`;
   if (power === 0 && toughness === 0) return `${gain} ${abilityPhrase(keywords)}`;
@@ -297,7 +316,10 @@ function effectSentence(effect: Effect, ref: TargetRef, context: SentenceContext
     case 'damage':
       return withSubject(context.subject, `hace ${damagePoints(effect.amount)} ${withA(ref(effect.to, 'object'))}.`);
     case 'pump':
-      return withSubject(ref(effect.to, 'subject'), `${gainsText('obtiene', effect.power, effect.toughness, effect.keywords)} hasta el final del turno.`);
+      return withSubject(
+        ref(effect.to, 'subject'),
+        `${gainsText('obtiene', effect.power, effect.toughness, effect.keywords)} hasta el final del turno.`,
+      );
     case 'destroy':
       return `Destruye ${ref(effect.to, 'object')}.`;
     case 'bounce':
@@ -309,11 +331,16 @@ function effectSentence(effect: Effect, ref: TargetRef, context: SentenceContext
     case 'gainLife':
       return `Ganas ${lifeAmount(effect.amount)}.`;
     case 'loseLife':
-      return effect.who === 'opponent' ? `Cada oponente pierde ${lifeAmount(effect.amount)}.` : `Pierdes ${lifeAmount(effect.amount)}.`;
+      return effect.who === 'opponent'
+        ? `Cada oponente pierde ${lifeAmount(effect.amount)}.`
+        : `Pierdes ${lifeAmount(effect.amount)}.`;
     case 'fight':
       return withSubject(ref(effect.a, 'subject'), `lucha contra ${ref(effect.b, 'object')}.`);
     case 'bite':
-      return withSubject(ref(effect.a, 'subject'), `hace una cantidad de daño igual a su fuerza ${withA(ref(effect.b, 'object'))}.`);
+      return withSubject(
+        ref(effect.a, 'subject'),
+        `hace una cantidad de daño igual a su fuerza ${withA(ref(effect.b, 'object'))}.`,
+      );
     case 'pumpTeam':
       return `Las criaturas que controlas ${gainsText('obtienen', effect.power, effect.toughness, effect.keywords)} hasta el final del turno.`;
     case 'addCounters':
@@ -401,7 +428,9 @@ function targetsSuffix(s: GameState, targets: Target[], viewer: PlayerId): TextP
 
 function damageParts(s: GameState, target: Target, amount: number, viewer: PlayerId): TextPart[] {
   if (isPlayerTarget(target)) {
-    return target.player === viewer ? line`te hace ${damagePoints(amount)}` : line`hace ${damagePoints(amount)} al rival`;
+    return target.player === viewer
+      ? line`te hace ${damagePoints(amount)}`
+      : line`hace ${damagePoints(amount)} al rival`;
   }
   return line`hace ${damagePoints(amount)} a ${cardRefParts(s, target.card, viewer)}`;
 }
@@ -430,13 +459,18 @@ function describeEventParts(s: GameState, event: GameEvent, viewer: PlayerId): T
       return line`${act(event.player, viewer, 'lanzas', 'lanza')} ${mention(s, event.card)}${targetsSuffix(s, event.targets, viewer)}.`;
     case 'activate': {
       const own = s.cards[event.card]?.controller === event.player;
-      const source = own ? line`${event.player === viewer ? 'tu' : 'su'} ${mention(s, event.card)}` : cardRefParts(s, event.card, viewer);
+      const source = own
+        ? line`${event.player === viewer ? 'tu' : 'su'} ${mention(s, event.card)}`
+        : cardRefParts(s, event.card, viewer);
       return line`${act(event.player, viewer, 'activas', 'activa')} ${source}${targetsSuffix(s, event.targets, viewer)}.`;
     }
     case 'trigger':
       return line`Se dispara ${cardRefParts(s, event.card, viewer)}${targetsSuffix(s, event.targets, viewer)}.`;
     case 'fizzle': {
-      const subject = event.item.kind === 'spell' ? [mention(s, event.item.card)] : line`La habilidad de ${mention(s, event.item.source)}`;
+      const subject =
+        event.item.kind === 'spell'
+          ? [mention(s, event.item.card)]
+          : line`La habilidad de ${mention(s, event.item.source)}`;
       return line`${subject} no se resuelve: sus objetivos ya no están.`;
     }
     case 'counter':
@@ -455,7 +489,9 @@ function describeEventParts(s: GameState, event: GameEvent, viewer: PlayerId): T
     case 'damage':
       return line`${capitalizeParts(cardRefParts(s, event.source, viewer))} ${damageParts(s, event.target, event.amount, viewer)}.`;
     case 'life':
-      return event.delta > 0 ? line`${act(event.player, viewer, 'ganas', 'gana')} ${lifeAmount(event.delta)} (${event.life}).` : null;
+      return event.delta > 0
+        ? line`${act(event.player, viewer, 'ganas', 'gana')} ${lifeAmount(event.delta)} (${event.life}).`
+        : null;
     case 'loseLife':
       return line`${act(event.player, viewer, 'pierdes', 'pierde')} ${lifeAmount(event.amount)}.`;
     case 'pump':

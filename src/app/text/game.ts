@@ -3,13 +3,15 @@ import { messages } from '../../i18n';
 export const noteText = messages({
   es: {
     opponentThinks: (reason: string) => `El rival piensa: ${reason}`,
-    llmUnavailable: (reason: string) => `El LLM no está disponible (${reason}): la IA clásica juega el resto de la partida.`,
+    llmUnavailable: (reason: string) =>
+      `El LLM no está disponible (${reason}): la IA clásica juega el resto de la partida.`,
     llmFailed: (reason: string) => `El LLM no pudo decidir (${reason}): la IA clásica hizo esta jugada.`,
     unknownError: 'error desconocido',
   },
   en: {
     opponentThinks: (reason: string) => `The opponent thinks: ${reason}`,
-    llmUnavailable: (reason: string) => `The LLM is unavailable (${reason}): the classic AI plays the rest of the game.`,
+    llmUnavailable: (reason: string) =>
+      `The LLM is unavailable (${reason}): the classic AI plays the rest of the game.`,
     llmFailed: (reason: string) => `The LLM couldn't decide (${reason}): the classic AI made this play.`,
     unknownError: 'unknown error',
   },

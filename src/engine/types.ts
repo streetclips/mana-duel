@@ -194,8 +194,24 @@ export type Step =
 
 export type StackItem =
   | { id: string; kind: 'spell'; controller: PlayerId; card: CardId; targets: Target[]; lost?: number[] }
-  | { id: string; kind: 'trigger'; controller: PlayerId; source: CardId; ability: number; targets: Target[]; lost?: number[] }
-  | { id: string; kind: 'activated'; controller: PlayerId; source: CardId; ability: number; targets: Target[]; lost?: number[] };
+  | {
+      id: string;
+      kind: 'trigger';
+      controller: PlayerId;
+      source: CardId;
+      ability: number;
+      targets: Target[];
+      lost?: number[];
+    }
+  | {
+      id: string;
+      kind: 'activated';
+      controller: PlayerId;
+      source: CardId;
+      ability: number;
+      targets: Target[];
+      lost?: number[];
+    };
 
 export interface ContinuousEffect {
   id: string;

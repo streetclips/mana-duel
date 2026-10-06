@@ -21,14 +21,27 @@ function seat(deck: string, relics: RelicId[] = [], extra: Partial<SeatRelics> =
 describe('relics', () => {
   it('are twelve for the player, ten of which a rival may carry too, and three more for bosses only', () => {
     expect(relicsOf(['any', 'player'])).toHaveLength(12);
-    expect(relicsOf(['any'])).toEqual(['vigor', 'foresight', 'banner', 'cartographer', 'mask', 'censer', 'urn', 'drum', 'chalice', 'tome']);
+    expect(relicsOf(['any'])).toEqual([
+      'vigor',
+      'foresight',
+      'banner',
+      'cartographer',
+      'mask',
+      'censer',
+      'urn',
+      'drum',
+      'chalice',
+      'tome',
+    ]);
     expect(relicsOf(['player'])).toEqual(['hourglass', 'phoenix']);
     expect(relicsOf(['boss'])).toEqual(['bell', 'grimoire', 'crown']);
     expect(new Set(RELICS.map((relic) => relic.name)).size).toBe(RELICS.length);
   });
 
   it('bring the relics in play the engine knows, with the engine’s name and rules text', () => {
-    expect(RELICS.filter((relic) => relic.kind === 'play').map((relic) => relic.id)).toEqual(RELIC_DEFS.map((def) => def.id));
+    expect(RELICS.filter((relic) => relic.kind === 'play').map((relic) => relic.id)).toEqual(
+      RELIC_DEFS.map((def) => def.id),
+    );
     for (const relic of RELICS) expect(hasCardDef(relic.id), relic.id).toBe(relic.kind === 'play');
     expect(relicOf('bell')).toEqual({
       id: 'bell',
@@ -54,15 +67,16 @@ describe('relics', () => {
       },
       { life: 16, openingHand: 5 },
     ]);
-    expect(duelPerks([seat('dawntide', ['foresight']), seat('duskmire', ['bell', 'banner'], { life: 20, openingHand: 6 })])).toEqual([
-      { openingHand: 8 },
-      { openingHand: 6, battlefield: ['soldier_token'], relics: ['bell'] },
-    ]);
+    expect(
+      duelPerks([seat('dawntide', ['foresight']), seat('duskmire', ['bell', 'banner'], { life: 20, openingHand: 6 })]),
+    ).toEqual([{ openingHand: 8 }, { openingHand: 6, battlefield: ['soldier_token'], relics: ['bell'] }]);
     expect(duelPerks([seat('wildland', ['cartographer']), seat('dawntide', ['mask'])])).toEqual([
       { openingHand: 5, battlefield: ['forest'] },
       {},
     ]);
-    expect(duelPerks([seat('wildland', [], { openingHand: 1 }), seat('dawntide', ['mask'])])[0]).toEqual({ openingHand: 1 });
+    expect(duelPerks([seat('wildland', [], { openingHand: 1 }), seat('dawntide', ['mask'])])[0]).toEqual({
+      openingHand: 1,
+    });
   });
 
   it('start the duel for the hourglass, and find the most common land of a deck, or a basic of its first color', () => {

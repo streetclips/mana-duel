@@ -24,7 +24,9 @@ function fakeOpenRouter(): { fetch: typeof fetch; sent: Sent[] } {
           object: 'chat.completion',
           created: 0,
           model: body.model,
-          choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(answer) } }],
+          choices: [
+            { index: 0, finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(answer) } },
+          ],
           usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
         }),
         { status: 200, headers: { 'content-type': 'application/json' } },
@@ -40,7 +42,11 @@ function aChoice(): GameState {
 describe('the OpenRouter factory', () => {
   it('sends the typed key straight to OpenRouter, with the model and effort of the setup', async () => {
     const api = fakeOpenRouter();
-    const factory = openRouterFactory({ apiKey: () => ' sk-or-typed ', proxyUrl: 'http://localhost:5173/openrouter/v1', fetch: api.fetch });
+    const factory = openRouterFactory({
+      apiKey: () => ' sk-or-typed ',
+      proxyUrl: 'http://localhost:5173/openrouter/v1',
+      fetch: api.fetch,
+    });
     const player = factory({ kind: 'llm', model: 'google/gemini-3.8-flash', effort: 'low' });
     expect(player.model).toBe('google/gemini-3.8-flash');
     await player.decide(aChoice(), 1);
@@ -55,9 +61,16 @@ describe('the OpenRouter factory', () => {
 
   it('goes through the dev server proxy when no key is typed', async () => {
     const api = fakeOpenRouter();
-    const factory = openRouterFactory({ apiKey: () => '', proxyUrl: 'http://localhost:5173/openrouter/v1', fetch: api.fetch });
+    const factory = openRouterFactory({
+      apiKey: () => '',
+      proxyUrl: 'http://localhost:5173/openrouter/v1',
+      fetch: api.fetch,
+    });
     await factory({ kind: 'llm', model: 'openai/gpt-6-luna' }).decide(aChoice(), 1);
-    expect(api.sent[0]).toMatchObject({ url: 'http://localhost:5173/openrouter/v1/chat/completions', authorization: `Bearer ${PROXY_API_KEY}` });
+    expect(api.sent[0]).toMatchObject({
+      url: 'http://localhost:5173/openrouter/v1/chat/completions',
+      authorization: `Bearer ${PROXY_API_KEY}`,
+    });
     expect(api.sent[0]?.body.reasoning).toBeUndefined();
   });
 });

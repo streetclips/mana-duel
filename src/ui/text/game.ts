@@ -5,7 +5,8 @@ export type PhaseId = 'beginning' | 'main1' | 'combat' | 'main2' | 'end';
 export const gameText = messages({
   es: {
     castSpell: (mine: boolean, name: string) => (mine ? `Lanzas ${name}` : `El rival lanza ${name}`),
-    useAbility: (mine: boolean, name: string) => (mine ? `Usas la habilidad de ${name}` : `El rival usa la habilidad de ${name}`),
+    useAbility: (mine: boolean, name: string) =>
+      mine ? `Usas la habilidad de ${name}` : `El rival usa la habilidad de ${name}`,
     draw: 'Empate',
     victory: 'Victoria',
     defeat: 'Derrota',
@@ -26,7 +27,8 @@ export const gameText = messages({
     willBottom: (count: number) => ` · pondrás ${count} en el fondo de tu biblioteca`,
     keep: 'Me quedo',
     mulligan: 'Mulligan',
-    chooseCards: (amount: number, bottom: boolean) => `Elige ${count(amount, 'carta', 'cartas')} para ${bottom ? 'poner en el fondo' : 'descartar'}`,
+    chooseCards: (amount: number, bottom: boolean) =>
+      `Elige ${count(amount, 'carta', 'cartas')} para ${bottom ? 'poner en el fondo' : 'descartar'}`,
     chosen: (chosen: number, amount: number) => `${chosen}/${count(amount, 'elegida', 'elegidas')}`,
     putOnBottom: 'Poner en el fondo',
     discard: 'Descartar',
@@ -35,7 +37,8 @@ export const gameText = messages({
     chooseAttackers: 'Elige las atacantes',
     chooseAttackersHint: 'Toca las criaturas con las que quieras atacar',
     pickAttackerToBlock: (blocker: string) => `Ahora toca la atacante que debe bloquear ${blocker}`,
-    opponentAttacksPick: (attackers: string) => `El rival ataca con ${attackers}. Toca tu criatura y luego una atacante`,
+    opponentAttacksPick: (attackers: string) =>
+      `El rival ataca con ${attackers}. Toca tu criatura y luego una atacante`,
     chooseBlockers: 'Elige las bloqueadoras',
     block: (count: number) => (count ? `Bloquear (${count})` : 'No bloquear'),
     respond: '¿Respondes?',
@@ -61,19 +64,28 @@ export const gameText = messages({
     canCastSpells: 'Puedes lanzar hechizos',
     nothingToPlay: 'No te queda nada por jugar',
     bothAtZero: 'Los dos jugadores llegaron a 0 vidas',
-    reachedZero: (mine: boolean, turn: number) => `${mine ? 'Llegaste' : 'El rival llegó'} a 0 vidas en el turno ${turn}`,
-    decked: (mine: boolean) => (mine ? 'Intentaste robar de una biblioteca vacía' : 'El rival intentó robar de una biblioteca vacía'),
+    reachedZero: (mine: boolean, turn: number) =>
+      `${mine ? 'Llegaste' : 'El rival llegó'} a 0 vidas en el turno ${turn}`,
+    decked: (mine: boolean) =>
+      mine ? 'Intentaste robar de una biblioteca vacía' : 'El rival intentó robar de una biblioteca vacía',
     conceded: (mine: boolean) => (mine ? 'Te rendiste' : 'El rival se rindió'),
     turnLimit: 'Se alcanzó el límite de turnos',
     playerSummary: (name: string, life: number, hand: number, library: number, graveyard: number) =>
       `${name}: ${count(life, 'vida', 'vidas')}, ${hand} en la mano, ${library} en la biblioteca, ${graveyard} en el cementerio`,
     target: (name: string) => `Objetivo: ${name}`,
-    counts: (hand: number, library: number, graveyard: number) => `Mano ${hand} · Mazo ${library} · Cementerio ${graveyard}`,
+    counts: (hand: number, library: number, graveyard: number) =>
+      `Mano ${hand} · Mazo ${library} · Cementerio ${graveyard}`,
     hasPriority: 'Tiene la prioridad',
     untappedLands: (untapped: number, total: number) => `${untapped} de ${total} tierras enderezadas`,
     noLands: 'Sin tierras',
     tappedLand: (name: string) => `${name} (girada)`,
-    phases: { beginning: 'Inicio', main1: 'Principal', combat: 'Combate', main2: 'Principal 2', end: 'Final' } satisfies Record<PhaseId, string>,
+    phases: {
+      beginning: 'Inicio',
+      main1: 'Principal',
+      combat: 'Combate',
+      main2: 'Principal 2',
+      end: 'Final',
+    } satisfies Record<PhaseId, string>,
     turnOf: (mine: boolean) => (mine ? 'Tu turno' : 'Turno del rival'),
     turn: (turn: number) => `Turno ${turn}`,
     abilityOf: (name: string) => `Habilidad de ${name}`,
@@ -107,7 +119,8 @@ export const gameText = messages({
   },
   en: {
     castSpell: (mine: boolean, name: string) => (mine ? `You cast ${name}` : `The opponent casts ${name}`),
-    useAbility: (mine: boolean, name: string) => (mine ? `You use ${name}'s ability` : `The opponent uses ${name}'s ability`),
+    useAbility: (mine: boolean, name: string) =>
+      mine ? `You use ${name}'s ability` : `The opponent uses ${name}'s ability`,
     draw: 'Draw',
     victory: 'Victory',
     defeat: 'Defeat',
@@ -128,7 +141,8 @@ export const gameText = messages({
     willBottom: (count: number) => ` · you'll put ${count} on the bottom of your library`,
     keep: 'Keep',
     mulligan: 'Mulligan',
-    chooseCards: (amount: number, bottom: boolean) => `Choose ${count(amount, 'card', 'cards')} to ${bottom ? 'put on the bottom' : 'discard'}`,
+    chooseCards: (amount: number, bottom: boolean) =>
+      `Choose ${count(amount, 'card', 'cards')} to ${bottom ? 'put on the bottom' : 'discard'}`,
     chosen: (chosen: number, count: number) => `${chosen}/${count} chosen`,
     putOnBottom: 'Put on the bottom',
     discard: 'Discard',
@@ -137,7 +151,8 @@ export const gameText = messages({
     chooseAttackers: 'Choose attackers',
     chooseAttackersHint: 'Tap the creatures you want to attack with',
     pickAttackerToBlock: (blocker: string) => `Now tap the attacker ${blocker} should block`,
-    opponentAttacksPick: (attackers: string) => `The opponent attacks with ${attackers}. Tap your creature, then an attacker`,
+    opponentAttacksPick: (attackers: string) =>
+      `The opponent attacks with ${attackers}. Tap your creature, then an attacker`,
     chooseBlockers: 'Choose blockers',
     block: (count: number) => (count ? `Block (${count})` : "Don't block"),
     respond: 'Respond?',
@@ -152,7 +167,8 @@ export const gameText = messages({
     yourStep: (step: string) => `Your ${step.toLowerCase()}`,
     opponentStep: (step: string) => `The opponent's ${step.toLowerCase()}`,
     instantsNow: 'You can cast instants now',
-    attacksWith: (mine: boolean, attackers: string) => `${mine ? 'You attack' : 'The opponent attacks'} with ${attackers}`,
+    attacksWith: (mine: boolean, attackers: string) =>
+      `${mine ? 'You attack' : 'The opponent attacks'} with ${attackers}`,
     beforeBlocks: 'Cast an instant before blocks, or continue',
     blockersDeclared: 'Blockers declared',
     noBlockers: 'No blockers',
@@ -164,13 +180,15 @@ export const gameText = messages({
     nothingToPlay: 'Nothing left to play',
     bothAtZero: 'Both players reached 0 life',
     reachedZero: (mine: boolean, turn: number) => `${mine ? 'You' : 'The opponent'} reached 0 life on turn ${turn}`,
-    decked: (mine: boolean) => (mine ? 'You tried to draw from an empty library' : 'The opponent tried to draw from an empty library'),
+    decked: (mine: boolean) =>
+      mine ? 'You tried to draw from an empty library' : 'The opponent tried to draw from an empty library',
     conceded: (mine: boolean) => (mine ? 'You conceded' : 'The opponent conceded'),
     turnLimit: 'The turn limit was reached',
     playerSummary: (name: string, life: number, hand: number, library: number, graveyard: number) =>
       `${name}: ${life} life, ${hand} in hand, ${library} in library, ${graveyard} in graveyard`,
     target: (name: string) => `Target: ${name}`,
-    counts: (hand: number, library: number, graveyard: number) => `Hand ${hand} · Deck ${library} · Graveyard ${graveyard}`,
+    counts: (hand: number, library: number, graveyard: number) =>
+      `Hand ${hand} · Deck ${library} · Graveyard ${graveyard}`,
     hasPriority: 'Has priority',
     untappedLands: (untapped: number, total: number) => `${untapped} of ${total} lands untapped`,
     noLands: 'No lands',

@@ -16,7 +16,13 @@ afterEach(() => {
 function setup(options: GameAudioOptions = {}) {
   const { ctx, create } = fakeContext();
   const controller = new GameController({ seed: 5, aiDelayMs: 0, startingPlayer: 0 });
-  const audio = new GameAudio({ createContext: create, mayStart: () => true, scene: 'game', defer: (task) => task(), ...options });
+  const audio = new GameAudio({
+    createContext: create,
+    mayStart: () => true,
+    scene: 'game',
+    defer: (task) => task(),
+    ...options,
+  });
   audio.attach(controller);
   cleanups.push(() => audio.dispose());
   const api = createTestApi(controller, () => undefined, { freezeFx: async () => [], audio });
@@ -32,7 +38,12 @@ describe('manaDuel.audio', () => {
   it('tells agents what plays, and which sounds each action started', async () => {
     const { api } = setup();
     expect(api.help()).toContain('audio.played(since?)');
-    expect(api.audio.state()).toMatchObject({ supported: true, context: 'none', music: { on: true, theme: 'emberwild', mood: 'calm' }, sfx: { on: true } });
+    expect(api.audio.state()).toMatchObject({
+      supported: true,
+      context: 'none',
+      music: { on: true, theme: 'emberwild', mood: 'calm' },
+      sfx: { on: true },
+    });
     expect((await api.audio.unlock()).context).toBe('running');
     api.loadScenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }] }, {}] });
     expect(api.audio.state().music.theme).toBe('neutral');
@@ -46,7 +57,11 @@ describe('manaDuel.audio', () => {
   it('lists the sounds and the themes, one per deck', () => {
     const { api } = setup();
     expect(api.audio.sounds()).toEqual(expect.arrayContaining(['draw', 'strike', 'hurt', 'victory', 'defeat']));
-    expect(api.audio.themes().map((theme) => theme.id)).toEqual(['title', 'neutral', ...DECK_LIST.map((deck) => deck.id)]);
+    expect(api.audio.themes().map((theme) => theme.id)).toEqual([
+      'title',
+      'neutral',
+      ...DECK_LIST.map((deck) => deck.id),
+    ]);
     expect(api.audio.themes().find((theme) => theme.id === 'emberwild')).toEqual({
       id: 'emberwild',
       name: 'Brasalvaje',

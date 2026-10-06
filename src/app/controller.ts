@@ -283,7 +283,13 @@ export class GameController {
     const perks = copyPerks(replay.perks ?? NO_PERKS);
     let state: GameState;
     try {
-      state = createGame(this.setupFrom({ seed: replay.seed, startingPlayer: replay.startingPlayer, skipMulligans: replay.skipMulligans }, decks, perks));
+      state = createGame(
+        this.setupFrom(
+          { seed: replay.seed, startingPlayer: replay.startingPlayer, skipMulligans: replay.skipMulligans },
+          decks,
+          perks,
+        ),
+      );
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : String(error) };
     }
@@ -445,7 +451,9 @@ export class GameController {
     const text = noteText();
     if (decision.source === 'model') return decision.reason ? text.opponentThinks(decision.reason) : undefined;
     if (decision.source !== 'fallback') return undefined;
-    return this.llmUnavailable ? text.llmUnavailable(this.llmUnavailable) : text.llmFailed(decision.error ?? text.unknownError);
+    return this.llmUnavailable
+      ? text.llmUnavailable(this.llmUnavailable)
+      : text.llmFailed(decision.error ?? text.unknownError);
   }
 
   private recordFx(cues: FxCue[]): void {
@@ -505,7 +513,10 @@ export class GameController {
     }
     if (pending.kind === 'priority' && autoPassReason(s, this.human, { endTurnRequested, autoPass: this.autoPass })) {
       const opponentsSpell = s.stack.length > 0 && s.stack.at(-1)?.controller !== this.human;
-      return { action: { type: 'pass', player: this.human }, delay: Math.max(opponentsSpell ? this.aiDelayMs * 1.4 : 0, this.holdMs()) };
+      return {
+        action: { type: 'pass', player: this.human },
+        delay: Math.max(opponentsSpell ? this.aiDelayMs * 1.4 : 0, this.holdMs()),
+      };
     }
     return null;
   }
@@ -514,7 +525,11 @@ export class GameController {
     const turn = this.llmTurn;
     if (!turn || turn.state !== this.state || !turn.decision) return null;
     const thought = Date.now() - turn.started;
-    return { action: turn.decision.action, delay: Math.max(0, this.delayFor(turn.decision.action) - thought), decision: turn.decision };
+    return {
+      action: turn.decision.action,
+      delay: Math.max(0, this.delayFor(turn.decision.action) - thought),
+      decision: turn.decision,
+    };
   }
 
   private askLlm(): void {
@@ -562,7 +577,11 @@ export class GameController {
   private delayFor(action: Action): number {
     if (this.aiDelayMs === 0) return 0;
     const thinking =
-      action.type === 'pass' ? (this.state.stack.length > 0 ? this.aiDelayMs * 0.6 : this.aiDelayMs * 0.25) : this.aiDelayMs;
+      action.type === 'pass'
+        ? this.state.stack.length > 0
+          ? this.aiDelayMs * 0.6
+          : this.aiDelayMs * 0.25
+        : this.aiDelayMs;
     return Math.max(thinking, this.holdMs());
   }
 

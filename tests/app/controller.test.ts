@@ -22,24 +22,40 @@ describe('GameController', () => {
     c.settle();
     expect(c.state.turn).toBe(1);
     expect(c.state.pending).toEqual({ kind: 'priority', player: 0 });
-    expect(c.log.map((entry) => entry.text)).toEqual(['Empiezas tú.', 'Te quedas con 7 cartas.', 'El rival se queda con 7 cartas.', 'Turno 1 — tu turno.']);
+    expect(c.log.map((entry) => entry.text)).toEqual([
+      'Empiezas tú.',
+      'Te quedas con 7 cartas.',
+      'El rival se queda con 7 cartas.',
+      'Turno 1 — tu turno.',
+    ]);
   });
 
   it('writes each log line in parts that name its cards', () => {
     const c = controller();
     c.loadScenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }] }, {}] });
     c.dispatch({ type: 'playLand', player: 0, card: 'f1' });
-    expect(c.log.at(-1)).toMatchObject({ text: 'Juegas Bosque.', parts: ['Juegas ', { card: 'f1', name: 'Bosque' }, '.'] });
+    expect(c.log.at(-1)).toMatchObject({
+      text: 'Juegas Bosque.',
+      parts: ['Juegas ', { card: 'f1', name: 'Bosque' }, '.'],
+    });
     c.newGame({ seed: 5, startingPlayer: 0 });
     expect(c.log.map((entry) => entry.parts)).toEqual([['Empiezas tú.']]);
   });
 
   it('refuses actions for the AI seat or out of turn', () => {
     const c = controller();
-    expect(c.dispatch({ type: 'keep', player: 1 })).toEqual({ ok: false, error: 'solo puedes actuar por tu propio asiento', refusal: { code: 'otherSeat' } });
+    expect(c.dispatch({ type: 'keep', player: 1 })).toEqual({
+      ok: false,
+      error: 'solo puedes actuar por tu propio asiento',
+      refusal: { code: 'otherSeat' },
+    });
     c.dispatch({ type: 'keep', player: 0 });
     expect(c.state.pending).toEqual({ kind: 'mulligan', player: 1 });
-    expect(c.dispatch({ type: 'pass', player: 0 })).toEqual({ ok: false, error: 'no te toca decidir', refusal: { code: 'notYourDecision' } });
+    expect(c.dispatch({ type: 'pass', player: 0 })).toEqual({
+      ok: false,
+      error: 'no te toca decidir',
+      refusal: { code: 'notYourDecision' },
+    });
     expect(c.legalActions()).toEqual([]);
   });
 
@@ -208,7 +224,13 @@ describe('auto-pass', () => {
 
   it('lets the human’s own spell resolve, unless turned off', () => {
     let s = createScenario({
-      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }, 'verdant_surge'], battlefield: ['mountain', 'forest', 'canopy_spider'] }, {}],
+      players: [
+        {
+          hand: [{ card: 'ember_snap', id: 'snap' }, 'verdant_surge'],
+          battlefield: ['mountain', 'forest', 'canopy_spider'],
+        },
+        {},
+      ],
     });
     s = applyAction(s, { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] });
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
@@ -223,7 +245,11 @@ describe('auto-pass', () => {
     });
     s = passToStep(s, 'upkeep', 5);
     s = applyAction(s, { type: 'pass', player: 1 });
-    expect(s).toMatchObject({ step: 'upkeep', stack: [{ kind: 'trigger', source: 'bell' }], pending: { kind: 'priority', player: 0 } });
+    expect(s).toMatchObject({
+      step: 'upkeep',
+      stack: [{ kind: 'trigger', source: 'bell' }],
+      pending: { kind: 'priority', player: 0 },
+    });
     expect(autoPassReason(s, 0, AUTO)).toBe('habilidad de una reliquia');
     expect(autoPassReason(s, 0, MANUAL)).toBeNull();
     s = applyAction(applyAction(s, { type: 'pass', player: 0 }), { type: 'pass', player: 1 });
@@ -231,11 +257,19 @@ describe('auto-pass', () => {
     expect(autoPassReason(s, 0, AUTO)).toBe('mantenimiento');
     expect(autoPassReason(s, 0, MANUAL)).toBeNull();
     const c = controller();
-    c.loadScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, { relics: ['bell'] }] });
+    c.loadScenario({
+      activePlayer: 1,
+      players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, { relics: ['bell'] }],
+    });
     c.settle();
     c.endTurn();
     c.settle();
-    expect(c.state).toMatchObject({ turn: 6, activePlayer: 0, step: 'main1', pending: { kind: 'priority', player: 0 } });
+    expect(c.state).toMatchObject({
+      turn: 6,
+      activePlayer: 0,
+      step: 'main1',
+      pending: { kind: 'priority', player: 0 },
+    });
     expect(c.state.players[0].life).toBe(19);
   });
 
@@ -243,14 +277,29 @@ describe('auto-pass', () => {
     const c = controller({ autoPass: false });
     c.loadScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
     c.settle();
-    expect(c.state).toMatchObject({ turn: 3, activePlayer: 1, step: 'main1', pending: { kind: 'priority', player: 0 } });
+    expect(c.state).toMatchObject({
+      turn: 3,
+      activePlayer: 1,
+      step: 'main1',
+      pending: { kind: 'priority', player: 0 },
+    });
     c.setAutoPass(true);
     c.settle();
-    expect(c.state).toMatchObject({ turn: 4, activePlayer: 0, step: 'main1', pending: { kind: 'priority', player: 0 } });
+    expect(c.state).toMatchObject({
+      turn: 4,
+      activePlayer: 0,
+      step: 'main1',
+      pending: { kind: 'priority', player: 0 },
+    });
     c.setAutoPass(false);
     c.endTurn();
     c.settle();
-    expect(c.state).toMatchObject({ turn: 5, activePlayer: 1, step: 'main1', pending: { kind: 'priority', player: 0 } });
+    expect(c.state).toMatchObject({
+      turn: 5,
+      activePlayer: 1,
+      step: 'main1',
+      pending: { kind: 'priority', player: 0 },
+    });
     c.newGame({ autoPass: true });
     expect(c.autoPass).toBe(true);
   });
@@ -395,9 +444,21 @@ describe('animation cues', () => {
 
   it('are exposed to agents through the test API', async () => {
     const c = controller();
-    const api = createTestApi(c, () => undefined, { freezeFx: async (progress) => (progress === null ? [] : ['fx-lunge']) });
+    const api = createTestApi(c, () => undefined, {
+      freezeFx: async (progress) => (progress === null ? [] : ['fx-lunge']),
+    });
     expect(api.help()).toContain('freezeFx');
-    api.loadScenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }, { card: 'ember_snap', id: 'snap' }] }, {}] });
+    api.loadScenario({
+      players: [
+        {
+          hand: [
+            { card: 'forest', id: 'f1' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
+        },
+        {},
+      ],
+    });
     const seen = api.fxSeq();
     expect(api.fx(seen)).toEqual([]);
     api.dispatch({ type: 'playLand', player: 0, card: 'f1' });

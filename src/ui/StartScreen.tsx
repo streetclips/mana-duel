@@ -168,7 +168,12 @@ function Settings({ llm, problem, language, audio, onClose }: SettingsProps) {
   const text = startText();
   return (
     <div class="settings" role="dialog" aria-label={text.settings} data-testid="settings">
-      <ScreenBar title={text.settings} backLabel={text.closeSettings} backTestId="btn-settings-close" onBack={onClose} />
+      <ScreenBar
+        title={text.settings}
+        backLabel={text.closeSettings}
+        backTestId="btn-settings-close"
+        onBack={onClose}
+      />
       <div class="settings-body">
         {language && <LanguagePicker language={language} />}
         {audio && <SoundToggles audio={audio} />}
@@ -220,7 +225,20 @@ function ModeRow({ testId, title, icon, entry }: ModeRowProps) {
   );
 }
 
-export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, language, audio, customs = [], expedition, draft, myDecks }: StartScreenProps) {
+export function StartScreen({
+  choice,
+  onChange,
+  onView,
+  onPlay,
+  onWatch,
+  llm,
+  language,
+  audio,
+  customs = [],
+  expedition,
+  draft,
+  myDecks,
+}: StartScreenProps) {
   const [picking, setPicking] = useState<PlayerId | null>(null);
   const [settings, setSettings] = useState(false);
   const matchup = useRef<HTMLDivElement>(null);
@@ -239,7 +257,10 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, la
     if (!element || from === null || typeof element.animate !== 'function' || prefersReducedMotion()) return;
     const offset = from - element.getBoundingClientRect().top;
     if (Math.abs(offset) < 1) return;
-    element.animate([{ translate: `0 ${offset}px` }, { translate: '0 0' }], { duration: 340, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+    element.animate([{ translate: `0 ${offset}px` }, { translate: '0 0' }], {
+      duration: 340,
+      easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+    });
   }, [picking]);
 
   const common = commonText();
@@ -254,14 +275,26 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, la
               <h1>{common.title}</h1>
               <p class="tagline">{text.tagline}</p>
             </div>
-            <button type="button" class="icon-btn settings-btn" aria-label={text.settings} data-testid="btn-settings" onClick={() => setSettings(true)}>
+            <button
+              type="button"
+              class="icon-btn settings-btn"
+              aria-label={text.settings}
+              data-testid="btn-settings"
+              onClick={() => setSettings(true)}
+            >
               <GearIcon />
             </button>
           </div>
         </header>
 
         <div class="matchup" ref={matchup}>
-          <Versus choice={choice} customs={customs} picking={picking} names={names} onPick={(seat) => pick(picking === seat ? null : seat)} />
+          <Versus
+            choice={choice}
+            customs={customs}
+            picking={picking}
+            names={names}
+            onPick={(seat) => pick(picking === seat ? null : seat)}
+          />
           {picking !== null && (
             <DeckPicker
               seat={picking}
@@ -293,7 +326,9 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, la
                 <h2 id="modes-label" class="section-label">
                   {text.moreModes}
                 </h2>
-                {expedition && <ModeRow testId="btn-expedition" title={text.expedition} icon={<MapIcon />} entry={expedition} />}
+                {expedition && (
+                  <ModeRow testId="btn-expedition" title={text.expedition} icon={<MapIcon />} entry={expedition} />
+                )}
                 {draft && <ModeRow testId="btn-draft" title={text.draft} icon={<PackIcon />} entry={draft} />}
                 {myDecks && <ModeRow testId="btn-my-decks" title={text.myDecks} icon={<CardsIcon />} entry={myDecks} />}
               </section>
@@ -310,7 +345,9 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, la
           {text.watch}
         </button>
       </div>
-      {settings && <Settings llm={llm} problem={problem} language={language} audio={audio} onClose={() => setSettings(false)} />}
+      {settings && (
+        <Settings llm={llm} problem={problem} language={language} audio={audio} onClose={() => setSettings(false)} />
+      )}
     </main>
   );
 }

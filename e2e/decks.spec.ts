@@ -25,9 +25,9 @@ test('a deck built from nothing on the phone is played from your seat', async ({
   await page.getByTestId('builder-color-R').click();
   await page.getByTestId('builder-kind-creature').click();
   const tiles = page.getByTestId('deck-builder').locator('[data-testid^="builder-pool-"]');
-  const cards = (await tiles.evaluateAll((elements) => elements.map((element) => element.getAttribute('data-testid') ?? ''))).map((id) =>
-    id.replace('builder-pool-', ''),
-  );
+  const cards = (
+    await tiles.evaluateAll((elements) => elements.map((element) => element.getAttribute('data-testid') ?? ''))
+  ).map((id) => id.replace('builder-pool-', ''));
   for (const card of cards.slice(0, 6)) {
     for (let i = 0; i < 4; i++) await page.getByTestId(`add-${card}`).click();
   }
@@ -36,7 +36,9 @@ test('a deck built from nothing on the phone is played from your seat', async ({
   await page.getByTestId('builder-tab-deck').click();
   await page.getByTestId('btn-builder-fill').click();
   await expect(page.getByTestId('builder-count')).toHaveText('40/40');
-  await expect(page.getByTestId('deck-builder').getByTestId('deck-stats')).toContainText('24 criaturas · 0 hechizos · 16 tierras');
+  await expect(page.getByTestId('deck-builder').getByTestId('deck-stats')).toContainText(
+    '24 criaturas · 0 hechizos · 16 tierras',
+  );
   await expect(page.getByTestId('builder-deck-mountain')).toBeVisible();
   await page.getByTestId('btn-builder-save').click();
   await expect(page.getByTestId('my-deck-mine-1')).toHaveAttribute('data-playable', 'true');

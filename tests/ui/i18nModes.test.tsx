@@ -111,31 +111,45 @@ describe('the Expedition in English', () => {
     expect(byTestId('btn-swap-add').textContent).toBe('Add without taking out');
     expect(spanishOn('expedition')).toEqual([]);
     click(byTestId('swap-card-ember_snap'));
-    expect(byTestId('btn-swap-confirm').getAttribute('aria-label')).toBe(`Swap Ember Snap for ${getCardDef(card).name}`);
+    expect(byTestId('btn-swap-confirm').getAttribute('aria-label')).toBe(
+      `Swap Ember Snap for ${getCardDef(card).name}`,
+    );
     click(byTestId('btn-swap-confirm'));
     expect(byTestId('run-deck-size').textContent).toBe('40 cards · with 1 new card');
     expect(byTestId('expedition-floor-1').textContent).toContain('Defeated');
   });
 
   it('offers relics and lists the one taken in English', () => {
-    const run: ExpeditionRun = { ...createRun(getDeck('stormglass'), 5), wins: 3, stage: { kind: 'relic', offers: ['mask', 'censer', 'phoenix'] } };
+    const run: ExpeditionRun = {
+      ...createRun(getDeck('stormglass'), 5),
+      wins: 3,
+      stage: { kind: 'relic', offers: ['mask', 'censer', 'phoenix'] },
+    };
     setupExpedition('expedition', run);
     expect(byTestId('expedition-relics').textContent).toContain('3 wins');
     expect(byTestId('relic-option-mask').textContent).toContain('Mask of Silence');
-    expect(byTestId('relic-option-mask').textContent).toContain('Your opponent starts each duel with one card fewer in their opening hand.');
+    expect(byTestId('relic-option-mask').textContent).toContain(
+      'Your opponent starts each duel with one card fewer in their opening hand.',
+    );
     expect(byTestId('relic-option-phoenix').textContent).toContain('Phoenix Feather');
     expect(byTestId('btn-relic-take').textContent).toBe('Choose a relic');
     click(byTestId('relic-option-censer'));
     expect(byTestId('btn-relic-take').textContent).toBe('Take Spore Censer');
     expect(spanishOn('expedition')).toEqual([]);
     click(byTestId('btn-relic-take'));
-    expect(byTestId('relic-censer').textContent).toContain('Whenever you cast an instant or sorcery spell, create a 1/1 green Saproling creature token.');
+    expect(byTestId('relic-censer').textContent).toContain(
+      'Whenever you cast an instant or sorcery spell, create a 1/1 green Saproling creature token.',
+    );
     expect(spanishOn('expedition')).toEqual([]);
   });
 
   it('sums up a finished expedition in English', () => {
     let run = createRun(getDeck('gloamwood'), 6);
-    run = { ...run, wins: 6, history: run.rivals.slice(0, 6).map((rival) => ({ rival: rival.deck, result: 'won' as const, turns: 9 })) };
+    run = {
+      ...run,
+      wins: 6,
+      history: run.rivals.slice(0, 6).map((rival) => ({ rival: rival.deck, result: 'won' as const, turns: 9 })),
+    };
     run = chooseRelic({ ...run, stage: { kind: 'relic', offers: ['vigor'] } }, 'vigor');
     run = recordDuel(run, 'won', 12);
     setupExpedition('expedition', run);
@@ -170,7 +184,9 @@ describe('the Expedition in English', () => {
     expect(byTestId('btn-expedition-status').textContent).toBe('Under way with Emberwild: 0 of 7 wins');
     click(byTestId('btn-expedition'));
     click(byTestId('btn-expedition-abandon'));
-    expect(byTestId('expedition-abandon').textContent).toContain("You'll lose the expedition with Emberwild: 0 wins, 0 new cards and 0 relics.");
+    expect(byTestId('expedition-abandon').textContent).toContain(
+      "You'll lose the expedition with Emberwild: 0 wins, 0 new cards and 0 relics.",
+    );
     expect(byTestId('btn-abandon-no').textContent).toBe('Keep going');
     expect(spanishOn('expedition')).toEqual([]);
   });
@@ -182,7 +198,9 @@ describe('the Expedition in English', () => {
     expect(duelOutcome({ ...duel, result: 'won' })).toBe('Duel 2 of 7 cleared: choose your reward.');
     expect(duelOutcome({ ...duel, number: 7, result: 'won' })).toBe('You beat the boss! The expedition is yours.');
     expect(duelOutcome({ ...duel, result: 'lost' })).toBe('The expedition ends here.');
-    expect(duelOutcome({ ...duel, result: 'lost', revived: true })).toBe("The Phoenix Feather burns: you'll replay this duel.");
+    expect(duelOutcome({ ...duel, result: 'lost', revived: true })).toBe(
+      "The Phoenix Feather burns: you'll replay this duel.",
+    );
     expect(duelOutcome({ ...duel, result: 'draw' })).toBe("Draw: you'll replay this duel.");
     expect(expeditionStatus(null)).toBe('Seven duels in a row with one deck');
   });

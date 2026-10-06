@@ -74,7 +74,9 @@ export function chooseLand(s: GameState, player: PlayerId, landActions: Action[]
 }
 
 function colorCastableSpells(s: GameState, hand: CardId[]): number {
-  const colors = new Set<Color>(hand.filter((id) => isLandCard(s, id)).flatMap((id) => getCardDef(defId(s, id)).mana ?? []));
+  const colors = new Set<Color>(
+    hand.filter((id) => isLandCard(s, id)).flatMap((id) => getCardDef(defId(s, id)).mana ?? []),
+  );
   return hand.filter((id) => {
     if (isLandCard(s, id)) return false;
     const cost = getCost(defId(s, id));
@@ -94,11 +96,12 @@ export function shouldKeep(s: GameState, player: PlayerId): boolean {
 
 export function rankCardsToKeep(s: GameState, player: PlayerId, cards: CardId[], keepCount: number): CardId[] {
   const landsInPlay = s.players[player].battlefield.filter((id) => isLand(s, id)).length;
-  const wantedLands = Math.max(0, Math.min(keepCount, Math.round(keepCount * 0.45) + (landsInPlay >= 5 ? -keepCount : 0)));
+  const wantedLands = Math.max(
+    0,
+    Math.min(keepCount, Math.round(keepCount * 0.45) + (landsInPlay >= 5 ? -keepCount : 0)),
+  );
   const lands = cards.filter((id) => isLandCard(s, id));
-  const spells = cards
-    .filter((id) => !isLandCard(s, id))
-    .sort((a, b) => spellCost(s, a) - spellCost(s, b));
+  const spells = cards.filter((id) => !isLandCard(s, id)).sort((a, b) => spellCost(s, a) - spellCost(s, b));
   const kept: CardId[] = [];
   const remainingLands = [...lands];
   const remainingSpells = [...spells];
@@ -120,5 +123,8 @@ export function chooseCardsToBottom(s: GameState, player: PlayerId, count: numbe
 export function chooseCardsToDiscard(s: GameState, player: PlayerId, count: number): CardId[] {
   const hand = s.players[player].hand;
   const ranked = rankCardsToKeep(s, player, hand, hand.length - count);
-  return ranked.slice(hand.length - count).sort((a, b) => spellCost(s, b) - spellCost(s, a)).slice(0, count);
+  return ranked
+    .slice(hand.length - count)
+    .sort((a, b) => spellCost(s, b) - spellCost(s, a))
+    .slice(0, count);
 }

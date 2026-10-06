@@ -50,7 +50,10 @@ export const cardText = messages({
       lifeGain: 'Ganas vidas',
       landfall: 'Aterrizaje',
     } satisfies Record<TriggerEvent, string>,
-    conditionHints: { opponentDamaged: 'Sed de sangre', emptyHand: 'Mano vacía' } satisfies Record<TriggerCondition, string>,
+    conditionHints: { opponentDamaged: 'Sed de sangre', emptyHand: 'Mano vacía' } satisfies Record<
+      TriggerCondition,
+      string
+    >,
     hints: {
       damage: (amount: number) => `${amount} de daño`,
       destroy: 'destruir',

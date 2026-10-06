@@ -57,7 +57,10 @@ describe('the sound director', () => {
     const { controller, sink, flush } = setup('game');
     controller.loadScenario({
       players: [
-        { hand: [{ card: 'forest', id: 'f1' }, { card: 'ember_snap', id: 'snap' }, 'ember_snap'], battlefield: ['mountain', 'mountain'] },
+        {
+          hand: [{ card: 'forest', id: 'f1' }, { card: 'ember_snap', id: 'snap' }, 'ember_snap'],
+          battlefield: ['mountain', 'mountain'],
+        },
         {},
       ],
     });
@@ -135,7 +138,9 @@ describe('the sound director', () => {
 
   it('sounds a victory when you win and a defeat when you concede, once, but nothing for a finished replay', () => {
     const { controller, sink, flush } = setup('game');
-    controller.loadScenario({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { life: 2 }] });
+    controller.loadScenario({
+      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { life: 2 }],
+    });
     flush();
     sink.clear();
     controller.dispatch({ type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] });

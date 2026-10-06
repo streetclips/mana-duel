@@ -32,7 +32,8 @@ const byTestId = (id: string): HTMLElement => screen.getByTestId(id);
 const click = (element: HTMLElement): void => {
   fireEvent.click(element);
 };
-const tags = (element: HTMLElement): (string | null)[] => [...element.querySelectorAll('.tag')].map((tag) => tag.textContent);
+const tags = (element: HTMLElement): (string | null)[] =>
+  [...element.querySelectorAll('.tag')].map((tag) => tag.textContent);
 
 function expectEnglish(element: Element): void {
   expect(spanishIn(shownText(element))).toEqual([]);
@@ -48,7 +49,9 @@ describe('the game screen in English', () => {
     expect(byTestId('phase').textContent).toBe('Opening hand');
     expect(byTestId('deck-name-0').textContent).toContain('Emberwild');
     expect(byTestId('counts-0').textContent).toBe('Hand 7 · Deck 33 · Graveyard 0');
-    expect(byTestId('player-1').getAttribute('aria-label')).toBe('AI: 20 life, 7 in hand, 33 in library, 0 in graveyard');
+    expect(byTestId('player-1').getAttribute('aria-label')).toBe(
+      'AI: 20 life, 7 in hand, 33 in library, 0 in graveyard',
+    );
     expect(byTestId('btn-menu').getAttribute('aria-label')).toBe('Menu');
     expectEnglish(view.container);
   });
@@ -57,7 +60,10 @@ describe('the game screen in English', () => {
     const { view } = setup({
       players: [
         {
-          hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'timberland_rhino', id: 'rhino' }],
+          hand: [
+            { card: 'ember_snap', id: 'snap' },
+            { card: 'timberland_rhino', id: 'rhino' },
+          ],
           battlefield: ['mountain', { card: 'crag_dragon', id: 'dragon', sick: true, damage: 1, counters: 1 }],
         },
         { battlefield: [{ card: 'grove_tender', id: 'elf', tapped: true }] },
@@ -68,7 +74,9 @@ describe('the game screen in English', () => {
     expect(byTestId('btn-end-turn').textContent).toBe('End turn');
     expect(byTestId('phase').textContent).toBe('Turn 3 · Your turn · Main phase');
     expect(byTestId('lands-0').getAttribute('aria-label')).toBe('1 of 1 lands untapped');
-    expect(byTestId('card-dragon').getAttribute('aria-label')).toBe('Crag Dragon, 5/4, 1 +1/+1 counter, summoning sick');
+    expect(byTestId('card-dragon').getAttribute('aria-label')).toBe(
+      'Crag Dragon, 5/4, 1 +1/+1 counter, summoning sick',
+    );
     expectEnglish(view.container);
 
     click(byTestId('card-rhino'));
@@ -104,14 +112,21 @@ describe('the game screen in English', () => {
     const { controller, view, settle } = setup({
       activePlayer: 1,
       players: [
-        { battlefield: [{ card: 'canopy_spider', id: 'spider' }, { card: 'grove_tender', id: 'elf' }] },
+        {
+          battlefield: [
+            { card: 'canopy_spider', id: 'spider' },
+            { card: 'grove_tender', id: 'elf' },
+          ],
+        },
         { battlefield: [{ card: 'cinderwing_drake', id: 'drake' }, 'mountain'] },
       ],
     });
     settle();
     if (controller.state.pending?.kind !== 'declareBlockers') throw new Error('the AI was expected to attack');
     expect(byTestId('prompt').textContent).toBe('Choose blockers');
-    expect(byTestId('prompt-detail').textContent).toBe('The opponent attacks with Cinderwing Drake. Tap your creature, then an attacker');
+    expect(byTestId('prompt-detail').textContent).toBe(
+      'The opponent attacks with Cinderwing Drake. Tap your creature, then an attacker',
+    );
     expect(byTestId('btn-confirm-blocks').textContent).toBe("Don't block");
     click(byTestId('card-spider'));
     expect(byTestId('btn-confirm-blocks').textContent).toBe('Block (1)');
@@ -178,7 +193,17 @@ describe('the game screen in English', () => {
   });
 
   it('asks for attackers and for the cards to put on the bottom', () => {
-    const attack = setup({ players: [{ battlefield: [{ card: 'ember_hound', id: 'hound' }, { card: 'canopy_spider', id: 'spider' }] }, {}] });
+    const attack = setup({
+      players: [
+        {
+          battlefield: [
+            { card: 'ember_hound', id: 'hound' },
+            { card: 'canopy_spider', id: 'spider' },
+          ],
+        },
+        {},
+      ],
+    });
     expect(byTestId('btn-to-combat').textContent).toBe('To combat');
     click(byTestId('btn-to-combat'));
     attack.settle();
@@ -209,7 +234,9 @@ describe('the game screen in English', () => {
   });
 
   it('shows relics and their owners', () => {
-    const { view } = setup({ players: [{ relics: [{ card: 'urn', id: 'urn' }] }, { relics: [{ card: 'bell', id: 'bell' }] }] });
+    const { view } = setup({
+      players: [{ relics: [{ card: 'urn', id: 'urn' }] }, { relics: [{ card: 'bell', id: 'bell' }] }],
+    });
     expect(byTestId('card-urn').getAttribute('aria-label')).toBe('Your relic: Urn of Souls');
     expect(byTestId('card-bell').getAttribute('aria-label')).toBe("The opponent's relic: Funeral Bell");
     click(byTestId('card-bell'));
@@ -229,10 +256,22 @@ describe('card hints in English', () => {
     expect(abilityHints('wildland_colossus')).toEqual(['Landfall: +1 Beast']);
     expect(abilityHints('trail_scout')).toEqual(['Enters: search Forest']);
     expect(abilityHints('wayfarer_druid')).toEqual(['T: +any color']);
-    expect(effectHint({ kind: 'searchLand', land: 'forest', battlefield: 1, hand: 1, tapped: true })).toBe('search 2 Forests');
-    expect(effectHint({ kind: 'pump', power: 1, toughness: 0, to: 0, keywords: ['firstStrike'] })).toBe('+1/+0 1st strike');
+    expect(effectHint({ kind: 'searchLand', land: 'forest', battlefield: 1, hand: 1, tapped: true })).toBe(
+      'search 2 Forests',
+    );
+    expect(effectHint({ kind: 'pump', power: 1, toughness: 0, to: 0, keywords: ['firstStrike'] })).toBe(
+      '+1/+0 1st strike',
+    );
     expect(landHint(getCardDef('silver_spire'))).toBe('Enters tapped. {W}{U}{B}');
-    expect(['W', 'U', 'B', 'R', 'G', 'T', '2'].map(manaName)).toEqual(['white', 'blue', 'black', 'red', 'green', 'tap', '2 generic']);
+    expect(['W', 'U', 'B', 'R', 'G', 'T', '2'].map(manaName)).toEqual([
+      'white',
+      'blue',
+      'black',
+      'red',
+      'green',
+      'tap',
+      '2 generic',
+    ]);
   });
 });
 
@@ -275,8 +314,12 @@ describe('the LLM opponent in English', () => {
     const { controller, view } = startLlmGame(llm);
     click(byTestId('btn-keep'));
     await settled(controller);
-    expect(byTestId('llm-notice-text').textContent).toBe('LLM unavailable: OpenRouter 402: Insufficient credits. The classic AI is playing.');
-    expect(byTestId('player-tag-1').getAttribute('title')).toBe('LLM unavailable: OpenRouter 402: Insufficient credits');
+    expect(byTestId('llm-notice-text').textContent).toBe(
+      'LLM unavailable: OpenRouter 402: Insufficient credits. The classic AI is playing.',
+    );
+    expect(byTestId('player-tag-1').getAttribute('title')).toBe(
+      'LLM unavailable: OpenRouter 402: Insufficient credits',
+    );
     expect(byTestId('llm-notice-hide').getAttribute('aria-label')).toBe('Hide');
     expect(controller.log.map((entry) => entry.text)).toContain(
       'The LLM is unavailable (OpenRouter 402: Insufficient credits): the classic AI plays the rest of the game.',

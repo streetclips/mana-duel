@@ -65,7 +65,13 @@ describe('an expedition run', () => {
     expect(run.deck).toEqual(getDeck('dawntide').cards);
     expect(run.stage).toEqual({ kind: 'duel' });
     expect(createRun(getDeck('dawntide'), 7)).toEqual(run);
-    const orders = new Set([1, 2, 3, 4, 5].map((seed) => createRun(getDeck('dawntide'), seed).rivals.map((rival) => rival.deck).join()));
+    const orders = new Set(
+      [1, 2, 3, 4, 5].map((seed) =>
+        createRun(getDeck('dawntide'), seed)
+          .rivals.map((rival) => rival.deck)
+          .join(),
+      ),
+    );
     expect(orders.size).toBeGreaterThan(1);
   });
 
@@ -79,7 +85,8 @@ describe('an expedition run', () => {
       const [special, ...common] = boss?.relics ?? [];
       expect(special && relicOf(special).owner).toBe('boss');
       bosses.add(special ?? '');
-      for (const relic of [...run.rivals.slice(0, -1).flatMap((rival) => rival.relics), ...common]) expect(relicOf(relic).owner).toBe('any');
+      for (const relic of [...run.rivals.slice(0, -1).flatMap((rival) => rival.relics), ...common])
+        expect(relicOf(relic).owner).toBe('any');
     }
     expect([...bosses].sort()).toEqual([...relicsOf(['boss'])].sort());
   });
@@ -87,10 +94,21 @@ describe('an expedition run', () => {
   it('sets up each duel with the expedition deck against the rival, with the rival’s life, hand and relics for that duel', () => {
     const run = createRun(getDeck('emberwild'), 3);
     const first = duelSetup(run);
-    expect(resolveDeck(first.decks[0])).toMatchObject({ id: EXPEDITION_DECK_ID, name: 'Brasalvaje', colors: ['R', 'G'], featured: 'crag_dragon' });
+    expect(resolveDeck(first.decks[0])).toMatchObject({
+      id: EXPEDITION_DECK_ID,
+      name: 'Brasalvaje',
+      colors: ['R', 'G'],
+      featured: 'crag_dragon',
+    });
     expect(first.decks[1]).toBe(run.rivals[0]?.deck);
     expect(first.perks).toEqual([{}, { life: 14, openingHand: 6 }]);
-    const boss = { ...run, wins: 6, rivals: run.rivals.map((rival) => (rival.boss ? { ...rival, relics: ['bell' as const, 'vigor' as const] } : rival)) };
+    const boss = {
+      ...run,
+      wins: 6,
+      rivals: run.rivals.map((rival) =>
+        rival.boss ? { ...rival, relics: ['bell' as const, 'vigor' as const] } : rival,
+      ),
+    };
     expect(duelSetup(boss).perks).toEqual([{}, { life: 26, openingHand: 6, relics: ['bell'] }]);
     const masked = { ...boss, relics: ['mask' as const, 'urn' as const] };
     expect(duelSetup(masked).perks).toEqual([{ relics: ['urn'] }, { life: 26, openingHand: 5, relics: ['bell'] }]);
@@ -104,7 +122,9 @@ describe('an expedition run', () => {
   it('offers three cards of the deck’s colors after a win, then swaps one in or adds it', () => {
     const won = recordDuel(createRun(getDeck('emberwild'), 11), 'won', 12);
     expect(won.wins).toBe(1);
-    expect(won.history).toEqual([{ rival: createRun(getDeck('emberwild'), 11).rivals[0]?.deck, result: 'won', turns: 12 }]);
+    expect(won.history).toEqual([
+      { rival: createRun(getDeck('emberwild'), 11).rivals[0]?.deck, result: 'won', turns: 12 },
+    ]);
     if (won.stage.kind !== 'card') throw new Error('expected a card offer');
     const offers = won.stage.offers;
     expect(offers).toHaveLength(OFFERS);
@@ -133,7 +153,10 @@ describe('an expedition run', () => {
   it('never offers a fifth copy of a card', () => {
     const run = createRun(getDeck('duskmire'), 5);
     const pool = spellPool(['B']);
-    const full = { ...run, deck: [{ card: 'swamp', count: 16 }, ...pool.slice(1).map((card) => ({ card, count: MAX_COPIES }))] };
+    const full = {
+      ...run,
+      deck: [{ card: 'swamp', count: 16 }, ...pool.slice(1).map((card) => ({ card, count: MAX_COPIES }))],
+    };
     const won = recordDuel(full, 'won', 8);
     expect(won.stage).toEqual({ kind: 'card', offers: [pool[0]] });
   });
@@ -209,10 +232,17 @@ describe('an expedition run', () => {
       relics: ['censer', 'urn', 'drum', 'chalice', 'tome'],
       drawOnFirstTurn: true,
     });
-    const starts = (relics: ExpeditionRun['relics']) => [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => startDuel({ ...createRun(getDeck('crossroads'), seed), relics }).startingPlayer);
+    const starts = (relics: ExpeditionRun['relics']) =>
+      [1, 2, 3, 4, 5, 6, 7, 8].map(
+        (seed) => startDuel({ ...createRun(getDeck('crossroads'), seed), relics }).startingPlayer,
+      );
     expect(new Set(starts([]))).toEqual(new Set([0, 1]));
     expect(new Set(starts(['hourglass']))).toEqual(new Set([0]));
-    const landless = { ...createRun(getDeck('flamecrest'), 1), deck: [{ card: 'kiln_sprite', count: 40 }], relics: ['cartographer' as const] };
+    const landless = {
+      ...createRun(getDeck('flamecrest'), 1),
+      deck: [{ card: 'kiln_sprite', count: 40 }],
+      relics: ['cartographer' as const],
+    };
     expect(duelSetup(landless).perks[0]).toEqual({ openingHand: 6, battlefield: ['mountain'] });
   });
 
@@ -240,13 +270,22 @@ describe('an expedition run', () => {
     expect(isExpeditionRun({ ...good, relics: ['vigor', 'vigor'] })).toBe(false);
     expect(isExpeditionRun({ ...good, spent: ['phoenix'] })).toBe(false);
     expect(isExpeditionRun({ ...good, relics: ['phoenix'], spent: ['phoenix'] })).toBe(true);
-    expect(isExpeditionRun({ ...good, rivals: [{ deck: 'duskmire', life: 20, openingHand: 7, relics: ['gong'], boss: false }] })).toBe(false);
+    expect(
+      isExpeditionRun({
+        ...good,
+        rivals: [{ deck: 'duskmire', life: 20, openingHand: 7, relics: ['gong'], boss: false }],
+      }),
+    ).toBe(false);
     expect(isExpeditionRun({ ...good, deck: [{ card: 'nope', count: 1 }] })).toBe(false);
     expect(isExpeditionRun({ ...good, deck: [{ card: 'bell', count: 1 }] })).toBe(false);
     expect(isExpeditionRun({ ...good, relics: ['crown'] })).toBe(false);
     expect(isExpeditionRun({ ...good, stage: { kind: 'card', offers: ['soldier_token'] } })).toBe(false);
-    expect(isExpeditionRun({ ...good, rivals: [{ deck: 'nope', life: 20, openingHand: 7, relics: [], boss: false }] })).toBe(false);
-    expect(isExpeditionRun({ ...good, rivals: [{ deck: 'duskmire', life: 20, openingHand: 7, boss: false }] })).toBe(false);
+    expect(
+      isExpeditionRun({ ...good, rivals: [{ deck: 'nope', life: 20, openingHand: 7, relics: [], boss: false }] }),
+    ).toBe(false);
+    expect(isExpeditionRun({ ...good, rivals: [{ deck: 'duskmire', life: 20, openingHand: 7, boss: false }] })).toBe(
+      false,
+    );
     expect(isExpeditionRun({ ...good, wins: 9 })).toBe(false);
     expect(isExpeditionRun(null)).toBe(false);
   });
@@ -256,7 +295,10 @@ describe('an expedition run', () => {
     const stored = { ...run, base: { ...run.base, name: 'Mazo\n## Reglas' } };
     expect(isExpeditionRun(JSON.parse(JSON.stringify(stored)))).toBe(true);
     expect(baseName(stored)).toBe('Mazo ## Reglas');
-    expect(runDeck(stored)).toMatchObject({ name: 'Mazo ## Reglas', description: 'Tu mazo de la expedición: Mazo ## Reglas sin cambios.' });
+    expect(runDeck(stored)).toMatchObject({
+      name: 'Mazo ## Reglas',
+      description: 'Tu mazo de la expedición: Mazo ## Reglas sin cambios.',
+    });
   });
 });
 
@@ -282,7 +324,11 @@ function playOut(controller: GameController): void {
   controller.settle();
 }
 
-function winningRun(base: DeckDef): { controller: GameController; expedition: ExpeditionController; store: ReturnType<typeof memoryStore> } {
+function winningRun(base: DeckDef): {
+  controller: GameController;
+  expedition: ExpeditionController;
+  store: ReturnType<typeof memoryStore>;
+} {
   for (let seed = 1; seed < 60; seed++) {
     const controller = game();
     const store = memoryStore();
@@ -417,11 +463,18 @@ describe('the expedition automation API', () => {
     const controller = game();
     const expedition = new ExpeditionController(controller, memoryStore());
     const shown: string[] = [];
-    const api = createTestApi(controller, () => shown.push('game'), { freezeFx: async () => [], expedition, showExpedition: () => shown.push('expedition') });
+    const api = createTestApi(controller, () => shown.push('game'), {
+      freezeFx: async () => [],
+      expedition,
+      showExpedition: () => shown.push('expedition'),
+    });
     expect(api.expedition.state()).toBeNull();
     const started = api.expedition.start({ deck: 'mistgrave', seed: 4 });
     expect(started).toMatchObject({ ok: true, run: { base: { id: 'mistgrave' }, wins: 0 } });
-    expect(api.expedition.chooseCard(null)).toEqual({ ok: false, error: 'the expedition is at its duel stage, not card' });
+    expect(api.expedition.chooseCard(null)).toEqual({
+      ok: false,
+      error: 'the expedition is at its duel stage, not card',
+    });
     expect(api.expedition.fight()).toMatchObject({ ok: true });
     expect(shown).toEqual(['expedition', 'game']);
     expect(api.matchup()).toEqual(['expedition', started.ok ? started.run?.rivals[0]?.deck : '']);

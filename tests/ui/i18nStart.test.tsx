@@ -48,7 +48,9 @@ describe('choosing the language', () => {
     expect(getLocale()).toBe('en');
     expect(document.documentElement.lang).toBe('en');
     expect(document.title).toBe('Mana Duel');
-    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe('Mana Duel: a minimalist card duel against an AI.');
+    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(
+      'Mana Duel: a minimalist card duel against an AI.',
+    );
     applyLocale('es');
     expect(document.documentElement.lang).toBe('es');
     expect(document.title).toBe('Duelo de Maná');

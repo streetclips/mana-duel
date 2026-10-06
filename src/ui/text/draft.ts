@@ -8,14 +8,17 @@ export const draftText = messages({
     draftText: (packSize: number, rounds: number) =>
       `Abrís un sobre de ${packSize} cartas cada uno, elegís una y os pasáis los sobres hasta vaciarlos; así ${rounds} veces.`,
     sealedTitle: 'Sellado',
-    sealedText: (packs: number, packSize: number) => `Abres ${packs} sobres de ${packSize} cartas y construyes tu mazo con lo que te toque. La IA hace lo mismo.`,
+    sealedText: (packs: number, packSize: number) =>
+      `Abres ${packs} sobres de ${packSize} cartas y construyes tu mazo con lo que te toque. La IA hace lo mismo.`,
     poolName: 'Tus cartas',
-    poolDescription: (count: number) => `Las ${count} cartas que tienes para construir tu mazo, más las tierras básicas que quieras.`,
+    poolDescription: (count: number) =>
+      `Las ${count} cartas que tienes para construir tu mazo, más las tierras básicas que quieras.`,
     statusNew: 'Elige cartas de sobres y juega con lo que construyas',
     statusPicking: (format: string, pack: number, packs: number) => `${format} en curso: sobre ${pack} de ${packs}`,
     statusBuilding: (format: string) => `${format}: construye tu mazo`,
     statusMatch: (format: string, score: string) => `${format}: partida en curso, ${score}`,
-    statusDone: (format: string, won: boolean, score: string) => `${format} terminado: ${won ? 'ganaste' : 'perdiste'} ${score}`,
+    statusDone: (format: string, won: boolean, score: string) =>
+      `${format} terminado: ${won ? 'ganaste' : 'perdiste'} ${score}`,
     gameBadge: (number: number) => `Draft · partida ${number}`,
     matchWon: (mine: number, theirs: number) => `¡Ganas el draft ${mine}-${theirs}!`,
     matchLost: (mine: number, theirs: number) => `La IA gana el draft ${theirs}-${mine}.`,
@@ -30,9 +33,11 @@ export const draftText = messages({
     yourCards: 'Tus cartas',
     cardCount: (amount: number) => count(amount, 'carta', 'cartas'),
     viewYourCards: 'Ver tus cartas',
-    pickEyebrow: (pack: number, packs: number, pick: number, packSize: number) => `Sobre ${pack} de ${packs} · carta ${pick} de ${packSize}`,
+    pickEyebrow: (pack: number, packs: number, pick: number, packSize: number) =>
+      `Sobre ${pack} de ${packs} · carta ${pick} de ${packSize}`,
     chooseCard: 'Elige una carta',
-    pickNote: 'La IA elige a la vez del otro sobre; después os los pasáis. Mantén pulsada una carta para leerla entera.',
+    pickNote:
+      'La IA elige a la vez del otro sobre; después os los pasáis. Mantén pulsada una carta para leerla entera.',
     packCards: 'Cartas del sobre',
     pick: (card: string) => `Elegir ${card}`,
     tapCard: 'Toca una carta',
@@ -61,7 +66,8 @@ export const draftText = messages({
     draftOver: 'Draft terminado',
     packsOpened: 'Sobres abiertos',
     buildTitle: 'Construye tu mazo',
-    buildNote: 'Al menos 40 cartas entre las tuyas y las tierras básicas que quieras. Te proponemos uno para empezar; cámbialo a tu gusto.',
+    buildNote:
+      'Al menos 40 cartas entre las tuyas y las tierras básicas que quieras. Te proponemos uno para empezar; cámbialo a tu gusto.',
     build: 'Construir mi mazo',
     backToMenu: 'Volver al menú principal',
     abandon: 'Abandonar',
@@ -78,9 +84,11 @@ export const draftText = messages({
     draftText: (packSize: number, rounds: number) =>
       `You each open a pack of ${packSize} cards, pick one and pass the packs until they're empty; ${rounds} times over.`,
     sealedTitle: 'Sealed',
-    sealedText: (packs: number, packSize: number) => `You open ${packs} packs of ${packSize} cards and build your deck from whatever you get. The AI does the same.`,
+    sealedText: (packs: number, packSize: number) =>
+      `You open ${packs} packs of ${packSize} cards and build your deck from whatever you get. The AI does the same.`,
     poolName: 'Your cards',
-    poolDescription: (count: number) => `The ${count} cards you have to build your deck, plus as many basic lands as you like.`,
+    poolDescription: (count: number) =>
+      `The ${count} cards you have to build your deck, plus as many basic lands as you like.`,
     statusNew: 'Pick cards from packs and play with what you build',
     statusPicking: (format: string, pack: number, packs: number) => `${format} under way: pack ${pack} of ${packs}`,
     statusBuilding: (format: string) => `${format}: build your deck`,
@@ -100,9 +108,11 @@ export const draftText = messages({
     yourCards: 'Your cards',
     cardCount: (amount: number) => count(amount, 'card', 'cards'),
     viewYourCards: 'View your cards',
-    pickEyebrow: (pack: number, packs: number, pick: number, packSize: number) => `Pack ${pack} of ${packs} · card ${pick} of ${packSize}`,
+    pickEyebrow: (pack: number, packs: number, pick: number, packSize: number) =>
+      `Pack ${pack} of ${packs} · card ${pick} of ${packSize}`,
     chooseCard: 'Choose a card',
-    pickNote: 'The AI picks from the other pack at the same time; then you swap packs. Press and hold a card to read all of it.',
+    pickNote:
+      'The AI picks from the other pack at the same time; then you swap packs. Press and hold a card to read all of it.',
     packCards: 'Cards in the pack',
     pick: (card: string) => `Pick ${card}`,
     tapCard: 'Tap a card',
@@ -131,7 +141,8 @@ export const draftText = messages({
     draftOver: 'Draft finished',
     packsOpened: 'Packs opened',
     buildTitle: 'Build your deck',
-    buildNote: 'At least 40 cards between yours and as many basic lands as you like. We suggest one to start with; change it as you please.',
+    buildNote:
+      'At least 40 cards between yours and as many basic lands as you like. We suggest one to start with; change it as you please.',
     build: 'Build my deck',
     backToMenu: 'Back to the main menu',
     abandon: 'Abandon',

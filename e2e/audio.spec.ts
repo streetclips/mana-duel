@@ -29,7 +29,10 @@ function setVisibility(page: Page, state: 'visible' | 'hidden'): Promise<void> {
 }
 
 const BURN: ScenarioSpec = {
-  players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'], library: ['forest', 'forest'] }, {}],
+  players: [
+    { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'], library: ['forest', 'forest'] },
+    {},
+  ],
 };
 
 const LETHAL: ScenarioSpec = {
@@ -136,13 +139,16 @@ test('every action plays its sound, on the beat of its animation', async ({ page
   expect(errors).toEqual([]);
 });
 
-test('every sound and every theme renders audible, finite and unclipped through the Web Audio API', async ({ page }) => {
+test('every sound and every theme renders audible, finite and unclipped through the Web Audio API', async ({
+  page,
+}) => {
   await page.goto('/?seed=1&aiDelay=0');
   const renders = await page.evaluate(async () => {
     const audio = window.manaDuel.audio;
     const results: { name: string; peak: number; tail: number; finite: boolean }[] = [];
     for (const sound of audio.sounds()) results.push({ name: sound, ...(await audio.render(sound)) });
-    for (const color of ['W', 'U', 'B', 'R', 'G'] as const) results.push({ name: `cast ${color}`, ...(await audio.render({ sound: 'cast', color })) });
+    for (const color of ['W', 'U', 'B', 'R', 'G'] as const)
+      results.push({ name: `cast ${color}`, ...(await audio.render({ sound: 'cast', color })) });
     for (const theme of audio.themes()) {
       for (const mood of ['calm', 'danger', 'combat', 'over'] as const) {
         results.push({ name: `${theme.id} ${mood}`, ...(await audio.render({ theme: theme.id, mood })) });
@@ -159,7 +165,9 @@ test('every sound and every theme renders audible, finite and unclipped through 
   }
 });
 
-test('music and sound effects turn off from the menu, stay off after a reload, and follow the URL', async ({ page }) => {
+test('music and sound effects turn off from the menu, stay off after a reload, and follow the URL', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=1&aiDelay=0');
   await page.getByTestId('btn-menu').click();

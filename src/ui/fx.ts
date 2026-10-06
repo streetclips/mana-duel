@@ -48,7 +48,15 @@ function entriesOf(batch: FxBatch, now: number): FxEntry[] {
     const order = counts.get(group) ?? 0;
     counts.set(group, order + 1);
     const life = LIFE_MS[cue.kind] + (cue.kind === 'draw' ? order * DRAW_STAGGER_MS : 0);
-    return { key: `${batch.seq}.${index}`, seq: batch.seq, cue, born: now, delay: AFTER_IMPACT.has(cue.kind) ? impact : 0, life, order };
+    return {
+      key: `${batch.seq}.${index}`,
+      seq: batch.seq,
+      cue,
+      born: now,
+      delay: AFTER_IMPACT.has(cue.kind) ? impact : 0,
+      life,
+      order,
+    };
   });
 }
 
@@ -82,7 +90,9 @@ export class FxTracker {
     }
     for (const batch of incoming.slice(-MAX_CATCH_UP)) this.entries.push(...entriesOf(batch, now));
     const time = fxTime(speed);
-    const kept = this.entries.filter((entry) => entry.seq === this.latest || now < expiry(entry, time)).slice(-MAX_ENTRIES);
+    const kept = this.entries
+      .filter((entry) => entry.seq === this.latest || now < expiry(entry, time))
+      .slice(-MAX_ENTRIES);
     if (kept.length !== this.entries.length) this.entries = kept;
     return this.entries;
   }
@@ -220,7 +230,15 @@ export function fxView(entries: FxEntry[], s: GameState, human: PlayerId, specta
         if (cue.via === 'cast') view.stack.set(cue.card, 'play');
         const def = defOf(cue.card);
         if (def && revealsPlay(cue, human, spectating)) {
-          view.reveal = { key: entry.key, kind: 'play', card: cue.card, def, player: cue.player, via: cue.via, targets: cue.targets };
+          view.reveal = {
+            key: entry.key,
+            kind: 'play',
+            card: cue.card,
+            def,
+            player: cue.player,
+            via: cue.via,
+            targets: cue.targets,
+          };
         }
         break;
       }
@@ -249,12 +267,22 @@ export function fxView(entries: FxEntry[], s: GameState, human: PlayerId, specta
         const shrink = cue.power < 0 || cue.toughness < 0;
         const fx = card(cue.card, entry);
         fx.flash = { key: entry.key, tone: shrink ? 'damage' : 'good', delay: 0 };
-        fx.float = { key: entry.key, text: formatPump(cue.power, cue.toughness, cue.keywords), tone: shrink ? 'minus' : 'plus', delay: 0 };
+        fx.float = {
+          key: entry.key,
+          text: formatPump(cue.power, cue.toughness, cue.keywords),
+          tone: shrink ? 'minus' : 'plus',
+          delay: 0,
+        };
         break;
       }
       case 'life': {
         const fx = player(cue.player, entry);
-        fx.life = { key: entry.key, text: signedLife(cue.delta), tone: cue.delta > 0 ? 'plus' : 'minus', delay: entry.delay };
+        fx.life = {
+          key: entry.key,
+          text: signedLife(cue.delta),
+          tone: cue.delta > 0 ? 'plus' : 'minus',
+          delay: entry.delay,
+        };
         if (cue.player === human && cue.delta < 0) view.hurt = { key: entry.key, delay: entry.delay };
         break;
       }
@@ -271,7 +299,16 @@ export function fxView(entries: FxEntry[], s: GameState, human: PlayerId, specta
       case 'counter':
       case 'fizzle': {
         const def = defOf(cue.card);
-        if (def) view.reveal = { key: entry.key, kind: cue.kind, card: cue.card, def, player: cue.player, via: null, targets: [] };
+        if (def)
+          view.reveal = {
+            key: entry.key,
+            kind: cue.kind,
+            card: cue.card,
+            def,
+            player: cue.player,
+            via: null,
+            targets: [],
+          };
         break;
       }
       case 'turn':

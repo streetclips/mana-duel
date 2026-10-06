@@ -18,13 +18,19 @@ export const DEFAULT_OPPONENT: OpponentChoice = { kind: 'classic', model: DEFAUL
 export function isOpponentChoice(value: unknown): value is OpponentChoice {
   if (!value || typeof value !== 'object') return false;
   const { kind, model, effort } = value as Record<string, unknown>;
-  return (kind === 'classic' || kind === 'llm') && typeof model === 'string' && (effort === null || isReasoningEffort(effort));
+  return (
+    (kind === 'classic' || kind === 'llm') &&
+    typeof model === 'string' &&
+    (effort === null || isReasoningEffort(effort))
+  );
 }
 
 export function loadOpponentChoice(): OpponentChoice {
   try {
     const stored: unknown = JSON.parse(localStorage.getItem(CHOICE_KEY) ?? 'null');
-    return isOpponentChoice(stored) ? { kind: stored.kind, model: stored.model, effort: stored.effort } : { ...DEFAULT_OPPONENT };
+    return isOpponentChoice(stored)
+      ? { kind: stored.kind, model: stored.model, effort: stored.effort }
+      : { ...DEFAULT_OPPONENT };
   } catch {
     return { ...DEFAULT_OPPONENT };
   }
@@ -57,7 +63,9 @@ export function saveApiKey(key: string): void {
 
 export function opponentSetup(choice: OpponentChoice): OpponentSetup {
   if (choice.kind === 'classic') return { kind: 'classic' };
-  return choice.effort ? { kind: 'llm', model: choice.model.trim(), effort: choice.effort } : { kind: 'llm', model: choice.model.trim() };
+  return choice.effort
+    ? { kind: 'llm', model: choice.model.trim(), effort: choice.effort }
+    : { kind: 'llm', model: choice.model.trim() };
 }
 
 export function llmProblem(choice: OpponentChoice, apiKey: string, proxy: boolean): string | null {

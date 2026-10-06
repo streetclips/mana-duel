@@ -40,12 +40,18 @@ describe('music themes', () => {
     const themes = DECK_LIST.map(deckTheme);
     expect(themes.map((theme) => theme.id)).toEqual(DECK_LIST.map((deck) => deck.id));
     const combinations = new Set(DECK_LIST.map((deck) => deck.colors.join('')));
-    expect(new Set(themes.map((theme) => `${keyName(theme)} ${theme.tempo} ${theme.lead}`)).size).toBe(combinations.size);
+    expect(new Set(themes.map((theme) => `${keyName(theme)} ${theme.tempo} ${theme.lead}`)).size).toBe(
+      combinations.size,
+    );
     expect(deckTheme(getDeck('emberwild'))).toMatchObject({ colors: ['R', 'G'], tempo: 108, lead: 'pluck' });
     expect(keyName(deckTheme(getDeck('emberwild')))).toBe('A Aeolian');
     expect(keyName(deckTheme(getDeck('duskmire')))).toBe('E Phrygian');
     expect(keyName(deckTheme(getDeck('dawntide')))).toBe('C Ionian');
-    expect(deckTheme(getDeck('crossroads'))).toMatchObject({ colors: ['W', 'U', 'B', 'R', 'G'], tempo: 94, lead: 'pluck' });
+    expect(deckTheme(getDeck('crossroads'))).toMatchObject({
+      colors: ['W', 'U', 'B', 'R', 'G'],
+      tempo: 94,
+      lead: 'pluck',
+    });
     expect(keyName(deckTheme(getDeck('crossroads')))).toBe('C Ionian');
     expect(deckTheme(getDeck('wildland'))).toMatchObject({ tempo: 100, lead: 'pluck' });
   });
@@ -107,7 +113,8 @@ describe('the score', () => {
     const lead = (bar: number): (number | null)[] =>
       Array.from(
         { length: STEPS_PER_BAR },
-        (_, beat) => notesAt(theme, 'combat', bar * STEPS_PER_BAR + beat).find((note) => note.voice === 'lead')?.midi ?? null,
+        (_, beat) =>
+          notesAt(theme, 'combat', bar * STEPS_PER_BAR + beat).find((note) => note.voice === 'lead')?.midi ?? null,
       );
     expect(lead(4)).toEqual([...lead(0)].reverse());
   });

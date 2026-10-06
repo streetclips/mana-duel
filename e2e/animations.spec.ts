@@ -54,9 +54,13 @@ function lidAngle(page: Page, selector: string): Promise<number> {
 }
 
 function boxTransitions(page: Page, selector: string): Promise<string[]> {
-  return page.locator(`${selector} .deck-box`).evaluate((box) =>
-    box.getAnimations({ subtree: true }).map((animation) => (animation instanceof CSSTransition ? animation.transitionProperty : '')),
-  );
+  return page
+    .locator(`${selector} .deck-box`)
+    .evaluate((box) =>
+      box
+        .getAnimations({ subtree: true })
+        .map((animation) => (animation instanceof CSSTransition ? animation.transitionProperty : '')),
+    );
 }
 
 const COMBAT: ScenarioSpec = {
@@ -69,7 +73,11 @@ const COMBAT: ScenarioSpec = {
 
 const BURN: ScenarioSpec = {
   players: [
-    { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'], library: [{ card: 'forest', id: 'top' }, 'forest'] },
+    {
+      hand: [{ card: 'ember_snap', id: 'snap' }],
+      battlefield: ['mountain'],
+      library: [{ card: 'forest', id: 'top' }, 'forest'],
+    },
     {},
   ],
 };
@@ -89,7 +97,9 @@ async function burnTheAi(page: Page): Promise<void> {
   await page.getByTestId('player-1').click();
 }
 
-test('in combat the creatures strike each other, the damage shows and the blocker fades out in its place', async ({ page }) => {
+test('in combat the creatures strike each other, the damage shows and the blocker fades out in its place', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=1&aiDelay=0');
   await blockTheRhino(page);
@@ -97,12 +107,16 @@ test('in combat the creatures strike each other, the damage shows and the blocke
     window.manaDuel.settle();
     return window.manaDuel.freezeFx(0.4);
   });
-  expect(frozen).toEqual(expect.arrayContaining(['fx-lunge', 'fx-shake', 'fx-dies', 'fx-collapse', 'fx-burst', 'fx-float', 'fx-hurt']));
+  expect(frozen).toEqual(
+    expect.arrayContaining(['fx-lunge', 'fx-shake', 'fx-dies', 'fx-collapse', 'fx-burst', 'fx-float', 'fx-hurt']),
+  );
   const ghost = page.getByTestId('fx-ghost-elf');
   await expect(ghost).toBeVisible();
   await expect(ghost).toHaveAttribute('data-fx', /\bdies\b/);
   await expect(page.getByTestId('card-elf')).toHaveCount(0);
-  expect(await fxAnimationsOf(page, '[data-testid="fx-ghost-elf"]')).toEqual(expect.arrayContaining(['fx-lunge', 'fx-dies']));
+  expect(await fxAnimationsOf(page, '[data-testid="fx-ghost-elf"]')).toEqual(
+    expect.arrayContaining(['fx-lunge', 'fx-dies']),
+  );
   expect(await fxAnimationsOf(page, '[data-slot="rhino"]')).toEqual(expect.arrayContaining(['fx-lunge', 'fx-shake']));
   await expect(page.getByTestId('fx-float-rhino')).toHaveText('−1');
   await expect(page.getByTestId('fx-life-0')).toHaveText('−3');
@@ -120,7 +134,10 @@ test('the opponent’s spell is revealed, pops onto the stack and marks its targ
     window.manaDuel.loadScenario({
       activePlayer: 1,
       players: [
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'grove_tender', id: 'elf' }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'grove_tender', id: 'elf' }],
+        },
         { hand: [{ card: 'magma_lance', id: 'lance' }], battlefield: ['mountain', 'mountain', 'mountain'] },
       ],
     }),
@@ -138,18 +155,24 @@ test('the opponent’s spell is revealed, pops onto the stack and marks its targ
   expect(errors).toEqual([]);
 });
 
-test('life changes pop beside the life total, and a new turn is announced and deals the drawn card', async ({ page }) => {
+test('life changes pop beside the life total, and a new turn is announced and deals the drawn card', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=1&aiDelay=0');
   await burnTheAi(page);
   await expect(page.getByTestId('life-1')).toHaveText('18');
   await expect(page.getByTestId('fx-life-1')).toHaveText('−2');
-  expect(await fxAnimationsOf(page, '[data-testid="player-1"]')).toEqual(expect.arrayContaining(['fx-shake', 'fx-float', 'fx-chip']));
+  expect(await fxAnimationsOf(page, '[data-testid="player-1"]')).toEqual(
+    expect.arrayContaining(['fx-shake', 'fx-float', 'fx-chip']),
+  );
   await page.getByTestId('btn-end-turn').click();
   await expect(page.getByTestId('phase')).toContainText('Tu turno', { timeout: 20_000 });
   await expect(page.getByTestId('fx-turn')).toContainText('Tu turno');
   await expect(page.getByTestId('card-top')).toHaveAttribute('data-fx', 'draw');
-  expect(await page.evaluate(() => window.manaDuel.fx().some((cue) => cue.kind === 'draw' && cue.player === 1))).toBe(true);
+  expect(await page.evaluate(() => window.manaDuel.fx().some((cue) => cue.kind === 'draw' && cue.player === 1))).toBe(
+    true,
+  );
   expect(errors).toEqual([]);
 });
 
@@ -163,7 +186,9 @@ test('freezeFx holds the animations at one point for a screenshot, then lets the
   expect(names).toContain('fx-float');
   const frozen = await runningFx(page);
   expect(frozen.length).toBeGreaterThan(0);
-  expect(frozen.every((animation) => animation.state === 'paused' && Math.abs(animation.progress - 0.5) < 0.02)).toBe(true);
+  expect(frozen.every((animation) => animation.state === 'paused' && Math.abs(animation.progress - 0.5) < 0.02)).toBe(
+    true,
+  );
   await page.waitForTimeout(400);
   expect((await runningFx(page)).every((animation) => animation.state === 'paused')).toBe(true);
   await page.evaluate(() => window.manaDuel.freezeFx(null));
@@ -177,7 +202,9 @@ test('?fx=off plays no animation but still records the cues', async ({ page }) =
   await expect(page.getByTestId('game')).toHaveAttribute('data-fx-speed', '0');
   expect(await runningFx(page)).toEqual([]);
   await expect(page.locator('[data-fx]')).toHaveCount(0);
-  expect(await page.evaluate(() => window.manaDuel.fx().map((cue) => cue.kind))).toEqual(expect.arrayContaining(['strike', 'dies']));
+  expect(await page.evaluate(() => window.manaDuel.fx().map((cue) => cue.kind))).toEqual(
+    expect.arrayContaining(['strike', 'dies']),
+  );
 });
 
 test('?fx=slow plays the animations four times slower', async ({ page }) => {
@@ -195,7 +222,9 @@ test('with reduced motion the hooks stay but nothing moves', async ({ page }) =>
   await blockTheRhino(page);
   await page.evaluate(() => window.manaDuel.settle());
   await expect(page.getByTestId('fx-ghost-elf')).toHaveAttribute('data-fx', /\bdies\b/);
-  expect((await runningFx(page)).filter((animation) => animation.name === 'fx-lunge' || animation.name === 'fx-shake')).toEqual([]);
+  expect(
+    (await runningFx(page)).filter((animation) => animation.name === 'fx-lunge' || animation.name === 'fx-shake'),
+  ).toEqual([]);
 });
 
 test('a deck box opens when its seat is tapped, and the chosen deck’s box opens in its place', async ({ page }) => {
@@ -206,7 +235,9 @@ test('a deck box opens when its seat is tapped, and the chosen deck’s box open
   await page.getByTestId('seat-0').click();
   expect(await boxTransitions(page, seat)).toContain('transform');
   await expect.poll(() => lidAngle(page, seat)).toBe(116);
-  const rise = await page.locator(`${seat} .box-cards i`).evaluateAll((cards) => cards.map((card) => new DOMMatrixReadOnly(getComputedStyle(card).transform).m42));
+  const rise = await page
+    .locator(`${seat} .box-cards i`)
+    .evaluateAll((cards) => cards.map((card) => new DOMMatrixReadOnly(getComputedStyle(card).transform).m42));
   expect(rise).toHaveLength(3);
   expect(rise.every((offset) => offset < 0)).toBe(true);
   await expect.poll(() => lidAngle(page, '[data-testid="deck-emberwild"]')).toBe(116);

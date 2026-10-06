@@ -33,9 +33,18 @@ export function optionLines(call: ModelCall): { id: string; text: string }[] {
   });
 }
 
-export function choose(call: ModelCall, pick: (text: string) => boolean, reason = 'It looks best.'): { reason: string; choice: string } {
+export function choose(
+  call: ModelCall,
+  pick: (text: string) => boolean,
+  reason = 'It looks best.',
+): { reason: string; choice: string } {
   const option = optionLines(call).find((line) => pick(line.text));
-  if (!option) throw new Error(`no option matches in:\n${optionLines(call).map((line) => line.text).join('\n')}`);
+  if (!option)
+    throw new Error(
+      `no option matches in:\n${optionLines(call)
+        .map((line) => line.text)
+        .join('\n')}`,
+    );
   return { reason, choice: option.id };
 }
 

@@ -1,5 +1,13 @@
 import type { FxBatch, FxKind } from '../app/fx';
-import { getCardDef, type CardDef, type CardId, type Color, type GameState, type PendingDecision, type PlayerId } from '../engine';
+import {
+  getCardDef,
+  type CardDef,
+  type CardId,
+  type Color,
+  type GameState,
+  type PendingDecision,
+  type PlayerId,
+} from '../engine';
 import { cardColors } from '../ui/cardInfo';
 import { DRAW_STAGGER_MS, IMPACT_MS } from '../ui/fx';
 import { soundEvent, type SoundEvent, type SoundId } from './sounds';
@@ -76,7 +84,13 @@ export function soundsOf(batch: FxBatch, context: SoundContext): SoundEvent[] {
       case 'draw':
         if (cue.player === viewer) {
           if (ownDraws < MAX_DRAWS) {
-            events.push(soundEvent('draw', { seq: batch.seq, at: (lead + ownDraws * DRAW_GAP) * time, pitch: DRAW_PITCHES[ownDraws % DRAW_PITCHES.length] }));
+            events.push(
+              soundEvent('draw', {
+                seq: batch.seq,
+                at: (lead + ownDraws * DRAW_GAP) * time,
+                pitch: DRAW_PITCHES[ownDraws % DRAW_PITCHES.length],
+              }),
+            );
           }
           ownDraws += 1;
         } else if (!theirDraw) {

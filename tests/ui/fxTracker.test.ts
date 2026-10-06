@@ -87,7 +87,9 @@ describe('FxTracker', () => {
 
   it('only catches up with the last batches after many actions at once', () => {
     const tracker = new FxTracker();
-    const many = Array.from({ length: 40 }, (_, index) => batch(index + 1, { kind: 'turn', player: 0, turn: index + 1 }));
+    const many = Array.from({ length: 40 }, (_, index) =>
+      batch(index + 1, { kind: 'turn', player: 0, turn: index + 1 }),
+    );
     const entries = tracker.update(1, many, 0, 1);
     expect(entries.length).toBeLessThanOrEqual(12);
     expect(entries.at(-1)?.seq).toBe(40);
@@ -98,7 +100,13 @@ describe('fxView', () => {
   const s = createScenario({
     players: [
       { hand: [{ card: 'forest', id: 'drawn' }], battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
-      { hand: [{ card: 'forest', id: 'theirs' }], graveyard: [{ card: 'grove_tender', id: 'elf' }, { card: 'ember_snap', id: 'snap' }] },
+      {
+        hand: [{ card: 'forest', id: 'theirs' }],
+        graveyard: [
+          { card: 'grove_tender', id: 'elf' },
+          { card: 'ember_snap', id: 'snap' },
+        ],
+      },
     ],
   });
   const viewOf = (cues: FxCue[], spectating = false) => {
@@ -109,14 +117,26 @@ describe('fxView', () => {
   it('gives each card and player the kinds of animation it plays', () => {
     const view = viewOf(combat.cues);
     expect(view.seq).toBe(5);
-    expect(view.cards.get('rhino')).toMatchObject({ kinds: ['strike', 'damage'], float: { text: '−1', tone: 'minus', delay: IMPACT_MS } });
+    expect(view.cards.get('rhino')).toMatchObject({
+      kinds: ['strike', 'damage'],
+      float: { text: '−1', tone: 'minus', delay: IMPACT_MS },
+    });
     expect(view.cards.get('elf')?.kinds).toEqual(['damage', 'strike', 'dies']);
-    expect(view.ghosts.get(1)).toEqual([{ key: '5.4', card: 'elf', def: 'grove_tender', kind: 'dies', next: null, delay: IMPACT_MS }]);
+    expect(view.ghosts.get(1)).toEqual([
+      { key: '5.4', card: 'elf', def: 'grove_tender', kind: 'dies', next: null, delay: IMPACT_MS },
+    ]);
   });
 
   it('reveals the opponent’s plays with their targets, but not yours', () => {
     const theirs = viewOf([{ kind: 'play', player: 1, card: 'snap', via: 'cast', targets: [{ card: 'rhino' }] }]);
-    expect(theirs.reveal).toMatchObject({ kind: 'play', card: 'snap', def: 'ember_snap', player: 1, via: 'cast', targets: [{ card: 'rhino' }] });
+    expect(theirs.reveal).toMatchObject({
+      kind: 'play',
+      card: 'snap',
+      def: 'ember_snap',
+      player: 1,
+      via: 'cast',
+      targets: [{ card: 'rhino' }],
+    });
     expect(theirs.stack.get('snap')).toBe('play');
     const mine = viewOf([{ kind: 'play', player: 0, card: 'snap', via: 'cast', targets: [] }]);
     expect(mine.reveal).toBeNull();
@@ -146,7 +166,10 @@ describe('fxView', () => {
 
   it('announces the new turn and a countered spell', () => {
     expect(viewOf([{ kind: 'turn', player: 1, turn: 6 }]).turn).toMatchObject({ player: 1, turn: 6 });
-    expect(viewOf([{ kind: 'counter', player: 1, card: 'snap' }]).reveal).toMatchObject({ kind: 'counter', card: 'snap' });
+    expect(viewOf([{ kind: 'counter', player: 1, card: 'snap' }]).reveal).toMatchObject({
+      kind: 'counter',
+      card: 'snap',
+    });
   });
 
   it('shows no ghost for a creature that is back on the battlefield', () => {
@@ -155,7 +178,14 @@ describe('fxView', () => {
 });
 
 describe('withGhosts', () => {
-  const ghost = (card: string, next: string | null): GhostFx => ({ key: card, card, def: 'grove_tender', kind: 'dies', next, delay: 0 });
+  const ghost = (card: string, next: string | null): GhostFx => ({
+    key: card,
+    card,
+    def: 'grove_tender',
+    kind: 'dies',
+    next,
+    delay: 0,
+  });
   const order = (ids: string[], ghosts: GhostFx[]): string[] =>
     withGhosts(ids, ghosts).map((item) => ('id' in item ? item.id : `†${item.ghost.card}`));
 

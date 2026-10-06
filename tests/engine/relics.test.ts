@@ -27,7 +27,11 @@ function saprolings(s: GameState): string[] {
 
 describe('relics', () => {
   it('start the game beside their player, in no other zone, and trigger nothing yet', () => {
-    const s = createGame({ seed: 4, startingPlayer: 0, players: [{ relics: ['bell', 'chalice'] }, { relics: ['urn'] }] });
+    const s = createGame({
+      seed: 4,
+      startingPlayer: 0,
+      players: [{ relics: ['bell', 'chalice'] }, { relics: ['urn'] }],
+    });
     expectSound(s);
     expect(s.players.map((ps) => ps.command.map((id) => s.cards[id]?.def))).toEqual([['bell', 'chalice'], ['urn']]);
     expect(s.players[0].command.map((id) => s.cards[id]?.zone)).toEqual(['command', 'command']);
@@ -38,11 +42,15 @@ describe('relics', () => {
 
   it('are refused unless they are relics, and relics go nowhere else', () => {
     expect(() => createGame({ players: [{ relics: ['forest'] }, {}] })).toThrow('"forest" is not a relic');
-    expect(() => createGame({ players: [{ relics: ['soldier_token'] }, {}] })).toThrow('"soldier_token" is not a relic');
+    expect(() => createGame({ players: [{ relics: ['soldier_token'] }, {}] })).toThrow(
+      '"soldier_token" is not a relic',
+    );
     expect(() => createGame({ players: [{ relics: ['nope'] }, {}] })).toThrow('Unknown card definition "nope"');
     expect(() => createGame({ players: [{ battlefield: ['bell'] }, {}] })).toThrow('"bell" is not a permanent');
     expect(() => scenario({ players: [{ relics: ['forest'] }, {}] })).toThrow('"forest" is not a relic');
-    expect(() => scenario({ players: [{ hand: ['bell'] }, {}] })).toThrow(`The relic "bell" can only be among a player's relics`);
+    expect(() => scenario({ players: [{ hand: ['bell'] }, {}] })).toThrow(
+      `The relic "bell" can only be among a player's relics`,
+    );
   });
 
   it('Campana fúnebre: the opponent loses 1 life at the beginning of each of its owner’s upkeeps, through the stack', () => {
@@ -52,7 +60,10 @@ describe('relics', () => {
     expect(s.stack).toEqual([expect.objectContaining({ kind: 'trigger', controller: 0, source: 'bell', ability: 0 })]);
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
     const triggered: GameEvent = { t: 'trigger', player: 0, card: 'bell', ability: 0, targets: [] };
-    expect([describeEvent(s, triggered, 0), describeEvent(s, triggered, 1)]).toEqual(['Se dispara tu Campana fúnebre.', 'Se dispara Campana fúnebre del rival.']);
+    expect([describeEvent(s, triggered, 0), describeEvent(s, triggered, 1)]).toEqual([
+      'Se dispara tu Campana fúnebre.',
+      'Se dispara Campana fúnebre del rival.',
+    ]);
     s = resolveStack(s);
     expect([life(s, 0), life(s, 1), s.step]).toEqual([20, 19, 'upkeep']);
     s = passToStep(s, 'main1', 5);
@@ -73,7 +84,10 @@ describe('relics', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'ember_hound', id: 'hound' }],
+          hand: [
+            { card: 'ember_snap', id: 'snap' },
+            { card: 'ember_hound', id: 'hound' },
+          ],
           battlefield: ['mountain', 'mountain', 'mountain'],
           relics: [{ card: 'censer', id: 'censer' }],
         },
@@ -92,7 +106,10 @@ describe('relics', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'ember_snap', id: 'snap1' }, { card: 'ember_snap', id: 'snap2' }],
+          hand: [
+            { card: 'ember_snap', id: 'snap1' },
+            { card: 'ember_snap', id: 'snap2' },
+          ],
           battlefield: ['mountain', 'mountain', { card: 'soldier_token', id: 'soldier' }],
           relics: [{ card: 'urn', id: 'urn' }],
         },
@@ -108,7 +125,11 @@ describe('relics', () => {
   it('Tambor de guerra: its owner’s creatures get +1/+0 until end of turn whenever a land of theirs enters', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'forest', id: 'land' }], battlefield: [{ card: 'grove_tender', id: 'elf' }], relics: [{ card: 'drum', id: 'drum' }] },
+        {
+          hand: [{ card: 'forest', id: 'land' }],
+          battlefield: [{ card: 'grove_tender', id: 'elf' }],
+          relics: [{ card: 'drum', id: 'drum' }],
+        },
         { battlefield: [{ card: 'grove_tender', id: 'theirs' }] },
       ],
     });
@@ -124,7 +145,10 @@ describe('relics', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'ember_hound', id: 'hound' }, { card: 'ember_snap', id: 'snap' }],
+          hand: [
+            { card: 'ember_hound', id: 'hound' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
           battlefield: ['mountain', 'mountain', 'mountain'],
           relics: ['chalice', 'censer'],
         },
@@ -138,7 +162,10 @@ describe('relics', () => {
   });
 
   it('Libro de horas: its owner draws a card at an upkeep that finds their hand empty, and only then', () => {
-    let s = scenario({ activePlayer: 1, players: [{ hand: ['mountain'], relics: [{ card: 'tome', id: 'tome' }] }, {}] });
+    let s = scenario({
+      activePlayer: 1,
+      players: [{ hand: ['mountain'], relics: [{ card: 'tome', id: 'tome' }] }, {}],
+    });
     s = passToStep(s, 'main1', 4);
     expect(s.players[0].hand.length).toBe(2);
     s = scenario({ activePlayer: 1, players: [{ relics: [{ card: 'tome', id: 'tome' }] }, {}] });
@@ -151,7 +178,10 @@ describe('relics', () => {
   it('Corona del tirano: its owner’s creatures get +1/+0 until end of turn at each of their upkeeps', () => {
     let s = scenario({
       activePlayer: 1,
-      players: [{ battlefield: [{ card: 'grove_tender', id: 'elf' }], relics: [{ card: 'crown', id: 'crown' }] }, { battlefield: [{ card: 'grove_tender', id: 'theirs' }] }],
+      players: [
+        { battlefield: [{ card: 'grove_tender', id: 'elf' }], relics: [{ card: 'crown', id: 'crown' }] },
+        { battlefield: [{ card: 'grove_tender', id: 'theirs' }] },
+      ],
     });
     s = resolveStack(passToStep(s, 'upkeep', 4));
     expect([getPower(s, 'elf'), getPower(s, 'theirs')]).toEqual([2, 1]);
@@ -162,7 +192,11 @@ describe('relics', () => {
   it('can never be targeted', () => {
     const s = scenario({
       players: [
-        { hand: [{ card: 'grave_sentence', id: 'kill' }], battlefield: ['swamp', 'swamp', 'swamp', 'swamp'], relics: ['bell'] },
+        {
+          hand: [{ card: 'grave_sentence', id: 'kill' }],
+          battlefield: ['swamp', 'swamp', 'swamp', 'swamp'],
+          relics: ['bell'],
+        },
         { battlefield: [{ card: 'grove_tender', id: 'elf' }], relics: [{ card: 'urn', id: 'urn' }] },
       ],
     });
@@ -177,35 +211,67 @@ describe('relics', () => {
 
   it('read like a permanent’s abilities, under the type «Reliquia»', () => {
     expect(RELIC_DEFS.map((def) => [def.id, typeLine(def), rulesText(def)])).toEqual([
-      ['censer', 'Reliquia', ['Siempre que lances un hechizo de instantáneo o de conjuro, crea una ficha de criatura Saprolín verde 1/1.']],
+      [
+        'censer',
+        'Reliquia',
+        ['Siempre que lances un hechizo de instantáneo o de conjuro, crea una ficha de criatura Saprolín verde 1/1.'],
+      ],
       ['urn', 'Reliquia', ['Siempre que una criatura que controlas muera, cada oponente pierde 1 vida.']],
-      ['drum', 'Reliquia', ['Aterrizaje — Siempre que una tierra que controlas entre, las criaturas que controlas obtienen +1/+0 hasta el final del turno.']],
+      [
+        'drum',
+        'Reliquia',
+        [
+          'Aterrizaje — Siempre que una tierra que controlas entre, las criaturas que controlas obtienen +1/+0 hasta el final del turno.',
+        ],
+      ],
       ['chalice', 'Reliquia', ['Siempre que una criatura que controlas entre, ganas 1 vida.']],
       ['tome', 'Reliquia', ['Al comienzo de tu mantenimiento, si no tienes cartas en la mano, roba una carta.']],
       ['bell', 'Reliquia', ['Al comienzo de tu mantenimiento, cada oponente pierde 1 vida.']],
       ['grimoire', 'Reliquia', ['Al comienzo de tu mantenimiento, roba una carta. Pierdes 1 vida.']],
-      ['crown', 'Reliquia', ['Al comienzo de tu mantenimiento, las criaturas que controlas obtienen +1/+0 hasta el final del turno.']],
+      [
+        'crown',
+        'Reliquia',
+        ['Al comienzo de tu mantenimiento, las criaturas que controlas obtienen +1/+0 hasta el final del turno.'],
+      ],
     ]);
-    expect(cardSummary('bell')).toBe('Campana fúnebre · Reliquia · Al comienzo de tu mantenimiento, cada oponente pierde 1 vida.');
+    expect(cardSummary('bell')).toBe(
+      'Campana fúnebre · Reliquia · Al comienzo de tu mantenimiento, cada oponente pierde 1 vida.',
+    );
     const s = scenario({ players: [{ relics: [{ card: 'bell', id: 'bell' }] }, {}] });
     expect(describeState(s, 0)).toContain('  reliquias: Campana fúnebre(bell)');
   });
 
   it('refuse relics with anything but untargeted abilities that trigger on what a relic can see', () => {
     const upkeep: TriggeredAbility = { on: 'upkeep', targets: [], effects: [{ kind: 'gainLife', amount: 1 }] };
-    const relic = (extra: Partial<CardDef>): CardDef => ({ id: 'bad_relic', name: 'Bad', types: ['relic'], triggers: [upkeep], ...extra });
+    const relic = (extra: Partial<CardDef>): CardDef => ({
+      id: 'bad_relic',
+      name: 'Bad',
+      types: ['relic'],
+      triggers: [upkeep],
+      ...extra,
+    });
     expect(() => registerCard(relic({ triggers: [] }))).toThrow(/needs a triggered ability/);
     expect(() => registerCard(relic({ cost: '{1}' }))).toThrow(/nothing but triggered abilities/);
     expect(() => registerCard(relic({ keywords: ['flying'] }))).toThrow(/nothing but triggered abilities/);
-    expect(() => registerCard(relic({ types: ['relic', 'creature'], power: 1, toughness: 1 }))).toThrow(/no other type/);
-    expect(() => registerCard(relic({ triggers: [{ ...upkeep, on: 'enters' }] }))).toThrow(/cannot trigger on "enters"/);
+    expect(() => registerCard(relic({ types: ['relic', 'creature'], power: 1, toughness: 1 }))).toThrow(
+      /no other type/,
+    );
+    expect(() => registerCard(relic({ triggers: [{ ...upkeep, on: 'enters' }] }))).toThrow(
+      /cannot trigger on "enters"/,
+    );
     expect(() =>
-      registerCard(relic({ triggers: [{ on: 'upkeep', targets: [{ kind: 'any' }], effects: [{ kind: 'damage', amount: 1, to: 0 }] }] })),
+      registerCard(
+        relic({
+          triggers: [{ on: 'upkeep', targets: [{ kind: 'any' }], effects: [{ kind: 'damage', amount: 1, to: 0 }] }],
+        }),
+      ),
     ).toThrow(/no targets/);
   });
 
   it('are kept beside their player by the invariants', () => {
-    const s = scenario({ players: [{ relics: [{ card: 'bell', id: 'bell' }], battlefield: [{ card: 'forest', id: 'land' }] }, {}] });
+    const s = scenario({
+      players: [{ relics: [{ card: 'bell', id: 'bell' }], battlefield: [{ card: 'forest', id: 'land' }] }, {}],
+    });
     const moved = structuredClone(s);
     moved.players[0].command = [];
     moved.players[0].battlefield.push('bell');

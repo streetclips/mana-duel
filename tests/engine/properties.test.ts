@@ -56,7 +56,8 @@ describe('engine properties', () => {
       randomPlayout(seed, (s) => {
         for (const action of getLegalActions(s, { limit: 32 })) {
           const result = tryApplyAction(s, action);
-          if (!result.ok) throw new Error(`seed ${seed}: legal action rejected (${result.error}): ${JSON.stringify(action)}`);
+          if (!result.ok)
+            throw new Error(`seed ${seed}: legal action rejected (${result.error}): ${JSON.stringify(action)}`);
         }
       });
     }
@@ -81,7 +82,8 @@ describe('engine properties', () => {
           (s) => {
             for (const action of getLegalActions(s, { limit: 16 })) {
               const result = tryApplyAction(s, action);
-              if (!result.ok) throw new Error(`${decks.join(' vs ')}, seed ${seed}: legal action rejected (${result.error})`);
+              if (!result.ok)
+                throw new Error(`${decks.join(' vs ')}, seed ${seed}: legal action rejected (${result.error})`);
             }
           },
           decks,
@@ -97,7 +99,9 @@ describe('engine properties', () => {
       for (const event of s.events) {
         for (const viewer of [0, 1] as const) {
           const parts = describeEventParts(s, event, viewer);
-          expect(parts?.map((part) => (typeof part === 'string' ? part : part.name)).join('') ?? null).toBe(describeEvent(s, event, viewer));
+          expect(parts?.map((part) => (typeof part === 'string' ? part : part.name)).join('') ?? null).toBe(
+            describeEvent(s, event, viewer),
+          );
           for (const part of parts ?? []) {
             if (typeof part === 'string') continue;
             mentions += 1;

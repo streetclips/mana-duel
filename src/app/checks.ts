@@ -52,8 +52,10 @@ function passUntil(state: GameState, done: (s: GameState) => boolean, limit = 30
     const pending = s.pending;
     if (!pending || pending.kind === 'gameOver') break;
     if (pending.kind === 'priority') s = applyAction(s, { type: 'pass', player: pending.player });
-    else if (pending.kind === 'declareAttackers') s = applyAction(s, { type: 'declareAttackers', player: pending.player, attackers: [] });
-    else if (pending.kind === 'declareBlockers') s = applyAction(s, { type: 'declareBlockers', player: pending.player, blocks: [] });
+    else if (pending.kind === 'declareAttackers')
+      s = applyAction(s, { type: 'declareAttackers', player: pending.player, attackers: [] });
+    else if (pending.kind === 'declareBlockers')
+      s = applyAction(s, { type: 'declareBlockers', player: pending.player, blocks: [] });
     else break;
   }
   if (!done(s)) throw new Error(`stopped at ${s.pending?.kind} in ${s.step} without reaching the expected point`);
@@ -135,7 +137,14 @@ export const CHECKS: Check[] = [
       const b = createGame({ seed: 7 });
       return first(
         expectValue(JSON.stringify(a) === JSON.stringify(b), true, 'same seed, same game'),
-        expectValue(a.players.map((p) => [p.hand.length, p.library.length, p.life]), [[7, 33, 20], [7, 33, 20]], 'hands, libraries and life'),
+        expectValue(
+          a.players.map((p) => [p.hand.length, p.library.length, p.life]),
+          [
+            [7, 33, 20],
+            [7, 33, 20],
+          ],
+          'hands, libraries and life',
+        ),
       );
     },
   },
@@ -144,11 +153,17 @@ export const CHECKS: Check[] = [
     title: 'London mulligan: new seven, then one card to the bottom per mulligan',
     run: () => {
       let s = createGame({ seed: 3, startingPlayer: 0 });
-      s = play(s, [{ type: 'mulligan', player: 0 }, { type: 'keep', player: 0 }]);
+      s = play(s, [
+        { type: 'mulligan', player: 0 },
+        { type: 'keep', player: 0 },
+      ]);
       const pending = expectValue(s.pending, { kind: 'bottom', player: 0, count: 1 }, 'pending decision');
       const card = s.players[0].hand[0] as string;
       s = play(s, [{ type: 'bottom', player: 0, cards: [card] }]);
-      return first(pending, expectValue([s.players[0].hand.length, s.players[0].library.at(-1)], [6, card], 'hand size and bottom card'));
+      return first(
+        pending,
+        expectValue([s.players[0].hand.length, s.players[0].library.at(-1)], [6, card], 'hand size and bottom card'),
+      );
     },
   },
   {
@@ -156,7 +171,10 @@ export const CHECKS: Check[] = [
     title: 'Turns: the starting player skips the first draw, the other player draws',
     run: () => {
       const s = createGame({ seed: 3, startingPlayer: 0, skipMulligans: true });
-      const next = passUntil(s, (state) => state.turn === 2 && state.step === 'main1' && state.pending?.kind === 'priority');
+      const next = passUntil(
+        s,
+        (state) => state.turn === 2 && state.step === 'main1' && state.pending?.kind === 'priority',
+      );
       return first(
         expectValue([s.turn, s.players[0].hand.length], [1, 7], 'turn 1 hand'),
         expectValue([next.activePlayer, next.players[1].hand.length], [1, 8], 'turn 2 hand'),
@@ -167,7 +185,17 @@ export const CHECKS: Check[] = [
     id: 'F04',
     title: 'Lands: one land per turn',
     run: () => {
-      let s = createScenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }] }, {}] });
+      let s = createScenario({
+        players: [
+          {
+            hand: [
+              { card: 'forest', id: 'f1' },
+              { card: 'forest', id: 'f2' },
+            ],
+          },
+          {},
+        ],
+      });
       s = play(s, [{ type: 'playLand', player: 0, card: 'f1' }]);
       return first(
         expectValue(zone(s, 'f1'), 'battlefield', 'first land'),
@@ -181,7 +209,13 @@ export const CHECKS: Check[] = [
     run: () => {
       let s = createScenario({
         players: [
-          { hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'ember_hound', id: 'hound' }], battlefield: ['mountain', 'mountain', 'mountain'] },
+          {
+            hand: [
+              { card: 'ember_snap', id: 'snap' },
+              { card: 'ember_hound', id: 'hound' },
+            ],
+            battlefield: ['mountain', 'mountain', 'mountain'],
+          },
           {},
         ],
       });
@@ -196,7 +230,10 @@ export const CHECKS: Check[] = [
       let s = createScenario({
         players: [
           { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
-          { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'moss_viper', id: 'viper' }] },
+          {
+            hand: [{ card: 'verdant_surge', id: 'surge' }],
+            battlefield: ['forest', { card: 'moss_viper', id: 'viper' }],
+          },
         ],
       });
       s = play(s, [
@@ -208,19 +245,31 @@ export const CHECKS: Check[] = [
         { type: 'pass', player: 0 },
         { type: 'pass', player: 1 },
       ]);
-      return first(expectValue(zone(s, 'viper'), 'battlefield', 'viper'), expectValue(s.cards.viper?.damage, 2, 'viper damage'));
+      return first(
+        expectValue(zone(s, 'viper'), 'battlefield', 'viper'),
+        expectValue(s.cards.viper?.damage, 2, 'viper damage'),
+      );
     },
   },
   {
     id: 'F07',
     title: 'Mana: colors must match and summoning-sick mana creatures cannot pay',
     run: () => {
-      const wrongColor = createScenario({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['forest'] }, {}] });
+      const wrongColor = createScenario({
+        players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['forest'] }, {}],
+      });
       const sickElf = createScenario({
-        players: [{ hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', sick: true }] }, {}],
+        players: [
+          { hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', sick: true }] },
+          {},
+        ],
       });
       return first(
-        refused(wrongColor, { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] }, { code: 'notEnoughMana' }),
+        refused(
+          wrongColor,
+          { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] },
+          { code: 'notEnoughMana' },
+        ),
         refused(sickElf, { type: 'cast', player: 0, card: 'viper', targets: [] }, { code: 'notEnoughMana' }),
       );
     },
@@ -231,7 +280,15 @@ export const CHECKS: Check[] = [
     run: () => {
       const s = toAttackers(
         createScenario({
-          players: [{ battlefield: [{ card: 'canopy_spider', id: 'spider', sick: true }, { card: 'ember_hound', id: 'hound', sick: true }] }, {}],
+          players: [
+            {
+              battlefield: [
+                { card: 'canopy_spider', id: 'spider', sick: true },
+                { card: 'ember_hound', id: 'hound', sick: true },
+              ],
+            },
+            {},
+          ],
         }),
       );
       return expectValue(eligibleAttackers(s), ['hound'], 'eligible attackers');
@@ -243,7 +300,15 @@ export const CHECKS: Check[] = [
     run: () => {
       let s = toAttackers(
         createScenario({
-          players: [{ battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'bramble_warden', id: 'warden' }] }, {}],
+          players: [
+            {
+              battlefield: [
+                { card: 'timberland_rhino', id: 'rhino' },
+                { card: 'bramble_warden', id: 'warden' },
+              ],
+            },
+            {},
+          ],
         }),
       );
       s = play(s, [{ type: 'declareAttackers', player: 0, attackers: ['rhino', 'warden'] }]);
@@ -259,14 +324,28 @@ export const CHECKS: Check[] = [
       let s = toAttackers(
         createScenario({
           players: [
-            { battlefield: [{ card: 'cinderwing_drake', id: 'drake' }, { card: 'ridge_marauder', id: 'marauder' }] },
-            { battlefield: [{ card: 'grove_tender', id: 'elf' }, { card: 'ember_hound', id: 'hound' }] },
+            {
+              battlefield: [
+                { card: 'cinderwing_drake', id: 'drake' },
+                { card: 'ridge_marauder', id: 'marauder' },
+              ],
+            },
+            {
+              battlefield: [
+                { card: 'grove_tender', id: 'elf' },
+                { card: 'ember_hound', id: 'hound' },
+              ],
+            },
           ],
         }),
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['drake', 'marauder'] }]));
       return first(
-        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'drake' }] }, { code: 'cannotBlock', blocker: 'elf', attacker: 'drake' }),
+        refused(
+          s,
+          { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'drake' }] },
+          { code: 'cannotBlock', blocker: 'elf', attacker: 'drake' },
+        ),
         refused(
           s,
           { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'marauder' }] },
@@ -293,7 +372,12 @@ export const CHECKS: Check[] = [
         createScenario({
           players: [
             { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
-            { battlefield: [{ card: 'canopy_spider', id: 'spider' }, { card: 'grove_tender', id: 'elf' }] },
+            {
+              battlefield: [
+                { card: 'canopy_spider', id: 'spider' },
+                { card: 'grove_tender', id: 'elf' },
+              ],
+            },
           ],
         }),
       );
@@ -310,7 +394,11 @@ export const CHECKS: Check[] = [
           },
         ]),
       );
-      return expectValue([zone(s, 'spider'), zone(s, 'elf'), s.cards.rhino?.damage, s.players[1].life], ['graveyard', 'graveyard', 2, 20], 'result');
+      return expectValue(
+        [zone(s, 'spider'), zone(s, 'elf'), s.cards.rhino?.damage, s.players[1].life],
+        ['graveyard', 'graveyard', 2, 20],
+        'result',
+      );
     },
   },
   {
@@ -318,7 +406,12 @@ export const CHECKS: Check[] = [
     title: 'Trample: damage beyond lethal goes to the player',
     run: () => {
       let s = toAttackers(
-        createScenario({ players: [{ battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, { battlefield: [{ card: 'ember_hound', id: 'hound' }] }] }),
+        createScenario({
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
+          ],
+        }),
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['rhino'] }]));
       s = toMain2(play(s, [{ type: 'declareBlockers', player: 1, blocks: [{ blocker: 'hound', attacker: 'rhino' }] }]));
@@ -330,10 +423,17 @@ export const CHECKS: Check[] = [
     title: 'First strike: the first striker kills its blocker before it strikes back',
     run: () => {
       let s = toAttackers(
-        createScenario({ players: [{ battlefield: [{ card: 'ashen_duelist', id: 'duelist' }] }, { battlefield: [{ card: 'cinder_adept', id: 'adept' }] }] }),
+        createScenario({
+          players: [
+            { battlefield: [{ card: 'ashen_duelist', id: 'duelist' }] },
+            { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
+          ],
+        }),
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['duelist'] }]));
-      s = toMain2(play(s, [{ type: 'declareBlockers', player: 1, blocks: [{ blocker: 'adept', attacker: 'duelist' }] }]));
+      s = toMain2(
+        play(s, [{ type: 'declareBlockers', player: 1, blocks: [{ blocker: 'adept', attacker: 'duelist' }] }]),
+      );
       return expectValue([zone(s, 'adept'), zone(s, 'duelist')], ['graveyard', 'battlefield'], 'result');
     },
   },
@@ -342,7 +442,12 @@ export const CHECKS: Check[] = [
     title: 'Deathtouch: any damage destroys the creature',
     run: () => {
       let s = toAttackers(
-        createScenario({ players: [{ battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, { battlefield: [{ card: 'moss_viper', id: 'viper' }] }] }),
+        createScenario({
+          players: [
+            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+            { battlefield: [{ card: 'moss_viper', id: 'viper' }] },
+          ],
+        }),
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['rhino'] }]));
       s = toMain2(play(s, [{ type: 'declareBlockers', player: 1, blocks: [{ blocker: 'viper', attacker: 'rhino' }] }]));
@@ -364,7 +469,13 @@ export const CHECKS: Check[] = [
         .flatMap((action) => (action.type === 'cast' ? action.targets : []));
       let snaps = createScenario({
         players: [
-          { hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }], battlefield: ['mountain', 'mountain'] },
+          {
+            hand: [
+              { card: 'ember_snap', id: 's1' },
+              { card: 'ember_snap', id: 's2' },
+            ],
+            battlefield: ['mountain', 'mountain'],
+          },
           { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
         ],
       });
@@ -374,8 +485,16 @@ export const CHECKS: Check[] = [
       ]);
       snaps = passUntil(snaps, (state) => state.stack.length === 0);
       return first(
-        expectValue(targets.every((target) => 'card' in target), true, 'Magma Lance targets are creatures'),
-        expectValue([zone(snaps, 'hound'), zone(snaps, 's1'), zone(snaps, 's2')], ['graveyard', 'graveyard', 'graveyard'], 'zones'),
+        expectValue(
+          targets.every((target) => 'card' in target),
+          true,
+          'Magma Lance targets are creatures',
+        ),
+        expectValue(
+          [zone(snaps, 'hound'), zone(snaps, 's1'), zone(snaps, 's2')],
+          ['graveyard', 'graveyard', 'graveyard'],
+          'zones',
+        ),
       );
     },
   },
@@ -383,7 +502,15 @@ export const CHECKS: Check[] = [
     id: 'F17',
     title: 'Pump: +3/+3 lasts until end of turn',
     run: () => {
-      let s = createScenario({ players: [{ hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'moss_viper', id: 'viper' }] }, {}] });
+      let s = createScenario({
+        players: [
+          {
+            hand: [{ card: 'verdant_surge', id: 'surge' }],
+            battlefield: ['forest', { card: 'moss_viper', id: 'viper' }],
+          },
+          {},
+        ],
+      });
       s = play(s, [{ type: 'cast', player: 0, card: 'surge', targets: [{ card: 'viper' }] }]);
       s = passUntil(s, (state) => state.stack.length === 0);
       const pumped = getPower(s, 'viper');
@@ -397,7 +524,10 @@ export const CHECKS: Check[] = [
     run: () => {
       let s = createScenario({
         players: [
-          { hand: [{ card: 'feral_clash', id: 'clash' }], battlefield: ['forest', 'forest', { card: 'timberland_rhino', id: 'rhino' }] },
+          {
+            hand: [{ card: 'feral_clash', id: 'clash' }],
+            battlefield: ['forest', 'forest', { card: 'timberland_rhino', id: 'rhino' }],
+          },
           { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
         ],
       });
@@ -410,7 +540,9 @@ export const CHECKS: Check[] = [
     id: 'F19',
     title: 'Card draw: Read the Roots draws two',
     run: () => {
-      let s = createScenario({ players: [{ hand: [{ card: 'read_the_roots', id: 'roots' }], battlefield: ['forest', 'forest', 'forest'] }, {}] });
+      let s = createScenario({
+        players: [{ hand: [{ card: 'read_the_roots', id: 'roots' }], battlefield: ['forest', 'forest', 'forest'] }, {}],
+      });
       s = play(s, [{ type: 'cast', player: 0, card: 'roots', targets: [] }]);
       s = passUntil(s, (state) => state.stack.length === 0);
       return expectValue(s.players[0].hand.length, 2, 'hand size');
@@ -426,7 +558,11 @@ export const CHECKS: Check[] = [
           { battlefield: [{ card: 'grove_tender', id: 'elf' }] },
         ],
       });
-      s = play(s, [{ type: 'cast', player: 0, card: 'adept', targets: [] }, { type: 'pass', player: 0 }, { type: 'pass', player: 1 }]);
+      s = play(s, [
+        { type: 'cast', player: 0, card: 'adept', targets: [] },
+        { type: 'pass', player: 0 },
+        { type: 'pass', player: 1 },
+      ]);
       const asked = expectValue(s.pending?.kind, 'chooseTargets', 'pending decision');
       s = play(s, [{ type: 'chooseTargets', player: 0, targets: [{ card: 'elf' }] }]);
       s = passUntil(s, (state) => state.stack.length === 0);
@@ -437,13 +573,19 @@ export const CHECKS: Check[] = [
     id: 'F21',
     title: 'Activated abilities: Crag Dragon pumps once per {R}, until end of turn',
     run: () => {
-      let s = createScenario({ players: [{ battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain', 'mountain'] }, {}] });
+      let s = createScenario({
+        players: [{ battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain', 'mountain'] }, {}],
+      });
       for (let i = 0; i < 2; i++) {
         s = play(s, [{ type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] }]);
         s = passUntil(s, (state) => state.stack.length === 0);
       }
       const pumped = getPower(s, 'dragon');
-      const refusal = refused(s, { type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] }, { code: 'notEnoughMana' });
+      const refusal = refused(
+        s,
+        { type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] },
+        { code: 'notEnoughMana' },
+      );
       return first(expectValue(pumped, 6, 'power after two activations'), refusal);
     },
   },
@@ -462,10 +604,15 @@ export const CHECKS: Check[] = [
     id: 'F23',
     title: 'Game over: 0 life, empty library, concession',
     run: () => {
-      let burn = createScenario({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { life: 2 }] });
+      let burn = createScenario({
+        players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { life: 2 }],
+      });
       burn = play(burn, [{ type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] }]);
       burn = passUntil(burn, (state) => state.pending?.kind === 'gameOver');
-      const decked = passUntil(createScenario({ activePlayer: 1, players: [{ library: [] }, {}] }), (state) => state.pending?.kind === 'gameOver');
+      const decked = passUntil(
+        createScenario({ activePlayer: 1, players: [{ library: [] }, {}] }),
+        (state) => state.pending?.kind === 'gameOver',
+      );
       const conceded = play(createScenario({ players: [{}, {}] }), [{ type: 'concede', player: 1 }]);
       return first(
         expectValue(burn.pending, { kind: 'gameOver', winner: 0, reason: 'life' }, 'burn'),
@@ -527,7 +674,9 @@ export const CHECKS: Check[] = [
       for (const deck of DECK_LIST) {
         for (const entry of deck.cards) owners.set(entry.card, (owners.get(entry.card) ?? 0) + 1);
       }
-      const shared = [...owners].filter(([id, count]) => count > 1 && !getCardDef(id).supertypes?.includes('Basic')).map(([id]) => id);
+      const shared = [...owners]
+        .filter(([id, count]) => count > 1 && !getCardDef(id).supertypes?.includes('Basic'))
+        .map(([id]) => id);
       return first(
         expectValue(
           DECK_LIST.map((deck) => deck.id),
@@ -550,7 +699,10 @@ export const CHECKS: Check[] = [
           'decks',
         ),
         expectValue(
-          DECK_LIST.map((deck) => [deckSize(deck), expandDeck(deck).filter((id) => getCardDef(id).types.includes('land')).length]),
+          DECK_LIST.map((deck) => [
+            deckSize(deck),
+            expandDeck(deck).filter((id) => getCardDef(id).types.includes('land')).length,
+          ]),
           DECK_LIST.map(() => [40, 16]),
           'cards and lands per deck',
         ),
@@ -575,7 +727,11 @@ export const CHECKS: Check[] = [
         { type: 'cast', player: 0, card: 'tide', targets: [{ card: 'rhino' }] },
       ]);
       s = resolve(s);
-      return expectValue([zone(s, 'rhino'), zone(s, 'tide'), s.stack.length], ['graveyard', 'graveyard', 0], 'zones and stack');
+      return expectValue(
+        [zone(s, 'rhino'), zone(s, 'tide'), s.stack.length],
+        ['graveyard', 'graveyard', 0],
+        'zones and stack',
+      );
     },
   },
   {
@@ -605,8 +761,19 @@ export const CHECKS: Check[] = [
     run: () => {
       let s = createScenario({
         players: [
-          { hand: [{ card: 'withering_touch', id: 't1' }, { card: 'withering_touch', id: 't2' }], battlefield: ['swamp', 'swamp'] },
-          { battlefield: [{ card: 'cinder_adept', id: 'adept' }, { card: 'timberland_rhino', id: 'rhino' }] },
+          {
+            hand: [
+              { card: 'withering_touch', id: 't1' },
+              { card: 'withering_touch', id: 't2' },
+            ],
+            battlefield: ['swamp', 'swamp'],
+          },
+          {
+            battlefield: [
+              { card: 'cinder_adept', id: 'adept' },
+              { card: 'timberland_rhino', id: 'rhino' },
+            ],
+          },
         ],
       });
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 't1', targets: [{ card: 'adept' }] }]));
@@ -615,7 +782,14 @@ export const CHECKS: Check[] = [
       s = passUntil(s, (state) => state.turn === 4 && state.pending?.kind === 'priority');
       return first(
         expectValue(zone(s, 'adept'), 'graveyard', 'adept'),
-        expectValue([shrunk, [getPower(s, 'rhino'), getToughness(s, 'rhino')]], [[2, 2], [4, 4]], 'rhino this turn and next'),
+        expectValue(
+          [shrunk, [getPower(s, 'rhino'), getToughness(s, 'rhino')]],
+          [
+            [2, 2],
+            [4, 4],
+          ],
+          'rhino this turn and next',
+        ),
       );
     },
   },
@@ -626,14 +800,23 @@ export const CHECKS: Check[] = [
       const s = createScenario({
         players: [
           { hand: [{ card: 'dawns_verdict', id: 'verdict' }], battlefield: ['plains', 'plains', 'plains'] },
-          { battlefield: [{ card: 'timberland_rhino', id: 'tapped', tapped: true }, { card: 'crag_dragon', id: 'untapped' }] },
+          {
+            battlefield: [
+              { card: 'timberland_rhino', id: 'tapped', tapped: true },
+              { card: 'crag_dragon', id: 'untapped' },
+            ],
+          },
         ],
       });
       const targets = getLegalActions(s).flatMap((action) => (action.type === 'cast' ? action.targets : []));
       const after = resolve(play(s, [{ type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'tapped' }] }]));
       return first(
         expectValue(targets, [{ card: 'tapped' }], 'legal targets'),
-        refused(s, { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] }, { code: 'illegalTarget', index: 0, target: 'untapped' }),
+        refused(
+          s,
+          { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] },
+          { code: 'illegalTarget', index: 0, target: 'untapped' },
+        ),
         expectValue(zone(after, 'tapped'), 'graveyard', 'tapped rhino'),
       );
     },
@@ -642,13 +825,31 @@ export const CHECKS: Check[] = [
     id: 'F34',
     title: "Life payment: Night's Bargain draws two for 2 life, Dread Tyrant costs 2 life when it enters",
     run: () => {
-      let bargain = createScenario({ players: [{ hand: [{ card: 'nights_bargain', id: 'bargain' }], battlefield: ['swamp', 'swamp'] }, {}] });
+      let bargain = createScenario({
+        players: [{ hand: [{ card: 'nights_bargain', id: 'bargain' }], battlefield: ['swamp', 'swamp'] }, {}],
+      });
       bargain = resolve(play(bargain, [{ type: 'cast', player: 0, card: 'bargain', targets: [] }]));
-      let tyrant = createScenario({ players: [{ hand: [{ card: 'dread_tyrant', id: 'tyrant' }], battlefield: ['swamp', 'swamp', 'swamp', 'swamp', 'swamp'] }, {}] });
+      let tyrant = createScenario({
+        players: [
+          {
+            hand: [{ card: 'dread_tyrant', id: 'tyrant' }],
+            battlefield: ['swamp', 'swamp', 'swamp', 'swamp', 'swamp'],
+          },
+          {},
+        ],
+      });
       tyrant = resolve(play(tyrant, [{ type: 'cast', player: 0, card: 'tyrant', targets: [] }]));
       return first(
-        expectValue([bargain.players[0].hand.length, bargain.players[0].life], [2, 18], "Night's Bargain hand and life"),
-        expectValue([zone(tyrant, 'tyrant'), tyrant.players[0].life], ['battlefield', 18], 'Dread Tyrant zone and life'),
+        expectValue(
+          [bargain.players[0].hand.length, bargain.players[0].life],
+          [2, 18],
+          "Night's Bargain hand and life",
+        ),
+        expectValue(
+          [zone(tyrant, 'tyrant'), tyrant.players[0].life],
+          ['battlefield', 18],
+          'Dread Tyrant zone and life',
+        ),
       );
     },
   },
@@ -657,18 +858,28 @@ export const CHECKS: Check[] = [
     title: 'Death triggers: Gloom Wisp draws a card, Crypt Ghoul deals 1 damage to the opponent',
     run: () => {
       let wisp = createScenario({
-        players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { battlefield: [{ card: 'gloom_wisp', id: 'wisp' }] }],
+        players: [
+          { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+          { battlefield: [{ card: 'gloom_wisp', id: 'wisp' }] },
+        ],
       });
       wisp = resolve(play(wisp, [{ type: 'cast', player: 0, card: 'snap', targets: [{ card: 'wisp' }] }]));
       let ghoul = createScenario({
-        players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { battlefield: [{ card: 'crypt_ghoul', id: 'ghoul', damage: 1 }] }],
+        players: [
+          { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+          { battlefield: [{ card: 'crypt_ghoul', id: 'ghoul', damage: 1 }] },
+        ],
       });
       ghoul = play(ghoul, [
         { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'ghoul' }] },
         { type: 'pass', player: 0 },
         { type: 'pass', player: 1 },
       ]);
-      const asked = expectValue([ghoul.pending?.kind, ghoul.pending && 'player' in ghoul.pending ? ghoul.pending.player : null], ['chooseTargets', 1], 'pending decision');
+      const asked = expectValue(
+        [ghoul.pending?.kind, ghoul.pending && 'player' in ghoul.pending ? ghoul.pending.player : null],
+        ['chooseTargets', 1],
+        'pending decision',
+      );
       ghoul = resolve(play(ghoul, [{ type: 'chooseTargets', player: 1, targets: [{ player: 0 }] }]));
       return first(
         expectValue([zone(wisp, 'wisp'), wisp.players[1].hand.length], ['graveyard', 1], 'Gloom Wisp'),
@@ -684,10 +895,14 @@ export const CHECKS: Check[] = [
       const ids = DECK_LIST.map((deck) => deck.id);
       for (const [index, first] of ids.entries()) {
         const second = ids[(index + 1) % ids.length] as string;
-        const game = aiGame(40 + index, (s) => {
-          const problems = checkInvariants(s);
-          return problems.length ? problems.join('; ') : null;
-        }, [first, second]);
+        const game = aiGame(
+          40 + index,
+          (s) => {
+            const problems = checkInvariants(s);
+            return problems.length ? problems.join('; ') : null;
+          },
+          [first, second],
+        );
         if (game.problem) return `${first} vs ${second}: ${game.problem}`;
       }
       return null;
@@ -695,12 +910,19 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F40',
-    title: "Flash: Squall Skimmer is cast in the opponent's turn, in response to a spell; a creature without flash is not",
+    title:
+      "Flash: Squall Skimmer is cast in the opponent's turn, in response to a spell; a creature without flash is not",
     run: () => {
       let s = createScenario({
         activePlayer: 1,
         players: [
-          { hand: [{ card: 'squall_skimmer', id: 'skimmer' }, { card: 'galewing_falcon', id: 'falcon' }], battlefield: ['island', 'island', 'island'] },
+          {
+            hand: [
+              { card: 'squall_skimmer', id: 'skimmer' },
+              { card: 'galewing_falcon', id: 'falcon' },
+            ],
+            battlefield: ['island', 'island', 'island'],
+          },
           { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
         ],
       });
@@ -712,7 +934,11 @@ export const CHECKS: Check[] = [
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'skimmer', targets: [] }]));
       return first(
         falcon,
-        expectValue([zone(s, 'skimmer'), zone(s, 'snap'), s.players[0].life], ['battlefield', 'graveyard', 18], 'Squall Skimmer, Ember Snap and life'),
+        expectValue(
+          [zone(s, 'skimmer'), zone(s, 'snap'), s.players[0].life],
+          ['battlefield', 'graveyard', 18],
+          'Squall Skimmer, Ember Snap and life',
+        ),
       );
     },
   },
@@ -723,7 +949,10 @@ export const CHECKS: Check[] = [
       let s = createScenario({
         players: [
           {
-            hand: [{ card: 'static_jolt', id: 'jolt' }, { card: 'kiln_sprite', id: 'sprite' }],
+            hand: [
+              { card: 'static_jolt', id: 'jolt' },
+              { card: 'kiln_sprite', id: 'sprite' },
+            ],
             battlefield: ['mountain', 'mountain', { card: 'arc_initiate', id: 'initiate' }],
           },
           {},
@@ -743,7 +972,11 @@ export const CHECKS: Check[] = [
         expectValue(stacked, ['spell', 'trigger'], 'stack after casting an instant'),
         expectValue(pumped, [3, 3, 1], 'Arc Initiate and the stack before the instant resolves'),
         expectValue(life, 19, 'opponent life'),
-        expectValue(s.stack.map((item) => item.kind), ['spell'], 'stack after casting a creature'),
+        expectValue(
+          s.stack.map((item) => item.kind),
+          ['spell'],
+          'stack after casting a creature',
+        ),
       );
     },
   },
@@ -754,7 +987,10 @@ export const CHECKS: Check[] = [
       let s = createScenario({
         players: [
           {
-            hand: [{ card: 'wild_blossom', id: 'blossom' }, { card: 'undertow', id: 'undertow' }],
+            hand: [
+              { card: 'wild_blossom', id: 'blossom' },
+              { card: 'undertow', id: 'undertow' },
+            ],
             battlefield: ['forest', 'forest', 'island', 'island', { card: 'beacon_squire', id: 'squire' }],
           },
           {},
@@ -772,13 +1008,19 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F43',
-    title: 'Team pumps: Rally the Meadow gives each creature you control +1/+1, Sunmeadow Herald +1/+0 when it attacks, until end of turn',
+    title:
+      'Team pumps: Rally the Meadow gives each creature you control +1/+1, Sunmeadow Herald +1/+0 when it attacks, until end of turn',
     run: () => {
       let s = createScenario({
         players: [
           {
             hand: [{ card: 'rally_the_meadow', id: 'rally' }],
-            battlefield: ['plains', 'plains', { card: 'sunmeadow_herald', id: 'herald' }, { card: 'beacon_squire', id: 'squire' }],
+            battlefield: [
+              'plains',
+              'plains',
+              { card: 'sunmeadow_herald', id: 'herald' },
+              { card: 'beacon_squire', id: 'squire' },
+            ],
           },
           { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
         ],
@@ -790,9 +1032,31 @@ export const CHECKS: Check[] = [
       const attacking = stats(['herald', 'squire']);
       s = passUntil(s, (state) => state.turn === 4 && state.pending?.kind === 'priority');
       return first(
-        expectValue(rallied, [[3, 3], [3, 3], [2, 1]], 'after Rally the Meadow'),
-        expectValue(attacking, [[4, 3], [4, 3]], 'after Sunmeadow Herald attacks'),
-        expectValue(stats(['herald', 'squire']), [[2, 2], [2, 2]], 'on the next turn'),
+        expectValue(
+          rallied,
+          [
+            [3, 3],
+            [3, 3],
+            [2, 1],
+          ],
+          'after Rally the Meadow',
+        ),
+        expectValue(
+          attacking,
+          [
+            [4, 3],
+            [4, 3],
+          ],
+          'after Sunmeadow Herald attacks',
+        ),
+        expectValue(
+          stats(['herald', 'squire']),
+          [
+            [2, 2],
+            [2, 2],
+          ],
+          'on the next turn',
+        ),
       );
     },
   },
@@ -803,17 +1067,40 @@ export const CHECKS: Check[] = [
       let s = createScenario({
         players: [
           { hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] },
-          { hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'undertow', id: 'undertow' }], battlefield: ['mountain', 'island', 'island'] },
+          {
+            hand: [
+              { card: 'ember_snap', id: 'snap' },
+              { card: 'undertow', id: 'undertow' },
+            ],
+            battlefield: ['mountain', 'island', 'island'],
+          },
         ],
       });
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'banners', targets: [] }]));
       const tokens = s.players[0].battlefield.filter((id) => s.cards[id]?.def === 'soldier_token');
       const created = tokens.map((id) => [getPower(s, id), getToughness(s, id)]);
       const [dying = '', bounced = ''] = tokens;
-      s = resolve(play(s, [{ type: 'pass', player: 0 }, { type: 'cast', player: 1, card: 'snap', targets: [{ card: dying }] }]));
-      s = resolve(play(s, [{ type: 'pass', player: 0 }, { type: 'cast', player: 1, card: 'undertow', targets: [{ card: bounced }] }]));
+      s = resolve(
+        play(s, [
+          { type: 'pass', player: 0 },
+          { type: 'cast', player: 1, card: 'snap', targets: [{ card: dying }] },
+        ]),
+      );
+      s = resolve(
+        play(s, [
+          { type: 'pass', player: 0 },
+          { type: 'cast', player: 1, card: 'undertow', targets: [{ card: bounced }] },
+        ]),
+      );
       return first(
-        expectValue(created, [[1, 1], [1, 1]], 'Soldier tokens'),
+        expectValue(
+          created,
+          [
+            [1, 1],
+            [1, 1],
+          ],
+          'Soldier tokens',
+        ),
         expectValue(
           [zone(s, dying), zone(s, bounced), s.players[0].graveyard, s.players[0].hand],
           ['gone', 'gone', ['banners'], []],
@@ -824,17 +1111,29 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F45',
-    title: '"Another creature you control" triggers: Forge Cadet grows with each new creature, tokens included; two Rotwing Crows that die together drain for each other',
+    title:
+      '"Another creature you control" triggers: Forge Cadet grows with each new creature, tokens included; two Rotwing Crows that die together drain for each other',
     run: () => {
       let cadet = createScenario({
-        players: [{ hand: [{ card: 'muster_sergeant', id: 'sergeant' }], battlefield: ['plains', 'plains', { card: 'forge_cadet', id: 'cadet' }] }, {}],
+        players: [
+          {
+            hand: [{ card: 'muster_sergeant', id: 'sergeant' }],
+            battlefield: ['plains', 'plains', { card: 'forge_cadet', id: 'cadet' }],
+          },
+          {},
+        ],
       });
       cadet = resolve(play(cadet, [{ type: 'cast', player: 0, card: 'sergeant', targets: [] }]));
       let crows = toAttackers(
         createScenario({
           activePlayer: 1,
           players: [
-            { battlefield: [{ card: 'rotwing_crow', id: 'a' }, { card: 'rotwing_crow', id: 'b' }] },
+            {
+              battlefield: [
+                { card: 'rotwing_crow', id: 'a' },
+                { card: 'rotwing_crow', id: 'b' },
+              ],
+            },
             { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
           ],
         }),
@@ -853,19 +1152,31 @@ export const CHECKS: Check[] = [
         ]),
       );
       return first(
-        expectValue([cadet.cards.cadet?.counters, getPower(cadet, 'cadet')], [2, 3], 'Forge Cadet after Muster Sergeant and its token'),
-        expectValue([zone(crows, 'a'), zone(crows, 'b'), crows.players[1].life], ['graveyard', 'graveyard', 18], 'crows and the attacking player'),
+        expectValue(
+          [cadet.cards.cadet?.counters, getPower(cadet, 'cadet')],
+          [2, 3],
+          'Forge Cadet after Muster Sergeant and its token',
+        ),
+        expectValue(
+          [zone(crows, 'a'), zone(crows, 'b'), crows.players[1].life],
+          ['graveyard', 'graveyard', 18],
+          'crows and the attacking player',
+        ),
       );
     },
   },
   {
     id: 'F46',
-    title: 'Keyword grants: Charge of the Forge gives +1/+0 and first strike until end of turn; Brightforge Warlord gives itself haste as it arrives',
+    title:
+      'Keyword grants: Charge of the Forge gives +1/+0 and first strike until end of turn; Brightforge Warlord gives itself haste as it arrives',
     run: () => {
       let s = toAttackers(
         createScenario({
           players: [
-            { hand: [{ card: 'charge_of_the_forge', id: 'charge' }], battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }] },
+            {
+              hand: [{ card: 'charge_of_the_forge', id: 'charge' }],
+              battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }],
+            },
             { battlefield: [{ card: 'beacon_squire', id: 'squire' }] },
           ],
         }),
@@ -880,7 +1191,13 @@ export const CHECKS: Check[] = [
       const charged = [getPower(s, 'soldier'), getKeywords(s, 'soldier')];
       s = toMain2(s);
       let warlord = createScenario({
-        players: [{ hand: [{ card: 'brightforge_warlord', id: 'warlord' }], battlefield: ['mountain', 'mountain', 'mountain', 'plains', 'plains'] }, {}],
+        players: [
+          {
+            hand: [{ card: 'brightforge_warlord', id: 'warlord' }],
+            battlefield: ['mountain', 'mountain', 'mountain', 'plains', 'plains'],
+          },
+          {},
+        ],
       });
       warlord = toAttackers(resolve(play(warlord, [{ type: 'cast', player: 0, card: 'warlord', targets: [] }])));
       return first(
@@ -898,67 +1215,115 @@ export const CHECKS: Check[] = [
         createScenario({
           players: [
             { battlefield: [{ card: 'fogslip_thief', id: 'thief' }] },
-            { battlefield: [{ card: 'beacon_squire', id: 'squire' }, { card: 'timberland_rhino', id: 'rhino' }] },
+            {
+              battlefield: [
+                { card: 'beacon_squire', id: 'squire' },
+                { card: 'timberland_rhino', id: 'rhino' },
+              ],
+            },
           ],
         }),
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['thief'] }]));
       return first(
         expectValue(blockOptions(s), { squire: ['thief'] }, 'blockers for Fogslip Thief'),
-        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'thief' }] }, { code: 'cannotBlock', blocker: 'rhino', attacker: 'thief' }),
+        refused(
+          s,
+          { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'thief' }] },
+          { code: 'cannotBlock', blocker: 'rhino', attacker: 'thief' },
+        ),
       );
     },
   },
   {
     id: 'F48',
-    title: 'Discard: Memory Leech makes the opponent choose a card to discard; Sift the Depths draws two, then you discard one',
+    title:
+      'Discard: Memory Leech makes the opponent choose a card to discard; Sift the Depths draws two, then you discard one',
     run: () => {
       let leech = createScenario({
         players: [
           { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
-          { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }] },
+          {
+            hand: [
+              { card: 'forest', id: 'f' },
+              { card: 'ember_snap', id: 'snap' },
+            ],
+          },
         ],
       });
       leech = resolve(play(leech, [{ type: 'cast', player: 0, card: 'leech', targets: [] }]));
-      const asked = expectValue(leech.pending, { kind: 'discard', player: 1, count: 1, source: 'leech' }, 'pending decision');
+      const asked = expectValue(
+        leech.pending,
+        { kind: 'discard', player: 1, count: 1, source: 'leech' },
+        'pending decision',
+      );
       leech = play(leech, [{ type: 'discard', player: 1, cards: ['snap'] }]);
-      let sift = createScenario({ players: [{ hand: [{ card: 'sift_the_depths', id: 'sift' }], battlefield: ['island', 'island'] }, {}] });
+      let sift = createScenario({
+        players: [{ hand: [{ card: 'sift_the_depths', id: 'sift' }], battlefield: ['island', 'island'] }, {}],
+      });
       sift = resolve(play(sift, [{ type: 'cast', player: 0, card: 'sift', targets: [] }]));
       const drawn = sift.players[0].hand.length;
       const card = sift.players[0].hand[0] as string;
       sift = play(sift, [{ type: 'discard', player: 0, cards: [card] }]);
       return first(
         asked,
-        expectValue([zone(leech, 'snap'), leech.players[1].hand, leech.pending], ['graveyard', ['f'], { kind: 'priority', player: 0 }], 'after the discard'),
+        expectValue(
+          [zone(leech, 'snap'), leech.players[1].hand, leech.pending],
+          ['graveyard', ['f'], { kind: 'priority', player: 0 }],
+          'after the discard',
+        ),
         expectValue([drawn, sift.players[0].hand.length, zone(sift, card)], [2, 1, 'graveyard'], 'Sift the Depths'),
       );
     },
   },
   {
     id: 'F49',
-    title: '"Whenever this creature deals combat damage to a player": Hushwing Bat makes that player discard, Fogslip Thief draws a card',
+    title:
+      '"Whenever this creature deals combat damage to a player": Hushwing Bat makes that player discard, Fogslip Thief draws a card',
     run: () => {
       let s = toAttackers(
         createScenario({
           players: [
-            { battlefield: [{ card: 'fogslip_thief', id: 'thief' }, { card: 'hushwing_bat', id: 'bat' }] },
+            {
+              battlefield: [
+                { card: 'fogslip_thief', id: 'thief' },
+                { card: 'hushwing_bat', id: 'bat' },
+              ],
+            },
             { hand: [{ card: 'forest', id: 'f' }] },
           ],
         }),
       );
-      s = passUntil(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['thief', 'bat'] }]), (state) => state.pending?.kind === 'discard');
+      s = passUntil(
+        play(s, [{ type: 'declareAttackers', player: 0, attackers: ['thief', 'bat'] }]),
+        (state) => state.pending?.kind === 'discard',
+      );
       const asked = expectValue(s.pending, { kind: 'discard', player: 1, count: 1, source: 'bat' }, 'pending decision');
       s = toMain2(play(s, [{ type: 'discard', player: 1, cards: ['f'] }]));
-      return first(asked, expectValue([s.players[1].life, s.players[1].hand.length, s.players[0].hand.length], [17, 0, 1], 'life and hands'));
+      return first(
+        asked,
+        expectValue(
+          [s.players[1].life, s.players[1].hand.length, s.players[0].hand.length],
+          [17, 0, 1],
+          'life and hands',
+        ),
+      );
     },
   },
   {
     id: 'F50',
-    title: 'Undying: Gravebloom Sprout returns with a +1/+1 counter the first time it dies, and stays dead the second time',
+    title:
+      'Undying: Gravebloom Sprout returns with a +1/+1 counter the first time it dies, and stays dead the second time',
     run: () => {
       let s = createScenario({
         players: [
-          { hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }], battlefield: ['mountain', 'mountain'] },
+          {
+            hand: [
+              { card: 'ember_snap', id: 's1' },
+              { card: 'ember_snap', id: 's2' },
+            ],
+            battlefield: ['mountain', 'mountain'],
+          },
           { battlefield: [{ card: 'gravebloom_sprout', id: 'sprout' }] },
         ],
       });
@@ -973,7 +1338,8 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F51',
-    title: 'Sacrifice: Bloodspore Thrall dies as the cost of its ability, and its undying trigger resolves before the ability',
+    title:
+      'Sacrifice: Bloodspore Thrall dies as the cost of its ability, and its undying trigger resolves before the ability',
     run: () => {
       let s = createScenario({ players: [{ battlefield: [{ card: 'bloodspore_thrall', id: 'thrall' }] }, {}] });
       s = play(s, [{ type: 'activate', player: 0, card: 'thrall', ability: 0, targets: [] }]);
@@ -993,13 +1359,19 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F52',
-    title: '"Whenever you gain life": Vesper Novice grows and Sanguine Chorister drains; lifelink damage dealt at once is one gain',
+    title:
+      '"Whenever you gain life": Vesper Novice grows and Sanguine Chorister drains; lifelink damage dealt at once is one gain',
     run: () => {
       let collector = createScenario({
         players: [
           {
             hand: [{ card: 'tithe_collector', id: 'collector' }],
-            battlefield: ['swamp', 'swamp', { card: 'sanguine_chorister', id: 'chorister' }, { card: 'vesper_novice', id: 'novice' }],
+            battlefield: [
+              'swamp',
+              'swamp',
+              { card: 'sanguine_chorister', id: 'chorister' },
+              { card: 'vesper_novice', id: 'novice' },
+            ],
           },
           {},
         ],
@@ -1008,27 +1380,52 @@ export const CHECKS: Check[] = [
       let combat = toAttackers(
         createScenario({
           players: [
-            { battlefield: [{ card: 'chantry_guard', id: 'guard' }, { card: 'ghostlit_penitent', id: 'penitent' }, { card: 'vesper_novice', id: 'novice' }] },
+            {
+              battlefield: [
+                { card: 'chantry_guard', id: 'guard' },
+                { card: 'ghostlit_penitent', id: 'penitent' },
+                { card: 'vesper_novice', id: 'novice' },
+              ],
+            },
             {},
           ],
         }),
       );
       combat = toMain2(play(combat, [{ type: 'declareAttackers', player: 0, attackers: ['guard', 'penitent'] }]));
       return first(
-        expectValue([collector.players[0].life, collector.players[1].life, collector.cards.novice?.counters], [21, 18, 1], 'after Tithe Collector'),
+        expectValue(
+          [collector.players[0].life, collector.players[1].life, collector.cards.novice?.counters],
+          [21, 18, 1],
+          'after Tithe Collector',
+        ),
         expectValue([combat.players[0].life, combat.cards.novice?.counters], [23, 1], 'after two lifelink attackers'),
       );
     },
   },
   {
     id: 'F53',
-    title: 'Bloodthirst: Blistering Hellion gets two +1/+1 counters only once the opponent was dealt damage this turn, until the turn ends',
+    title:
+      'Bloodthirst: Blistering Hellion gets two +1/+1 counters only once the opponent was dealt damage this turn, until the turn ends',
     run: () => {
       let s = createScenario({
         players: [
           {
-            hand: [{ card: 'blistering_hellion', id: 'h1' }, { card: 'blistering_hellion', id: 'h2' }, { card: 'bloodfire_bolt', id: 'bolt' }],
-            battlefield: ['mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'swamp', 'swamp', 'swamp'],
+            hand: [
+              { card: 'blistering_hellion', id: 'h1' },
+              { card: 'blistering_hellion', id: 'h2' },
+              { card: 'bloodfire_bolt', id: 'bolt' },
+            ],
+            battlefield: [
+              'mountain',
+              'mountain',
+              'mountain',
+              'mountain',
+              'mountain',
+              'mountain',
+              'swamp',
+              'swamp',
+              'swamp',
+            ],
           },
           {},
         ],
@@ -1038,7 +1435,10 @@ export const CHECKS: Check[] = [
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'bolt', targets: [{ player: 1 }] }]));
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'h2', targets: [] }]));
       const after = [s.cards.h2?.counters, getPower(s, 'h2'), getToughness(s, 'h2')];
-      s = passUntil(s, (state) => state.activePlayer === 1 && state.step === 'main1' && state.pending?.kind === 'priority');
+      s = passUntil(
+        s,
+        (state) => state.activePlayer === 1 && state.step === 'main1' && state.pending?.kind === 'priority',
+      );
       return first(
         expectValue(before, 0, 'Blistering Hellion cast first'),
         expectValue(after, [2, 5, 4], 'Blistering Hellion cast after Bloodfire Bolt'),
@@ -1048,7 +1448,8 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F54',
-    title: "Hexproof: Ember Snap can't target Mossfin Lurker; Shell of the Deep in response makes Magma Lance lose its target",
+    title:
+      "Hexproof: Ember Snap can't target Mossfin Lurker; Shell of the Deep in response makes Magma Lance lose its target",
     run: () => {
       const snap = createScenario({
         players: [
@@ -1059,7 +1460,10 @@ export const CHECKS: Check[] = [
       let lance = createScenario({
         players: [
           { hand: [{ card: 'magma_lance', id: 'lance' }], battlefield: ['mountain', 'mountain', 'mountain'] },
-          { hand: [{ card: 'shell_of_the_deep', id: 'shell' }], battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }] },
+          {
+            hand: [{ card: 'shell_of_the_deep', id: 'shell' }],
+            battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }],
+          },
         ],
       });
       lance = resolve(
@@ -1070,8 +1474,16 @@ export const CHECKS: Check[] = [
         ]),
       );
       return first(
-        refused(snap, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] }, { code: 'illegalTarget', index: 0, target: 'lurker' }),
-        expectValue([zone(lance, 'croc'), zone(lance, 'lance'), getKeywords(lance, 'croc')], ['battlefield', 'graveyard', ['hexproof']], 'after Magma Lance'),
+        refused(
+          snap,
+          { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] },
+          { code: 'illegalTarget', index: 0, target: 'lurker' },
+        ),
+        expectValue(
+          [zone(lance, 'croc'), zone(lance, 'lance'), getKeywords(lance, 'croc')],
+          ['battlefield', 'graveyard', ['hexproof']],
+          'after Magma Lance',
+        ),
       );
     },
   },
@@ -1082,7 +1494,10 @@ export const CHECKS: Check[] = [
       let s = createScenario({
         players: [
           {
-            hand: [{ card: 'kelpweaver_druid', id: 'druid' }, { card: 'shoal_hatchling', id: 'second' }],
+            hand: [
+              { card: 'kelpweaver_druid', id: 'druid' },
+              { card: 'shoal_hatchling', id: 'second' },
+            ],
             battlefield: ['forest', 'forest', 'forest', { card: 'shoal_hatchling', id: 'first' }],
           },
           {},
@@ -1099,26 +1514,36 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F56',
-    title: 'Bite: Snapjaw Strike makes Mossfin Lurker deal damage equal to its power to a creature, and it takes none back',
+    title:
+      'Bite: Snapjaw Strike makes Mossfin Lurker deal damage equal to its power to a creature, and it takes none back',
     run: () => {
       let s = createScenario({
         players: [
-          { hand: [{ card: 'snapjaw_strike', id: 'strike' }], battlefield: ['forest', 'forest', { card: 'mossfin_lurker', id: 'lurker' }] },
+          {
+            hand: [{ card: 'snapjaw_strike', id: 'strike' }],
+            battlefield: ['forest', 'forest', { card: 'mossfin_lurker', id: 'lurker' }],
+          },
           { battlefield: [{ card: 'mossbark_bear', id: 'bear' }] },
         ],
       });
-      s = resolve(play(s, [{ type: 'cast', player: 0, card: 'strike', targets: [{ card: 'lurker' }, { card: 'bear' }] }]));
+      s = resolve(
+        play(s, [{ type: 'cast', player: 0, card: 'strike', targets: [{ card: 'lurker' }, { card: 'bear' }] }]),
+      );
       return expectValue([zone(s, 'bear'), s.cards.lurker?.damage], ['graveyard', 0], 'after Snapjaw Strike');
     },
   },
   {
     id: 'F57',
-    title: '"Whenever you cast an instant or sorcery spell": Flamecrest Mentor makes a Monk with prowess, which grows with the next spell',
+    title:
+      '"Whenever you cast an instant or sorcery spell": Flamecrest Mentor makes a Monk with prowess, which grows with the next spell',
     run: () => {
       let s = createScenario({
         players: [
           {
-            hand: [{ card: 'spark_volley', id: 'v1' }, { card: 'spark_volley', id: 'v2' }],
+            hand: [
+              { card: 'spark_volley', id: 'v1' },
+              { card: 'spark_volley', id: 'v2' },
+            ],
             battlefield: ['mountain', 'mountain', { card: 'flamecrest_mentor', id: 'mentor' }],
           },
           {},
@@ -1130,17 +1555,28 @@ export const CHECKS: Check[] = [
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'v2', targets: [{ player: 1 }] }]));
       return first(
         expectValue(made, [['prowess'], 4, 3], 'Monk keywords and Flamecrest Mentor after one spell'),
-        expectValue([getPower(s, monk), getToughness(s, monk), s.players[1].life], [4, 2, 18], 'first Monk and life after two spells'),
+        expectValue(
+          [getPower(s, monk), getToughness(s, monk), s.players[1].life],
+          [4, 2, 18],
+          'first Monk and life after two spells',
+        ),
       );
     },
   },
   {
     id: 'F58',
-    title: 'Landfall: Cliff Lynx gets +2/+2 until end of turn and Quake Boar a +1/+1 counter for each land that enters under your control',
+    title:
+      'Landfall: Cliff Lynx gets +2/+2 until end of turn and Quake Boar a +1/+1 counter for each land that enters under your control',
     run: () => {
       let s = createScenario({
         players: [
-          { hand: [{ card: 'forest', id: 'land' }], battlefield: [{ card: 'cliff_lynx', id: 'lynx' }, { card: 'quake_boar', id: 'boar' }] },
+          {
+            hand: [{ card: 'forest', id: 'land' }],
+            battlefield: [
+              { card: 'cliff_lynx', id: 'lynx' },
+              { card: 'quake_boar', id: 'boar' },
+            ],
+          },
           { battlefield: [{ card: 'cliff_lynx', id: 'theirs' }] },
         ],
       });
@@ -1155,14 +1591,24 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F59',
-    title: 'Land search: Trail Scout puts a basic Forest from the library onto the battlefield tapped, and Deep Sowing puts another into the hand',
+    title:
+      'Land search: Trail Scout puts a basic Forest from the library onto the battlefield tapped, and Deep Sowing puts another into the hand',
     run: () => {
       let s = createScenario({
         players: [
           {
-            hand: [{ card: 'trail_scout', id: 'scout' }, { card: 'deep_sowing', id: 'sowing' }],
+            hand: [
+              { card: 'trail_scout', id: 'scout' },
+              { card: 'deep_sowing', id: 'sowing' },
+            ],
             battlefield: ['forest', 'forest', 'forest', 'forest', 'forest'],
-            library: ['mountain', { card: 'forest', id: 'f1' }, 'mountain', { card: 'forest', id: 'f2' }, { card: 'forest', id: 'f3' }],
+            library: [
+              'mountain',
+              { card: 'forest', id: 'f1' },
+              'mountain',
+              { card: 'forest', id: 'f2' },
+              { card: 'forest', id: 'f3' },
+            ],
           },
           {},
         ],
@@ -1184,7 +1630,12 @@ export const CHECKS: Check[] = [
       let s = createScenario({
         players: [
           {
-            hand: [{ card: 'open_path', id: 'path' }, { card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }, { card: 'forest', id: 'f3' }],
+            hand: [
+              { card: 'open_path', id: 'path' },
+              { card: 'forest', id: 'f1' },
+              { card: 'forest', id: 'f2' },
+              { card: 'forest', id: 'f3' },
+            ],
             battlefield: ['forest'],
           },
           {},
@@ -1203,11 +1654,18 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F61',
-    title: 'Special lands: Silver Spire enters tapped and pays white, blue or black from the next turn; the Prismatic Fount and Wayfarer Druid pay any color',
+    title:
+      'Special lands: Silver Spire enters tapped and pays white, blue or black from the next turn; the Prismatic Fount and Wayfarer Druid pay any color',
     run: () => {
       let s = createScenario({
         players: [
-          { hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'sky_messenger', id: 'messenger' }], battlefield: ['plains'] },
+          {
+            hand: [
+              { card: 'silver_spire', id: 'spire' },
+              { card: 'sky_messenger', id: 'messenger' },
+            ],
+            battlefield: ['plains'],
+          },
           {},
         ],
       });
@@ -1228,26 +1686,47 @@ export const CHECKS: Check[] = [
       return first(
         expectValue(now, [true, { code: 'notEnoughMana' }], 'the turn Silver Spire is played'),
         expectValue(zone(s, 'messenger'), 'battlefield', 'Sky Messenger two turns later'),
-        expectValue(zone(dragon, 'dragon'), 'battlefield', 'Prismatic Dragon paid by three tri-lands, the Fount and the Druid'),
+        expectValue(
+          zone(dragon, 'dragon'),
+          'battlefield',
+          'Prismatic Dragon paid by three tri-lands, the Fount and the Druid',
+        ),
       );
     },
   },
   {
     id: 'F62',
-    title: 'Player setup: other starting life, another opening hand and permanents on the battlefield from the start, which trigger nothing',
+    title:
+      'Player setup: other starting life, another opening hand and permanents on the battlefield from the start, which trigger nothing',
     run: () => {
       const s = createGame({
         seed: 9,
         startingPlayer: 0,
-        players: [{ life: 25, openingHand: 8, battlefield: ['soldier_token', 'mountain'] }, { life: 14, openingHand: 6 }],
+        players: [
+          { life: 25, openingHand: 8, battlefield: ['soldier_token', 'mountain'] },
+          { life: 14, openingHand: 6 },
+        ],
       });
-      const mulligan = play(createGame({ seed: 9, startingPlayer: 0, players: [{ openingHand: 8 }, {}] }), [{ type: 'mulligan', player: 0 }]);
+      const mulligan = play(createGame({ seed: 9, startingPlayer: 0, players: [{ openingHand: 8 }, {}] }), [
+        { type: 'mulligan', player: 0 },
+      ]);
       return first(
-        expectValue(s.players.map((p) => [p.life, p.hand.length]), [[25, 8], [14, 6]], 'life and opening hands'),
-        expectValue(s.players[0].battlefield.map((id) => [s.cards[id]?.def, s.cards[id]?.tapped, s.cards[id]?.summoningSick]), [
-          ['soldier_token', false, false],
-          ['mountain', false, false],
-        ], 'permanents from the start'),
+        expectValue(
+          s.players.map((p) => [p.life, p.hand.length]),
+          [
+            [25, 8],
+            [14, 6],
+          ],
+          'life and opening hands',
+        ),
+        expectValue(
+          s.players[0].battlefield.map((id) => [s.cards[id]?.def, s.cards[id]?.tapped, s.cards[id]?.summoningSick]),
+          [
+            ['soldier_token', false, false],
+            ['mountain', false, false],
+          ],
+          'permanents from the start',
+        ),
         expectValue(s.triggers.length, 0, 'triggers'),
         expectValue(mulligan.players[0].hand.length, 8, 'hand after a mulligan'),
       );
@@ -1255,40 +1734,69 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F63',
-    title: 'Relics: beside their player from the start and never a target; the bell drains the opponent at its owner’s upkeep, the censer makes a Saproling for each instant or sorcery, the urn drains for each of its owner’s creatures that dies; a first-turn draw',
+    title:
+      'Relics: beside their player from the start and never a target; the bell drains the opponent at its owner’s upkeep, the censer makes a Saproling for each instant or sorcery, the urn drains for each of its owner’s creatures that dies; a first-turn draw',
     run: () => {
-      const kept = play(createGame({ seed: 9, startingPlayer: 0, players: [{ relics: ['bell'], drawOnFirstTurn: true }, { relics: ['censer'] }] }), [
-        { type: 'keep', player: 0 },
-        { type: 'keep', player: 1 },
-      ]);
-      const upkeep = [kept.step, kept.stack.map((item) => (item.kind === 'trigger' ? kept.cards[item.source]?.def : item.kind))];
+      const kept = play(
+        createGame({
+          seed: 9,
+          startingPlayer: 0,
+          players: [{ relics: ['bell'], drawOnFirstTurn: true }, { relics: ['censer'] }],
+        }),
+        [
+          { type: 'keep', player: 0 },
+          { type: 'keep', player: 1 },
+        ],
+      );
+      const upkeep = [
+        kept.step,
+        kept.stack.map((item) => (item.kind === 'trigger' ? kept.cards[item.source]?.def : item.kind)),
+      ];
       const turn = passUntil(kept, (state) => state.step === 'main1');
       let s = createScenario({
         players: [
-          { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'], relics: [{ card: 'censer', id: 'censer' }] },
+          {
+            hand: [{ card: 'ember_snap', id: 'snap' }],
+            battlefield: ['mountain'],
+            relics: [{ card: 'censer', id: 'censer' }],
+          },
           { battlefield: [{ card: 'grove_tender', id: 'elf' }], relics: [{ card: 'urn', id: 'urn' }] },
         ],
       });
-      const untargetable = refused(s, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'urn' }] }, { code: 'illegalTarget', index: 0, target: 'urn' });
+      const untargetable = refused(
+        s,
+        { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'urn' }] },
+        { code: 'illegalTarget', index: 0, target: 'urn' },
+      );
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'snap', targets: [{ card: 'elf' }] }]));
       const saprolings = s.players[0].battlefield.filter((id) => s.cards[id]?.def === 'saproling_token').length;
       return first(
         expectValue(upkeep, ['upkeep', ['bell']], 'the first upkeep'),
         expectValue([turn.players[1].life, turn.players[0].hand.length], [19, 8], 'the first main phase'),
         untargetable,
-        expectValue([saprolings, zone(s, 'elf'), s.players[0].life], [1, 'graveyard', 19], 'after Ember Snap kills the Grove Tender'),
+        expectValue(
+          [saprolings, zone(s, 'elf'), s.players[0].life],
+          [1, 'graveyard', 19],
+          'after Ember Snap kills the Grove Tender',
+        ),
       );
     },
   },
   {
     id: 'F38',
-    title: 'Animations: an attacker and its blocker strike each other, and the blocker that dies keeps its place as it fades',
+    title:
+      'Animations: an attacker and its blocker strike each other, and the blocker that dies keeps its place as it fades',
     run: () => {
       let s = toAttackers(
         createScenario({
           players: [
             { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
-            { battlefield: [{ card: 'canopy_spider', id: 'spider' }, { card: 'grove_tender', id: 'elf' }] },
+            {
+              battlefield: [
+                { card: 'canopy_spider', id: 'spider' },
+                { card: 'grove_tender', id: 'elf' },
+              ],
+            },
           ],
         }),
       );
@@ -1312,19 +1820,34 @@ export const CHECKS: Check[] = [
   },
   {
     id: 'F39',
-    title: "Animations: the opponent's spell is revealed with its target, burn shows the life lost, a new turn shows the card drawn",
+    title:
+      "Animations: the opponent's spell is revealed with its target, burn shows the life lost, a new turn shows the card drawn",
     run: () => {
       const s = createScenario({
         activePlayer: 1,
-        players: [{ library: [{ card: 'forest', id: 'top' }] }, { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }],
+        players: [
+          { library: [{ card: 'forest', id: 'top' }] },
+          { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+        ],
       });
       const cast = play(s, [{ type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] }]);
       const resolved = animateUntil(cast, (state) => state.stack.length === 0);
       const turn = animateUntil(resolved.state, (state) => state.activePlayer === 0 && state.step === 'main1');
       return first(
-        expectValue(fxCues(s, cast), [{ kind: 'play', player: 1, card: 'snap', via: 'cast', targets: [{ player: 0 }] }], 'cast cues'),
+        expectValue(
+          fxCues(s, cast),
+          [{ kind: 'play', player: 1, card: 'snap', via: 'cast', targets: [{ player: 0 }] }],
+          'cast cues',
+        ),
         expectValue(resolved.cues, [{ kind: 'life', player: 0, delta: -2 }], 'resolution cues'),
-        expectValue(turn.cues, [{ kind: 'turn', player: 0, turn: 4 }, { kind: 'draw', player: 0, card: 'top' }], 'new turn cues'),
+        expectValue(
+          turn.cues,
+          [
+            { kind: 'turn', player: 0, turn: 4 },
+            { kind: 'draw', player: 0, card: 'top' },
+          ],
+          'new turn cues',
+        ),
       );
     },
   },
@@ -1336,7 +1859,11 @@ export const CHECKS: Check[] = [
         activePlayer: 1,
         players: [{ life: 2 }, { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }],
       });
-      return expectValue(chooseAction(s, 1), { type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] }, 'AI action');
+      return expectValue(
+        chooseAction(s, 1),
+        { type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] },
+        'AI action',
+      );
     },
   },
   {
@@ -1346,7 +1873,10 @@ export const CHECKS: Check[] = [
       const s = play(
         createScenario({
           players: [
-            { hand: [{ card: 'timberland_rhino', id: 'rhino' }], battlefield: ['forest', 'forest', 'forest', 'forest'] },
+            {
+              hand: [{ card: 'timberland_rhino', id: 'rhino' }],
+              battlefield: ['forest', 'forest', 'forest', 'forest'],
+            },
             { hand: [{ card: 'turn_the_tide', id: 'tide' }], battlefield: ['island', 'island', 'island'] },
           ],
         }),
@@ -1355,7 +1885,11 @@ export const CHECKS: Check[] = [
           { type: 'pass', player: 0 },
         ],
       );
-      return expectValue(chooseAction(s, 1), { type: 'cast', player: 1, card: 'tide', targets: [{ card: 'rhino' }] }, 'AI action');
+      return expectValue(
+        chooseAction(s, 1),
+        { type: 'cast', player: 1, card: 'tide', targets: [{ card: 'rhino' }] },
+        'AI action',
+      );
     },
   },
   {
@@ -1366,7 +1900,13 @@ export const CHECKS: Check[] = [
         createScenario({
           players: [
             { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
-            { life: 3, battlefield: [{ card: 'soldier_token', id: 's1' }, { card: 'soldier_token', id: 's2' }] },
+            {
+              life: 3,
+              battlefield: [
+                { card: 'soldier_token', id: 's1' },
+                { card: 'soldier_token', id: 's2' },
+              ],
+            },
           ],
         }),
       );

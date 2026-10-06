@@ -66,13 +66,19 @@ export function targetCombos(s: GameState, controller: PlayerId, specs: TargetSp
   return combos;
 }
 
-export function targetsError(s: GameState, controller: PlayerId, specs: TargetSpec[], targets: Target[]): Refusal | null {
+export function targetsError(
+  s: GameState,
+  controller: PlayerId,
+  specs: TargetSpec[],
+  targets: Target[],
+): Refusal | null {
   if (!Array.isArray(targets)) return { code: 'targetsNotList' };
   if (targets.length !== specs.length) return { code: 'targetCount', given: targets.length, expected: specs.length };
   for (let i = 0; i < specs.length; i++) {
     const target = targets[i] as Target;
     if (!target || typeof target !== 'object') return { code: 'targetMalformed', index: i };
-    if (!isLegalTarget(s, controller, specs[i] as TargetSpec, target)) return { code: 'illegalTarget', index: i, target: targetKey(target) };
+    if (!isLegalTarget(s, controller, specs[i] as TargetSpec, target))
+      return { code: 'illegalTarget', index: i, target: targetKey(target) };
     for (let j = 0; j < i; j++) {
       if (sameTarget(targets[j] as Target, target)) return { code: 'sameTargetTwice' };
     }

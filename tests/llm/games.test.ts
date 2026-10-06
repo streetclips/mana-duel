@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { chooseAction } from '../../src/ai';
-import { applyAction, checkInvariants, createGame, forcedAction, tryApplyAction, type GameState } from '../../src/engine';
+import {
+  applyAction,
+  checkInvariants,
+  createGame,
+  forcedAction,
+  tryApplyAction,
+  type GameState,
+} from '../../src/engine';
 import { createLlmPlayer, eventLines, thoughtLine, type DecisionSource } from '../../src/llm';
 import { lcg } from '../helpers';
 import { mockModel, schemaOf, type ModelCall } from './model';
@@ -22,7 +29,9 @@ function anyAnswer(schema: JsonSchema, rand: () => number): unknown {
     const count = Number(/Exactly (\d+)/.exec(schema.description ?? '')?.[1] ?? 1) + (rand() < 0.2 ? 1 : 0);
     return Array.from({ length: count }, () => anyAnswer(schema.items ?? {}, rand));
   }
-  return Object.fromEntries(Object.entries(schema.properties ?? {}).map(([key, value]) => [key, anyAnswer(value, rand)]));
+  return Object.fromEntries(
+    Object.entries(schema.properties ?? {}).map(([key, value]) => [key, anyAnswer(value, rand)]),
+  );
 }
 
 describe('an LLM that answers anything its schema allows', () => {

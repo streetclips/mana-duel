@@ -69,7 +69,13 @@ export function fxCues(before: GameState | null, after: GameState): FxCue[] {
         cues.push({ kind: 'play', player: event.player, card: event.card, via: 'land', targets: [] });
         break;
       case 'cast':
-        cues.push({ kind: 'play', player: event.player, card: event.card, via: 'cast', targets: event.targets.map((target) => ({ ...target })) });
+        cues.push({
+          kind: 'play',
+          player: event.player,
+          card: event.card,
+          via: 'cast',
+          targets: event.targets.map((target) => ({ ...target })),
+        });
         break;
       case 'activate':
       case 'trigger':
@@ -82,7 +88,8 @@ export function fxCues(before: GameState | null, after: GameState): FxCue[] {
         for (const card of event.attackers) cues.push({ kind: 'attack', player: event.player, card });
         break;
       case 'block':
-        for (const block of event.blocks) cues.push({ kind: 'block', player: event.player, card: block.blocker, attacker: block.attacker });
+        for (const block of event.blocks)
+          cues.push({ kind: 'block', player: event.player, card: block.blocker, attacker: block.attacker });
         break;
       case 'fight':
       case 'bite':
@@ -136,10 +143,20 @@ export function fxCues(before: GameState | null, after: GameState): FxCue[] {
         break;
       }
       case 'dies':
-        cues.push({ kind: 'dies', player: event.player, card: event.card, next: nextOnBattlefield(before, after, event.player, event.card) });
+        cues.push({
+          kind: 'dies',
+          player: event.player,
+          card: event.card,
+          next: nextOnBattlefield(before, after, event.player, event.card),
+        });
         break;
       case 'bounce':
-        cues.push({ kind: 'bounce', player: event.player, card: event.card, next: nextOnBattlefield(before, after, event.player, event.card) });
+        cues.push({
+          kind: 'bounce',
+          player: event.player,
+          card: event.card,
+          next: nextOnBattlefield(before, after, event.player, event.card),
+        });
         break;
       case 'counter':
         cues.push({ kind: 'counter', player: event.player, card: event.card });

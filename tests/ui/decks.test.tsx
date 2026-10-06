@@ -65,7 +65,9 @@ describe('my decks', () => {
     expect(byTestId('builder-results').textContent).toBe('1 carta');
     click(byTestId('add-crag_dragon'));
     expect(count()).toBe('40/40');
-    expect(byTestId('builder-problems').textContent).toBe('Nada en el mazo da maná rojo: tus cartas rojas no podrán pagarse.');
+    expect(byTestId('builder-problems').textContent).toBe(
+      'Nada en el mazo da maná rojo: tus cartas rojas no podrán pagarse.',
+    );
     type('builder-name', '\u0007');
     expect((byTestId('btn-builder-save') as HTMLButtonElement).disabled).toBe(true);
     type('builder-name', 'Cielo y fuego');
@@ -131,7 +133,9 @@ describe('my decks', () => {
     click(byTestId('sheet-feature'));
     expect(screen.queryByTestId('sheet-feature')).toBeNull();
     click(byTestId('card-sheet'));
-    fireEvent.contextMenu(within(byTestId('builder-deck-cinder_adept')).getByRole('button', { name: 'Ver Adepto del ascua' }));
+    fireEvent.contextMenu(
+      within(byTestId('builder-deck-cinder_adept')).getByRole('button', { name: 'Ver Adepto del ascua' }),
+    );
     expect(byTestId('card-sheet').textContent).toContain('2 en el mazo');
     click(byTestId('card-sheet'));
     click(byTestId('btn-builder-save'));

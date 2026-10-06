@@ -77,7 +77,10 @@ test('Random draws a deck for either seat when the game starts, and is remembere
   const errors = collectErrors(page);
   await page.goto('/');
   await page.getByTestId('seat-0').click();
-  await expect(page.getByTestId('deck-picker').getByRole('radio').first()).toHaveAttribute('data-testid', 'deck-random');
+  await expect(page.getByTestId('deck-picker').getByRole('radio').first()).toHaveAttribute(
+    'data-testid',
+    'deck-random',
+  );
   await page.getByTestId('deck-random').click();
   await expect(page.getByTestId('deck-random')).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByTestId('seat-0')).toHaveAttribute('data-deck', 'random');
@@ -88,7 +91,9 @@ test('Random draws a deck for either seat when the game starts, and is remembere
   await page.getByTestId('btn-play').click();
   await expect(page.getByTestId('prompt')).toHaveText('¿Te quedas con tu mano inicial?');
   const matchup = await page.evaluate(() => window.manaDuel.matchup());
-  const names = await page.evaluate(() => Object.fromEntries(window.manaDuel.decks().map((deck) => [deck.id, deck.name])));
+  const names = await page.evaluate(() =>
+    Object.fromEntries(window.manaDuel.decks().map((deck) => [deck.id, deck.name])),
+  );
   await expect(page.getByTestId('deck-name-0')).toContainText(names[matchup?.[0] ?? ''] ?? 'none');
   await expect(page.getByTestId('deck-name-1')).toContainText(names[matchup?.[1] ?? ''] ?? 'none');
   await page.reload();
@@ -104,12 +109,20 @@ test('the deck viewer shows every card of a deck, with art and details', async (
   await page.getByTestId('deck-view-duskmire').click();
   const viewer = page.getByTestId('deck-viewer');
   await expect(viewer).toHaveAttribute('data-deck', 'duskmire');
-  const counts = await viewer.locator('[data-testid^="deck-card-"]').evaluateAll((cards) => cards.map((card) => Number(card.getAttribute('data-count'))));
+  const counts = await viewer
+    .locator('[data-testid^="deck-card-"]')
+    .evaluateAll((cards) => cards.map((card) => Number(card.getAttribute('data-count'))));
   expect(counts.reduce((sum, count) => sum + count, 0)).toBe(40);
   const art = viewer.locator('.art img');
   await expect(art).toHaveCount(counts.length);
   await expect
-    .poll(() => art.evaluateAll((images) => images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0).length))
+    .poll(() =>
+      art.evaluateAll(
+        (images) =>
+          images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)
+            .length,
+      ),
+    )
     .toBe(counts.length);
   await expect(page.getByTestId('mana-curve')).toBeVisible();
   await expectNoHorizontalOverflow(page);
@@ -132,7 +145,13 @@ test('every deck box shows its featured art in the browser build', async ({ page
   const decks = await page.evaluate(() => window.manaDuel.decks().length);
   await expect(art).toHaveCount(decks);
   await expect
-    .poll(() => art.evaluateAll((images) => images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0).length))
+    .poll(() =>
+      art.evaluateAll(
+        (images) =>
+          images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)
+            .length,
+      ),
+    )
     .toBe(decks);
   expect(errors).toEqual([]);
 });
@@ -230,7 +249,10 @@ test('auto-pass turns off from the URL or from the menu, which remembers it', as
   const errors = collectErrors(page);
   const aiTurn = (): Promise<void> =>
     page.evaluate(() => {
-      window.manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
+      window.manaDuel.loadScenario({
+        activePlayer: 1,
+        players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}],
+      });
       window.manaDuel.settle();
     });
   await page.goto('/?seed=1&aiDelay=0&autoPass=off');
@@ -254,7 +276,10 @@ test('spells, targets and combat work from the UI', async ({ page }) => {
   await page.evaluate(() =>
     window.manaDuel.loadScenario({
       players: [
-        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain', { card: 'timberland_rhino', id: 'rhino' }] },
+        {
+          hand: [{ card: 'ember_snap', id: 'snap' }],
+          battlefield: ['mountain', { card: 'timberland_rhino', id: 'rhino' }],
+        },
         { life: 20, battlefield: [{ card: 'grove_tender', id: 'elf' }] },
       ],
     }),
@@ -272,13 +297,18 @@ test('spells, targets and combat work from the UI', async ({ page }) => {
   await expectNoHorizontalOverflow(page);
 });
 
-test('Stormglass and Sunmeadow: a flash creature in the opponent’s turn, +1/+1 counters on a card', async ({ page }) => {
+test('Stormglass and Sunmeadow: a flash creature in the opponent’s turn, +1/+1 counters on a card', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=stormglass&aiDeck=sunmeadow&aiDelay=0&autoPass=off');
   await expect(page.getByTestId('deck-name-0')).toContainText('Cristormenta');
   await expect(page.getByTestId('deck-name-1')).toContainText('Pradosol');
   await page.evaluate(() => {
-    window.manaDuel.loadScenario({ activePlayer: 1, players: [{ hand: [{ card: 'squall_skimmer', id: 'skimmer' }], battlefield: ['island', 'island'] }, {}] });
+    window.manaDuel.loadScenario({
+      activePlayer: 1,
+      players: [{ hand: [{ card: 'squall_skimmer', id: 'skimmer' }], battlefield: ['island', 'island'] }, {}],
+    });
     window.manaDuel.settle();
   });
   await expect(page.getByTestId('prompt')).toHaveText('Fase principal del rival');
@@ -291,7 +321,13 @@ test('Stormglass and Sunmeadow: a flash creature in the opponent’s turn, +1/+1
   await page.evaluate(() => {
     window.manaDuel.setAutoPass(true);
     window.manaDuel.loadScenario({
-      players: [{ hand: [{ card: 'wild_blossom', id: 'blossom' }], battlefield: ['forest', 'forest', { card: 'bristleback_boar', id: 'boar' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'wild_blossom', id: 'blossom' }],
+          battlefield: ['forest', 'forest', { card: 'bristleback_boar', id: 'boar' }],
+        },
+        {},
+      ],
     });
   });
   await page.getByTestId('card-blossom').click();
@@ -317,12 +353,19 @@ test('every card shows art that loads in the browser build, tokens on the battle
     return { cards, tokens };
   });
   expect(tokens.length).toBeGreaterThan(0);
-  for (const [zone, count] of [['hand', cards.length], ['battlefield-0', tokens.length]] as const) {
+  for (const [zone, count] of [
+    ['hand', cards.length],
+    ['battlefield-0', tokens.length],
+  ] as const) {
     const art = page.getByTestId(zone).locator('.art img');
     await expect(art).toHaveCount(count);
     await expect
       .poll(() =>
-        art.evaluateAll((images) => images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0).length),
+        art.evaluateAll(
+          (images) =>
+            images.filter((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)
+              .length,
+        ),
       )
       .toBe(count);
   }
@@ -330,7 +373,9 @@ test('every card shows art that loads in the browser build, tokens on the battle
   expect(errors).toEqual([]);
 });
 
-test('every card name fits two lines in hand, and ability pills fit their cards on the battlefield', async ({ page }) => {
+test('every card name fits two lines in hand, and ability pills fit their cards on the battlefield', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=1&aiDelay=0');
   const cards = await page.evaluate(() => {
@@ -373,7 +418,11 @@ test('every card name fits two lines in hand, and ability pills fit their cards 
     [...document.querySelectorAll<HTMLElement>('.permanent .ability')].map((pill) => {
       const box = pill.getBoundingClientRect();
       const card = (pill.closest('.card') as HTMLElement).getBoundingClientRect();
-      const inside = box.left >= card.left - 0.5 && box.right <= card.right + 0.5 && box.top >= card.top - 0.5 && box.bottom <= card.bottom + 0.5;
+      const inside =
+        box.left >= card.left - 0.5 &&
+        box.right <= card.right + 0.5 &&
+        box.top >= card.top - 0.5 &&
+        box.bottom <= card.bottom + 0.5;
       return { pill: pill.dataset.testid, inside, fits: pill.scrollWidth <= pill.clientWidth + 1 };
     }),
   );
@@ -428,7 +477,10 @@ test('each card in a crowded hand lies over the one before it, playable or not',
       const before = previous.getBoundingClientRect();
       const box = card.getBoundingClientRect();
       const x = (box.left + before.right) / 2;
-      const hits = [0.15, 0.5, 0.9].map((height) => document.elementFromPoint(x, box.top + box.height * height)?.closest<HTMLElement>('.hand-card')?.dataset.card);
+      const hits = [0.15, 0.5, 0.9].map(
+        (height) =>
+          document.elementFromPoint(x, box.top + box.height * height)?.closest<HTMLElement>('.hand-card')?.dataset.card,
+      );
       return [{ card: card.dataset.card, overlap: before.right - box.left, hits }];
     });
   });
@@ -440,25 +492,37 @@ test('each card in a crowded hand lies over the one before it, playable or not',
   expect(errors).toEqual([]);
 });
 
-test('mana symbols sit centred on the lowercase letters of the text around them, in hand and in the card sheet', async ({ page }) => {
+test('mana symbols sit centred on the lowercase letters of the text around them, in hand and in the card sheet', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=1&aiDelay=0&fx=off');
   await page.evaluate(() =>
     window.manaDuel.loadScenario({
-      players: [{ hand: [{ card: 'swamp', id: 'swamp' }], battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain'] }, {}],
+      players: [
+        { hand: [{ card: 'swamp', id: 'swamp' }], battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain'] },
+        {},
+      ],
     }),
   );
   await page.getByTestId('card-dragon').click();
   await expect(page.getByTestId('sheet-activate')).toBeVisible();
   const symbols = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>('[data-testid="hand"] .text .pip, .detail-info .pip, .sheet-actions .pip')].map((pip) => {
+    [
+      ...document.querySelectorAll<HTMLElement>(
+        '[data-testid="hand"] .text .pip, .detail-info .pip, .sheet-actions .pip',
+      ),
+    ].map((pip) => {
       const lowercase = document.createElement('span');
       lowercase.style.cssText = 'display: inline-block; width: 0; height: 1ex';
       pip.after(lowercase);
       const middle = lowercase.getBoundingClientRect();
       lowercase.remove();
       const box = pip.getBoundingClientRect();
-      return { place: pip.closest('.text, .detail-info, .sheet-actions')?.className, offCentre: Math.abs(box.top + box.bottom - middle.top - middle.bottom) / 2 };
+      return {
+        place: pip.closest('.text, .detail-info, .sheet-actions')?.className,
+        offCentre: Math.abs(box.top + box.bottom - middle.top - middle.bottom) / 2,
+      };
     }),
   );
   expect(symbols.map((symbol) => symbol.place)).toEqual(['text', 'text', 'detail-info', 'sheet-actions']);
@@ -466,13 +530,17 @@ test('mana symbols sit centred on the lowercase letters of the text around them,
   expect(errors).toEqual([]);
 });
 
-test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the AI forces, an undying creature sacrificed', async ({ page }) => {
+test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the AI forces, an undying creature sacrificed', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=brightforge&aiDeck=mistgrave&aiDelay=0');
   await expect(page.getByTestId('deck-name-0')).toContainText('Forjaluz');
   await expect(page.getByTestId('deck-name-1')).toContainText('Brumafosa');
   await page.evaluate(() =>
-    window.manaDuel.loadScenario({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] }),
+    window.manaDuel.loadScenario({
+      players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}],
+    }),
   );
   await page.getByTestId('card-banners').click();
   await page.getByTestId('sheet-cast').click();
@@ -487,7 +555,12 @@ test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the A
     window.manaDuel.loadScenario({
       activePlayer: 1,
       players: [
-        { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }] },
+        {
+          hand: [
+            { card: 'forest', id: 'f' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
+        },
         { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
       ],
     });
@@ -501,7 +574,9 @@ test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the A
   expect(await page.evaluate(() => window.manaDuel.state().cards.snap?.zone)).toBe('graveyard');
   expect(await page.evaluate(() => window.manaDuel.log())).toContain('Descartas Chasquido de brasas.');
 
-  await page.evaluate(() => window.manaDuel.loadScenario({ players: [{ battlefield: [{ card: 'bloodspore_thrall', id: 'thrall' }] }, {}] }));
+  await page.evaluate(() =>
+    window.manaDuel.loadScenario({ players: [{ battlefield: [{ card: 'bloodspore_thrall', id: 'thrall' }] }, {}] }),
+  );
   await page.getByTestId('card-thrall').click();
   await page.getByTestId('sheet-activate').click();
   await page.evaluate(() => window.manaDuel.settle());
@@ -511,7 +586,9 @@ test('Brightforge, Mistgrave and Gloamwood: tokens from a spell, a discard the A
   expect(errors).toEqual([]);
 });
 
-test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain and evolve grow creatures, bloodthirst after a hit', async ({ page }) => {
+test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain and evolve grow creatures, bloodthirst after a hit', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=vesperhall&aiDeck=deepgrove&aiDelay=0');
   await expect(page.getByTestId('deck-name-0')).toContainText('Vesperia');
@@ -519,8 +596,16 @@ test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain an
   await page.evaluate(() =>
     window.manaDuel.loadScenario({
       players: [
-        { hand: [{ card: 'penance', id: 'penance' }], battlefield: ['plains', 'swamp', { card: 'vesper_novice', id: 'novice' }] },
-        { battlefield: [{ card: 'mossfin_lurker', id: 'lurker' }, { card: 'kelpweaver_druid', id: 'druid' }] },
+        {
+          hand: [{ card: 'penance', id: 'penance' }],
+          battlefield: ['plains', 'swamp', { card: 'vesper_novice', id: 'novice' }],
+        },
+        {
+          battlefield: [
+            { card: 'mossfin_lurker', id: 'lurker' },
+            { card: 'kelpweaver_druid', id: 'druid' },
+          ],
+        },
       ],
     }),
   );
@@ -536,7 +621,13 @@ test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain an
 
   await page.evaluate(() =>
     window.manaDuel.loadScenario({
-      players: [{ hand: [{ card: 'kelpweaver_druid', id: 'druid' }], battlefield: ['forest', 'forest', { card: 'shoal_hatchling', id: 'hatchling' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'kelpweaver_druid', id: 'druid' }],
+          battlefield: ['forest', 'forest', { card: 'shoal_hatchling', id: 'hatchling' }],
+        },
+        {},
+      ],
     }),
   );
   await page.getByTestId('card-druid').click();
@@ -548,7 +639,10 @@ test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain an
     window.manaDuel.loadScenario({
       players: [
         {
-          hand: [{ card: 'bloodfire_bolt', id: 'bolt' }, { card: 'blistering_hellion', id: 'hellion' }],
+          hand: [
+            { card: 'bloodfire_bolt', id: 'bolt' },
+            { card: 'blistering_hellion', id: 'hellion' },
+          ],
           battlefield: ['swamp', 'mountain', 'mountain', 'mountain', 'mountain'],
         },
         {},
@@ -570,14 +664,22 @@ test('Vesperhall, Cindermaw and Deepgrove: hexproof hides a target, life gain an
   expect(errors).toEqual([]);
 });
 
-test('Flamecrest, Wildland and Crossroads: prowess on an instant, landfall on a land drop, a tri-land that enters tapped', async ({ page }) => {
+test('Flamecrest, Wildland and Crossroads: prowess on an instant, landfall on a land drop, a tri-land that enters tapped', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto('/?seed=5&first=you&deck=flamecrest&aiDeck=crossroads&aiDelay=0');
   await expect(page.getByTestId('deck-name-0')).toContainText('Crestafuego');
   await expect(page.getByTestId('deck-name-1')).toContainText('Encrucijada');
   await page.evaluate(() =>
     window.manaDuel.loadScenario({
-      players: [{ hand: [{ card: 'spark_volley', id: 'volley' }], battlefield: ['mountain', { card: 'cloister_lancer', id: 'lancer' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'spark_volley', id: 'volley' }],
+          battlefield: ['mountain', { card: 'cloister_lancer', id: 'lancer' }],
+        },
+        {},
+      ],
     }),
   );
   await expect(page.getByTestId('card-lancer').locator('.icon[data-icon="prowess"]')).toHaveCount(1);
@@ -590,7 +692,16 @@ test('Flamecrest, Wildland and Crossroads: prowess on an instant, landfall on a 
 
   await page.evaluate(() =>
     window.manaDuel.loadScenario({
-      players: [{ hand: [{ card: 'forest', id: 'land' }], battlefield: [{ card: 'cliff_lynx', id: 'lynx' }, { card: 'quake_boar', id: 'boar' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'forest', id: 'land' }],
+          battlefield: [
+            { card: 'cliff_lynx', id: 'lynx' },
+            { card: 'quake_boar', id: 'boar' },
+          ],
+        },
+        {},
+      ],
     }),
   );
   await page.getByTestId('card-land').click();
@@ -602,7 +713,16 @@ test('Flamecrest, Wildland and Crossroads: prowess on an instant, landfall on a 
 
   await page.evaluate(() =>
     window.manaDuel.loadScenario({
-      players: [{ hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'sky_messenger', id: 'messenger' }], battlefield: ['plains'] }, {}],
+      players: [
+        {
+          hand: [
+            { card: 'silver_spire', id: 'spire' },
+            { card: 'sky_messenger', id: 'messenger' },
+          ],
+          battlefield: ['plains'],
+        },
+        {},
+      ],
     }),
   );
   await expect(page.getByTestId('card-spire').locator('.text .pip')).toHaveCount(3);

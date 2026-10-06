@@ -84,10 +84,15 @@ const controller = new GameController({
   llmFactory,
 });
 
-const direct = ['seed', 'autoplay', 'skipMulligan', 'first', 'deck', 'aiDeck', 'ai', 'model', 'effort'].some((name) => params.has(name));
+const direct = ['seed', 'autoplay', 'skipMulligan', 'first', 'deck', 'aiDeck', 'ai', 'model', 'effort'].some((name) =>
+  params.has(name),
+);
 const initialScreen: Screen = direct ? 'game' : 'start';
 
-const audio = new GameAudio({ ...audioChoiceFrom(params, loadAudioChoice()), scene: initialScreen === 'start' ? 'title' : 'game' });
+const audio = new GameAudio({
+  ...audioChoiceFrom(params, loadAudioChoice()),
+  scene: initialScreen === 'start' ? 'title' : 'game',
+});
 audio.attach(controller);
 audio.listen(window);
 bindAudioDataset(audio, document.documentElement);

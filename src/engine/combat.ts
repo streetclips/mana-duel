@@ -71,10 +71,12 @@ export function blocksError(s: GameState, blocks: unknown): Refusal | null {
   if (!combat) return { code: 'noCombat' };
   const blockers = new Set<string>();
   for (const block of blocks as Block[]) {
-    if (!block || typeof block.blocker !== 'string' || typeof block.attacker !== 'string') return { code: 'malformedBlock' };
+    if (!block || typeof block.blocker !== 'string' || typeof block.attacker !== 'string')
+      return { code: 'malformedBlock' };
     if (blockers.has(block.blocker)) return { code: 'blockerTwice', card: block.blocker };
     blockers.add(block.blocker);
-    if (!canBlockAttacker(s, block.blocker, block.attacker)) return { code: 'cannotBlock', blocker: block.blocker, attacker: block.attacker };
+    if (!canBlockAttacker(s, block.blocker, block.attacker))
+      return { code: 'cannotBlock', blocker: block.blocker, attacker: block.attacker };
   }
   for (const attacker of combat.attackers) {
     if (!hasKeyword(s, attacker, 'menace')) continue;

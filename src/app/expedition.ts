@@ -21,7 +21,16 @@ import { MAX_COPIES, spellPool } from './cardPool';
 import type { Matchup, Perks, Replay, SeatPerks } from './controller';
 import { deckName } from './deckBuilding';
 import type { DuelResult } from './duelTracker';
-import { duelPerks, isRelicId, relicOf, relicsOf, startsEveryDuel, type RelicId, type RelicOwner, type SeatRelics } from './relics';
+import {
+  duelPerks,
+  isRelicId,
+  relicOf,
+  relicsOf,
+  startsEveryDuel,
+  type RelicId,
+  type RelicOwner,
+  type SeatRelics,
+} from './relics';
 import { modesText } from './text/modes';
 
 export type { DuelResult };
@@ -185,7 +194,13 @@ function playerSeat(run: ExpeditionRun): SeatRelics {
 
 export function rivalSeat(rival: Rival): SeatRelics {
   const deck = getDeck(rival.deck);
-  return { relics: rival.relics, deck: deck.cards, colors: deck.colors, life: rival.life, openingHand: rival.openingHand };
+  return {
+    relics: rival.relics,
+    deck: deck.cards,
+    colors: deck.colors,
+    life: rival.life,
+    openingHand: rival.openingHand,
+  };
 }
 
 export function perksAgainst(run: ExpeditionRun, rival: Rival): SeatPerks {
@@ -375,12 +390,16 @@ function isStage(value: unknown): value is Stage {
 
 function isDuelRecord(value: unknown): value is DuelRecord {
   if (!isRecord(value)) return false;
-  return typeof value.rival === 'string' && ['won', 'lost', 'draw'].includes(String(value.result)) && isCount(value.turns);
+  return (
+    typeof value.rival === 'string' && ['won', 'lost', 'draw'].includes(String(value.result)) && isCount(value.turns)
+  );
 }
 
 function isSavedDuel(value: unknown): value is Replay | null {
   if (value === null) return true;
-  return isRecord(value) && typeof value.seed === 'number' && Array.isArray(value.decks) && Array.isArray(value.actions);
+  return (
+    isRecord(value) && typeof value.seed === 'number' && Array.isArray(value.decks) && Array.isArray(value.actions)
+  );
 }
 
 export function isExpeditionRun(value: unknown): value is ExpeditionRun {

@@ -35,10 +35,19 @@ describe('deck choice', () => {
   it('names no deck for Random, which is drawn when the game starts', () => {
     expect(chosenDeck(RANDOM_DECK)).toBeNull();
     expect(chosenDeck('duskmire')?.name).toBe('Fangoscuro');
-    expect(resolveMatchup({ deck: 'dawntide', opponent: RANDOM_DECK }, () => 'gloamwood')).toEqual(['dawntide', 'gloamwood']);
-    expect(resolveMatchup({ deck: RANDOM_DECK, opponent: 'duskmire' }, () => 'gloamwood')).toEqual(['gloamwood', 'duskmire']);
+    expect(resolveMatchup({ deck: 'dawntide', opponent: RANDOM_DECK }, () => 'gloamwood')).toEqual([
+      'dawntide',
+      'gloamwood',
+    ]);
+    expect(resolveMatchup({ deck: RANDOM_DECK, opponent: 'duskmire' }, () => 'gloamwood')).toEqual([
+      'gloamwood',
+      'duskmire',
+    ]);
     const draws = ['stormglass', 'mistgrave'];
-    expect(resolveMatchup({ deck: RANDOM_DECK, opponent: RANDOM_DECK }, () => draws.shift() ?? '')).toEqual(['stormglass', 'mistgrave']);
+    expect(resolveMatchup({ deck: RANDOM_DECK, opponent: RANDOM_DECK }, () => draws.shift() ?? '')).toEqual([
+      'stormglass',
+      'mistgrave',
+    ]);
   });
 
   it('offers your own decks after the fourteen, and plays them by their definition', () => {
@@ -49,7 +58,13 @@ describe('deck choice', () => {
     expect(chosenDeck('mine-1', [mine])).toBe(mine);
     expect(chosenDeck('mine-1')).toBeNull();
     expect(resolveMatchup({ deck: 'mine-1', opponent: 'mine-1' }, () => 'gloamwood', [mine])).toEqual([mine, mine]);
-    expect(knownChoice({ deck: 'mine-1', opponent: 'mine-2' }, [mine])).toEqual({ deck: 'mine-1', opponent: RANDOM_DECK });
-    expect(knownChoice({ deck: 'mine-1', opponent: 'duskmire' }, [])).toEqual({ deck: 'emberwild', opponent: 'duskmire' });
+    expect(knownChoice({ deck: 'mine-1', opponent: 'mine-2' }, [mine])).toEqual({
+      deck: 'mine-1',
+      opponent: RANDOM_DECK,
+    });
+    expect(knownChoice({ deck: 'mine-1', opponent: 'duskmire' }, [])).toEqual({
+      deck: 'emberwild',
+      opponent: 'duskmire',
+    });
   });
 });

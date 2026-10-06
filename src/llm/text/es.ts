@@ -2,7 +2,9 @@ import { count, plural } from '../../i18n';
 import type { LlmText } from './types';
 
 export const es: LlmText = {
-  systemPrompt: (keywordLines) => `Eres un jugador experto de Duelo de Maná, un juego de cartas para dos jugadores basado en las reglas básicas de Magic: The Gathering. Juegas en el asiento llamado "you"; el otro asiento es "opponent", el rival. Ganas cuando las vidas del rival llegan a 0 o cuando tiene que robar de una biblioteca vacía.
+  systemPrompt: (
+    keywordLines,
+  ) => `Eres un jugador experto de Duelo de Maná, un juego de cartas para dos jugadores basado en las reglas básicas de Magic: The Gathering. Juegas en el asiento llamado "you"; el otro asiento es "opponent", el rival. Ganas cuando las vidas del rival llegan a 0 o cuando tiene que robar de una biblioteca vacía.
 
 Reglas:
 - Los dos jugadores empiezan con 20 vidas, un mazo de 40 cartas y una mano de 7. Puedes jugar una tierra por turno, en tu fase principal, mientras la pila esté vacía; "extraLandsThisTurn" cuenta las tierras adicionales que un efecto te deja jugar este turno. Una tierra que "entra girada" no da maná hasta tu siguiente turno.
@@ -41,12 +43,15 @@ Para jugar bien: juega una tierra cada turno y gasta tu maná; ataca cuando el i
     you: 'ti',
     and: ' y ',
     targeting: (targets) => ` sobre ${targets}`,
-    passResolves: 'Pasar la prioridad: no respondes; lo que está en lo alto de la pila se resuelve cuando los dos jugadores pasan',
+    passResolves:
+      'Pasar la prioridad: no respondes; lo que está en lo alto de la pila se resuelve cuando los dos jugadores pasan',
     passEndStep: 'Pasar la prioridad: no haces nada más este turno',
-    passMovesOn: (step) => `Pasar la prioridad: no haces nada ahora; cuando los dos jugadores pasen, la partida avanza a: ${step}`,
+    passMovesOn: (step) =>
+      `Pasar la prioridad: no haces nada ahora; cuando los dos jugadores pasen, la partida avanza a: ${step}`,
     keep: (handSize, bottom) =>
       `Quedarte con esta mano de ${handSize} cartas${bottom > 0 ? ` y luego poner ${count(bottom, 'carta', 'cartas')} de ella en el fondo` : ''}`,
-    mulligan: (bottom) => `Mulligan: barajar esta mano, robar una mano nueva de 7 y poner ${count(bottom, 'carta', 'cartas')} en el fondo`,
+    mulligan: (bottom) =>
+      `Mulligan: barajar esta mano, robar una mano nueva de 7 y poner ${count(bottom, 'carta', 'cartas')} en el fondo`,
     playLand: (name, id) => `Jugar la tierra ${name} (${id})`,
     cast: (name, id, cost, targets) => `Lanzar ${name} (${id}) por ${cost}${targets}`,
     activate: (source, text, targets) => `Activar ${source}: "${text}"${targets}`,
@@ -55,7 +60,8 @@ Para jugar bien: juega una tierra cada turno y gasta tu maná; ataca cuando el i
     attack: (cards) => `Atacar con ${cards}`,
     noBlock: 'No bloquear',
     block: (blocks) => `Bloquear: ${blocks}`,
-    blocks: (blocker, blockerId, attacker, attackerId) => `${blocker} (${blockerId}) bloquea a ${attacker} (${attackerId})`,
+    blocks: (blocker, blockerId, attacker, attackerId) =>
+      `${blocker} (${blockerId}) bloquea a ${attacker} (${attackerId})`,
     bottom: (cards) => `Poner ${cards} en el fondo`,
     discard: (cards) => `Descartar ${cards}`,
     concede: 'Rendirte',
@@ -74,31 +80,40 @@ Para jugar bien: juega una tierra cada turno y gasta tu maná; ataca cuando el i
     attackShape: 'Para cada criatura que puede atacar: true para atacar con ella, false para dejarla atrás.',
     attackQuestion: (untapped, blockers) =>
       `Declara las atacantes. El rival tiene ${count(untapped, 'criatura enderezada', 'criaturas enderezadas')} que ${plural(untapped, 'podría', 'podrían')} bloquear${blockers ? `: ${blockers}` : ''}.`,
-    attackAnswer: 'Responde con "attack": un objeto con el id de cada criatura de la lista a true (ataca) o false (se queda atrás).',
+    attackAnswer:
+      'Responde con "attack": un objeto con el id de cada criatura de la lista a true (ataca) o false (se queda atrás).',
     blockerShape: (creature) => `${creature}: el id de la atacante a la que bloquea, o "none"`,
     blocksShape: 'Para cada una de tus criaturas que puede bloquear: la atacante a la que bloquea, o "none".',
     blockQuestion: (attackers) =>
       `El rival ataca con ${attackers}. Declara las bloqueadoras: cada una de tus criaturas bloquea como mucho a una atacante, y varias pueden bloquear a la misma atacante.`,
     blockOption: (id, creature, attackers) => `${id}: ${creature} — puede bloquear a ${attackers}`,
-    blockAnswer: 'Responde con "blocks": un objeto que asigne a cada id de bloqueadora de la lista el id de la atacante a la que bloquea, o "none".',
-    cleanupDiscard: (amount) => `Limpieza: tienes más de 7 cartas en la mano. Descarta ${count(amount, 'carta', 'cartas')}.`,
-    forcedDiscard: (source, amount) => `${source} te obliga a descartar ${count(amount, 'carta', 'cartas')}: elige cuáles.`,
+    blockAnswer:
+      'Responde con "blocks": un objeto que asigne a cada id de bloqueadora de la lista el id de la atacante a la que bloquea, o "none".',
+    cleanupDiscard: (amount) =>
+      `Limpieza: tienes más de 7 cartas en la mano. Descarta ${count(amount, 'carta', 'cartas')}.`,
+    forcedDiscard: (source, amount) =>
+      `${source} te obliga a descartar ${count(amount, 'carta', 'cartas')}: elige cuáles.`,
     yourSource: (name) => `Tu ${name}`,
     opponentSource: (name) => `${name} del rival`,
     cardsShape: (amount) => `Exactamente ${count(amount, 'id de carta', 'ids de carta')} de tu mano.`,
     bottomQuestion: (mulligans, amount) =>
       `Te has quedado la mano tras ${count(mulligans, 'mulligan', 'mulligans')}: pon ${count(amount, 'carta', 'cartas')} de tu mano en el fondo de tu biblioteca.`,
-    cardsAnswer: (amount) => `Responde con "cards": exactamente ${count(amount, 'id de carta', 'ids de carta')} de la lista.`,
-    wrongCardCount: (amount, chosen) => `elige exactamente ${count(amount, 'carta distinta', 'cartas distintas')} de tu mano, no ${chosen}`,
-    mulliganQuestion: (mulligans) => `Mano inicial: ¿te la quedas o haces mulligan? Llevas ${count(mulligans, 'mulligan', 'mulligans')}.`,
+    cardsAnswer: (amount) =>
+      `Responde con "cards": exactamente ${count(amount, 'id de carta', 'ids de carta')} de la lista.`,
+    wrongCardCount: (amount, chosen) =>
+      `elige exactamente ${count(amount, 'carta distinta', 'cartas distintas')} de tu mano, no ${chosen}`,
+    mulliganQuestion: (mulligans) =>
+      `Mano inicial: ¿te la quedas o haces mulligan? Llevas ${count(mulligans, 'mulligan', 'mulligans')}.`,
   },
   player: {
-    noEndpoint: 'OpenRouter 404: ningún proveedor de este modelo acepta el esquema JSON (o el esfuerzo de razonamiento)',
+    noEndpoint:
+      'OpenRouter 404: ningún proveedor de este modelo acepta el esquema JSON (o el esfuerzo de razonamiento)',
     schemaMismatch: (cause) => `la respuesta no cumplía el esquema${cause}`,
     illegalAnswer: (message) => `respuesta ilegal: ${message}`,
     noAnswer: (duration) => `sin respuesta en ${duration}`,
     output: (kind) => `Tu respuesta a la decisión "${kind}".`,
-    refused: (error) => `\n\nTu respuesta anterior fue rechazada (${error}). Responde otra vez y elige solo entre las opciones de la lista.`,
+    refused: (error) =>
+      `\n\nTu respuesta anterior fue rechazada (${error}). Responde otra vez y elige solo entre las opciones de la lista.`,
     cancelled: 'se canceló la decisión',
   },
 };

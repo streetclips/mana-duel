@@ -53,7 +53,8 @@ export const expeditionText = messages({
     viewCard: (card: string) => `Ver ${card}`,
     incoming: (card: string) => `Entra ${card}`,
     whichLeaves: '¿Qué carta sale de tu mazo?',
-    swapNote: 'Tócala, o añade la nueva sin quitar ninguna: tu mazo tendrá más cartas. Mantén pulsada una carta para leerla.',
+    swapNote:
+      'Tócala, o añade la nueva sin quitar ninguna: tu mazo tendrá más cartas. Mantén pulsada una carta para leerla.',
     addWithoutRemoving: 'Añadir sin quitar',
     swapLabel: (out: string, card: string) => `Cambiar ${out} por ${card}`,
     swap: 'Cambiar',
@@ -67,7 +68,8 @@ export const expeditionText = messages({
     wonTitle: '¡Expedición completada!',
     lostTitle: 'Fin de la expedición',
     wonNote: (rivals: number, deck: string) => `Has vencido a los ${rivals} rivales con ${deck}.`,
-    lostNote: (number: number, total: number, rival: string | null) => `Caíste en el duelo ${number} de ${total}${rival ? `, ante ${rival}` : ''}.`,
+    lostNote: (number: number, total: number, rival: string | null) =>
+      `Caíste en el duelo ${number} de ${total}${rival ? `, ante ${rival}` : ''}.`,
     winsStat: 'victorias',
     relicsStat: (amount: number) => plural(amount, 'reliquia', 'reliquias'),
     newCardsStat: (amount: number) => plural(amount, 'carta nueva', 'cartas nuevas'),
@@ -126,7 +128,8 @@ export const expeditionText = messages({
     rewardEyebrow: (number: number, total: number) => `Duel ${number} of ${total} cleared`,
     chooseCard: 'Choose a card for your deck',
     cardOffers: 'Cards you can take',
-    rewardNote: "Press and hold a card to read all of it. Then you'll decide which card in your deck makes room for it.",
+    rewardNote:
+      "Press and hold a card to read all of it. Then you'll decide which card in your deck makes room for it.",
     skip: 'Skip',
     take: 'Take it',
     newInDeck: 'New to your deck',
@@ -134,7 +137,8 @@ export const expeditionText = messages({
     viewCard: (card: string) => `View ${card}`,
     incoming: (card: string) => `In comes ${card}`,
     whichLeaves: 'Which card leaves your deck?',
-    swapNote: 'Tap it, or add the new one without taking any out: your deck will have more cards. Press and hold a card to read it.',
+    swapNote:
+      'Tap it, or add the new one without taking any out: your deck will have more cards. Press and hold a card to read it.',
     addWithoutRemoving: 'Add without taking out',
     swapLabel: (out: string, card: string) => `Swap ${out} for ${card}`,
     swap: 'Swap',
@@ -148,7 +152,8 @@ export const expeditionText = messages({
     wonTitle: 'Expedition complete!',
     lostTitle: 'End of the expedition',
     wonNote: (rivals: number, deck: string) => `You beat all ${rivals} rivals with ${deck}.`,
-    lostNote: (number: number, total: number, rival: string | null) => `You fell in duel ${number} of ${total}${rival ? `, against ${rival}` : ''}.`,
+    lostNote: (number: number, total: number, rival: string | null) =>
+      `You fell in duel ${number} of ${total}${rival ? `, against ${rival}` : ''}.`,
     winsStat: 'wins',
     relicsStat: (amount: number) => plural(amount, 'relic', 'relics'),
     newCardsStat: (amount: number) => plural(amount, 'new card', 'new cards'),

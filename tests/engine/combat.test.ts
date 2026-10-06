@@ -1,23 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { blockOptions, eligibleAttackers, getLegalActions, tryApplyAction } from '../../src/engine';
-import {
-  attack,
-  block,
-  cast,
-  finishCombat,
-  life,
-  pass,
-  passTo,
-  resolveStack,
-  scenario,
-  zoneOf,
-} from '../helpers';
+import { attack, block, cast, finishCombat, life, pass, passTo, resolveStack, scenario, zoneOf } from '../helpers';
 
 describe('declaring attackers', () => {
   it('taps attackers unless they have vigilance', () => {
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'ember_hound', id: 'hound' }, { card: 'bramble_warden', id: 'warden' }] },
+        {
+          battlefield: [
+            { card: 'ember_hound', id: 'hound' },
+            { card: 'bramble_warden', id: 'warden' },
+          ],
+        },
         {},
       ],
     });
@@ -42,7 +36,9 @@ describe('declaring attackers', () => {
     });
     s = passTo(s, 'declareAttackers');
     expect(eligibleAttackers(s)).toEqual(['spider']);
-    expect(tryApplyAction(s, { type: 'declareAttackers', player: 0, attackers: ['wall'] })).toMatchObject({ ok: false });
+    expect(tryApplyAction(s, { type: 'declareAttackers', player: 0, attackers: ['wall'] })).toMatchObject({
+      ok: false,
+    });
     expect(tryApplyAction(s, { type: 'declareAttackers', player: 0, attackers: ['spider', 'spider'] })).toMatchObject({
       ok: false,
     });
@@ -75,14 +71,20 @@ describe('declaring blockers', () => {
     let s = scenario({
       players: [
         { battlefield: [{ card: 'cinderwing_drake', id: 'drake' }] },
-        { battlefield: [{ card: 'canopy_spider', id: 'spider' }, { card: 'timberland_rhino', id: 'rhino' }] },
+        {
+          battlefield: [
+            { card: 'canopy_spider', id: 'spider' },
+            { card: 'timberland_rhino', id: 'rhino' },
+          ],
+        },
       ],
     });
     s = attack(s, ['drake']);
     s = passTo(s, 'declareBlockers');
     expect(blockOptions(s)).toEqual({ spider: ['drake'] });
-    expect(tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'drake' }] }))
-      .toMatchObject({ ok: false });
+    expect(
+      tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'drake' }] }),
+    ).toMatchObject({ ok: false });
     s = block(s, [{ blocker: 'spider', attacker: 'drake' }]);
     s = finishCombat(s);
     expect(zoneOf(s, 'spider')).toBe('graveyard');
@@ -95,12 +97,22 @@ describe('declaring blockers', () => {
     let s = scenario({
       players: [
         { battlefield: [{ card: 'ridge_marauder', id: 'marauder' }] },
-        { battlefield: [{ card: 'moss_viper', id: 'viper' }, { card: 'canopy_spider', id: 'spider' }] },
+        {
+          battlefield: [
+            { card: 'moss_viper', id: 'viper' },
+            { card: 'canopy_spider', id: 'spider' },
+          ],
+        },
       ],
     });
     s = passTo(attack(s, ['marauder']), 'declareBlockers');
-    expect(tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'viper', attacker: 'marauder' }] }))
-      .toEqual({ ok: false, error: 'marauder tiene la habilidad de amenaza y no puede ser bloqueada excepto por dos o más criaturas', refusal: { code: 'menace', attacker: 'marauder' } });
+    expect(
+      tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'viper', attacker: 'marauder' }] }),
+    ).toEqual({
+      ok: false,
+      error: 'marauder tiene la habilidad de amenaza y no puede ser bloqueada excepto por dos o más criaturas',
+      refusal: { code: 'menace', attacker: 'marauder' },
+    });
     const legal = getLegalActions(s).map((action) => (action.type === 'declareBlockers' ? action.blocks.length : -1));
     expect(legal.sort((a, b) => a - b)).toEqual([0, 2]);
     s = block(s, [
@@ -131,7 +143,12 @@ describe('declaring blockers', () => {
   it('lets one blocker block only one attacker', () => {
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'ember_hound', id: 'h1' }, { card: 'ember_hound', id: 'h2' }] },
+        {
+          battlefield: [
+            { card: 'ember_hound', id: 'h1' },
+            { card: 'ember_hound', id: 'h2' },
+          ],
+        },
         { battlefield: [{ card: 'canopy_spider', id: 'spider' }] },
       ],
     });
@@ -194,7 +211,12 @@ describe('combat damage', () => {
     let s = scenario({
       players: [
         { battlefield: [{ card: 'test_deathtouch_trampler', id: 'dt' }] },
-        { battlefield: [{ card: 'bramble_warden', id: 'w1' }, { card: 'bramble_warden', id: 'w2' }] },
+        {
+          battlefield: [
+            { card: 'bramble_warden', id: 'w1' },
+            { card: 'bramble_warden', id: 'w2' },
+          ],
+        },
       ],
     });
     s = block(attack(s, ['dt']), [
@@ -320,7 +342,10 @@ describe('combat damage', () => {
   it('lets combat tricks change the outcome after blocks', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'ember_hound', id: 'hound' }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'ember_hound', id: 'hound' }],
+        },
         { battlefield: [{ card: 'bramble_warden', id: 'warden' }] },
       ],
     });

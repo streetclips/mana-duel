@@ -129,7 +129,9 @@ button {
   letter-spacing: 0.01em;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.08s ease, opacity 0.15s ease;
+  transition:
+    transform 0.08s ease,
+    opacity 0.15s ease;
   min-height: 38px;
 }
 
@@ -198,7 +200,10 @@ button {
 .start-head {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows 0.3s ease, opacity 0.2s ease, margin 0.3s ease;
+  transition:
+    grid-template-rows 0.3s ease,
+    opacity 0.2s ease,
+    margin 0.3s ease;
 }
 
 .start-head > div {
@@ -279,7 +284,9 @@ button {
   min-width: 0;
   padding: calc(var(--box-w) * 0.44) 6px 12px;
   border-radius: 18px 18px 0 0;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .seat-box {
@@ -560,7 +567,12 @@ button {
   --turn: -16deg;
   --box-a: var(--mana-C);
   --box-b: var(--mana-C);
-  --box-face: linear-gradient(165deg, color-mix(in srgb, var(--box-a) 88%, #fff) 0%, var(--box-a) 26%, color-mix(in srgb, var(--box-b) 78%, #000) 100%);
+  --box-face: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--box-a) 88%, #fff) 0%,
+    var(--box-a) 26%,
+    color-mix(in srgb, var(--box-b) 78%, #000) 100%
+  );
   --box-top: color-mix(in srgb, var(--box-a) 70%, #000);
   --box-edge: color-mix(in srgb, var(--box-b) 56%, #000);
   --box-inner: color-mix(in srgb, var(--box-b) 22%, #d9d3c7);
@@ -597,7 +609,9 @@ button {
 
 .deck-box.random .box-front {
   color: #2c2a26;
-  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.7), inset 0 -0.8em 1.2em rgba(0, 0, 0, 0.08);
+  box-shadow:
+    inset 0 0 0 0.08em rgba(255, 255, 255, 0.7),
+    inset 0 -0.8em 1.2em rgba(0, 0, 0, 0.08);
 }
 
 .deck-box.random .box-brand {
@@ -605,12 +619,24 @@ button {
 }
 
 .deck-box.random .box-pips i.lit {
-  box-shadow: 0 0 0 0.11em rgba(44, 42, 38, 0.7), 0 0.12em 0.28em rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 0 0 0.11em rgba(44, 42, 38, 0.7),
+    0 0.12em 0.28em rgba(0, 0, 0, 0.25);
 }
 
 .deck-box.random .box-art {
-  background: conic-gradient(from 200deg at 50% 50%, var(--mana-W), var(--mana-U), var(--mana-B), var(--mana-R), var(--mana-G), var(--mana-W));
-  box-shadow: 0 0 0 0.13em #fff, 0 0.2em 0.5em rgba(0, 0, 0, 0.2);
+  background: conic-gradient(
+    from 200deg at 50% 50%,
+    var(--mana-W),
+    var(--mana-U),
+    var(--mana-B),
+    var(--mana-R),
+    var(--mana-G),
+    var(--mana-W)
+  );
+  box-shadow:
+    0 0 0 0.13em #fff,
+    0 0.2em 0.5em rgba(0, 0, 0, 0.2);
 }
 
 .deck-box.random .box-name {
@@ -651,7 +677,9 @@ button {
   overflow: hidden;
   border-radius: 0.3em;
   background: radial-gradient(130% 60% at 50% 0%, rgba(255, 255, 255, 0.24), transparent 64%), var(--box-face);
-  box-shadow: inset 0 0 0 0.08em rgba(255, 255, 255, 0.3), inset 0 -0.8em 1.2em rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset 0 0 0 0.08em rgba(255, 255, 255, 0.3),
+    inset 0 -0.8em 1.2em rgba(0, 0, 0, 0.18);
   color: #fff;
   transform: translateZ(calc(var(--d) / 2));
 }
@@ -718,7 +746,9 @@ button {
 
 .box-pips i.lit {
   background: var(--pip);
-  box-shadow: 0 0 0 0.11em rgba(255, 255, 255, 0.92), 0 0.12em 0.28em rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 0 0.11em rgba(255, 255, 255, 0.92),
+    0 0.12em 0.28em rgba(0, 0, 0, 0.4);
 }
 
 .box-brand {
@@ -727,7 +757,9 @@ button {
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  text-shadow: 0 0.05em 0.1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.35);
+  text-shadow:
+    0 0.05em 0.1em rgba(0, 0, 0, 0.5),
+    0 0 0.5em rgba(0, 0, 0, 0.35);
   white-space: nowrap;
 }
 
@@ -741,7 +773,9 @@ button {
   overflow: hidden;
   border-radius: 0.28em;
   background: rgba(0, 0, 0, 0.25);
-  box-shadow: 0 0 0 0.13em rgba(255, 255, 255, 0.9), 0 0.2em 0.5em rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 0 0.13em rgba(255, 255, 255, 0.9),
+    0 0.2em 0.5em rgba(0, 0, 0, 0.35);
 }
 
 .box-art img {
@@ -950,7 +984,9 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .segmented button.on {
@@ -989,8 +1025,12 @@ button {
 }
 
 .field select {
-  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
   background-size: 5px 5px;
   background-repeat: no-repeat;
   padding-right: 32px;
@@ -1083,7 +1123,9 @@ button {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: transform 0.08s ease, border-color 0.15s ease;
+  transition:
+    transform 0.08s ease,
+    border-color 0.15s ease;
 }
 
 .mode-row:active,
@@ -1153,7 +1195,9 @@ button {
   border-radius: 50%;
   background: var(--ink-2);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
 .setting-row[aria-pressed='true'] .switch {
@@ -1540,7 +1584,9 @@ button {
   font-size: 13px;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .relic-option .relic-icon {
@@ -2277,7 +2323,10 @@ button {
   font-weight: 800;
   display: grid;
   place-items: center;
-  transition: background 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease,
+    color 0.2s ease;
 }
 
 .land-pip.tapped {
@@ -2368,7 +2417,11 @@ button {
   overflow: hidden;
   cursor: pointer;
   color: var(--ink);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, outline-color 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    outline-color 0.2s ease,
+    opacity 0.2s ease;
   outline: 2px solid transparent;
   outline-offset: 1px;
 }
@@ -2391,7 +2444,8 @@ button {
 }
 
 .slot.tapped .permanent {
-  transform: translate(calc((var(--card-h) - var(--card-w)) / 2), calc((var(--card-w) - var(--card-h)) / 2)) rotate(90deg);
+  transform: translate(calc((var(--card-h) - var(--card-w)) / 2), calc((var(--card-w) - var(--card-h)) / 2))
+    rotate(90deg);
 }
 
 .card .name {
@@ -2543,14 +2597,20 @@ button {
   padding: calc(3.8px * var(--s, 1)) calc(4.5px * var(--s, 1));
   border-radius: calc(9px * var(--s, 1));
   background: rgba(21, 18, 15, 0.84);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.3);
   color: #fff;
   font-size: calc(8.5px * var(--s, 1));
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.01em;
   text-wrap: balance;
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .ability .cost {
@@ -2766,7 +2826,9 @@ button {
   white-space: nowrap;
   pointer-events: none;
   animation: fx-float calc(1.1s * var(--fx-time)) ease-out calc(var(--fx-delay, 0ms) * var(--fx-time)) both;
-  text-shadow: 0 1px 0 var(--surface), 0 0 6px var(--surface);
+  text-shadow:
+    0 1px 0 var(--surface),
+    0 0 6px var(--surface);
   z-index: 4;
 }
 
@@ -2891,7 +2953,13 @@ button {
   margin: -38px 0 0 -38px;
   pointer-events: none;
   z-index: 3;
-  background: radial-gradient(circle, #fff 0 14%, #ffd66b 22%, var(--bad) 46%, color-mix(in srgb, var(--bad) 0%, transparent) 64%);
+  background: radial-gradient(
+    circle,
+    #fff 0 14%,
+    #ffd66b 22%,
+    var(--bad) 46%,
+    color-mix(in srgb, var(--bad) 0%, transparent) 64%
+  );
   clip-path: polygon(
     50% 0%,
     56% 35%,
@@ -2932,7 +3000,8 @@ button {
 .slot.ghost {
   pointer-events: none;
   z-index: 1;
-  animation: fx-collapse calc(0.24s * var(--fx-time)) ease-in calc((var(--fx-delay, 0ms) + 720ms) * var(--fx-time)) forwards;
+  animation: fx-collapse calc(0.24s * var(--fx-time)) ease-in calc((var(--fx-delay, 0ms) + 720ms) * var(--fx-time))
+    forwards;
 }
 
 .slot.ghost .permanent {
@@ -3101,7 +3170,8 @@ button {
 }
 
 .hand-card[data-fx~='draw'] {
-  animation: fx-draw calc(0.45s * var(--fx-time)) cubic-bezier(0.2, 0.8, 0.3, 1) calc(var(--fx-i, 0) * 70ms * var(--fx-time)) both;
+  animation: fx-draw calc(0.45s * var(--fx-time)) cubic-bezier(0.2, 0.8, 0.3, 1)
+    calc(var(--fx-i, 0) * 70ms * var(--fx-time)) both;
 }
 
 .hand-card[data-fx~='bounce'] {
@@ -3212,7 +3282,9 @@ p .pip,
 }
 
 .mini .cost .pip {
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .mini .caption {
@@ -3422,7 +3494,9 @@ p .pip,
   flex: none;
   outline: 2px solid transparent;
   outline-offset: 1px;
-  transition: opacity 0.2s ease, outline-color 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    outline-color 0.2s ease;
 }
 
 .stack-item.targetable {

@@ -61,7 +61,12 @@ describe('English card and deck text', () => {
     expect(source).toBe(CORE_CARDS.find((def) => def.id === 'grove_tender'));
     withLocale('en', () => {
       const english = getCardDef('grove_tender');
-      expect(english).toMatchObject({ name: 'Grove Tender', subtypes: ['Elf', 'Druid'], flavor: 'She hums, and the land answers.', mana: ['G'] });
+      expect(english).toMatchObject({
+        name: 'Grove Tender',
+        subtypes: ['Elf', 'Druid'],
+        flavor: 'She hums, and the land answers.',
+        mana: ['G'],
+      });
       expect(getCardDef('grove_tender')).toBe(english);
       expect(allCardDefs().find((def) => def.id === 'grove_tender')).toBe(english);
     });
@@ -75,7 +80,9 @@ describe('English card and deck text', () => {
           id: def.id,
           rules: rulesText(def),
           abilities: [
-            ...[...(def.triggers ?? []).keys(), UNDYING_TRIGGER, EVOLVE_TRIGGER, PROWESS_TRIGGER].map((index) => triggerText(def, index)),
+            ...[...(def.triggers ?? []).keys(), UNDYING_TRIGGER, EVOLVE_TRIGGER, PROWESS_TRIGGER].map((index) =>
+              triggerText(def, index),
+            ),
             ...[...(def.activated ?? []).keys()].map((index) => activatedText(def, index)),
           ],
         })),
@@ -87,7 +94,8 @@ describe('English card and deck text', () => {
       const other = spanish.get(card.id);
       expect(card.rules, card.id).toHaveLength(other?.rules.length ?? -1);
       expect(card.abilities, card.id).toHaveLength(other?.abilities.length ?? -1);
-      for (const line of [...card.rules, ...card.abilities, ...(other?.rules ?? []), ...(other?.abilities ?? [])]) expect(line, card.id).not.toBe('');
+      for (const line of [...card.rules, ...card.abilities, ...(other?.rules ?? []), ...(other?.abilities ?? [])])
+        expect(line, card.id).not.toBe('');
     }
   });
 
@@ -111,10 +119,16 @@ describe('rules text in English', () => {
     forest: { type: 'Basic Land — Forest', text: ['{T}: Add {G}.'] },
     grove_tender: { type: 'Creature — Elf Druid', text: ['{T}: Add {G}.'] },
     cloudrider_knight: { type: 'Creature — Human Knight', text: ['Flying, vigilance'] },
-    cinder_adept: { type: 'Creature — Human Shaman', text: ['When this creature enters, it deals 1 damage to any target.'] },
+    cinder_adept: {
+      type: 'Creature — Human Shaman',
+      text: ['When this creature enters, it deals 1 damage to any target.'],
+    },
     crag_dragon: { type: 'Creature — Dragon', text: ['Flying', '{R}: This creature gets +1/+0 until end of turn.'] },
     ember_snap: { type: 'Instant', text: ['Ember Snap deals 2 damage to any target.'] },
-    splitting_flame: { type: 'Sorcery', text: ['Splitting Flame deals 2 damage to target creature and 2 damage to target opponent.'] },
+    splitting_flame: {
+      type: 'Sorcery',
+      text: ['Splitting Flame deals 2 damage to target creature and 2 damage to target opponent.'],
+    },
     withering_touch: { type: 'Instant', text: ['Target creature gets -2/-2 until end of turn.'] },
     nightshade_tonic: { type: 'Instant', text: ['Target creature gets +1/+1 and gains deathtouch until end of turn.'] },
     dawns_verdict: { type: 'Instant', text: ['Destroy target tapped creature.'] },
@@ -124,37 +138,74 @@ describe('rules text in English', () => {
     blood_tithe: { type: 'Sorcery', text: ['Each opponent loses 2 life. You gain 2 life. Draw a card.'] },
     pack_pounce: {
       type: 'Sorcery',
-      text: ["Put a +1/+1 counter on target creature you control. That creature fights target creature you don't control."],
+      text: [
+        "Put a +1/+1 counter on target creature you control. That creature fights target creature you don't control.",
+      ],
     },
-    snapjaw_strike: { type: 'Sorcery', text: ["Target creature you control deals damage equal to its power to target creature you don't control."] },
+    snapjaw_strike: {
+      type: 'Sorcery',
+      text: ["Target creature you control deals damage equal to its power to target creature you don't control."],
+    },
     herd_roar: { type: 'Sorcery', text: ['Creatures you control get +2/+2 and gain trample until end of turn.'] },
     wild_blossom: { type: 'Instant', text: ['Put two +1/+1 counters on target creature.'] },
     harvest_hymn: { type: 'Sorcery', text: ['Put a +1/+1 counter on each creature you control. You gain 2 life.'] },
     rite_of_lanterns: { type: 'Sorcery', text: ['Create two 1/1 white and black Spirit creature tokens with flying.'] },
     rob_the_mind: { type: 'Sorcery', text: ['Each opponent discards two cards.'] },
-    hushwing_bat: { type: 'Creature — Bat', text: ['Flying', 'Whenever this creature deals combat damage to a player, that player discards a card.'] },
+    hushwing_bat: {
+      type: 'Creature — Bat',
+      text: ['Flying', 'Whenever this creature deals combat damage to a player, that player discards a card.'],
+    },
     open_path: { type: 'Sorcery', text: ['You may play an additional land this turn. Draw a card.'] },
-    fertile_rift: { type: 'Instant', text: ['Search your library for a basic Forest card, put it onto the battlefield tapped, then shuffle.'] },
+    fertile_rift: {
+      type: 'Instant',
+      text: ['Search your library for a basic Forest card, put it onto the battlefield tapped, then shuffle.'],
+    },
     deep_sowing: {
       type: 'Sorcery',
-      text: ['Search your library for two basic Forest cards, put one onto the battlefield tapped and the other into your hand, then shuffle.'],
+      text: [
+        'Search your library for two basic Forest cards, put one onto the battlefield tapped and the other into your hand, then shuffle.',
+      ],
     },
-    crypt_ghoul: { type: 'Creature — Zombie', text: ['When this creature dies, it deals 1 damage to target opponent.'] },
-    hopeful_squire: { type: 'Creature — Human Soldier', text: ['Whenever this creature attacks, put a +1/+1 counter on it.'] },
+    crypt_ghoul: {
+      type: 'Creature — Zombie',
+      text: ['When this creature dies, it deals 1 damage to target opponent.'],
+    },
+    hopeful_squire: {
+      type: 'Creature — Human Soldier',
+      text: ['Whenever this creature attacks, put a +1/+1 counter on it.'],
+    },
     galvanic_channeler: {
       type: 'Creature — Human Shaman',
       text: ['Whenever you cast an instant or sorcery spell, this creature deals 1 damage to target opponent.'],
     },
-    forge_cadet: { type: 'Creature — Human Soldier', text: ['Whenever another creature you control enters, put a +1/+1 counter on this creature.'] },
-    rotwing_crow: { type: 'Creature — Bird', text: ['Flying', 'Whenever another creature you control dies, each opponent loses 1 life.'] },
-    vesper_novice: { type: 'Creature — Human Cleric', text: ['Whenever you gain life, put a +1/+1 counter on this creature.'] },
-    cliff_lynx: { type: 'Creature — Cat', text: ['Landfall — Whenever a land you control enters, this creature gets +2/+2 until end of turn.'] },
+    forge_cadet: {
+      type: 'Creature — Human Soldier',
+      text: ['Whenever another creature you control enters, put a +1/+1 counter on this creature.'],
+    },
+    rotwing_crow: {
+      type: 'Creature — Bird',
+      text: ['Flying', 'Whenever another creature you control dies, each opponent loses 1 life.'],
+    },
+    vesper_novice: {
+      type: 'Creature — Human Cleric',
+      text: ['Whenever you gain life, put a +1/+1 counter on this creature.'],
+    },
+    cliff_lynx: {
+      type: 'Creature — Cat',
+      text: ['Landfall — Whenever a land you control enters, this creature gets +2/+2 until end of turn.'],
+    },
     blistering_hellion: {
       type: 'Creature — Hellion',
       text: ['When this creature enters, if an opponent was dealt damage this turn, put two +1/+1 counters on it.'],
     },
-    bonewood_stalker: { type: 'Creature — Zombie Beast', text: ['Sacrifice this creature: Target creature gets -2/-2 until end of turn.'] },
-    bloodspore_thrall: { type: 'Creature — Fungus Zombie', text: ['Undying', 'Sacrifice this creature: Each opponent loses 1 life.'] },
+    bonewood_stalker: {
+      type: 'Creature — Zombie Beast',
+      text: ['Sacrifice this creature: Target creature gets -2/-2 until end of turn.'],
+    },
+    bloodspore_thrall: {
+      type: 'Creature — Fungus Zombie',
+      text: ['Undying', 'Sacrifice this creature: Each opponent loses 1 life.'],
+    },
     silver_spire: { type: 'Land', text: ['This land enters tapped.', '{T}: Add {W}, {U}, or {B}.'] },
     prismatic_fount: { type: 'Land', text: ['This land enters tapped.', '{T}: Add one mana of any color.'] },
     kelpweaver_druid: { type: 'Creature — Merfolk Druid', text: ['{T}: Add {G} or {U}.'] },
@@ -178,7 +229,9 @@ describe('rules text in English', () => {
     expect(triggerText(getCardDef('shoal_hatchling'), EVOLVE_TRIGGER)).toBe(
       'Whenever another creature you control enters, if that creature has greater power or toughness than this creature, put a +1/+1 counter on this creature.',
     );
-    expect(triggerText(getCardDef('arc_initiate'), PROWESS_TRIGGER)).toBe('Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.');
+    expect(triggerText(getCardDef('arc_initiate'), PROWESS_TRIGGER)).toBe(
+      'Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.',
+    );
   });
 
   it('builds one-line summaries', () => {
@@ -200,8 +253,19 @@ describe('the log in English', () => {
   function board(): GameState {
     return scenario({
       players: [
-        { hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'forest', id: 'f' }], battlefield: ['mountain', { card: 'test_bear', id: 'bear' }] },
-        { battlefield: [{ card: 'grove_tender', id: 'elf' }, { card: 'canopy_spider', id: 'spider' }] },
+        {
+          hand: [
+            { card: 'ember_snap', id: 'snap' },
+            { card: 'forest', id: 'f' },
+          ],
+          battlefield: ['mountain', { card: 'test_bear', id: 'bear' }],
+        },
+        {
+          battlefield: [
+            { card: 'grove_tender', id: 'elf' },
+            { card: 'canopy_spider', id: 'spider' },
+          ],
+        },
       ],
     });
   }
@@ -214,21 +278,33 @@ describe('the log in English', () => {
     expect(mine({ t: 'start', startingPlayer: 1 })).toBe('The opponent goes first.');
     expect(mine({ t: 'mulligan', player: 1, count: 1 })).toBe('The opponent mulligans (1).');
     expect(mine({ t: 'keep', player: 0, handSize: 7 })).toBe('You keep 7 cards.');
-    expect(mine({ t: 'bottom', player: 1, count: 2 })).toBe('The opponent puts 2 cards on the bottom of their library.');
+    expect(mine({ t: 'bottom', player: 1, count: 2 })).toBe(
+      'The opponent puts 2 cards on the bottom of their library.',
+    );
     expect(mine({ t: 'turn', turn: 4, player: 1 })).toBe("Turn 4 — the opponent's turn.");
     expect(mine({ t: 'draw', player: 0, card: 'snap' })).toBe('You draw Ember Snap.');
     expect(mine({ t: 'draw', player: 1, card: 'elf' })).toBe('The opponent draws a card.');
     expect(mine({ t: 'drawEmpty', player: 1 })).toBe("The opponent can't draw: their library is empty.");
     expect(mine({ t: 'land', player: 0, card: 'f' })).toBe('You play Forest.');
-    expect(mine({ t: 'cast', player: 0, card: 'snap', targets: [{ card: 'elf' }] })).toBe("You cast Ember Snap targeting the opponent's Grove Tender.");
-    expect(lines(1)({ t: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] })).toBe('The opponent casts Ember Snap targeting you.');
+    expect(mine({ t: 'cast', player: 0, card: 'snap', targets: [{ card: 'elf' }] })).toBe(
+      "You cast Ember Snap targeting the opponent's Grove Tender.",
+    );
+    expect(lines(1)({ t: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] })).toBe(
+      'The opponent casts Ember Snap targeting you.',
+    );
     expect(mine({ t: 'trigger', player: 1, card: 'elf', ability: 0, targets: [{ card: 'bear' }, { player: 0 }] })).toBe(
       "The opponent's Grove Tender triggers targeting your Test Bear and you.",
     );
-    expect(mine({ t: 'attack', player: 0, attackers: ['bear', 'snap', 'f'] })).toBe('You attack with Test Bear, Ember Snap, and Forest.');
+    expect(mine({ t: 'attack', player: 0, attackers: ['bear', 'snap', 'f'] })).toBe(
+      'You attack with Test Bear, Ember Snap, and Forest.',
+    );
     expect(mine({ t: 'block', player: 1, blocks: [] })).toBe("The opponent doesn't block.");
-    expect(mine({ t: 'block', player: 1, blocks: [{ blocker: 'spider', attacker: 'bear' }] })).toBe('The opponent blocks: Canopy Spider → Test Bear.');
-    expect(mine({ t: 'damage', source: 'bear', target: { player: 1 }, amount: 2, combat: true })).toBe('Your Test Bear deals 2 damage to the opponent.');
+    expect(mine({ t: 'block', player: 1, blocks: [{ blocker: 'spider', attacker: 'bear' }] })).toBe(
+      'The opponent blocks: Canopy Spider → Test Bear.',
+    );
+    expect(mine({ t: 'damage', source: 'bear', target: { player: 1 }, amount: 2, combat: true })).toBe(
+      'Your Test Bear deals 2 damage to the opponent.',
+    );
     expect(mine({ t: 'damage', source: 'spider', target: { card: 'bear' }, amount: 1, combat: true })).toBe(
       "The opponent's Canopy Spider deals 1 damage to your Test Bear.",
     );
@@ -237,14 +313,20 @@ describe('the log in English', () => {
     expect(mine({ t: 'pump', card: 'bear', power: 1, toughness: 1, keywords: ['deathtouch'] })).toBe(
       'Your Test Bear gets +1/+1 and gains deathtouch until end of turn.',
     );
-    expect(mine({ t: 'addCounters', card: 'elf', amount: 2 })).toBe("The opponent's Grove Tender gets 2 +1/+1 counters.");
+    expect(mine({ t: 'addCounters', card: 'elf', amount: 2 })).toBe(
+      "The opponent's Grove Tender gets 2 +1/+1 counters.",
+    );
     expect(mine({ t: 'fight', a: 'bear', b: 'elf' })).toBe("Your Test Bear fights the opponent's Grove Tender.");
     expect(mine({ t: 'dies', card: 'elf', player: 1 })).toBe("The opponent's Grove Tender dies.");
     expect(mine({ t: 'discard', player: 1, card: 'elf' })).toBe('The opponent discards Grove Tender.');
     expect(mine({ t: 'bounce', card: 'elf', player: 1 })).toBe("Grove Tender returns to the opponent's hand.");
     expect(mine({ t: 'counter', card: 'snap', player: 0 })).toBe('Your Ember Snap is countered.');
-    expect(mine({ t: 'search', player: 0, card: 'f', to: 'hand' })).toBe('You search your library and put Forest into your hand.');
-    expect(mine({ t: 'search', player: 1, card: 'elf', to: 'battlefield' })).toBe('The opponent searches their library and puts Grove Tender onto the battlefield.');
+    expect(mine({ t: 'search', player: 0, card: 'f', to: 'hand' })).toBe(
+      'You search your library and put Forest into your hand.',
+    );
+    expect(mine({ t: 'search', player: 1, card: 'elf', to: 'battlefield' })).toBe(
+      'The opponent searches their library and puts Grove Tender onto the battlefield.',
+    );
     expect(mine({ t: 'extraLands', player: 0, amount: 1 })).toBe('You may play an additional land this turn.');
     expect(mine({ t: 'concede', player: 1 })).toBe('The opponent concedes.');
     expect(mine({ t: 'gameOver', winner: 0, reason: 'life' })).toBe('You win!');
@@ -252,9 +334,21 @@ describe('the log in English', () => {
   });
 
   it('names the tokens it creates with the right article', () => {
-    const s = scenario({ players: [{ battlefield: [{ card: 'soldier_token', id: 'soldier' }, { card: 'elemental_token', id: 'elemental' }] }, {}] });
+    const s = scenario({
+      players: [
+        {
+          battlefield: [
+            { card: 'soldier_token', id: 'soldier' },
+            { card: 'elemental_token', id: 'elemental' },
+          ],
+        },
+        {},
+      ],
+    });
     expect(describeEvent(s, { t: 'create', player: 0, card: 'soldier' }, 0)).toBe('You create a Soldier token.');
-    expect(describeEvent(s, { t: 'create', player: 0, card: 'elemental' }, 1)).toBe('The opponent creates an Elemental token.');
+    expect(describeEvent(s, { t: 'create', player: 0, card: 'elemental' }, 1)).toBe(
+      'The opponent creates an Elemental token.',
+    );
   });
 
   it('tells whole games without Spanish, from both seats', () => {
@@ -266,7 +360,8 @@ describe('the log in English', () => {
       for (let step = 0; s.pending && s.pending.kind !== 'gameOver' && step < 400; step++) {
         s = applyAction(s, chooseAction(s, s.pending.player));
         for (const event of s.events) {
-          for (const viewer of [0, 1] as const) for (const word of spanishIn(describeEvent(s, event, viewer) ?? '')) leaks.add(word);
+          for (const viewer of [0, 1] as const)
+            for (const word of spanishIn(describeEvent(s, event, viewer) ?? '')) leaks.add(word);
         }
       }
       for (const word of spanishIn(describeState(s, 0, true))) leaks.add(word);
@@ -355,9 +450,23 @@ describe('refusals in English', () => {
   });
 
   it('reach the result of an action in the current language', () => {
-    let s = scenario({ players: [{ hand: [{ card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }] }, {}] });
+    let s = scenario({
+      players: [
+        {
+          hand: [
+            { card: 'forest', id: 'f1' },
+            { card: 'forest', id: 'f2' },
+          ],
+        },
+        {},
+      ],
+    });
     s = playLand(s, 'f1');
     const refused = withLocale('en', () => tryApplyAction(s, { type: 'playLand', player: 0, card: 'f2' }));
-    expect(refused).toEqual({ ok: false, error: "you've already played a land this turn", refusal: { code: 'landPlayed' } });
+    expect(refused).toEqual({
+      ok: false,
+      error: "you've already played a land this turn",
+      refusal: { code: 'landPlayed' },
+    });
   });
 });

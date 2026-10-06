@@ -45,7 +45,11 @@ export function knownChoice(choice: DeckChoice, customs: readonly DeckDef[]): De
   };
 }
 
-export function resolveMatchup(choice: DeckChoice, pickRandom: () => string, customs: readonly DeckDef[] = []): [DeckSpec, DeckSpec] {
+export function resolveMatchup(
+  choice: DeckChoice,
+  pickRandom: () => string,
+  customs: readonly DeckDef[] = [],
+): [DeckSpec, DeckSpec] {
   const resolve = (id: string): DeckSpec => {
     if (id === RANDOM_DECK) return pickRandom();
     return customs.find((deck) => deck.id === id) ?? id;

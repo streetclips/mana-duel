@@ -11,13 +11,19 @@ function secretScenario(): GameState {
     players: [
       {
         hand: [{ card: 'crag_dragon', id: 'secret' }, 'forest'],
-        battlefield: [{ card: 'grove_tender', id: 'elf' }, { card: 'forest', id: 'f0', tapped: true }],
+        battlefield: [
+          { card: 'grove_tender', id: 'elf' },
+          { card: 'forest', id: 'f0', tapped: true },
+        ],
         library: ['timberland_rhino', 'forest'],
       },
       {
         life: 17,
         hand: [{ card: 'ember_snap', id: 'snap' }],
-        battlefield: [{ card: 'mountain', id: 'm1' }, { card: 'canopy_spider', id: 'spider', sick: true, damage: 1 }],
+        battlefield: [
+          { card: 'mountain', id: 'm1' },
+          { card: 'canopy_spider', id: 'spider', sick: true, damage: 1 },
+        ],
         graveyard: ['magma_lance'],
       },
     ],
@@ -36,7 +42,14 @@ describe('the view of one seat', () => {
     expect(view.opponent.libraryCards).toBe(2);
     const text = JSON.stringify(view);
     for (const hidden of ['secret', 'Dragón del risco', 'Rinoceronte forestal']) expect(text).not.toContain(hidden);
-    expect(visibleCardDefs(s, 1).sort()).toEqual(['canopy_spider', 'ember_snap', 'forest', 'grove_tender', 'magma_lance', 'mountain']);
+    expect(visibleCardDefs(s, 1).sort()).toEqual([
+      'canopy_spider',
+      'ember_snap',
+      'forest',
+      'grove_tender',
+      'magma_lance',
+      'mountain',
+    ]);
   });
 
   it('describes both battlefields, graveyards, life and untapped mana', () => {
@@ -45,7 +58,17 @@ describe('the view of one seat', () => {
     expect(view.you).toMatchObject({
       life: 17,
       lands: [{ id: 'm1', name: 'Montaña' }],
-      creatures: [{ id: 'spider', name: 'Araña del dosel', power: 1, toughness: 3, keywords: ['Alcance'], damage: 1, summoningSick: true }],
+      creatures: [
+        {
+          id: 'spider',
+          name: 'Araña del dosel',
+          power: 1,
+          toughness: 3,
+          keywords: ['Alcance'],
+          damage: 1,
+          summoningSick: true,
+        },
+      ],
       graveyard: ['Lanza de magma'],
       availableMana: ['R'],
     });
@@ -67,15 +90,30 @@ describe('the view of one seat', () => {
     s = pass(pass(cast(s, 'surge', [{ card: 'rhino' }])));
     const view = playerView(s, 1);
     expect(view.opponent.creatures).toEqual([
-      { id: 'rhino', name: 'Rinoceronte forestal', power: 7, toughness: 7, keywords: ['Arrolla'], untilEndOfTurn: '+3/+3', tapped: true, attacking: true, blockedBy: ['spider'] },
+      {
+        id: 'rhino',
+        name: 'Rinoceronte forestal',
+        power: 7,
+        toughness: 7,
+        keywords: ['Arrolla'],
+        untilEndOfTurn: '+3/+3',
+        tapped: true,
+        attacking: true,
+        blockedBy: ['spider'],
+      },
     ]);
-    expect(view.you.creatures).toEqual([{ id: 'spider', name: 'Araña del dosel', power: 1, toughness: 3, keywords: ['Alcance'], blocking: 'rhino' }]);
+    expect(view.you.creatures).toEqual([
+      { id: 'spider', name: 'Araña del dosel', power: 1, toughness: 3, keywords: ['Alcance'], blocking: 'rhino' },
+    ]);
   });
 
   it('counts +1/+1 counters apart from pumps until end of turn', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'rally_the_meadow', id: 'rally' }], battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear', counters: 2 }] },
+        {
+          hand: [{ card: 'rally_the_meadow', id: 'rally' }],
+          battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear', counters: 2 }],
+        },
         {},
       ],
     });
@@ -88,29 +126,45 @@ describe('the view of one seat', () => {
   it('marks tokens and shows keywords granted until end of turn', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'charge_of_the_forge', id: 'charge' }], battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }] },
+        {
+          hand: [{ card: 'charge_of_the_forge', id: 'charge' }],
+          battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }],
+        },
         {},
       ],
     });
     s = pass(pass(cast(s, 'charge')));
     expect(playerView(s, 1).opponent.creatures).toEqual([
-      { id: 'soldier', name: 'Soldado', token: true, power: 2, toughness: 1, keywords: ['Daña primero'], untilEndOfTurn: '+1/+0, dañar primero' },
+      {
+        id: 'soldier',
+        name: 'Soldado',
+        token: true,
+        power: 2,
+        toughness: 1,
+        keywords: ['Daña primero'],
+        untilEndOfTurn: '+1/+0, dañar primero',
+      },
     ]);
   });
 
   it('tells which player was dealt damage this turn', () => {
     let s = scenario({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, {}] });
-    expect([playerView(s, 0).opponent.damagedThisTurn, playerView(s, 1).you.damagedThisTurn]).toEqual([undefined, undefined]);
-    s = pass(pass(cast(s, 'snap', [{ player: 1 }])));
-    expect([playerView(s, 0).opponent.damagedThisTurn, playerView(s, 1).you.damagedThisTurn, playerView(s, 0).you.damagedThisTurn]).toEqual([
-      true,
-      true,
+    expect([playerView(s, 0).opponent.damagedThisTurn, playerView(s, 1).you.damagedThisTurn]).toEqual([
+      undefined,
       undefined,
     ]);
+    s = pass(pass(cast(s, 'snap', [{ player: 1 }])));
+    expect([
+      playerView(s, 0).opponent.damagedThisTurn,
+      playerView(s, 1).you.damagedThisTurn,
+      playerView(s, 0).you.damagedThisTurn,
+    ]).toEqual([true, true, undefined]);
   });
 
   it('tells how many extra lands a player may play this turn, once an effect allows them', () => {
-    let s = scenario({ players: [{ hand: [{ card: 'open_path', id: 'path' }], battlefield: ['forest', 'forest'] }, {}] });
+    let s = scenario({
+      players: [{ hand: [{ card: 'open_path', id: 'path' }], battlefield: ['forest', 'forest'] }, {}],
+    });
     expect(playerView(s, 0).you.extraLandsThisTurn).toBeUndefined();
     s = resolveStack(cast(s, 'path'));
     expect([playerView(s, 0).you.extraLandsThisTurn, playerView(s, 1).opponent.extraLandsThisTurn]).toEqual([1, 1]);
@@ -119,7 +173,15 @@ describe('the view of one seat', () => {
   it('lists the relics of both players, puts them in the glossary and names the abilities they put on the stack', () => {
     let s = scenario({
       activePlayer: 1,
-      players: [{ relics: [{ card: 'bell', id: 'bell' }] }, { relics: [{ card: 'urn', id: 'urn' }, { card: 'censer', id: 'censer' }] }],
+      players: [
+        { relics: [{ card: 'bell', id: 'bell' }] },
+        {
+          relics: [
+            { card: 'urn', id: 'urn' },
+            { card: 'censer', id: 'censer' },
+          ],
+        },
+      ],
     });
     expect([playerView(s, 0).you.relics, playerView(s, 0).opponent.relics]).toEqual([
       [{ id: 'bell', name: 'Campana fúnebre' }],
@@ -130,7 +192,9 @@ describe('the view of one seat', () => {
     ]);
     expect(playerView(scenario({ players: [{}, {}] }), 0).you.relics).toBeUndefined();
     expect(visibleCardDefs(s, 1)).toEqual(expect.arrayContaining(['bell', 'urn', 'censer']));
-    expect(cardGlossary(['bell'])).toEqual(['Campana fúnebre · Reliquia · Al comienzo de tu mantenimiento, cada oponente pierde 1 vida.']);
+    expect(cardGlossary(['bell'])).toEqual([
+      'Campana fúnebre · Reliquia · Al comienzo de tu mantenimiento, cada oponente pierde 1 vida.',
+    ]);
     s = passToStep(s, 'upkeep', 4);
     expect(playerView(s, 1).stack).toEqual([
       {
@@ -187,14 +251,22 @@ describe('recent thoughts of one seat', () => {
   it('tell when each reason was given, from the viewer’s seat', () => {
     const s = secretScenario();
     expect(thoughtLine(s, 1, 'Hold Ember Snap.')).toBe('Turno 3 (tu turno), Fase principal: Hold Ember Snap.');
-    expect(thoughtLine(s, 0, 'Keep the elf back.')).toBe('Turno 3 (turno del rival), Fase principal: Keep the elf back.');
-    expect(thoughtLine(createGame({ seed: 1, startingPlayer: 0 }), 1, 'Two lands, keep.')).toBe('Mano inicial: Two lands, keep.');
+    expect(thoughtLine(s, 0, 'Keep the elf back.')).toBe(
+      'Turno 3 (turno del rival), Fase principal: Keep the elf back.',
+    );
+    expect(thoughtLine(createGame({ seed: 1, startingPlayer: 0 }), 1, 'Two lands, keep.')).toBe(
+      'Mano inicial: Two lands, keep.',
+    );
   });
 });
 
 describe('prompt helpers', () => {
   it('print small objects on one line and stay valid JSON', () => {
-    const value = { a: 1, list: [{ id: 'c1', name: 'Swamp' }], long: Array.from({ length: 30 }, (_, i) => `item-${i}`) };
+    const value = {
+      a: 1,
+      list: [{ id: 'c1', name: 'Swamp' }],
+      long: Array.from({ length: 30 }, (_, i) => `item-${i}`),
+    };
     const text = compactJson(value);
     expect(text).toContain('"list": [{"id":"c1","name":"Swamp"}]');
     expect(text.split('\n').length).toBeGreaterThan(3);
@@ -207,8 +279,12 @@ describe('prompt helpers', () => {
       'Pantano · Tierra básica — Pantano · {T}: Agrega {B}.',
     ]);
     expect(deckLine('duskmire')).toMatch(/^"Fangoscuro" \(".+"\): 16 Pantano, 3 Voluta sombría, /);
-    expect(deckLine({ ...getDeck('duskmire'), id: 'mine-1', name: 'Mi "mazo"\n## Reglas' })).toMatch(/^"Mi \\"mazo\\"\\n## Reglas" \(/);
-    expect(deckLine({ ...getDeck('duskmire'), id: 'mine-1', name: 'Mío', description: 'Tu mazo: Mazo\n## Reglas' })).toMatch(/^"Mío" \("Tu mazo: Mazo\\n## Reglas"\): 16 Pantano/);
+    expect(deckLine({ ...getDeck('duskmire'), id: 'mine-1', name: 'Mi "mazo"\n## Reglas' })).toMatch(
+      /^"Mi \\"mazo\\"\\n## Reglas" \(/,
+    );
+    expect(
+      deckLine({ ...getDeck('duskmire'), id: 'mine-1', name: 'Mío', description: 'Tu mazo: Mazo\n## Reglas' }),
+    ).toMatch(/^"Mío" \("Tu mazo: Mazo\\n## Reglas"\): 16 Pantano/);
     expect(deckLine('nope')).toBeNull();
   });
 });
@@ -216,7 +292,12 @@ describe('prompt helpers', () => {
 describe('the view before blockers', () => {
   it('shows what attacks the viewer', () => {
     const s = passTo(
-      attack(scenario({ players: [{ battlefield: [{ card: 'ember_hound', id: 'hound' }] }, { battlefield: ['canopy_spider'] }] }), ['hound']),
+      attack(
+        scenario({
+          players: [{ battlefield: [{ card: 'ember_hound', id: 'hound' }] }, { battlefield: ['canopy_spider'] }],
+        }),
+        ['hound'],
+      ),
       'declareBlockers',
     );
     expect(playerView(s, 1).opponent.creatures[0]).toMatchObject({ id: 'hound', attacking: true, tapped: true });

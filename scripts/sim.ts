@@ -3,7 +3,15 @@ import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { chooseAction } from '../src/ai';
 import { DUELS, rivalAt, rivalSeat, shuffledRelicPools } from '../src/app/expedition';
-import { RELICS, duelPerks, isRelicId, relicOf, startsEveryDuel, type RelicId, type SeatRelics } from '../src/app/relics';
+import {
+  RELICS,
+  duelPerks,
+  isRelicId,
+  relicOf,
+  startsEveryDuel,
+  type RelicId,
+  type SeatRelics,
+} from '../src/app/relics';
 import {
   DECK_LIST,
   applyAction,
@@ -100,12 +108,20 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--shard') options.shard = parseShard(next());
     else if (arg === '--help') {
       console.log(
-        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--life0|--life1 N] [--hand0|--hand1 N] [--start0|--start1 CARD,CARD] [--relics0|--relics1 RELIC,RELIC] [--duel 1-' + DUELS + '] [--workers N] [--quiet] [--json] [--log SEED]\n' +
+        'Usage: npm run sim -- [--games N] [--seed S] [--p0 ai|random|llm] [--p1 ai|random|llm] [--model ID] [--effort minimal|low|medium|high] [--decks all|DECK|DECK,DECK] [--life0|--life1 N] [--hand0|--hand1 N] [--start0|--start1 CARD,CARD] [--relics0|--relics1 RELIC,RELIC] [--duel 1-' +
+          DUELS +
+          '] [--workers N] [--quiet] [--json] [--log SEED]\n' +
           'Games without an llm bot run in parallel processes (--workers, one per CPU by default); the results are the same for any number of workers.\n' +
-          'A seat can start with other life (--life1 14), another opening hand (--hand1 6) or permanents on the battlefield (--start0 soldier_token), as Expedition rivals and relics do; wins.p0 then reads as the first seat\'s odds.\n' +
-          `A seat can also hold Expedition relics, on top of those (--relics1 bell,vigor): ${RELICS.filter((relic) => relic.kind !== 'run').map((relic) => relic.id).join(', ')}.\n` +
-          '--duel N makes the second seat the Nth rival of an Expedition, in place of --life1, --hand1 and --start1: its life, hand and relics, drawn from each game\'s seed as a run draws them.\n' +
-          'An llm bot asks an OpenRouter model (default ' + DEFAULT_MODEL + ') for every real decision; it needs OPENROUTER_API_KEY.',
+          "A seat can start with other life (--life1 14), another opening hand (--hand1 6) or permanents on the battlefield (--start0 soldier_token), as Expedition rivals and relics do; wins.p0 then reads as the first seat's odds.\n" +
+          `A seat can also hold Expedition relics, on top of those (--relics1 bell,vigor): ${RELICS.filter(
+            (relic) => relic.kind !== 'run',
+          )
+            .map((relic) => relic.id)
+            .join(', ')}.\n` +
+          "--duel N makes the second seat the Nth rival of an Expedition, in place of --life1, --hand1 and --start1: its life, hand and relics, drawn from each game's seed as a run draws them.\n" +
+          'An llm bot asks an OpenRouter model (default ' +
+          DEFAULT_MODEL +
+          ') for every real decision; it needs OPENROUTER_API_KEY.',
       );
       process.exit(0);
     } else throw new Error(`Unknown option ${arg}`);
@@ -133,7 +149,11 @@ function parseRelics(value: string): RelicId[] {
   const relics = value.split(',').filter(Boolean);
   for (const relic of relics) {
     if (!isRelicId(relic) || relicOf(relic).kind === 'run') {
-      throw new Error(`Unknown relic "${relic}" (use ${RELICS.filter((candidate) => candidate.kind !== 'run').map((candidate) => candidate.id).join(', ')})`);
+      throw new Error(
+        `Unknown relic "${relic}" (use ${RELICS.filter((candidate) => candidate.kind !== 'run')
+          .map((candidate) => candidate.id)
+          .join(', ')})`,
+      );
     }
   }
   return relics as RelicId[];
@@ -141,13 +161,20 @@ function parseRelics(value: string): RelicId[] {
 
 function parseDuel(value: string): number {
   const duel = Number(value);
-  if (!Number.isInteger(duel) || duel < 1 || duel > DUELS) throw new Error(`Invalid --duel "${value}" (use a whole number from 1 to ${DUELS})`);
+  if (!Number.isInteger(duel) || duel < 1 || duel > DUELS)
+    throw new Error(`Invalid --duel "${value}" (use a whole number from 1 to ${DUELS})`);
   return duel;
 }
 
 function seatRelics(options: Options, seat: PlayerId, deckId: string): SeatRelics {
   const deck = getDeck(deckId);
-  return { relics: options.relics[seat], deck: deck.cards, colors: deck.colors, life: options.perks[seat].life, openingHand: options.perks[seat].openingHand };
+  return {
+    relics: options.relics[seat],
+    deck: deck.cards,
+    colors: deck.colors,
+    life: options.perks[seat].life,
+    openingHand: options.perks[seat].openingHand,
+  };
 }
 
 function rivalRelics(options: Options, seed: number, deckId: string): SeatRelics {
@@ -161,7 +188,12 @@ function seatSetups(options: Options, seed: number, decks: Matchup): [PlayerSetu
   return [0, 1].map((seat) => {
     const base = seat === 1 && options.duel !== null ? {} : options.perks[seat as PlayerId];
     const battlefield = [...(base.battlefield ?? []), ...(perks[seat as PlayerId].battlefield ?? [])];
-    return { deck: decks[seat as PlayerId], ...base, ...perks[seat as PlayerId], ...(battlefield.length > 0 ? { battlefield } : {}) };
+    return {
+      deck: decks[seat as PlayerId],
+      ...base,
+      ...perks[seat as PlayerId],
+      ...(battlefield.length > 0 ? { battlefield } : {}),
+    };
   }) as [PlayerSetup, PlayerSetup];
 }
 
@@ -178,7 +210,8 @@ function parseEffort(value: string): ReasoningEffort {
 
 function parseWorkers(value: string): number {
   const workers = Number(value);
-  if (!Number.isInteger(workers) || workers < 1) throw new Error(`Invalid --workers "${value}" (use a whole number from 1)`);
+  if (!Number.isInteger(workers) || workers < 1)
+    throw new Error(`Invalid --workers "${value}" (use a whole number from 1)`);
   return workers;
 }
 
@@ -189,7 +222,8 @@ function parseShard(value: string): [number, number] {
 }
 
 function parseBot(value: string): BotKind {
-  if (value !== 'ai' && value !== 'random' && value !== 'llm') throw new Error(`Unknown bot "${value}" (use ai, random or llm)`);
+  if (value !== 'ai' && value !== 'random' && value !== 'llm')
+    throw new Error(`Unknown bot "${value}" (use ai, random or llm)`);
   return value;
 }
 
@@ -280,7 +314,11 @@ async function playGame(seed: number, decks: Matchup, options: Options, log?: st
     if (!bot) return options.bots[player] === 'ai' ? chooseAction(s, player) : randomAction(s, rand);
     const forced = forcedAction(s);
     if (forced) return forced;
-    const decision = await bot.decide(s, player, { decks, recentEvents: seen[player], recentThoughts: thoughts[player] });
+    const decision = await bot.decide(s, player, {
+      decks,
+      recentEvents: seen[player],
+      recentThoughts: thoughts[player],
+    });
     llm.decisions += 1;
     llm.ms += decision.ms;
     llm.cost += decision.usage?.cost ?? 0;
@@ -363,7 +401,8 @@ function matchupStats(results: GameResult[]): Record<string, string> {
   }
   for (const [label, [a, b]] of pairs) {
     const games = results.filter((r) => [...r.decks].sort().join(' vs ') === label);
-    const winsOf = (deck: string): number => games.filter((r) => r.winner !== null && r.decks[r.winner] === deck).length;
+    const winsOf = (deck: string): number =>
+      games.filter((r) => r.winner !== null && r.decks[r.winner] === deck).length;
     const draws = games.filter((r) => r.winner === null).length;
     stats[label] = a === b ? `${games.length} games` : `${winsOf(a)}-${winsOf(b)}${draws ? ` (${draws} draws)` : ''}`;
   }
@@ -384,7 +423,13 @@ function llmSummary(options: Options, results: GameResult[]): Record<string, unk
   };
 }
 
-async function playRange(options: Options, pairs: Matchup[], start: number, end: number, onResult?: (result: GameResult) => void): Promise<GameResult[]> {
+async function playRange(
+  options: Options,
+  pairs: Matchup[],
+  start: number,
+  end: number,
+  onResult?: (result: GameResult) => void,
+): Promise<GameResult[]> {
   const results: GameResult[] = [];
   for (let i = start; i < end; i++) {
     const result = await playGame(options.seed + i, pairs[i % pairs.length] as Matchup, options);
@@ -396,17 +441,24 @@ async function playRange(options: Options, pairs: Matchup[], start: number, end:
 
 function playInWorkers(argv: string[], games: number, workers: number): Promise<GameResult[]> {
   const size = Math.ceil(games / workers);
-  const shards = Array.from({ length: workers }, (_, k): [number, number] => [k * size, Math.min(games, (k + 1) * size)]).filter(([start, end]) => start < end);
+  const shards = Array.from({ length: workers }, (_, k): [number, number] => [
+    k * size,
+    Math.min(games, (k + 1) * size),
+  ]).filter(([start, end]) => start < end);
   const shardResults = shards.map(
     ([start, end]) =>
       new Promise<GameResult[]>((resolve, reject) => {
-        const child = fork(fileURLToPath(import.meta.url), [...argv, '--shard', `${start}:${end}`], { execArgv: process.execArgv });
+        const child = fork(fileURLToPath(import.meta.url), [...argv, '--shard', `${start}:${end}`], {
+          execArgv: process.execArgv,
+        });
         let results: GameResult[] | null = null;
         child.on('message', (message) => {
           results = message as GameResult[];
         });
         child.on('error', reject);
-        child.on('exit', (code) => (results ? resolve(results) : reject(new Error(`games ${start} to ${end - 1} stopped with exit code ${code}`))));
+        child.on('exit', (code) =>
+          results ? resolve(results) : reject(new Error(`games ${start} to ${end - 1} stopped with exit code ${code}`)),
+        );
       }),
   );
   return Promise.all(shardResults).then((parts) => parts.flat());
@@ -454,7 +506,11 @@ async function main(): Promise<void> {
   const summary = {
     games: results.length,
     bots: { p0: options.bots[0], p1: options.bots[1] },
-    wins: { p0: count((r) => r.winner === 0), p1: count((r) => r.winner === 1), draws: count((r) => r.winner === null) },
+    wins: {
+      p0: count((r) => r.winner === 0),
+      p1: count((r) => r.winner === 1),
+      draws: count((r) => r.winner === null),
+    },
     startingPlayerWins: count((r) => r.winner === r.startingPlayer),
     decks: deckStats(finished),
     matchups: matchupStats(finished),
@@ -469,7 +525,8 @@ async function main(): Promise<void> {
     seconds: (Date.now() - started) / 1000,
   };
 
-  if (options.json) console.log(JSON.stringify({ summary, errors: errors.map((e) => ({ seed: e.seed, error: e.error })) }, null, 2));
+  if (options.json)
+    console.log(JSON.stringify({ summary, errors: errors.map((e) => ({ seed: e.seed, error: e.error })) }, null, 2));
   else {
     console.log(JSON.stringify(summary, null, 2));
     for (const error of errors) console.error(`\nseed ${error.seed} failed:\n${error.error}`);

@@ -40,11 +40,18 @@ export function rollout(start: GameState, depth = 0, from: Pick<GameState, 'turn
       continue;
     }
     if (pending.kind === 'chooseTargets') {
-      s = applyAction(s, depth >= 1 ? quickTargets(s, pending.player) : bestAction(s, pending.player, getLegalActions(s), depth + 1));
+      s = applyAction(
+        s,
+        depth >= 1 ? quickTargets(s, pending.player) : bestAction(s, pending.player, getLegalActions(s), depth + 1),
+      );
       continue;
     }
     if (pending.kind === 'discard' && pending.source !== undefined) {
-      s = applyAction(s, { type: 'discard', player: pending.player, cards: chooseCardsToDiscard(s, pending.player, pending.count) });
+      s = applyAction(s, {
+        type: 'discard',
+        player: pending.player,
+        cards: chooseCardsToDiscard(s, pending.player, pending.count),
+      });
       continue;
     }
     return s;
@@ -82,7 +89,8 @@ function targetImpact(s: GameState, player: PlayerId, effect: Effect, targets: T
 
 function quickTargets(s: GameState, player: PlayerId): Action {
   const pending = s.pending;
-  const trigger = pending?.kind === 'chooseTargets' ? s.triggers.find((candidate) => candidate.id === pending.trigger) : undefined;
+  const trigger =
+    pending?.kind === 'chooseTargets' ? s.triggers.find((candidate) => candidate.id === pending.trigger) : undefined;
   const effects = trigger ? (triggeredAbility(defOf(s, trigger.source), trigger.ability)?.effects ?? []) : [];
   let best: Action | undefined;
   let bestScore = Number.NEGATIVE_INFINITY;

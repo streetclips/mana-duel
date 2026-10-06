@@ -50,7 +50,15 @@ export interface Status {
   tone?: 'good' | 'bad';
 }
 
-export function CardDetail({ def, face, statuses = [] }: { def: CardDef; face: ComponentChildren; statuses?: Status[] }) {
+export function CardDetail({
+  def,
+  face,
+  statuses = [],
+}: {
+  def: CardDef;
+  face: ComponentChildren;
+  statuses?: Status[];
+}) {
   return (
     <div class="detail">
       {face}
@@ -115,7 +123,11 @@ function actionLabel(s: GameState, action: Action): string {
   if (action.type === 'activate') {
     const ability = getCardDef(s.cards[action.card]?.def ?? '').activated?.[action.ability];
     if (!ability) return text.activate;
-    const cost = [ability.cost === '{0}' ? '' : ability.cost, ability.tap ? '{T}' : '', ability.sacrifice ? text.sacrifice : '']
+    const cost = [
+      ability.cost === '{0}' ? '' : ability.cost,
+      ability.tap ? '{T}' : '',
+      ability.sacrifice ? text.sacrifice : '',
+    ]
       .filter(Boolean)
       .join(', ');
     return text.activateWith(cost, ability.effects.map(effectHint).join(', '));
@@ -264,7 +276,13 @@ export function LogPanel({ s, human, entries, onClose }: LogPanelProps) {
                 typeof part === 'string' ? (
                   part
                 ) : (
-                  <button key={index} type="button" class="log-card" data-testid={`log-card-${part.card}`} onClick={() => setCard(part.card)}>
+                  <button
+                    key={index}
+                    type="button"
+                    class="log-card"
+                    data-testid={`log-card-${part.card}`}
+                    onClick={() => setCard(part.card)}
+                  >
                     {part.name}
                   </button>
                 ),
@@ -325,15 +343,33 @@ export function Menu({
         <button type="button" role="menuitem" data-testid="menu-speed" onClick={onToggleSpeed}>
           {text.aiSpeed(fast)}
         </button>
-        <button type="button" role="menuitemcheckbox" aria-checked={autoPass} data-testid="menu-autopass" onClick={onToggleAutoPass}>
+        <button
+          type="button"
+          role="menuitemcheckbox"
+          aria-checked={autoPass}
+          data-testid="menu-autopass"
+          onClick={onToggleAutoPass}
+        >
           {text.autoPass(autoPass)}
         </button>
         {audio && (
           <>
-            <button type="button" role="menuitemcheckbox" aria-checked={audio.music} data-testid="menu-music" onClick={audio.onToggleMusic}>
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={audio.music}
+              data-testid="menu-music"
+              onClick={audio.onToggleMusic}
+            >
               {text.music(audio.music)}
             </button>
-            <button type="button" role="menuitemcheckbox" aria-checked={audio.sfx} data-testid="menu-sfx" onClick={audio.onToggleSfx}>
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={audio.sfx}
+              data-testid="menu-sfx"
+              onClick={audio.onToggleSfx}
+            >
               {text.sfx(audio.sfx)}
             </button>
           </>
@@ -369,7 +405,18 @@ interface GameOverProps {
   onClose: () => void;
 }
 
-export function GameOverModal({ s, human, title, detail, onNewGame, onHome, continueLabel, onContinue, onLog, onClose }: GameOverProps) {
+export function GameOverModal({
+  s,
+  human,
+  title,
+  detail,
+  onNewGame,
+  onHome,
+  continueLabel,
+  onContinue,
+  onLog,
+  onClose,
+}: GameOverProps) {
   const opponent: PlayerId = human === 0 ? 1 : 0;
   const text = gameText();
   return (

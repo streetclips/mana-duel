@@ -34,11 +34,21 @@ describe('the card collection', () => {
   it('holds every card of the fourteen decks once, basic lands unlimited and the rest up to four copies', () => {
     const cards = pool.map((allowance) => allowance.card);
     expect(new Set(cards).size).toBe(cards.length);
-    expect(cards.sort()).toEqual([...new Set(DECK_LIST.flatMap((deck) => deck.cards.map((entry) => entry.card)))].sort());
+    expect(cards.sort()).toEqual(
+      [...new Set(DECK_LIST.flatMap((deck) => deck.cards.map((entry) => entry.card)))].sort(),
+    );
     expect(cards).toHaveLength(poolCards().length);
     expect(cards.some((card) => getCardDef(card).token)).toBe(false);
     const limits = Object.fromEntries(pool.map((allowance) => [allowance.card, allowance.max]));
-    expect(limits).toMatchObject({ forest: null, plains: null, swamp: null, island: null, mountain: null, silver_spire: MAX_COPIES, crag_dragon: MAX_COPIES });
+    expect(limits).toMatchObject({
+      forest: null,
+      plains: null,
+      swamp: null,
+      island: null,
+      mountain: null,
+      silver_spire: MAX_COPIES,
+      crag_dragon: MAX_COPIES,
+    });
   });
 });
 
@@ -57,13 +67,28 @@ describe('deck building', () => {
   });
 
   it('names what keeps a deck from being played', () => {
-    expect(draftProblems(draft([{ card: 'forest', count: 39 }]), pool)).toEqual(['Falta 1 carta: un mazo tiene al menos 40.']);
-    expect(draftProblems(draft([{ card: 'forest', count: 30 }], '  '), pool)).toEqual(['Ponle un nombre al mazo.', 'Faltan 10 cartas: un mazo tiene al menos 40.']);
-    expect(draftProblems(draft([{ card: 'forest', count: 62 }]), pool)).toEqual(['Sobran 2 cartas: un mazo tiene como mucho 60.']);
-    expect(draftProblems(draft([{ card: 'forest', count: 35 }, { card: 'crag_dragon', count: 5 }]), pool)).toEqual([
-      'Llevas 5 copias de Dragón del risco: puedes llevar 4.',
+    expect(draftProblems(draft([{ card: 'forest', count: 39 }]), pool)).toEqual([
+      'Falta 1 carta: un mazo tiene al menos 40.',
     ]);
-    expect(draftProblems(draft([{ card: 'forest', count: 40 }]), [])).toEqual(['Bosque no está entre las cartas que puedes usar.']);
+    expect(draftProblems(draft([{ card: 'forest', count: 30 }], '  '), pool)).toEqual([
+      'Ponle un nombre al mazo.',
+      'Faltan 10 cartas: un mazo tiene al menos 40.',
+    ]);
+    expect(draftProblems(draft([{ card: 'forest', count: 62 }]), pool)).toEqual([
+      'Sobran 2 cartas: un mazo tiene como mucho 60.',
+    ]);
+    expect(
+      draftProblems(
+        draft([
+          { card: 'forest', count: 35 },
+          { card: 'crag_dragon', count: 5 },
+        ]),
+        pool,
+      ),
+    ).toEqual(['Llevas 5 copias de Dragón del risco: puedes llevar 4.']);
+    expect(draftProblems(draft([{ card: 'forest', count: 40 }]), [])).toEqual([
+      'Bosque no está entre las cartas que puedes usar.',
+    ]);
     expect(draftProblems(draftOf(getDeck('crossroads')), pool)).toEqual([]);
   });
 
@@ -71,9 +96,14 @@ describe('deck building', () => {
     expect(draftNotes(draftOf(getDeck('emberwild')))).toEqual([]);
     const blue = draft([...getDeck('emberwild').cards, { card: 'mist_sprite', count: 2 }]);
     expect(draftNotes(blue)).toEqual(['Nada en el mazo da maná azul: tus cartas azules no podrán pagarse.']);
-    expect(draftNotes(draft([{ card: 'forest', count: 10 }, { card: 'timberland_rhino', count: 30 }]))).toEqual([
-      'Llevas 10 tierras de 40: la mayoría de los mazos llevan entre 15 y 17.',
-    ]);
+    expect(
+      draftNotes(
+        draft([
+          { card: 'forest', count: 10 },
+          { card: 'timberland_rhino', count: 30 },
+        ]),
+      ),
+    ).toEqual(['Llevas 10 tierras de 40: la mayoría de los mazos llevan entre 15 y 17.']);
   });
 
   it('takes its colors from its spells, and its box art from its most expensive one', () => {
@@ -93,7 +123,10 @@ describe('deck building', () => {
     expect(countCards(lands)).toBe(MIN_DECK - countCards(spells));
     expect(fillWithBasics(getDeck('emberwild').cards)).toEqual(getDeck('emberwild').cards);
     expect(fillWithBasics([])).toEqual([]);
-    const mono = fillWithBasics([{ card: 'mist_sprite', count: 4 }, { card: 'island', count: 2 }]);
+    const mono = fillWithBasics([
+      { card: 'mist_sprite', count: 4 },
+      { card: 'island', count: 2 },
+    ]);
     expect(mono).toEqual([
       { card: 'mist_sprite', count: 4 },
       { card: 'island', count: 36 },
@@ -101,7 +134,15 @@ describe('deck building', () => {
   });
 
   it('turns a draft into a deck definition, and reads stored decks back with care', () => {
-    const deck = buildDeck({ id: null, name: '  Un nombre larguísimo para un mazo  ', featured: 'gloom_wisp', cards: getDeck('duskmire').cards }, 'mine-7');
+    const deck = buildDeck(
+      {
+        id: null,
+        name: '  Un nombre larguísimo para un mazo  ',
+        featured: 'gloom_wisp',
+        cards: getDeck('duskmire').cards,
+      },
+      'mine-7',
+    );
     expect(deck.id).toBe('mine-7');
     expect(deck.name).toHaveLength(MAX_NAME);
     expect(deck.colors).toEqual(['B']);
@@ -186,15 +227,30 @@ describe('your decks in the automation API', () => {
     const controller = new GameController({ seed: 5, aiDelayMs: 0 });
     const library = new DeckLibrary(memoryStore());
     const api = createTestApi(controller, () => undefined, { freezeFx: async () => [], library });
-    const saved = api.saveDeck({ name: 'Pantano puro', cards: getDeck('duskmire').cards.map((entry) => ({ ...entry })) });
-    expect(saved).toMatchObject({ ok: true, deck: { id: 'mine-1', name: 'Pantano puro', custom: true, playable: true, size: 40 }, problems: [] });
+    const saved = api.saveDeck({
+      name: 'Pantano puro',
+      cards: getDeck('duskmire').cards.map((entry) => ({ ...entry })),
+    });
+    expect(saved).toMatchObject({
+      ok: true,
+      deck: { id: 'mine-1', name: 'Pantano puro', custom: true, playable: true, size: 40 },
+      problems: [],
+    });
     expect(api.saveDeck({ name: 'Corto', cards: [{ card: 'swamp', count: 3 }] })).toMatchObject({
       ok: true,
       deck: { id: 'mine-2', playable: false },
       problems: ['Faltan 37 cartas: un mazo tiene al menos 40.'],
     });
-    expect(api.saveDeck({ name: 'Mal', cards: [{ card: 'spirit_token', count: 40 }] })).toEqual({ ok: false, error: '"spirit_token" is not a card a deck can hold' });
-    expect(api.decks().filter((summary) => summary.custom).map((summary) => summary.id)).toEqual(['mine-1', 'mine-2']);
+    expect(api.saveDeck({ name: 'Mal', cards: [{ card: 'spirit_token', count: 40 }] })).toEqual({
+      ok: false,
+      error: '"spirit_token" is not a card a deck can hold',
+    });
+    expect(
+      api
+        .decks()
+        .filter((summary) => summary.custom)
+        .map((summary) => summary.id),
+    ).toEqual(['mine-1', 'mine-2']);
     expect(api.decks().filter((summary) => !summary.custom)).toHaveLength(DECK_LIST.length);
     api.newGame({ decks: ['mine-1', 'dawntide'] });
     expect(api.matchup()).toEqual(['mine-1', 'dawntide']);

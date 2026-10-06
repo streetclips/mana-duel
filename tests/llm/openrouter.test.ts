@@ -1,12 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { getLegalActions, type GameState } from '../../src/engine';
-import { DEFAULT_MODEL, OPENROUTER_API_URL, createLlmPlayer, fetchModels, isModelId, openRouterModel } from '../../src/llm';
+import {
+  DEFAULT_MODEL,
+  OPENROUTER_API_URL,
+  createLlmPlayer,
+  fetchModels,
+  isModelId,
+  openRouterModel,
+} from '../../src/llm';
 import { scenario } from '../helpers';
 
 interface ChatRequest {
   model: string;
   messages: { role: string; content: string | { type: string; text?: string }[] }[];
-  response_format?: { type: string; json_schema?: { name: string; strict: boolean; schema: { properties: { choice?: { enum: string[] } } } } };
+  response_format?: {
+    type: string;
+    json_schema?: { name: string; strict: boolean; schema: { properties: { choice?: { enum: string[] } } } };
+  };
   provider?: unknown;
   reasoning?: unknown;
   temperature?: unknown;
@@ -38,7 +48,9 @@ function fakeOpenRouter(reply: Reply): { fetch: typeof fetch; sent: Sent[] } {
         created: 0,
         model: body.model,
         provider: 'Test',
-        choices: [{ index: 0, finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(reply(body)) } }],
+        choices: [
+          { index: 0, finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(reply(body)) } },
+        ],
         usage: { prompt_tokens: 1500, completion_tokens: 40, total_tokens: 1540, cost: 0.00031 },
       }),
       { status: 200, headers: { 'content-type': 'application/json' } },
@@ -72,7 +84,9 @@ function mainPhase(): GameState {
 describe('the OpenRouter model', () => {
   it('asks for one chat completion with the decision schema, routed only to providers that honor it', async () => {
     const api = fakeOpenRouter(pickLand);
-    const player = createLlmPlayer({ model: openRouterModel({ model: 'openai/gpt-6-luna', apiKey: 'sk-test', fetch: api.fetch }) });
+    const player = createLlmPlayer({
+      model: openRouterModel({ model: 'openai/gpt-6-luna', apiKey: 'sk-test', fetch: api.fetch }),
+    });
     const decision = await player.decide(mainPhase(), 1);
     expect(decision).toMatchObject({
       action: { type: 'playLand', player: 1, card: 'f' },
@@ -88,7 +102,10 @@ describe('the OpenRouter model', () => {
     expect(request?.headers['x-openrouter-title']).toBe('Mana Duel');
     expect(request?.body.model).toBe('openai/gpt-6-luna');
     expect(request?.body.provider).toEqual({ require_parameters: true });
-    expect(request?.body.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'decision', strict: true } });
+    expect(request?.body.response_format).toMatchObject({
+      type: 'json_schema',
+      json_schema: { name: 'decision', strict: true },
+    });
     const ids = getLegalActions(mainPhase()).map((_, index) => String(index + 1));
     expect(request?.body.response_format?.json_schema?.schema.properties.choice?.enum).toEqual(ids);
     expect(request?.body.messages.map((message) => message.role)).toEqual(['system', 'user']);
@@ -105,25 +122,42 @@ describe('the OpenRouter model', () => {
 
   it('can go through a proxy that adds the key itself', async () => {
     const api = fakeOpenRouter(pickLand);
-    const model = openRouterModel({ model: 'x/y', apiKey: 'proxy', baseURL: 'http://localhost:5173/openrouter/api/v1', fetch: api.fetch });
+    const model = openRouterModel({
+      model: 'x/y',
+      apiKey: 'proxy',
+      baseURL: 'http://localhost:5173/openrouter/api/v1',
+      fetch: api.fetch,
+    });
     await createLlmPlayer({ model }).decide(mainPhase(), 1);
     expect(api.sent[0]?.url).toBe('http://localhost:5173/openrouter/api/v1/chat/completions');
   });
 
   it('reports a rejected key and stops asking', async () => {
     const api = fakeOpenRouter({ status: 401, message: 'No auth credentials found' });
-    const player = createLlmPlayer({ model: openRouterModel({ model: DEFAULT_MODEL, apiKey: 'bad', fetch: api.fetch }) });
-    expect(await player.decide(mainPhase(), 1)).toMatchObject({ source: 'fallback', error: 'OpenRouter 401: No auth credentials found' });
+    const player = createLlmPlayer({
+      model: openRouterModel({ model: DEFAULT_MODEL, apiKey: 'bad', fetch: api.fetch }),
+    });
+    expect(await player.decide(mainPhase(), 1)).toMatchObject({
+      source: 'fallback',
+      error: 'OpenRouter 401: No auth credentials found',
+    });
     await player.decide(mainPhase(), 1);
     expect(api.sent).toHaveLength(1);
     expect(player.unavailable).toBe('OpenRouter 401: No auth credentials found');
   });
 
   it('reports a model that cannot answer with a schema', async () => {
-    const api = fakeOpenRouter({ status: 404, message: 'No endpoints found that can handle the requested parameters. To learn more…' });
-    const player = createLlmPlayer({ model: openRouterModel({ model: 'some/old-model', apiKey: 'k', fetch: api.fetch }) });
+    const api = fakeOpenRouter({
+      status: 404,
+      message: 'No endpoints found that can handle the requested parameters. To learn more…',
+    });
+    const player = createLlmPlayer({
+      model: openRouterModel({ model: 'some/old-model', apiKey: 'k', fetch: api.fetch }),
+    });
     await player.decide(mainPhase(), 1);
-    expect(player.unavailable).toBe('OpenRouter 404: ningún proveedor de este modelo acepta el esquema JSON (o el esfuerzo de razonamiento)');
+    expect(player.unavailable).toBe(
+      'OpenRouter 404: ningún proveedor de este modelo acepta el esquema JSON (o el esfuerzo de razonamiento)',
+    );
     expect(api.sent).toHaveLength(1);
   });
 });
@@ -132,7 +166,12 @@ describe('the OpenRouter catalog', () => {
   it('lists the models that support structured outputs, with prices per million tokens', async () => {
     const catalog = {
       data: [
-        { id: 'b/fast', name: 'Fast', supported_parameters: ['structured_outputs', 'tools'], pricing: { prompt: '0.0000001', completion: '0.0000005' } },
+        {
+          id: 'b/fast',
+          name: 'Fast',
+          supported_parameters: ['structured_outputs', 'tools'],
+          pricing: { prompt: '0.0000001', completion: '0.0000005' },
+        },
         { id: 'c/plain', name: 'Plain', supported_parameters: ['tools'], pricing: { prompt: '0', completion: '0' } },
         { id: 'a/smart', name: 'Smart', supported_parameters: ['structured_outputs'] },
       ],
@@ -147,11 +186,14 @@ describe('the OpenRouter catalog', () => {
       { id: 'b/fast', name: 'Fast', promptPrice: 0.1, completionPrice: 0.5 },
     ]);
     expect(urls).toEqual([`${OPENROUTER_API_URL}/models`]);
-    await expect(fetchModels({ fetch: async () => new Response('nope', { status: 503 }) })).rejects.toThrow('OpenRouter 503');
+    await expect(fetchModels({ fetch: async () => new Response('nope', { status: 503 }) })).rejects.toThrow(
+      'OpenRouter 503',
+    );
   });
 
   it('recognizes model ids', () => {
-    for (const id of ['openai/gpt-6-luna', 'qwen/qwen3.8-27b:free', 'meta-llama/llama-4@latest']) expect(isModelId(id)).toBe(true);
+    for (const id of ['openai/gpt-6-luna', 'qwen/qwen3.8-27b:free', 'meta-llama/llama-4@latest'])
+      expect(isModelId(id)).toBe(true);
     for (const id of ['', 'gpt', 'a b/c', 'openai/']) expect(isModelId(id)).toBe(false);
   });
 });

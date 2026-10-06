@@ -66,11 +66,18 @@ function render(locale: Locale): string {
     ),
     ...relics.filter((def) => creates(def, token)).map((def) => `${def.name} (relic)`),
   ];
-  lines.push('## Tokens', '', 'Creatures that effects create. A token that leaves the battlefield ceases to exist.', '');
+  lines.push(
+    '## Tokens',
+    '',
+    'Creatures that effects create. A token that leaves the battlefield ceases to exist.',
+    '',
+  );
   lines.push('| Token | Id | Type | P/T | Rules text | Created by |', '| --- | --- | --- | --- | --- | --- |');
   for (const def of allCardDefs().filter((card) => card.token)) {
     const text = rulesText(def).join(' · ');
-    lines.push(`| ${def.name} | \`${def.id}\` | ${typeLine(def)} | ${statsOf(def)} | ${escapeCell(text) || '—'} | ${creators(def.id).join(', ')} |`);
+    lines.push(
+      `| ${def.name} | \`${def.id}\` | ${typeLine(def)} | ${statsOf(def)} | ${escapeCell(text) || '—'} | ${creators(def.id).join(', ')} |`,
+    );
   }
   lines.push('');
   lines.push(
@@ -80,12 +87,15 @@ function render(locale: Locale): string {
     '',
   );
   lines.push('| Relic | Id | Type | Rules text |', '| --- | --- | --- | --- |');
-  for (const def of relics) lines.push(`| ${def.name} | \`${def.id}\` | ${typeLine(def)} | ${escapeCell(rulesText(def).join(' · '))} |`);
+  for (const def of relics)
+    lines.push(`| ${def.name} | \`${def.id}\` | ${typeLine(def)} | ${escapeCell(rulesText(def).join(' · '))} |`);
   lines.push('');
   const used = new Set(decks.flatMap((deck) => deck.cards.flatMap((entry) => getCardDef(entry.card).keywords ?? [])));
   lines.push('## Keywords', '', '| Keyword | Meaning | In a deck |', '| --- | --- | --- |');
   for (const keyword of KEYWORDS) {
-    lines.push(`| ${keywordName(keyword)} | ${escapeCell(keywordReminder(keyword))} | ${used.has(keyword) ? 'yes' : 'engine only'} |`);
+    lines.push(
+      `| ${keywordName(keyword)} | ${escapeCell(keywordReminder(keyword))} | ${used.has(keyword) ? 'yes' : 'engine only'} |`,
+    );
   }
   lines.push('');
   return lines.join('\n');

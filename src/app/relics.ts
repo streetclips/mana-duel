@@ -122,7 +122,10 @@ function seatPerks(seat: SeatRelics, rival: SeatRelics): Perks {
   const life = (seat.life ?? STARTING_LIFE) + (has('vigor') ? VIGOR_LIFE : 0);
   if (life !== STARTING_LIFE) perks.life = life;
   const hand =
-    (seat.openingHand ?? OPENING_HAND) + (has('foresight') ? 1 : 0) - (has('cartographer') ? 1 : 0) - (rival.relics.includes('mask') ? 1 : 0);
+    (seat.openingHand ?? OPENING_HAND) +
+    (has('foresight') ? 1 : 0) -
+    (has('cartographer') ? 1 : 0) -
+    (rival.relics.includes('mask') ? 1 : 0);
   if (hand !== OPENING_HAND) perks.openingHand = Math.max(1, hand);
   const battlefield: string[] = [];
   if (has('banner')) battlefield.push('soldier_token');

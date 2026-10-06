@@ -9,6 +9,8 @@ export const bloodsporeThrall: CardDef = {
   power: 1,
   toughness: 1,
   keywords: ['undying'],
-  activated: [{ cost: '{0}', sacrifice: true, targets: [], effects: [{ kind: 'loseLife', amount: 1, who: 'opponent' }] }],
+  activated: [
+    { cost: '{0}', sacrifice: true, targets: [], effects: [{ kind: 'loseLife', amount: 1, who: 'opponent' }] },
+  ],
   flavor: 'Revienta, se esparce y vuelve a levantarse.',
 };

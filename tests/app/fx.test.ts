@@ -22,8 +22,10 @@ function passCollecting(s: GameState, done: (state: GameState) => boolean): Step
     if (!pending || pending.kind === 'gameOver') break;
     let action: Action;
     if (pending.kind === 'priority') action = { type: 'pass', player: pending.player };
-    else if (pending.kind === 'declareAttackers') action = { type: 'declareAttackers', player: pending.player, attackers: [] };
-    else if (pending.kind === 'declareBlockers') action = { type: 'declareBlockers', player: pending.player, blocks: [] };
+    else if (pending.kind === 'declareAttackers')
+      action = { type: 'declareAttackers', player: pending.player, attackers: [] };
+    else if (pending.kind === 'declareBlockers')
+      action = { type: 'declareBlockers', player: pending.player, blocks: [] };
     else throw new Error(`stuck at ${pending.kind}`);
     const next = step(state, action);
     cues.push(...next.cues);
@@ -63,7 +65,15 @@ describe('fx cues: cards moving', () => {
   it('shows the opponent playing a land and casting a spell, with its targets', () => {
     let s = scenario({
       activePlayer: 1,
-      players: [{}, { hand: [{ card: 'mountain', id: 'land' }, { card: 'ember_snap', id: 'snap' }] }],
+      players: [
+        {},
+        {
+          hand: [
+            { card: 'mountain', id: 'land' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
+        },
+      ],
     });
     const land = step(s, { type: 'playLand', player: 1, card: 'land' });
     expect(land.cues).toEqual([
@@ -78,13 +88,18 @@ describe('fx cues: cards moving', () => {
   });
 
   it('shows a creature spell entering when it resolves', () => {
-    const s = scenario({ players: [{ hand: [{ card: 'ember_hound', id: 'hound' }], battlefield: ['mountain', 'mountain'] }, {}] });
+    const s = scenario({
+      players: [{ hand: [{ card: 'ember_hound', id: 'hound' }], battlefield: ['mountain', 'mountain'] }, {}],
+    });
     const resolved = passCollecting(cast(s, 'hound'), stackEmpty);
     expect(resolved.cues).toEqual([{ kind: 'enter', player: 0, card: 'hound' }]);
   });
 
   it('shows the cards discarded at cleanup', () => {
-    let s = scenario({ step: 'main2', players: [{ hand: Array.from({ length: 8 }, (_, i) => ({ card: 'forest', id: `f${i}` })), landsPlayed: 1 }, {}] });
+    let s = scenario({
+      step: 'main2',
+      players: [{ hand: Array.from({ length: 8 }, (_, i) => ({ card: 'forest', id: `f${i}` })), landsPlayed: 1 }, {}],
+    });
     s = passTo(s, 'discard');
     const discarded = step(s, { type: 'discard', player: 0, cards: ['f3'] });
     expect(discarded.cues[0]).toEqual({ kind: 'discard', player: 0, card: 'f3' });
@@ -96,7 +111,13 @@ describe('fx cues: combat', () => {
     let s = scenario({
       players: [
         { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
-        { battlefield: [{ card: 'ember_hound', id: 'left' }, { card: 'canopy_spider', id: 'spider' }, { card: 'ember_hound', id: 'right' }] },
+        {
+          battlefield: [
+            { card: 'ember_hound', id: 'left' },
+            { card: 'canopy_spider', id: 'spider' },
+            { card: 'ember_hound', id: 'right' },
+          ],
+        },
       ],
     });
     const attacked = step(passTo(s, 'declareAttackers'), { type: 'declareAttackers', player: 0, attackers: ['rhino'] });
@@ -121,7 +142,9 @@ describe('fx cues: combat', () => {
   });
 
   it('shows an unblocked attacker striking the player', () => {
-    const s = attack(scenario({ players: [{ battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, {}] }), ['rhino']);
+    const s = attack(scenario({ players: [{ battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, {}] }), [
+      'rhino',
+    ]);
     const combat = passCollecting(s, inMain2);
     expect(combat.cues).toEqual([
       { kind: 'strike', card: 'rhino', target: { player: 1 } },
@@ -130,7 +153,9 @@ describe('fx cues: combat', () => {
   });
 
   it('adds up double strike into one strike and one life change', () => {
-    const s = attack(scenario({ players: [{ battlefield: [{ card: 'sunblade_paladin', id: 'paladin' }] }, {}] }), ['paladin']);
+    const s = attack(scenario({ players: [{ battlefield: [{ card: 'sunblade_paladin', id: 'paladin' }] }, {}] }), [
+      'paladin',
+    ]);
     const combat = passCollecting(s, inMain2);
     expect(combat.cues).toEqual([
       { kind: 'strike', card: 'paladin', target: { player: 1 } },
@@ -139,7 +164,9 @@ describe('fx cues: combat', () => {
   });
 
   it('shows lifelink as a gain for the attacker and a loss for the defender', () => {
-    const s = attack(scenario({ players: [{ battlefield: [{ card: 'dawn_acolyte', id: 'acolyte' }] }, {}] }), ['acolyte']);
+    const s = attack(scenario({ players: [{ battlefield: [{ card: 'dawn_acolyte', id: 'acolyte' }] }, {}] }), [
+      'acolyte',
+    ]);
     const combat = passCollecting(s, inMain2);
     expect(combat.cues.filter((cue) => cue.kind === 'life')).toEqual([
       { kind: 'life', player: 1, delta: -1 },
@@ -151,7 +178,14 @@ describe('fx cues: combat', () => {
     let s = scenario({
       players: [
         { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
-        { battlefield: [{ card: 'ember_hound', id: 'a' }, { card: 'grove_tender', id: 'b' }, { card: 'mist_sprite', id: 'c' }, { card: 'canopy_spider', id: 'd' }] },
+        {
+          battlefield: [
+            { card: 'ember_hound', id: 'a' },
+            { card: 'grove_tender', id: 'b' },
+            { card: 'mist_sprite', id: 'c' },
+            { card: 'canopy_spider', id: 'd' },
+          ],
+        },
       ],
     });
     s = attack(s, ['rhino']);
@@ -170,7 +204,10 @@ describe('fx cues: combat', () => {
 describe('fx cues: spells and abilities', () => {
   it('shows burn hitting a creature without a strike', () => {
     const s = scenario({
-      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { battlefield: [{ card: 'grove_tender', id: 'elf' }] }],
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+        { battlefield: [{ card: 'grove_tender', id: 'elf' }] },
+      ],
     });
     const resolved = passCollecting(cast(s, 'snap', [{ card: 'elf' }]), stackEmpty);
     expect(resolved.cues).toEqual([
@@ -182,7 +219,10 @@ describe('fx cues: spells and abilities', () => {
   it('lets two creatures that fight strike each other', () => {
     const s = scenario({
       players: [
-        { hand: [{ card: 'feral_clash', id: 'clash' }], battlefield: ['forest', 'forest', { card: 'timberland_rhino', id: 'rhino' }] },
+        {
+          hand: [{ card: 'feral_clash', id: 'clash' }],
+          battlefield: ['forest', 'forest', { card: 'timberland_rhino', id: 'rhino' }],
+        },
         { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
       ],
     });
@@ -199,7 +239,10 @@ describe('fx cues: spells and abilities', () => {
   it('lets a creature that bites strike its target, which does not strike back', () => {
     const s = scenario({
       players: [
-        { hand: [{ card: 'snapjaw_strike', id: 'strike' }], battlefield: ['forest', 'forest', { card: 'mossfin_lurker', id: 'lurker' }] },
+        {
+          hand: [{ card: 'snapjaw_strike', id: 'strike' }],
+          battlefield: ['forest', 'forest', { card: 'mossfin_lurker', id: 'lurker' }],
+        },
         { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
       ],
     });
@@ -229,7 +272,9 @@ describe('fx cues: spells and abilities', () => {
   });
 
   it('shows each activation of an ability and each pump as it resolves', () => {
-    let s = scenario({ players: [{ battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain', 'mountain'] }, {}] });
+    let s = scenario({
+      players: [{ battlefield: [{ card: 'crag_dragon', id: 'dragon' }, 'mountain', 'mountain'] }, {}],
+    });
     const activated = step(s, { type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] });
     expect(activated.cues).toEqual([{ kind: 'ability', player: 0, card: 'dragon' }]);
     s = step(activated.state, { type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] }).state;
@@ -241,7 +286,13 @@ describe('fx cues: spells and abilities', () => {
 
   it('shows a blessing as a pump and a life gain', () => {
     const s = scenario({
-      players: [{ hand: [{ card: 'radiant_blessing', id: 'blessing' }], battlefield: ['plains', { card: 'beacon_squire', id: 'squire' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'radiant_blessing', id: 'blessing' }],
+          battlefield: ['plains', { card: 'beacon_squire', id: 'squire' }],
+        },
+        {},
+      ],
     });
     expect(passCollecting(cast(s, 'blessing', [{ card: 'squire' }]), stackEmpty).cues).toEqual([
       { kind: 'pump', card: 'squire', power: 2, toughness: 2 },
@@ -251,14 +302,23 @@ describe('fx cues: spells and abilities', () => {
 
   it('shows +1/+1 counters as a pump, and a team pump on every creature it reaches', () => {
     const blossom = scenario({
-      players: [{ hand: [{ card: 'wild_blossom', id: 'blossom' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'wild_blossom', id: 'blossom' }],
+          battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }],
+        },
+        {},
+      ],
     });
     expect(passCollecting(cast(blossom, 'blossom', [{ card: 'bear' }]), stackEmpty).cues).toEqual([
       { kind: 'pump', card: 'bear', power: 2, toughness: 2 },
     ]);
     const rally = scenario({
       players: [
-        { hand: [{ card: 'rally_the_meadow', id: 'rally' }], battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear' }, { card: 'warren_hare', id: 'hare' }] },
+        {
+          hand: [{ card: 'rally_the_meadow', id: 'rally' }],
+          battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear' }, { card: 'warren_hare', id: 'hare' }],
+        },
         { battlefield: ['ember_hound'] },
       ],
     });
@@ -270,7 +330,13 @@ describe('fx cues: spells and abilities', () => {
 
   it('shows a "whenever you cast" trigger as an ability before the spell resolves', () => {
     const s = scenario({
-      players: [{ hand: [{ card: 'static_jolt', id: 'jolt' }], battlefield: ['mountain', { card: 'stormglass_drake', id: 'drake' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'static_jolt', id: 'jolt' }],
+          battlefield: ['mountain', { card: 'stormglass_drake', id: 'drake' }],
+        },
+        {},
+      ],
     });
     const played = step(s, { type: 'cast', player: 0, card: 'jolt', targets: [{ player: 1 }] });
     expect(played.cues).toEqual([
@@ -286,7 +352,10 @@ describe('fx cues: spells and abilities', () => {
 
   it('shows a shrink that kills as a pump followed by a death', () => {
     const s = scenario({
-      players: [{ hand: [{ card: 'withering_touch', id: 'touch' }], battlefield: ['swamp'] }, { battlefield: [{ card: 'cinder_adept', id: 'adept' }] }],
+      players: [
+        { hand: [{ card: 'withering_touch', id: 'touch' }], battlefield: ['swamp'] },
+        { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
+      ],
     });
     expect(passCollecting(cast(s, 'touch', [{ card: 'adept' }]), stackEmpty).cues).toEqual([
       { kind: 'pump', card: 'adept', power: -2, toughness: -2 },
@@ -310,7 +379,13 @@ describe('fx cues: spells and abilities', () => {
   it('shows a spell that fizzles', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }], battlefield: ['mountain', 'mountain'] },
+        {
+          hand: [
+            { card: 'ember_snap', id: 's1' },
+            { card: 'ember_snap', id: 's2' },
+          ],
+          battlefield: ['mountain', 'mountain'],
+        },
         { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
       ],
     });
@@ -324,7 +399,12 @@ describe('fx cues: spells and abilities', () => {
       activePlayer: 1,
       players: [
         { hand: [{ card: 'undertow', id: 'undertow' }], battlefield: ['island', 'island'] },
-        { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'ember_hound', id: 'hound' }] },
+        {
+          battlefield: [
+            { card: 'timberland_rhino', id: 'rhino' },
+            { card: 'ember_hound', id: 'hound' },
+          ],
+        },
       ],
     });
     s = pass(s);
@@ -335,7 +415,9 @@ describe('fx cues: spells and abilities', () => {
 
 describe('fx cues: tokens, keyword grants, undying and discards', () => {
   it('shows tokens entering like any other creature', () => {
-    const s = scenario({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] });
+    const s = scenario({
+      players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}],
+    });
     const { state, cues } = passCollecting(cast(s, 'banners'), stackEmpty);
     const tokens = state.players[0].battlefield.filter((id) => state.cards[id]?.def === 'soldier_token');
     expect(tokens).toHaveLength(2);
@@ -344,7 +426,14 @@ describe('fx cues: tokens, keyword grants, undying and discards', () => {
 
   it('shows a land that an effect fetches from the library entering after its creature', () => {
     const s = scenario({
-      players: [{ hand: [{ card: 'trail_scout', id: 'scout' }], battlefield: ['forest', 'forest'], library: [{ card: 'forest', id: 'found' }, 'mountain'] }, {}],
+      players: [
+        {
+          hand: [{ card: 'trail_scout', id: 'scout' }],
+          battlefield: ['forest', 'forest'],
+          library: [{ card: 'forest', id: 'found' }, 'mountain'],
+        },
+        {},
+      ],
     });
     expect(passCollecting(cast(s, 'scout'), stackEmpty).cues).toEqual([
       { kind: 'enter', player: 0, card: 'scout' },
@@ -356,16 +445,24 @@ describe('fx cues: tokens, keyword grants, undying and discards', () => {
   it('carries the keywords a pump grants', () => {
     const s = scenario({
       players: [
-        { hand: [{ card: 'charge_of_the_forge', id: 'charge' }], battlefield: ['mountain', 'plains', { card: 'test_bear', id: 'bear' }] },
+        {
+          hand: [{ card: 'charge_of_the_forge', id: 'charge' }],
+          battlefield: ['mountain', 'plains', { card: 'test_bear', id: 'bear' }],
+        },
         {},
       ],
     });
-    expect(passCollecting(cast(s, 'charge'), stackEmpty).cues).toEqual([{ kind: 'pump', card: 'bear', power: 1, toughness: 0, keywords: ['firstStrike'] }]);
+    expect(passCollecting(cast(s, 'charge'), stackEmpty).cues).toEqual([
+      { kind: 'pump', card: 'bear', power: 1, toughness: 0, keywords: ['firstStrike'] },
+    ]);
   });
 
   it('shows an undying creature dying, then coming back with its counter', () => {
     const s = scenario({
-      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] }, { battlefield: [{ card: 'gravebloom_sprout', id: 'sprout' }] }],
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+        { battlefield: [{ card: 'gravebloom_sprout', id: 'sprout' }] },
+      ],
     });
     expect(passCollecting(cast(s, 'snap', [{ card: 'sprout' }]), stackEmpty).cues).toEqual([
       { kind: 'damage', card: 'sprout', amount: 2 },
@@ -384,7 +481,9 @@ describe('fx cues: tokens, keyword grants, undying and discards', () => {
       ],
     });
     s = passTo(cast(s, 'leech'), 'discard');
-    expect(step(s, { type: 'discard', player: 1, cards: ['snap'] }).cues).toEqual([{ kind: 'discard', player: 1, card: 'snap' }]);
+    expect(step(s, { type: 'discard', player: 1, cards: ['snap'] }).cues).toEqual([
+      { kind: 'discard', player: 1, card: 'snap' },
+    ]);
   });
 });
 
@@ -394,7 +493,16 @@ describe('fx holds', () => {
 
   it('wait longest for the opponent’s plays, combat and deaths', () => {
     expect(fxHoldMs([cast1], 0, false)).toBe(900);
-    expect(fxHoldMs([{ kind: 'strike', card: 'a', target: { player: 1 } }, { kind: 'life', player: 1, delta: -2 }], 0, false)).toBe(650);
+    expect(
+      fxHoldMs(
+        [
+          { kind: 'strike', card: 'a', target: { player: 1 } },
+          { kind: 'life', player: 1, delta: -2 },
+        ],
+        0,
+        false,
+      ),
+    ).toBe(650);
     expect(fxHoldMs([{ kind: 'draw', player: 0, card: 'c1' }], 0, false)).toBe(0);
   });
 
@@ -415,6 +523,8 @@ describe('fx cues in a whole game', () => {
       s = next;
     }
     expect(s.pending?.kind).toBe('gameOver');
-    expect([...seen]).toEqual(expect.arrayContaining(['draw', 'play', 'enter', 'attack', 'strike', 'life', 'dies', 'turn']));
+    expect([...seen]).toEqual(
+      expect.arrayContaining(['draw', 'play', 'enter', 'attack', 'strike', 'life', 'dies', 'turn']),
+    );
   });
 });

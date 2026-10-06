@@ -11,7 +11,13 @@ function mainPhase(): GameState {
     activePlayer: 1,
     players: [
       { hand: [{ card: 'crag_dragon', id: 'secret' }], battlefield: [{ card: 'grove_tender', id: 'elf' }] },
-      { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
+      {
+        hand: [
+          { card: 'forest', id: 'f' },
+          { card: 'ember_snap', id: 'snap' },
+        ],
+        battlefield: ['mountain'],
+      },
     ],
   });
 }
@@ -22,7 +28,12 @@ function menaceAttack(): GameState {
       scenario({
         players: [
           { battlefield: [{ card: 'ridge_marauder', id: 'marauder' }] },
-          { battlefield: [{ card: 'canopy_spider', id: 's1' }, { card: 'canopy_spider', id: 's2' }] },
+          {
+            battlefield: [
+              { card: 'canopy_spider', id: 's1' },
+              { card: 'canopy_spider', id: 's2' },
+            ],
+          },
         ],
       }),
       ['marauder'],
@@ -74,7 +85,9 @@ describe('the LLM player', () => {
   });
 
   it('asks again, saying why, when the answer does not fit the schema', async () => {
-    const model = mockModel((call, index) => (index === 0 ? { reason: 'Hmm.', choice: '99' } : choose(call, (text) => text.startsWith('Pasar'))));
+    const model = mockModel((call, index) =>
+      index === 0 ? { reason: 'Hmm.', choice: '99' } : choose(call, (text) => text.startsWith('Pasar')),
+    );
     const decision = await createLlmPlayer({ model }).decide(mainPhase(), 1);
     expect(decision).toMatchObject({ action: { type: 'pass' }, source: 'model', attempts: 2 });
     const retry = promptText(model.doGenerateCalls[1] as (typeof model.doGenerateCalls)[number]).user;
@@ -83,7 +96,9 @@ describe('the LLM player', () => {
 
   it('asks again when the answer breaks a rule the schema cannot express', async () => {
     const model = mockModel((_, index) =>
-      index === 0 ? { reason: 'One is enough.', blocks: { s1: 'marauder', s2: 'none' } } : { reason: 'Both.', blocks: { s1: 'marauder', s2: 'marauder' } },
+      index === 0
+        ? { reason: 'One is enough.', blocks: { s1: 'marauder', s2: 'none' } }
+        : { reason: 'Both.', blocks: { s1: 'marauder', s2: 'marauder' } },
     );
     const decision = await createLlmPlayer({ model }).decide(menaceAttack(), 1);
     expect(decision.action).toEqual({
@@ -114,7 +129,11 @@ describe('the LLM player', () => {
     expect(first).toMatchObject({ source: 'fallback', error: 'OpenRouter 401: No auth credentials found' });
     expect(player.unavailable).toBe('OpenRouter 401: No auth credentials found');
     const second = await player.decide(mainPhase(), 1);
-    expect(second).toMatchObject({ source: 'fallback', attempts: 0, error: 'OpenRouter 401: No auth credentials found' });
+    expect(second).toMatchObject({
+      source: 'fallback',
+      attempts: 0,
+      error: 'OpenRouter 401: No auth credentials found',
+    });
     expect(model.doGenerateCalls).toHaveLength(1);
   });
 
@@ -126,7 +145,13 @@ describe('the LLM player', () => {
   });
 
   it('keeps trying after a temporary error', async () => {
-    const busy = new APICallError({ message: 'Rate limited', url: 'x', requestBodyValues: {}, statusCode: 429, isRetryable: true });
+    const busy = new APICallError({
+      message: 'Rate limited',
+      url: 'x',
+      requestBodyValues: {},
+      statusCode: 429,
+      isRetryable: true,
+    });
     const model = mockModel((call, index) => (index === 0 ? busy : choose(call, (text) => text.startsWith('Pasar'))));
     const player = createLlmPlayer({ model, maxRetries: 0 });
     expect(await player.decide(mainPhase(), 1)).toMatchObject({ source: 'model', attempts: 2 });

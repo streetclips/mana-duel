@@ -6,7 +6,9 @@ import { attack, cast, passTo, passToStep, scenario } from '../helpers';
 const reason = 'Because.';
 
 function fieldsOf(decision: Decision, key: string): Record<string, { enum?: string[] }> {
-  const schema = decision.schema.toJSONSchema() as unknown as { properties: Record<string, { properties?: Record<string, { enum?: string[] }> }> };
+  const schema = decision.schema.toJSONSchema() as unknown as {
+    properties: Record<string, { properties?: Record<string, { enum?: string[] }> }>;
+  };
   return schema.properties[key]?.properties ?? {};
 }
 
@@ -16,7 +18,10 @@ function mainPhase() {
     players: [
       { battlefield: [{ card: 'grove_tender', id: 'elf' }] },
       {
-        hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }],
+        hand: [
+          { card: 'forest', id: 'f' },
+          { card: 'ember_snap', id: 'snap' },
+        ],
         battlefield: ['mountain', { card: 'crag_dragon', id: 'dragon' }],
       },
     ],
@@ -43,7 +48,9 @@ describe('a decision among the legal actions', () => {
     expect(text).toContain('Jugar la tierra Bosque (f)');
     expect(text).toContain('Lanzar Chasquido de brasas (snap) por {R} sobre Elfa del soto (elf) del rival');
     expect(text).toContain('Lanzar Chasquido de brasas (snap) por {R} sobre el rival');
-    expect(text).toContain('Activar tu Dragón del risco (dragon): "{R}: Esta criatura obtiene +1/+0 hasta el final del turno."');
+    expect(text).toContain(
+      'Activar tu Dragón del risco (dragon): "{R}: Esta criatura obtiene +1/+0 hasta el final del turno."',
+    );
     expect(describeAction(s, { type: 'pass', player: 1 }, 1)).toBe(
       'Pasar la prioridad: no haces nada ahora; cuando los dos jugadores pasen, la partida avanza a: Inicio del combate',
     );
@@ -70,14 +77,27 @@ describe('combat decisions', () => {
     const s = passTo(
       scenario({
         activePlayer: 1,
-        players: [{ battlefield: ['canopy_spider'] }, { battlefield: [{ card: 'ember_hound', id: 'h1' }, { card: 'timberland_rhino', id: 'rhino' }, { card: 'grove_tender', id: 'sick', sick: true }] }],
+        players: [
+          { battlefield: ['canopy_spider'] },
+          {
+            battlefield: [
+              { card: 'ember_hound', id: 'h1' },
+              { card: 'timberland_rhino', id: 'rhino' },
+              { card: 'grove_tender', id: 'sick', sick: true },
+            ],
+          },
+        ],
       }),
       'declareAttackers',
     );
     const decision = decisionFor(s, 1);
     expect(Object.keys(fieldsOf(decision, 'attack'))).toEqual(['h1', 'rhino']);
     expect(decision.question).toContain('Araña del dosel 1/3, Alcance');
-    expect(decision.toAction({ reason, attack: { h1: false, rhino: true } })).toEqual({ type: 'declareAttackers', player: 1, attackers: ['rhino'] });
+    expect(decision.toAction({ reason, attack: { h1: false, rhino: true } })).toEqual({
+      type: 'declareAttackers',
+      player: 1,
+      attackers: ['rhino'],
+    });
   });
 
   it('let each blocker pick only an attacker it can block', () => {
@@ -85,8 +105,18 @@ describe('combat decisions', () => {
       attack(
         scenario({
           players: [
-            { battlefield: [{ card: 'cinderwing_drake', id: 'drake' }, { card: 'ember_hound', id: 'hound' }] },
-            { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'canopy_spider', id: 'spider' }] },
+            {
+              battlefield: [
+                { card: 'cinderwing_drake', id: 'drake' },
+                { card: 'ember_hound', id: 'hound' },
+              ],
+            },
+            {
+              battlefield: [
+                { card: 'timberland_rhino', id: 'rhino' },
+                { card: 'canopy_spider', id: 'spider' },
+              ],
+            },
           ],
         }),
         ['drake', 'hound'],
@@ -113,7 +143,12 @@ describe('combat decisions', () => {
         scenario({
           players: [
             { battlefield: [{ card: 'ridge_marauder', id: 'marauder' }] },
-            { battlefield: [{ card: 'canopy_spider', id: 's1' }, { card: 'canopy_spider', id: 's2' }] },
+            {
+              battlefield: [
+                { card: 'canopy_spider', id: 's1' },
+                { card: 'canopy_spider', id: 's2' },
+              ],
+            },
           ],
         }),
         ['marauder'],
@@ -123,7 +158,9 @@ describe('combat decisions', () => {
     const decision = decisionFor(s, 1);
     expect(() => decision.toAction({ reason, blocks: { s1: 'marauder', s2: 'none' } })).toThrow(DecisionError);
     expect(() => decision.toAction({ reason, blocks: { s1: 'marauder', s2: 'none' } })).toThrow(/amenaza/);
-    expect(decision.toAction({ reason, blocks: { s1: 'marauder', s2: 'marauder' } })).toMatchObject({ type: 'declareBlockers' });
+    expect(decision.toAction({ reason, blocks: { s1: 'marauder', s2: 'marauder' } })).toMatchObject({
+      type: 'declareBlockers',
+    });
   });
 });
 
@@ -135,8 +172,14 @@ describe('choosing cards', () => {
     const decision = decisionFor(s, 1);
     expect(decision.kind).toBe('bottom');
     const [first, second, third] = s.players[1].hand as [string, string, string];
-    expect(decision.toAction({ reason, cards: [first, second] })).toEqual({ type: 'bottom', player: 1, cards: [first, second] });
-    expect(() => decision.toAction({ reason, cards: [first, first] })).toThrow('elige exactamente 2 cartas distintas de tu mano, no 1');
+    expect(decision.toAction({ reason, cards: [first, second] })).toEqual({
+      type: 'bottom',
+      player: 1,
+      cards: [first, second],
+    });
+    expect(() => decision.toAction({ reason, cards: [first, first] })).toThrow(
+      'elige exactamente 2 cartas distintas de tu mano, no 1',
+    );
     expect(() => decision.toAction({ reason, cards: [first, second, third] })).toThrow(DecisionError);
   });
 
@@ -145,7 +188,10 @@ describe('choosing cards', () => {
       scenario({
         activePlayer: 1,
         step: 'main2',
-        players: [{}, { hand: ['forest', 'forest', 'forest', 'forest', 'forest', 'forest', 'forest', 'swamp', 'swamp'] }],
+        players: [
+          {},
+          { hand: ['forest', 'forest', 'forest', 'forest', 'forest', 'forest', 'forest', 'swamp', 'swamp'] },
+        ],
       }),
       'discard',
     );
@@ -161,7 +207,12 @@ describe('choosing cards', () => {
         scenario({
           players: [
             { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
-            { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }] },
+            {
+              hand: [
+                { card: 'forest', id: 'f' },
+                { card: 'ember_snap', id: 'snap' },
+              ],
+            },
           ],
         }),
         'leech',
@@ -179,7 +230,10 @@ describe('forced decisions', () => {
     const empty = scenario({ activePlayer: 1, players: [{}, {}] });
     expect(forcedAction(empty)).toEqual({ type: 'pass', player: 1 });
     expect(forcedAction(mainPhase())).toBeNull();
-    const noAttackers = passToStep(scenario({ activePlayer: 1, players: [{}, { battlefield: [{ card: 'ember_hound', sick: true }] }] }), 'main2');
+    const noAttackers = passToStep(
+      scenario({ activePlayer: 1, players: [{}, { battlefield: [{ card: 'ember_hound', sick: true }] }] }),
+      'main2',
+    );
     expect(forcedAction(noAttackers)).toEqual({ type: 'pass', player: 1 });
   });
 });

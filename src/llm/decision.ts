@@ -107,7 +107,11 @@ export function describeAction(s: GameState, action: Action, viewer: PlayerId): 
     }
     case 'activate': {
       const def = getCardDef(getCard(s, action.card).def);
-      return words.activate(cardLabel(s, action.card, viewer), activatedText(def, action.ability), targetsSuffix(s, action.targets, viewer));
+      return words.activate(
+        cardLabel(s, action.card, viewer),
+        activatedText(def, action.ability),
+        targetsSuffix(s, action.targets, viewer),
+      );
     }
     case 'chooseTargets':
       return words.chooseTargets(action.targets.map((target) => targetLabel(s, target, viewer)).join(words.and));
@@ -117,7 +121,11 @@ export function describeAction(s: GameState, action: Action, viewer: PlayerId): 
       return action.blocks.length === 0
         ? words.noBlock
         : words.block(
-            action.blocks.map((block) => words.blocks(cardName(s, block.blocker), block.blocker, cardName(s, block.attacker), block.attacker)).join(', '),
+            action.blocks
+              .map((block) =>
+                words.blocks(cardName(s, block.blocker), block.blocker, cardName(s, block.attacker), block.attacker),
+              )
+              .join(', '),
           );
     case 'bottom':
       return words.bottom(cardList(s, action.cards));
@@ -134,7 +142,8 @@ function priorityQuestion(s: GameState, player: PlayerId): string {
   const top = s.stack.at(-1);
   if (top) {
     const source = top.kind === 'spell' ? top.card : top.source;
-    const what = top.controller === player ? words.yourCard(cardName(s, source)) : words.opponentCard(cardName(s, source));
+    const what =
+      top.controller === player ? words.yourCard(cardName(s, source)) : words.opponentCard(cardName(s, source));
     return words.priorityWithStack(whose, stepName(s.step), what);
   }
   return words.priority(whose, stepName(s.step));
@@ -201,7 +210,12 @@ function blockersDecision(s: GameState, player: PlayerId): Decision {
   const options = blockOptions(s);
   const blockers = Object.keys(options);
   const shape = Object.fromEntries(
-    blockers.map((id) => [id, z.enum(['none', ...(options[id] ?? [])] as [string, ...string[]]).describe(words.blockerShape(creatureLine(s, id)))]),
+    blockers.map((id) => [
+      id,
+      z
+        .enum(['none', ...(options[id] ?? [])] as [string, ...string[]])
+        .describe(words.blockerShape(creatureLine(s, id))),
+    ]),
   );
   const schema = z.object({
     reason: reason(),
@@ -229,18 +243,30 @@ function blockersDecision(s: GameState, player: PlayerId): Decision {
 function discardQuestion(s: GameState, player: PlayerId, amount: number, source: CardId | undefined): string {
   const words = text();
   if (source === undefined) return words.cleanupDiscard(amount);
-  const what = getCard(s, source).controller === player ? words.yourSource(cardName(s, source)) : words.opponentSource(cardName(s, source));
+  const what =
+    getCard(s, source).controller === player
+      ? words.yourSource(cardName(s, source))
+      : words.opponentSource(cardName(s, source));
   return words.forcedDiscard(what, amount);
 }
 
-function cardsDecision(kind: 'bottom' | 'discard', s: GameState, player: PlayerId, amount: number, source?: CardId): Decision {
+function cardsDecision(
+  kind: 'bottom' | 'discard',
+  s: GameState,
+  player: PlayerId,
+  amount: number,
+  source?: CardId,
+): Decision {
   const words = text();
   const hand = s.players[player].hand;
   const schema = z.object({
     reason: reason(),
     cards: z.array(z.enum(hand as [string, ...string[]])).describe(words.cardsShape(amount)),
   });
-  const question = kind === 'bottom' ? words.bottomQuestion(s.players[player].mulligans, amount) : discardQuestion(s, player, amount, source);
+  const question =
+    kind === 'bottom'
+      ? words.bottomQuestion(s.players[player].mulligans, amount)
+      : discardQuestion(s, player, amount, source);
   return {
     kind,
     question,

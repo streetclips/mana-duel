@@ -1,4 +1,15 @@
-import { COLORS, cardColors, getCardDef, getCost, hasCardDef, isRelicDef, manaValue, type Color, type DeckDef, type DeckEntry } from '../engine';
+import {
+  COLORS,
+  cardColors,
+  getCardDef,
+  getCost,
+  hasCardDef,
+  isRelicDef,
+  manaValue,
+  type Color,
+  type DeckDef,
+  type DeckEntry,
+} from '../engine';
 import { MAX_COPIES, isBasicLand, isLandCard, poolCards } from './cardPool';
 import { deckBuildingText } from './text/decks';
 
@@ -36,7 +47,9 @@ export function copiesIn(cards: readonly DeckEntry[], card: string): number {
 }
 
 export function withCount(cards: readonly DeckEntry[], card: string, count: number): DeckEntry[] {
-  const next = cards.map((entry) => (entry.card === card ? { ...entry, count } : { ...entry })).filter((entry) => entry.count > 0);
+  const next = cards
+    .map((entry) => (entry.card === card ? { ...entry, count } : { ...entry }))
+    .filter((entry) => entry.count > 0);
   if (count > 0 && !cards.some((entry) => entry.card === card)) next.push({ card, count });
   return next;
 }
@@ -102,7 +115,8 @@ export function draftProblems(draft: DeckDraft, pool: readonly Allowance[]): str
     const name = getCardDef(entry.card).name;
     const allowance = allowanceOf(pool, entry.card);
     if (!allowance) problems.push(text.notInPool(name));
-    else if (allowance.max !== null && entry.count > allowance.max) problems.push(text.tooManyCopies(entry.count, name, allowance.max));
+    else if (allowance.max !== null && entry.count > allowance.max)
+      problems.push(text.tooManyCopies(entry.count, name, allowance.max));
   }
   return problems;
 }
@@ -118,7 +132,6 @@ export function draftNotes(draft: DeckDraft): string[] {
   for (const color of unpaid) notes.push(text.unpaidColor(color));
   return notes;
 }
-
 
 export function fillWithBasics(cards: readonly DeckEntry[], target = MIN_DECK): DeckEntry[] {
   const missing = target - countCards(cards);
@@ -151,7 +164,8 @@ export function checkDraft(draft: DeckDraft): void {
   if (!deckName(draft.name)) throw new Error('A deck needs a name');
   for (const entry of draft.cards) {
     if (!isPlayableCard(entry.card)) throw new Error(`"${String(entry.card)}" is not a card a deck can hold`);
-    if (!Number.isInteger(entry.count) || entry.count < 0) throw new Error(`Invalid count ${entry.count} for "${entry.card}"`);
+    if (!Number.isInteger(entry.count) || entry.count < 0)
+      throw new Error(`Invalid count ${entry.count} for "${entry.card}"`);
   }
 }
 
@@ -161,7 +175,8 @@ export function deckName(name: string): string {
 
 export function buildDeck(draft: DeckDraft, id: string): DeckDef {
   const cards = draft.cards.filter((entry) => entry.count > 0).map((entry) => ({ ...entry }));
-  const featured = draft.featured && cards.some((entry) => entry.card === draft.featured) ? draft.featured : suggestedFeatured(cards);
+  const featured =
+    draft.featured && cards.some((entry) => entry.card === draft.featured) ? draft.featured : suggestedFeatured(cards);
   return {
     id,
     name: deckName(draft.name),
@@ -182,7 +197,10 @@ export function draftOf(deck: DeckDef, copy = false): DeckDraft {
 }
 
 export function searchKey(text: string): string {
-  return text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+  return text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -208,11 +226,21 @@ export function isCustomDeck(value: unknown): value is DeckDef {
     colors.every((color) => (COLORS as readonly unknown[]).includes(color)) &&
     isPlayableCard(featured) &&
     Array.isArray(cards) &&
-    cards.every((entry) => isRecord(entry) && isPlayableCard(entry.card) && typeof entry.count === 'number' && Number.isInteger(entry.count) && entry.count > 0)
+    cards.every(
+      (entry) =>
+        isRecord(entry) &&
+        isPlayableCard(entry.card) &&
+        typeof entry.count === 'number' &&
+        Number.isInteger(entry.count) &&
+        entry.count > 0,
+    )
   );
 }
 
 export function storedDeck(value: unknown, fallbackName: string): DeckDef | null {
-  const deck = isRecord(value) && typeof value.name === 'string' ? { ...value, name: deckName(value.name) || fallbackName } : value;
+  const deck =
+    isRecord(value) && typeof value.name === 'string'
+      ? { ...value, name: deckName(value.name) || fallbackName }
+      : value;
   return isCustomDeck(deck) ? deck : null;
 }

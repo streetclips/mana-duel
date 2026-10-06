@@ -16,7 +16,16 @@ import {
 } from '../app/expedition';
 import type { DuelInfo, ExpeditionController } from '../app/expeditionController';
 import { relicOf, type RelicId } from '../app/relics';
-import { DECK_LIST, OPENING_HAND, getCardDef, getDeck, hasCardDef, hasDeck, localizeDeck, type DeckDef } from '../engine';
+import {
+  DECK_LIST,
+  OPENING_HAND,
+  getCardDef,
+  getDeck,
+  hasCardDef,
+  hasDeck,
+  localizeDeck,
+  type DeckDef,
+} from '../engine';
 import { MiniCard } from './components/Card';
 import { DeckBox } from './components/DeckBox';
 import { DeckOption } from './components/DeckSelect';
@@ -101,7 +110,12 @@ function RelicList({ relics, spent = [] }: { relics: readonly RelicId[]; spent?:
         const relic = relicOf(id);
         const used = spent.includes(id);
         return (
-          <li key={id} class={`relic-chip${used ? ' spent' : ''}`} data-testid={`relic-${id}`} data-spent={used ? 'true' : undefined}>
+          <li
+            key={id}
+            class={`relic-chip${used ? ' spent' : ''}`}
+            data-testid={`relic-${id}`}
+            data-spent={used ? 'true' : undefined}
+          >
             <RelicIcon relic={id} />
             <span>
               <b>
@@ -190,7 +204,13 @@ function NewRun({ decks, initialDeck, onStart, onView }: NewRunProps) {
               </h3>
               <p>{deck.description}</p>
             </div>
-            <button type="button" class="btn secondary" aria-label={text.viewDeck(deck.name)} data-testid={`deck-view-${deck.id}`} onClick={() => onView(deck)}>
+            <button
+              type="button"
+              class="btn secondary"
+              aria-label={text.viewDeck(deck.name)}
+              data-testid={`deck-view-${deck.id}`}
+              onClick={() => onView(deck)}
+            >
               {text.cardsButton}
             </button>
           </div>
@@ -261,7 +281,14 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
                   {state !== 'won' && (
                     <RivalRelics
                       rival={candidate}
-                      onRead={(relic) => setReading({ relic, holder: candidate.boss ? text.bossRelicHolder(rivalDeck.name) : text.relicHolder(rivalDeck.name) })}
+                      onRead={(relic) =>
+                        setReading({
+                          relic,
+                          holder: candidate.boss
+                            ? text.bossRelicHolder(rivalDeck.name)
+                            : text.relicHolder(rivalDeck.name),
+                        })
+                      }
                     />
                   )}
                 </span>
@@ -298,7 +325,13 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
         <button type="button" class="btn secondary" data-testid="btn-expedition-abandon" onClick={onAbandon}>
           {text.abandon}
         </button>
-        <button type="button" class="btn" data-testid="btn-expedition-fight" disabled={!!problem || !rival} onClick={onFight}>
+        <button
+          type="button"
+          class="btn"
+          data-testid="btn-expedition-fight"
+          disabled={!!problem || !rival}
+          onClick={onFight}
+        >
           {run.duel ? text.continueDuel : text.fight(run.wins + 1)}
         </button>
       </div>
@@ -346,7 +379,13 @@ function CardReward({ run, offers, onTake, onSkip }: CardRewardProps) {
         <button type="button" class="btn secondary" data-testid="btn-reward-skip" onClick={onSkip}>
           {text.skip}
         </button>
-        <button type="button" class="btn" data-testid="btn-reward-take" disabled={!selected} onClick={() => selected && onTake(selected)}>
+        <button
+          type="button"
+          class="btn"
+          data-testid="btn-reward-take"
+          disabled={!selected}
+          onClick={() => selected && onTake(selected)}
+        >
           {text.take}
         </button>
       </div>
@@ -479,7 +518,13 @@ function RelicReward({ run, offers, onTake }: RelicRewardProps) {
         )}
       </div>
       <div class="start-actions">
-        <button type="button" class="btn" data-testid="btn-relic-take" disabled={!selected} onClick={() => selected && onTake(selected)}>
+        <button
+          type="button"
+          class="btn"
+          data-testid="btn-relic-take"
+          disabled={!selected}
+          onClick={() => selected && onTake(selected)}
+        >
           {selected ? text.takeRelic(relicOf(selected).name) : text.chooseRelic}
         </button>
       </div>
@@ -504,7 +549,9 @@ function RunResult({ run, onNew, onHome, onView }: RunResultProps) {
         <header class="reward-head result-head">
           <h2 data-testid="expedition-result-title">{won ? text.wonTitle : text.lostTitle}</h2>
           <p class="run-note">
-            {won ? text.wonNote(run.rivals.length, baseName(run)) : text.lostNote(run.wins + 1, run.rivals.length, fallen ? deckName(fallen.rival) : null)}
+            {won
+              ? text.wonNote(run.rivals.length, baseName(run))
+              : text.lostNote(run.wins + 1, run.rivals.length, fallen ? deckName(fallen.rival) : null)}
           </p>
         </header>
         <div class="run-stats">
@@ -534,7 +581,12 @@ function RunResult({ run, onNew, onHome, onView }: RunResultProps) {
           ))}
         </ol>
         {run.relics.length > 0 && <RelicList relics={run.relics} spent={run.spent} />}
-        <button type="button" class="btn secondary result-deck" data-testid="btn-expedition-deck" onClick={() => onView(runDeck(run))}>
+        <button
+          type="button"
+          class="btn secondary result-deck"
+          data-testid="btn-expedition-deck"
+          onClick={() => onView(runDeck(run))}
+        >
           {text.viewFinalDeck}
         </button>
       </div>
@@ -550,7 +602,14 @@ function RunResult({ run, onNew, onHome, onView }: RunResultProps) {
   );
 }
 
-export function ExpeditionScreen({ expedition, customs = [], initialDeck, problem, onFight, onHome }: ExpeditionScreenProps) {
+export function ExpeditionScreen({
+  expedition,
+  customs = [],
+  initialDeck,
+  problem,
+  onFight,
+  onHome,
+}: ExpeditionScreenProps) {
   useSubscription(expedition);
   const text = expeditionText();
   const run = expedition.run;
@@ -576,16 +635,41 @@ export function ExpeditionScreen({ expedition, customs = [], initialDeck, proble
   } else {
     switch (run.stage.kind) {
       case 'duel':
-        body = <RunMap run={run} problem={problem} onFight={onFight} onAbandon={() => setConfirming(true)} onView={setViewing} />;
+        body = (
+          <RunMap
+            run={run}
+            problem={problem}
+            onFight={onFight}
+            onAbandon={() => setConfirming(true)}
+            onView={setViewing}
+          />
+        );
         break;
       case 'card':
-        body = <CardReward key={run.wins} run={run} offers={run.stage.offers} onTake={(card) => expedition.chooseCard(card)} onSkip={() => expedition.chooseCard(null)} />;
+        body = (
+          <CardReward
+            key={run.wins}
+            run={run}
+            offers={run.stage.offers}
+            onTake={(card) => expedition.chooseCard(card)}
+            onSkip={() => expedition.chooseCard(null)}
+          />
+        );
         break;
       case 'swap':
-        body = <SwapCard key={run.stage.card} run={run} card={run.stage.card} onSwap={(out) => expedition.swapCard(out)} />;
+        body = (
+          <SwapCard key={run.stage.card} run={run} card={run.stage.card} onSwap={(out) => expedition.swapCard(out)} />
+        );
         break;
       case 'relic':
-        body = <RelicReward key={run.wins} run={run} offers={run.stage.offers} onTake={(relic) => expedition.chooseRelic(relic)} />;
+        body = (
+          <RelicReward
+            key={run.wins}
+            run={run}
+            offers={run.stage.offers}
+            onTake={(relic) => expedition.chooseRelic(relic)}
+          />
+        );
         break;
       case 'won':
       case 'lost':
@@ -597,7 +681,13 @@ export function ExpeditionScreen({ expedition, customs = [], initialDeck, proble
   const detail = fresh || !run ? undefined : `${run.wins}/${run.rivals.length}`;
   return (
     <main class="expedition" data-testid="expedition" data-stage={stage}>
-      <ScreenBar title={text.title} detail={detail} backLabel={text.backToMenu} backTestId="btn-expedition-back" onBack={onHome} />
+      <ScreenBar
+        title={text.title}
+        detail={detail}
+        backLabel={text.backToMenu}
+        backTestId="btn-expedition-back"
+        onBack={onHome}
+      />
       {body}
       {confirming && run && (
         <div class="scrim center-modal" data-testid="expedition-abandon" onClick={() => setConfirming(false)}>
@@ -616,14 +706,21 @@ export function ExpeditionScreen({ expedition, customs = [], initialDeck, proble
               >
                 {text.abandonRun}
               </button>
-              <button type="button" class="btn secondary" data-testid="btn-abandon-no" onClick={() => setConfirming(false)}>
+              <button
+                type="button"
+                class="btn secondary"
+                data-testid="btn-abandon-no"
+                onClick={() => setConfirming(false)}
+              >
                 {text.keepGoing}
               </button>
             </div>
           </div>
         </div>
       )}
-      {viewing && <DeckViewer tabs={[{ key: viewing.id, label: viewing.name, deck: viewing }]} onClose={() => setViewing(null)} />}
+      {viewing && (
+        <DeckViewer tabs={[{ key: viewing.id, label: viewing.name, deck: viewing }]} onClose={() => setViewing(null)} />
+      )}
     </main>
   );
 }

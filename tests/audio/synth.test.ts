@@ -22,7 +22,9 @@ const COLORS: (Color | null)[] = [null, 'W', 'U', 'B', 'R', 'G'];
 
 function everySound(): SoundEvent[] {
   return SOUNDS.flatMap((sound) =>
-    sound === 'cast' || sound === 'land' ? COLORS.map((color) => soundEvent(sound, { color })) : [soundEvent(sound), soundEvent(sound, { pitch: -5 })],
+    sound === 'cast' || sound === 'land'
+      ? COLORS.map((color) => soundEvent(sound, { color }))
+      : [soundEvent(sound), soundEvent(sound, { pitch: -5 })],
   );
 }
 
@@ -52,7 +54,11 @@ function expectValid(layers: Layer[]): void {
     expect(layer.release).toBeGreaterThan(0);
     expect(layer.delay ?? 0).toBeGreaterThanOrEqual(0);
     expect(layer.hold ?? 0).toBeGreaterThanOrEqual(0);
-    const frequencies = [layer.filter?.hz, layer.filter?.to, ...(layer.kind === 'tone' ? [layer.hz, layer.to] : [])].filter((hz) => hz !== undefined);
+    const frequencies = [
+      layer.filter?.hz,
+      layer.filter?.to,
+      ...(layer.kind === 'tone' ? [layer.hz, layer.to] : []),
+    ].filter((hz) => hz !== undefined);
     for (const hz of frequencies) {
       expect(hz).toBeGreaterThanOrEqual(20);
       expect(hz).toBeLessThanOrEqual(16000);
@@ -65,7 +71,9 @@ describe('sound recipes', () => {
     for (const event of everySound()) {
       const layers = soundLayers(event);
       expectValid(layers);
-      expect(layersSeconds(layers)).toBeLessThan(event.sound === 'victory' || event.sound === 'defeat' || event.sound === 'stalemate' ? 5 : 2);
+      expect(layersSeconds(layers)).toBeLessThan(
+        event.sound === 'victory' || event.sound === 'defeat' || event.sound === 'stalemate' ? 5 : 2,
+      );
     }
   });
 
@@ -85,7 +93,18 @@ describe('sound recipes', () => {
   });
 
   it('measure a layer from its delay to the end of its release', () => {
-    expect(layerSeconds({ kind: 'tone', wave: 'sine', hz: 440, gain: 0.1, attack: 0.1, hold: 0.2, release: 0.3, delay: 0.4 })).toBeCloseTo(1);
+    expect(
+      layerSeconds({
+        kind: 'tone',
+        wave: 'sine',
+        hz: 440,
+        gain: 0.1,
+        attack: 0.1,
+        hold: 0.2,
+        release: 0.3,
+        delay: 0.4,
+      }),
+    ).toBeCloseTo(1);
     expect(layersSeconds([])).toBe(0);
   });
 });
@@ -129,9 +148,15 @@ describe('the Web Audio graph', () => {
       const audible = sources.filter((source) => ctx.reaches(source, output));
       expect(audible).toHaveLength(soundLayers(event).length);
       for (const modulator of sources.filter((source) => !audible.includes(source))) {
-        expect(modulator.connections.every((amount) => amount instanceof FakeGain && amount.connections.every((target) => target instanceof FakeParam))).toBe(true);
+        expect(
+          modulator.connections.every(
+            (amount) => amount instanceof FakeGain && amount.connections.every((target) => target instanceof FakeParam),
+          ),
+        ).toBe(true);
       }
-      const envelopes = created.filter((node): node is FakeGain => node instanceof FakeGain && node.connections.includes(output));
+      const envelopes = created.filter(
+        (node): node is FakeGain => node instanceof FakeGain && node.connections.includes(output),
+      );
       expect(envelopes).toHaveLength(soundLayers(event).length);
       for (const envelope of envelopes) {
         expect(envelope.gain.events[0]).toMatchObject({ type: 'set', value: SILENT });

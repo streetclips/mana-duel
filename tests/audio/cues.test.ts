@@ -20,10 +20,19 @@ import { scenario } from '../helpers';
 const s = scenario({
   players: [
     {
-      hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'forest', id: 'forest' }, { card: 'turn_the_tide', id: 'tide' }],
+      hand: [
+        { card: 'ember_snap', id: 'snap' },
+        { card: 'forest', id: 'forest' },
+        { card: 'turn_the_tide', id: 'tide' },
+      ],
       battlefield: [{ card: 'grove_tender', id: 'elf' }, 'island'],
     },
-    { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'soldier_token', id: 'soldier' }] },
+    {
+      battlefield: [
+        { card: 'timberland_rhino', id: 'rhino' },
+        { card: 'soldier_token', id: 'soldier' },
+      ],
+    },
   ],
 });
 
@@ -32,7 +41,8 @@ const IMPACT = IMPACT_MS / 1000;
 const DRAW_GAP = DRAW_STAGGER_MS / 1000;
 
 const batch = (seq: number, ...cues: FxCue[]): FxBatch => ({ seq, cues });
-const sounds = (events: SoundEvent[]): [string, number][] => events.map((event) => [event.sound, Math.round(event.at * 1000) / 1000]);
+const sounds = (events: SoundEvent[]): [string, number][] =>
+  events.map((event) => [event.sound, Math.round(event.at * 1000) / 1000]);
 const round = (seconds: number): number => Math.round(seconds * 1000) / 1000;
 
 const ONE_OF_EACH: Record<FxKind, FxCue> = {
@@ -56,7 +66,10 @@ const ONE_OF_EACH: Record<FxKind, FxCue> = {
 
 describe('sounds of the animation cues', () => {
   it('give every kind of cue a sound', () => {
-    const heard = Object.entries(ONE_OF_EACH).map(([kind, cue]) => [kind, soundsOf(batch(1, cue), context).map((event) => event.sound)]);
+    const heard = Object.entries(ONE_OF_EACH).map(([kind, cue]) => [
+      kind,
+      soundsOf(batch(1, cue), context).map((event) => event.sound),
+    ]);
     expect(Object.fromEntries(heard)).toEqual({
       draw: ['draw'],
       discard: ['discard'],
@@ -75,7 +88,14 @@ describe('sounds of the animation cues', () => {
       fizzle: ['fizzle'],
       turn: ['turn'],
     });
-    expect(soundsOf(batch(7, ONE_OF_EACH.turn), context)[0]).toEqual({ sound: 'turn', seq: 7, at: 0, gain: 1, pitch: 0, color: null });
+    expect(soundsOf(batch(7, ONE_OF_EACH.turn), context)[0]).toEqual({
+      sound: 'turn',
+      seq: 7,
+      at: 0,
+      gain: 1,
+      pitch: 0,
+      color: null,
+    });
   });
 
   it('land the hits of a combat with its strikes, and the dead fall just after', () => {
@@ -98,12 +118,15 @@ describe('sounds of the animation cues', () => {
   });
 
   it('tell the life you lose from the life the opponent loses, and heal either', () => {
-    const life = (player: 0 | 1, delta: number): string[] => soundsOf(batch(1, { kind: 'life', player, delta }), context).map((event) => event.sound);
+    const life = (player: 0 | 1, delta: number): string[] =>
+      soundsOf(batch(1, { kind: 'life', player, delta }), context).map((event) => event.sound);
     expect(life(0, -2)).toEqual(['hurt']);
     expect(life(1, -2)).toEqual(['drain']);
     expect(life(0, 3)).toEqual(['heal']);
     expect(life(1, 1)).toEqual(['heal']);
-    expect(soundsOf(batch(1, { kind: 'life', player: 1, delta: -2 }), { ...context, viewer: 1 })[0]?.sound).toBe('hurt');
+    expect(soundsOf(batch(1, { kind: 'life', player: 1, delta: -2 }), { ...context, viewer: 1 })[0]?.sound).toBe(
+      'hurt',
+    );
   });
 
   it('deal the cards you draw one after another, and the opponent’s with one quiet sound', () => {
@@ -113,13 +136,19 @@ describe('sounds of the animation cues', () => {
       ...Array.from({ length: 7 }, (_, i): FxCue => ({ kind: 'draw', player: 1, card: `b${i}` })),
     );
     const events = soundsOf(deal, context);
-    expect(events.map((event) => round(event.at))).toEqual([...Array.from({ length: 7 }, (_, i) => round(i * DRAW_GAP)), 0]);
+    expect(events.map((event) => round(event.at))).toEqual([
+      ...Array.from({ length: 7 }, (_, i) => round(i * DRAW_GAP)),
+      0,
+    ]);
     expect(events.map((event) => event.gain)).toEqual([1, 1, 1, 1, 1, 1, 1, 0.5]);
     expect(new Set(events.map((event) => event.sound))).toEqual(new Set(['draw']));
   });
 
   it('ring a new turn, then deal its card; the opponent’s turn rings lower', () => {
-    const yours = soundsOf(batch(2, { kind: 'turn', player: 0, turn: 3 }, { kind: 'draw', player: 0, card: 'snap' }), context);
+    const yours = soundsOf(
+      batch(2, { kind: 'turn', player: 0, turn: 3 }, { kind: 'draw', player: 0, card: 'snap' }),
+      context,
+    );
     expect(sounds(yours)).toEqual([
       ['turn', 0],
       ['draw', TURN_LEAD],
@@ -137,10 +166,16 @@ describe('sounds of the animation cues', () => {
   });
 
   it('stay quiet where another sound covers the cue: a land played as it enters, the damage of a strike', () => {
-    const land = batch(1, { kind: 'enter', player: 0, card: 'forest' }, { kind: 'play', player: 0, card: 'forest', via: 'land', targets: [] });
+    const land = batch(
+      1,
+      { kind: 'enter', player: 0, card: 'forest' },
+      { kind: 'play', player: 0, card: 'forest', via: 'land', targets: [] },
+    );
     expect(sounds(soundsOf(land, context))).toEqual([['land', 0]]);
     expect(sounds(soundsOf(batch(1, ONE_OF_EACH.enter), context))).toEqual([['enter', ENTER_AFTER]]);
-    expect(soundsOf(batch(1, ONE_OF_EACH.strike, ONE_OF_EACH.damage), context).map((event) => event.sound)).toEqual(['strike']);
+    expect(soundsOf(batch(1, ONE_OF_EACH.strike, ONE_OF_EACH.damage), context).map((event) => event.sound)).toEqual([
+      'strike',
+    ]);
   });
 
   it('sound a land that an effect puts onto the battlefield as a land of its color', () => {
@@ -162,7 +197,9 @@ describe('sounds of the animation cues', () => {
     const events = soundsFor(batches, context);
     expect(new Set(events.map((event) => event.seq))).toEqual(new Set([7, 8, 9, 10]));
     expect(MAX_BATCHES).toBe(4);
-    const crowded = Array.from({ length: 4 }, (_, i) => batch(i + 1, ...Array.from({ length: 9 }, (__, j): FxCue => ({ kind: 'draw', player: 0, card: `c${j}` }))));
+    const crowded = Array.from({ length: 4 }, (_, i) =>
+      batch(i + 1, ...Array.from({ length: 9 }, (__, j): FxCue => ({ kind: 'draw', player: 0, card: `c${j}` }))),
+    );
     expect(soundsFor(crowded, context)).toHaveLength(MAX_SOUNDS);
   });
 
@@ -197,7 +234,12 @@ describe('the sound gate', () => {
 
   it('lets only so many sounds start together', () => {
     const gate = new SoundGate(0.05, 0.25, 3);
-    expect((['draw', 'land', 'cast', 'turn'] as const).map((sound, i) => gate.allow(sound, 2 + i * 0.01))).toEqual([true, true, true, false]);
+    expect((['draw', 'land', 'cast', 'turn'] as const).map((sound, i) => gate.allow(sound, 2 + i * 0.01))).toEqual([
+      true,
+      true,
+      true,
+      false,
+    ]);
     expect(gate.allow('turn', 2.5)).toBe(true);
   });
 });

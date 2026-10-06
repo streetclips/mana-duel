@@ -12,7 +12,9 @@ interface Localizer<T> {
   forget(id: string): void;
 }
 
-export function localizer<T extends { id: string }>(texts: Partial<Record<Locale, Readonly<Record<string, Partial<T>>>>>): Localizer<T> {
+export function localizer<T extends { id: string }>(
+  texts: Partial<Record<Locale, Readonly<Record<string, Partial<T>>>>>,
+): Localizer<T> {
   const copies = new Map<Locale, Map<string, T>>();
   return {
     localize(base) {

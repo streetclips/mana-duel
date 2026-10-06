@@ -26,7 +26,9 @@ function boxes(cards: Locator): Promise<number[][]> {
 }
 
 async function widths(cards: Locator): Promise<Set<number>> {
-  return new Set(await cards.evaluateAll((elements) => elements.map((element) => (element as HTMLElement).offsetWidth)));
+  return new Set(
+    await cards.evaluateAll((elements) => elements.map((element) => (element as HTMLElement).offsetWidth)),
+  );
 }
 
 test('a draft pack keeps its cards in place and their size, and a long press opens one', async ({ page }) => {

@@ -44,9 +44,21 @@ function start(element: HTMLElement, id: string, keyframes: Keyframe[], options:
   animation.id = id;
 }
 
-function run(element: HTMLElement | null, id: string, keyframes: Keyframe[], duration: number, delay: number, time: number): void {
+function run(
+  element: HTMLElement | null,
+  id: string,
+  keyframes: Keyframe[],
+  duration: number,
+  delay: number,
+  time: number,
+): void {
   if (!element || typeof element.animate !== 'function') return;
-  start(element, id, keyframes, { duration: duration * time, delay: delay * time, easing: 'ease-out', composite: 'add' });
+  start(element, id, keyframes, {
+    duration: duration * time,
+    delay: delay * time,
+    easing: 'ease-out',
+    composite: 'add',
+  });
 }
 
 function lunge(root: HTMLElement, card: CardId, target: Target, time: number): void {
@@ -94,13 +106,18 @@ export function playMotions(root: HTMLElement, entries: FxEntry[], human: Player
         break;
       case 'life':
         if (cue.delta < 0) run(chipOf(root, cue.player), 'fx-shake', SHAKE, SHAKE_MS, entry.delay, time);
-        bumpOnce(`life-${cue.player}`, root.querySelector<HTMLElement>(`[data-testid="life-${cue.player}"]`), entry.delay);
+        bumpOnce(
+          `life-${cue.player}`,
+          root.querySelector<HTMLElement>(`[data-testid="life-${cue.player}"]`),
+          entry.delay,
+        );
         break;
       case 'ability':
         bumpOnce(`card-${cue.card}`, slotOf(root, cue.card));
         break;
       case 'draw':
-        if (cue.player !== human) bumpOnce(`counts-${cue.player}`, root.querySelector<HTMLElement>(`[data-testid="counts-${cue.player}"]`));
+        if (cue.player !== human)
+          bumpOnce(`counts-${cue.player}`, root.querySelector<HTMLElement>(`[data-testid="counts-${cue.player}"]`));
         break;
       case 'discard':
         bumpOnce(`counts-${cue.player}`, root.querySelector<HTMLElement>(`[data-testid="counts-${cue.player}"]`));

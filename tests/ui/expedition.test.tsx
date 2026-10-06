@@ -59,7 +59,15 @@ describe('starting an expedition', () => {
     expect(byTestId('expedition').dataset.stage).toBe('duel');
     const floors = within(byTestId('expedition-map')).getAllByRole('listitem');
     expect(floors).toHaveLength(7);
-    expect(floors.map((floor) => floor.dataset.state)).toEqual(['current', 'next', 'next', 'next', 'next', 'next', 'next']);
+    expect(floors.map((floor) => floor.dataset.state)).toEqual([
+      'current',
+      'next',
+      'next',
+      'next',
+      'next',
+      'next',
+      'next',
+    ]);
     expect(floors.map((floor) => floor.dataset.deck)).toEqual(run?.rivals.map((rival) => rival.deck));
     expect(byTestId('expedition-floor-1').textContent).toContain('14 vidas · mano de 6');
     expect(byTestId('expedition-floor-7').textContent).toContain('Jefe:');
@@ -74,7 +82,9 @@ describe('starting an expedition', () => {
     const boss = run.rivals[6];
     const special = boss?.relics[0];
     if (!boss || !special) throw new Error('expected a boss with a relic');
-    expect(within(byTestId('expedition-floor-7')).getAllByRole('button')[0]?.dataset.testid).toBe(`rival-relic-${special}`);
+    expect(within(byTestId('expedition-floor-7')).getAllByRole('button')[0]?.dataset.testid).toBe(
+      `rival-relic-${special}`,
+    );
     expect(byTestId('expedition-floor-7').textContent).toContain('20 vidas · mano de 6');
     click(byTestId(`rival-relic-${special}`));
     const sheet = byTestId('relic-sheet');
@@ -121,7 +131,10 @@ describe('starting an expedition', () => {
   });
 
   it('will not fight while the LLM it would play lacks a key', () => {
-    localStorage.setItem('manaDuel.opponent', JSON.stringify({ kind: 'llm', model: 'openai/gpt-6-luna', effort: null }));
+    localStorage.setItem(
+      'manaDuel.opponent',
+      JSON.stringify({ kind: 'llm', model: 'openai/gpt-6-luna', effort: null }),
+    );
     setup('expedition', createRun(getDeck('duskmire'), 3));
     expect(byTestId('expedition-problem').textContent).toBe('Escribe tu clave de API de OpenRouter.');
     expect((byTestId('btn-expedition-fight') as HTMLButtonElement).disabled).toBe(true);
@@ -268,7 +281,11 @@ describe('expedition rewards', () => {
 
   it('celebrates a finished expedition', () => {
     let run = createRun(getDeck('gloamwood'), 6);
-    run = { ...run, wins: 6, history: run.rivals.slice(0, 6).map((rival) => ({ rival: rival.deck, result: 'won' as const, turns: 9 })) };
+    run = {
+      ...run,
+      wins: 6,
+      history: run.rivals.slice(0, 6).map((rival) => ({ rival: rival.deck, result: 'won' as const, turns: 9 })),
+    };
     run = chooseRelic({ ...run, stage: { kind: 'relic', offers: ['vigor'] } }, 'vigor');
     run = recordDuel(run, 'won', 12);
     setup('expedition', run);

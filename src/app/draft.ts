@@ -109,7 +109,9 @@ function effectValue(effect: Effect): number {
     case 'bite':
       return 5.5;
     case 'pump':
-      return effect.toughness < 0 ? 1.5 + -effect.toughness * 1.6 : 1 + (effect.power + effect.toughness) * 0.35 + (effect.keywords?.length ?? 0) * 0.5;
+      return effect.toughness < 0
+        ? 1.5 + -effect.toughness * 1.6
+        : 1 + (effect.power + effect.toughness) * 0.35 + (effect.keywords?.length ?? 0) * 0.5;
     case 'pumpTeam':
       return 2 + (effect.power + effect.toughness) * 0.8 + (effect.keywords?.length ?? 0) * 0.8;
     case 'addCounters':
@@ -118,7 +120,13 @@ function effectValue(effect: Effect): number {
       return effect.amount * 3;
     case 'createTokens': {
       const token = getCardDef(effect.token);
-      return effect.amount * (1 + (token.power ?? 0) * 0.9 + (token.toughness ?? 0) * 0.5 + (token.keywords ?? []).reduce((sum, keyword) => sum + KEYWORD_VALUE[keyword] * 0.5, 0));
+      return (
+        effect.amount *
+        (1 +
+          (token.power ?? 0) * 0.9 +
+          (token.toughness ?? 0) * 0.5 +
+          (token.keywords ?? []).reduce((sum, keyword) => sum + KEYWORD_VALUE[keyword] * 0.5, 0))
+      );
     }
     case 'discard':
       return effect.who === 'opponent' ? effect.amount * 1.8 : -effect.amount * 0.6;
@@ -136,7 +144,10 @@ function abilitiesValue(def: CardDef): number {
     const value = trigger.effects.reduce((total, effect) => total + effectValue(effect), 0);
     return sum + (trigger.on === 'enters' || trigger.on === 'dies' ? value * 0.9 : value * 0.6);
   }, 0);
-  const activated = (def.activated ?? []).reduce((sum, ability) => sum + 0.8 + ability.effects.reduce((total, effect) => total + effectValue(effect), 0) * 0.3, 0);
+  const activated = (def.activated ?? []).reduce(
+    (sum, ability) => sum + 0.8 + ability.effects.reduce((total, effect) => total + effectValue(effect), 0) * 0.3,
+    0,
+  );
   return triggers + activated + (def.mana ? 1.2 : 0);
 }
 
@@ -253,7 +264,10 @@ function splashFor(pool: readonly string[], spells: readonly string[], count: nu
 }
 
 export function allowances(run: DraftRun): Allowance[] {
-  return [...countOf(run.picks[0]).map((entry) => ({ card: entry.card, max: entry.count })), ...BASICS.map((card) => ({ card, max: null }))];
+  return [
+    ...countOf(run.picks[0]).map((entry) => ({ card: entry.card, max: entry.count })),
+    ...BASICS.map((card) => ({ card, max: null })),
+  ];
 }
 
 export function suggestedDeck(run: DraftRun): DeckEntry[] {
@@ -261,12 +275,20 @@ export function suggestedDeck(run: DraftRun): DeckEntry[] {
 }
 
 export function draftDeck(run: DraftRun): DeckDef {
-  return { ...buildDeck({ id: DRAFT_DECK_ID, name: run.name, featured: run.featured, cards: run.deck ?? [] }, DRAFT_DECK_ID) };
+  return {
+    ...buildDeck({ id: DRAFT_DECK_ID, name: run.name, featured: run.featured, cards: run.deck ?? [] }, DRAFT_DECK_ID),
+  };
 }
 
 export function aiDraftDeck(run: DraftRun): DeckDef {
   const text = modesText();
-  return { ...buildDeck({ id: AI_DRAFT_DECK_ID, name: text.aiDraftDeckName, featured: null, cards: run.aiDeck }, AI_DRAFT_DECK_ID), description: text.aiDraftDeckDescription };
+  return {
+    ...buildDeck(
+      { id: AI_DRAFT_DECK_ID, name: text.aiDraftDeckName, featured: null, cards: run.aiDeck },
+      AI_DRAFT_DECK_ID,
+    ),
+    description: text.aiDraftDeckDescription,
+  };
 }
 
 export function defaultDraftName(): string {
@@ -338,7 +360,8 @@ export function deckProblems(run: DraftRun, draft: DeckDraft): string[] {
 }
 
 export function saveDeck(run: DraftRun, draft: DeckDraft): DraftRun {
-  if (run.stage !== 'building' && run.stage !== 'match') throw new Error(`the draft is at its ${run.stage} stage, not building`);
+  if (run.stage !== 'building' && run.stage !== 'match')
+    throw new Error(`the draft is at its ${run.stage} stage, not building`);
   const problems = deckProblems(run, draft);
   if (problems.length > 0) throw new Error(`the deck cannot be played: ${problems.join(' ')}`);
   const next = structuredClone(run);
@@ -401,12 +424,25 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function isCardList(value: unknown): value is string[] {
   return (
     Array.isArray(value) &&
-    value.every((card) => typeof card === 'string' && hasCardDef(card) && !getCardDef(card).token && !isRelicDef(getCardDef(card)))
+    value.every(
+      (card) =>
+        typeof card === 'string' && hasCardDef(card) && !getCardDef(card).token && !isRelicDef(getCardDef(card)),
+    )
   );
 }
 
 function isEntries(value: unknown): value is DeckEntry[] {
-  return Array.isArray(value) && value.every((entry) => isRecord(entry) && isCardList([entry.card]) && typeof entry.count === 'number' && Number.isInteger(entry.count) && entry.count > 0);
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (entry) =>
+        isRecord(entry) &&
+        isCardList([entry.card]) &&
+        typeof entry.count === 'number' &&
+        Number.isInteger(entry.count) &&
+        entry.count > 0,
+    )
+  );
 }
 
 function isPair<T>(value: unknown, check: (item: unknown) => item is T): value is [T, T] {
@@ -433,7 +469,10 @@ export function isDraftRun(value: unknown): value is DraftRun {
     isEntries(aiDeck) &&
     isPair(wins, isCount) &&
     Array.isArray(games) &&
-    games.every((game) => isRecord(game) && (game.winner === null || game.winner === 0 || game.winner === 1) && isCount(game.turns)) &&
+    games.every(
+      (game) =>
+        isRecord(game) && (game.winner === null || game.winner === 0 || game.winner === 1) && isCount(game.turns),
+    ) &&
     (stage === 'picking' || stage === 'building' || stage === 'match' || stage === 'done') &&
     (duel === null || (isRecord(duel) && typeof duel.seed === 'number' && Array.isArray(duel.actions)))
   );

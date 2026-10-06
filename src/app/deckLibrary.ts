@@ -1,5 +1,15 @@
 import type { DeckDef } from '../engine';
-import { CUSTOM_PREFIX, buildDeck, checkDraft, collectionPool, deckDescription, draftOf, draftProblems, storedDeck, type DeckDraft } from './deckBuilding';
+import {
+  CUSTOM_PREFIX,
+  buildDeck,
+  checkDraft,
+  collectionPool,
+  deckDescription,
+  draftOf,
+  draftProblems,
+  storedDeck,
+  type DeckDraft,
+} from './deckBuilding';
 import { deckBuildingText } from './text/decks';
 
 export interface DeckStore {
@@ -55,7 +65,9 @@ export class DeckLibrary {
     checkDraft(draft);
     const known = draft.id !== null && this.saved.some((deck) => deck.id === draft.id);
     const deck = buildDeck(draft, known && draft.id ? draft.id : this.nextId());
-    this.update(known ? this.saved.map((existing) => (existing.id === deck.id ? deck : existing)) : [...this.saved, deck]);
+    this.update(
+      known ? this.saved.map((existing) => (existing.id === deck.id ? deck : existing)) : [...this.saved, deck],
+    );
     return deck;
   }
 

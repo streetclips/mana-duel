@@ -76,7 +76,8 @@ export class FakeNode {
   }
 
   connect<T extends Target>(target: T): T {
-    if (target instanceof FakeNode && target.ctx !== this.ctx) throw new Error('connecting nodes of different contexts');
+    if (target instanceof FakeNode && target.ctx !== this.ctx)
+      throw new Error('connecting nodes of different contexts');
     this.connections.push(target);
     if (target instanceof FakeParam) target.inputs.push(this);
     return target;
@@ -247,7 +248,9 @@ export class FakeAudioContext {
   }
 
   params(): FakeParam[] {
-    return this.nodes.flatMap((node) => Object.values(node).filter((value): value is FakeParam => value instanceof FakeParam));
+    return this.nodes.flatMap((node) =>
+      Object.values(node).filter((value): value is FakeParam => value instanceof FakeParam),
+    );
   }
 
   reaches(from: FakeNode, to: FakeNode, seen = new Set<FakeNode>()): boolean {

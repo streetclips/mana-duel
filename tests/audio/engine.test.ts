@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AudioEngine, FADE_SECONDS, LOOKAHEAD_SECONDS, SFX_LATENCY, START_DELAY, TICK_MS, type AudioEngineOptions } from '../../src/audio/engine';
+import {
+  AudioEngine,
+  FADE_SECONDS,
+  LOOKAHEAD_SECONDS,
+  SFX_LATENCY,
+  START_DELAY,
+  TICK_MS,
+  type AudioEngineOptions,
+} from '../../src/audio/engine';
 import { deckTheme } from '../../src/audio/music';
 import { soundEvent } from '../../src/audio/sounds';
 import { MUSIC_LEVEL } from '../../src/audio/synth';
@@ -41,7 +49,11 @@ describe('the audio engine', () => {
     const { ctx, engine } = setup();
     const listener = vi.fn();
     engine.subscribe(listener);
-    expect(engine.state()).toMatchObject({ supported: true, context: 'none', music: { on: true, playing: false, theme: 'title' } });
+    expect(engine.state()).toMatchObject({
+      supported: true,
+      context: 'none',
+      music: { on: true, playing: false, theme: 'title' },
+    });
     expect(ctx.nodes).toEqual([ctx.destination]);
     await engine.unlock();
     expect(engine.state()).toMatchObject({ context: 'running', music: { playing: true } });
@@ -99,7 +111,10 @@ describe('the audio engine', () => {
     expect(engine.state().music).toMatchObject({ theme: 'emberwild', tempo: 108, bar: 0 });
     const fading = ctx.nodes.filter(
       (node): node is FakeGain =>
-        node instanceof FakeGain && node.gain.events.some((event) => event.type === 'linear' && event.value === 0 && Math.abs(event.time - (now + FADE_SECONDS)) < 1e-9),
+        node instanceof FakeGain &&
+        node.gain.events.some(
+          (event) => event.type === 'linear' && event.value === 0 && Math.abs(event.time - (now + FADE_SECONDS)) < 1e-9,
+        ),
     );
     expect(fading).toHaveLength(1);
     const before = ctx.sources().length;
@@ -115,7 +130,9 @@ describe('the audio engine', () => {
 
   it('changes its mood on the beat, and brings in the drums for combat', async () => {
     const { ctx, engine, play } = await unlocked();
-    const kicks = (): number => ctx.sources().filter((source) => source instanceof FakeOscillator && source.frequency.events[0]?.value === 150).length;
+    const kicks = (): number =>
+      ctx.sources().filter((source) => source instanceof FakeOscillator && source.frequency.events[0]?.value === 150)
+        .length;
     engine.setTheme(EMBERWILD);
     play(2);
     expect(kicks()).toBe(0);
@@ -130,7 +147,9 @@ describe('the audio engine', () => {
     const { ctx, engine, play } = await unlocked();
     play(1);
     const bus = ctx.nodes.find(
-      (node): node is FakeGain => node instanceof FakeGain && node.gain.events.some((event) => event.type === 'linear' && event.value === MUSIC_LEVEL),
+      (node): node is FakeGain =>
+        node instanceof FakeGain &&
+        node.gain.events.some((event) => event.type === 'linear' && event.value === MUSIC_LEVEL),
     );
     engine.setMusic(false);
     expect(engine.state().music).toMatchObject({ on: false, playing: false });
@@ -147,7 +166,11 @@ describe('the audio engine', () => {
   it('plays sound events at their offsets on the audio clock, and lists the sounds it played', async () => {
     const { ctx, engine, starts } = await unlocked({ music: false });
     ctx.currentTime = 2;
-    engine.play([soundEvent('strike', { seq: 3, at: 0.18 }), soundEvent('drain', { seq: 3, at: 0.18 }), soundEvent('turn', { seq: 4, pitch: -5 })]);
+    engine.play([
+      soundEvent('strike', { seq: 3, at: 0.18 }),
+      soundEvent('drain', { seq: 3, at: 0.18 }),
+      soundEvent('turn', { seq: 4, pitch: -5 }),
+    ]);
     expect(Math.min(...starts())).toBeCloseTo(2 + SFX_LATENCY);
     expect(engine.played()).toEqual([
       { seq: 3, sound: 'strike', at: 2.19, gain: 1, pitch: 0, color: null },

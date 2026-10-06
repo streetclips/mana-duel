@@ -49,7 +49,8 @@ describe('start screen', () => {
 
 const checked = (id: string): string | null => byTestId(id).getAttribute('aria-checked');
 const expanded = (seat: 0 | 1): string | null => byTestId(`seat-${seat}`).getAttribute('aria-expanded');
-const boxOpen = (element: HTMLElement): string | undefined => element.querySelector<HTMLElement>('.deck-box')?.dataset.open;
+const boxOpen = (element: HTMLElement): string | undefined =>
+  element.querySelector<HTMLElement>('.deck-box')?.dataset.open;
 const options = (): string[] =>
   within(byTestId('deck-picker'))
     .getAllByRole('radio')
@@ -129,7 +130,9 @@ describe('deck selection', () => {
     expect(checked('deck-emberwild')).toBe('false');
     expect(byTestId('seat-0').dataset.deck).toBe('random');
     expect(byTestId('seat-0').getAttribute('aria-label')).toBe('Tú: Aleatorio');
-    expect(byTestId('deck-detail').textContent).toContain(`Un mazo distinto en cada partida: uno de los ${DECK_LIST.length}`);
+    expect(byTestId('deck-detail').textContent).toContain(
+      `Un mazo distinto en cada partida: uno de los ${DECK_LIST.length}`,
+    );
     click(byTestId('seat-1'));
     click(byTestId('opponent-duskmire'));
     click(byTestId('btn-play'));
@@ -142,11 +145,15 @@ describe('deck selection', () => {
   it('describes the chosen deck, or what Random does', () => {
     setup(undefined, 'start');
     click(byTestId('seat-1'));
-    expect(byTestId('deck-detail').textContent).toContain(`Un mazo distinto en cada partida: uno de los ${DECK_LIST.length}`);
+    expect(byTestId('deck-detail').textContent).toContain(
+      `Un mazo distinto en cada partida: uno de los ${DECK_LIST.length}`,
+    );
     expect(within(byTestId('deck-detail')).queryByRole('button')).toBeNull();
     click(byTestId('opponent-gloamwood'));
     expect(byTestId('deck-detail').textContent).toContain('Selvumbra');
-    expect(byTestId('deck-detail').textContent).toContain(DECK_LIST.find((deck) => deck.id === 'gloamwood')?.description);
+    expect(byTestId('deck-detail').textContent).toContain(
+      DECK_LIST.find((deck) => deck.id === 'gloamwood')?.description,
+    );
     expect(byTestId('deck-view-gloamwood')).toBeTruthy();
   });
 
@@ -216,7 +223,9 @@ describe('deck viewer', () => {
     expect(copies().reduce((sum, count) => sum + count, 0)).toBe(40);
     expect(byTestId('deck-card-swamp').dataset.count).toBe('16');
     expect(byTestId('deck-stats').textContent).toContain('40 cartas');
-    expect(byTestId('mana-curve').getAttribute('aria-label')).toMatch(/^Curva de maná de las cartas que no son tierras: \d+ de coste 1,/);
+    expect(byTestId('mana-curve').getAttribute('aria-label')).toMatch(
+      /^Curva de maná de las cartas que no son tierras: \d+ de coste 1,/,
+    );
     click(byTestId('deck-card-dread_tyrant'));
     expect(byTestId('card-sheet').textContent).toContain('Cuando esta criatura entre, pierdes 2 vidas.');
     expect(byTestId('card-sheet').textContent).toContain('1 copia en Fangoscuro');
@@ -265,7 +274,10 @@ describe('deck viewer', () => {
 
 describe('auto-pass', () => {
   it('turns off from the menu, and the game then stops in the AI’s turn wherever you could act', () => {
-    const { controller, settle } = setup({ activePlayer: 1, players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}] });
+    const { controller, settle } = setup({
+      activePlayer: 1,
+      players: [{ hand: ['ember_snap'], battlefield: ['mountain'] }, {}],
+    });
     click(byTestId('btn-menu'));
     expect(checked('menu-autopass')).toBe('true');
     expect(byTestId('menu-autopass').textContent).toBe('Pase automático: sí');
@@ -288,7 +300,9 @@ describe('auto-pass', () => {
   });
 
   it('names your own attack when it stops after it', () => {
-    const { controller, settle } = setup({ players: [{ hand: ['ember_snap'], battlefield: ['mountain', { card: 'ember_hound', id: 'hound' }] }, {}] });
+    const { controller, settle } = setup({
+      players: [{ hand: ['ember_snap'], battlefield: ['mountain', { card: 'ember_hound', id: 'hound' }] }, {}],
+    });
     act(() => controller.setAutoPass(false));
     click(byTestId('btn-to-combat'));
     settle();
@@ -413,7 +427,13 @@ describe('counterspells', () => {
       ],
     });
     settle();
-    click(screen.getAllByRole('button').find((element) => element.dataset.card === 'rhino' && element.dataset.testid?.startsWith('stack-')) as HTMLElement);
+    click(
+      screen
+        .getAllByRole('button')
+        .find(
+          (element) => element.dataset.card === 'rhino' && element.dataset.testid?.startsWith('stack-'),
+        ) as HTMLElement,
+    );
     expect(byTestId('card-sheet').textContent).toContain('Rinoceronte forestal');
     expect(byTestId('card-sheet').textContent).toContain('En la pila');
   });
@@ -422,9 +442,13 @@ describe('counterspells', () => {
 describe('card art', () => {
   it('shows each card art in hand, on the battlefield and in the card sheet', () => {
     setup({
-      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] }, {}],
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
+        {},
+      ],
     });
-    const artOf = (element: HTMLElement): string | null | undefined => element.querySelector('.art img')?.getAttribute('src');
+    const artOf = (element: HTMLElement): string | null | undefined =>
+      element.querySelector('.art img')?.getAttribute('src');
     expect(artOf(byTestId('card-snap'))).toMatch(/cards\/ember_snap\.svg$/);
     expect(artOf(byTestId('card-rhino'))).toMatch(/cards\/timberland_rhino\.svg$/);
     click(byTestId('card-rhino'));
@@ -446,7 +470,12 @@ describe('card faces', () => {
             { card: 'cinder_adept', id: 'adept' },
           ],
         },
-        { battlefield: [{ card: 'rotwing_crow', id: 'crow' }, { card: 'bloodspore_thrall', id: 'thrall' }] },
+        {
+          battlefield: [
+            { card: 'rotwing_crow', id: 'crow' },
+            { card: 'bloodspore_thrall', id: 'thrall' },
+          ],
+        },
       ],
     });
     expect(iconsOf(byTestId('card-dragon'), '.icons')).toEqual(['flying']);
@@ -491,7 +520,13 @@ describe('card faces', () => {
 
   it('show a keyword granted until end of turn', () => {
     const { settle } = setup({
-      players: [{ hand: [{ card: 'nightshade_tonic', id: 'tonic' }], battlefield: [{ card: 'grove_tender', id: 'elf' }, 'forest', 'forest'] }, {}],
+      players: [
+        {
+          hand: [{ card: 'nightshade_tonic', id: 'tonic' }],
+          battlefield: [{ card: 'grove_tender', id: 'elf' }, 'forest', 'forest'],
+        },
+        {},
+      ],
     });
     expect(iconsOf(byTestId('card-elf'), '.icons')).toEqual([]);
     playFromHand('tonic', 'sheet-cast');
@@ -501,13 +536,25 @@ describe('card faces', () => {
   });
 
   it('write in hand the printed keywords as icons before the rest of the text', () => {
-    setup({ players: [{ hand: [{ card: 'crag_dragon', id: 'dragon' }, { card: 'ember_snap', id: 'snap' }] }, {}] });
+    setup({
+      players: [
+        {
+          hand: [
+            { card: 'crag_dragon', id: 'dragon' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
+        },
+        {},
+      ],
+    });
     const dragon = byTestId('card-dragon');
     expect(dragon.querySelector('.name')?.textContent).toBe('Dragón del risco');
     expect(iconsOf(dragon, '.text')).toEqual(['flying']);
     expect(dragon.querySelector('.text')?.textContent).toContain('R: +1/+0');
     expect(iconsOf(byTestId('card-snap'), '.text')).toEqual([]);
-    expect(byTestId('card-snap').querySelector('.text')?.textContent).toContain('Chasquido de brasas hace 2 puntos de daño');
+    expect(byTestId('card-snap').querySelector('.text')?.textContent).toContain(
+      'Chasquido de brasas hace 2 puntos de daño',
+    );
   });
 });
 
@@ -529,7 +576,12 @@ describe('combat', () => {
     const { controller, settle } = setup({
       activePlayer: 1,
       players: [
-        { battlefield: [{ card: 'canopy_spider', id: 'spider' }, { card: 'grove_tender', id: 'elf' }] },
+        {
+          battlefield: [
+            { card: 'canopy_spider', id: 'spider' },
+            { card: 'grove_tender', id: 'elf' },
+          ],
+        },
         { battlefield: [{ card: 'cinderwing_drake', id: 'drake' }, 'mountain'] },
       ],
     });
@@ -549,34 +601,57 @@ describe('combat', () => {
 
 describe('tokens, sacrifices and discards', () => {
   it('shows the tokens a spell creates on the battlefield, as tokens in the card sheet', () => {
-    const { controller, settle } = setup({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] });
+    const { controller, settle } = setup({
+      players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}],
+    });
     playFromHand('banners', 'sheet-cast');
     settle();
-    const tokens = controller.state.players[0].battlefield.filter((id) => controller.state.cards[id]?.def === 'soldier_token');
+    const tokens = controller.state.players[0].battlefield.filter(
+      (id) => controller.state.cards[id]?.def === 'soldier_token',
+    );
     expect(tokens).toHaveLength(2);
-    expect(within(byTestId('battlefield-0')).getAllByRole('button').filter((button) => button.dataset.def === 'soldier_token')).toHaveLength(2);
+    expect(
+      within(byTestId('battlefield-0'))
+        .getAllByRole('button')
+        .filter((button) => button.dataset.def === 'soldier_token'),
+    ).toHaveLength(2);
     click(byTestId(`card-${tokens[0]}`));
     expect(byTestId('card-sheet').textContent).toContain('Criatura ficha — Soldado');
   });
 
   it('sacrifices a creature from its card sheet, then asks for the target', () => {
     const { controller, settle } = setup({
-      players: [{ battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] }, { battlefield: [{ card: 'ember_hound', id: 'hound' }] }],
+      players: [
+        { battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] },
+        { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
+      ],
     });
     click(byTestId('card-stalker'));
-    expect(byTestId('card-sheet').textContent).toContain('Sacrificar esta criatura: La criatura objetivo obtiene -2/-2 hasta el final del turno.');
+    expect(byTestId('card-sheet').textContent).toContain(
+      'Sacrificar esta criatura: La criatura objetivo obtiene -2/-2 hasta el final del turno.',
+    );
     expect(byTestId('sheet-activate').textContent).toBe('Activar (sacrificar): -2/-2');
     click(byTestId('sheet-activate'));
     expect(byTestId('prompt').textContent).toBe('Elige una criatura objetivo');
     click(byTestId('card-hound'));
     settle();
-    expect([controller.state.cards.stalker?.zone, controller.state.cards.hound?.zone]).toEqual(['graveyard', 'graveyard']);
+    expect([controller.state.cards.stalker?.zone, controller.state.cards.hound?.zone]).toEqual([
+      'graveyard',
+      'graveyard',
+    ]);
   });
 
   it('asks which card to discard when a spell says so, in the middle of the turn', () => {
     const { controller, settle } = setup({
       players: [
-        { hand: [{ card: 'sift_the_depths', id: 'sift' }], battlefield: ['island', 'island'], library: [{ card: 'forest', id: 'a' }, { card: 'island', id: 'b' }] },
+        {
+          hand: [{ card: 'sift_the_depths', id: 'sift' }],
+          battlefield: ['island', 'island'],
+          library: [
+            { card: 'forest', id: 'a' },
+            { card: 'island', id: 'b' },
+          ],
+        },
         {},
       ],
     });
@@ -601,14 +676,24 @@ describe('relics', () => {
           battlefield: ['mountain', { card: 'soldier_token', id: 'soldier' }],
           relics: [{ card: 'urn', id: 'urn' }],
         },
-        { relics: [{ card: 'bell', id: 'bell' }, { card: 'crown', id: 'crown' }] },
+        {
+          relics: [
+            { card: 'bell', id: 'bell' },
+            { card: 'crown', id: 'crown' },
+          ],
+        },
       ],
     });
-    expect(within(byTestId('relics-0')).getAllByRole('button').map((button) => button.dataset.def)).toEqual(['urn']);
-    expect(within(byTestId('relics-1')).getAllByRole('button').map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Reliquia del rival: Campana fúnebre',
-      'Reliquia del rival: Corona del tirano',
-    ]);
+    expect(
+      within(byTestId('relics-0'))
+        .getAllByRole('button')
+        .map((button) => button.dataset.def),
+    ).toEqual(['urn']);
+    expect(
+      within(byTestId('relics-1'))
+        .getAllByRole('button')
+        .map((button) => button.getAttribute('aria-label')),
+    ).toEqual(['Reliquia del rival: Campana fúnebre', 'Reliquia del rival: Corona del tirano']);
     expect(byTestId('card-urn').dataset.zone).toBe('command');
     click(byTestId('card-bell'));
     const sheet = byTestId('card-sheet');
@@ -625,7 +710,9 @@ describe('relics', () => {
     expect(byTestId('card-urn').dataset.fx).toContain('ability');
     click(byTestId('btn-menu'));
     click(byTestId('menu-log'));
-    expect([...byTestId('log-panel').querySelectorAll('li')].map((item) => item.textContent)).toContain('Se dispara tu Urna de almas.');
+    expect([...byTestId('log-panel').querySelectorAll('li')].map((item) => item.textContent)).toContain(
+      'Se dispara tu Urna de almas.',
+    );
     click(within(byTestId('log-panel')).getByTestId('log-card-urn'));
     expect([...byTestId('card-sheet').querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(['Tu reliquia']);
   });
@@ -698,7 +785,12 @@ describe('game log', () => {
   function playSnapAtTheElf() {
     const context = setup({
       players: [
-        { hand: [{ card: 'mountain', id: 'm' }, { card: 'ember_snap', id: 'snap' }] },
+        {
+          hand: [
+            { card: 'mountain', id: 'm' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
+        },
         { battlefield: [{ card: 'grove_tender', id: 'elf' }] },
       ],
     });
@@ -719,8 +811,15 @@ describe('game log', () => {
     expect(lines).toContain('Lanzas Chasquido de brasas sobre Elfa del soto del rival.');
     expect(lines).toContain('Tu Chasquido de brasas hace 2 puntos de daño a Elfa del soto del rival.');
     expect(lines).toContain('Muere Elfa del soto del rival.');
-    expect(logCards('snap').map((button) => button.textContent)).toEqual(['Chasquido de brasas', 'Chasquido de brasas']);
-    expect(logCards('elf').map((button) => button.textContent)).toEqual(['Elfa del soto', 'Elfa del soto', 'Elfa del soto']);
+    expect(logCards('snap').map((button) => button.textContent)).toEqual([
+      'Chasquido de brasas',
+      'Chasquido de brasas',
+    ]);
+    expect(logCards('elf').map((button) => button.textContent)).toEqual([
+      'Elfa del soto',
+      'Elfa del soto',
+      'Elfa del soto',
+    ]);
     expect(logCards('m').map((button) => button.tagName)).toEqual(['BUTTON']);
     const turn = [...byTestId('log-panel').querySelectorAll('li.turn')];
     expect(turn.length).toBeGreaterThan(0);
@@ -746,7 +845,9 @@ describe('game log', () => {
     expect(byTestId('card-sheet').querySelector('.tag')?.textContent).toBe('En el campo de batalla');
     click(byTestId('card-sheet'));
     click(logCards('snap')[0] as HTMLElement);
-    expect([...byTestId('card-sheet').querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual(['En tu cementerio']);
+    expect([...byTestId('card-sheet').querySelectorAll('.tag')].map((tag) => tag.textContent)).toEqual([
+      'En tu cementerio',
+    ]);
   });
 
   it('closes with its card sheet, and leaves the card sheet of the board alone', () => {

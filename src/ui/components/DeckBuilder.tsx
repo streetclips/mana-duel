@@ -16,7 +16,16 @@ import {
   type Allowance,
   type DeckDraft,
 } from '../../app/deckBuilding';
-import { COLORS, cardColors, getCardDef, getCost, manaValue, type CardDef, type Color, type DeckEntry } from '../../engine';
+import {
+  COLORS,
+  cardColors,
+  getCardDef,
+  getCost,
+  manaValue,
+  type CardDef,
+  type Color,
+  type DeckEntry,
+} from '../../engine';
 import { getLocale } from '../../i18n';
 import { cssVars, manaName } from '../cardInfo';
 import { decksText } from '../text/decks';
@@ -71,14 +80,28 @@ function BuilderTile({ def, count, max, addable, testId, onAdd, onRemove, onInsp
     <div class={`builder-tile${count > 0 ? ' in-deck' : ''}`} data-testid={testId} data-count={count}>
       <MiniCard def={def} label={text.view(def.name)} onTap={onInspect} onInspect={onInspect} />
       <div class="stepper">
-        <button type="button" class="step" aria-label={text.remove(def.name)} data-testid={`remove-${def.id}`} disabled={count === 0} onClick={onRemove}>
+        <button
+          type="button"
+          class="step"
+          aria-label={text.remove(def.name)}
+          data-testid={`remove-${def.id}`}
+          disabled={count === 0}
+          onClick={onRemove}
+        >
           <MinusIcon />
         </button>
         <span class="num" aria-label={text.inDeck(count)}>
           {count}
           {max !== null && <small>/{max}</small>}
         </span>
-        <button type="button" class="step" aria-label={text.add(def.name)} data-testid={`add-${def.id}`} disabled={!addable} onClick={onAdd}>
+        <button
+          type="button"
+          class="step"
+          aria-label={text.add(def.name)}
+          data-testid={`add-${def.id}`}
+          disabled={!addable}
+          onClick={onAdd}
+        >
           <PlusIcon />
         </button>
       </div>
@@ -86,7 +109,16 @@ function BuilderTile({ def, count, max, addable, testId, onAdd, onRemove, onInsp
   );
 }
 
-export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = false, suggest, onSave, onClose }: DeckBuilderProps) {
+export function DeckBuilder({
+  initial,
+  pool,
+  title,
+  saveLabel,
+  requireValid = false,
+  suggest,
+  onSave,
+  onClose,
+}: DeckBuilderProps) {
   const text = decksText().builder;
   const [draft, setDraft] = useState<DeckDraft>(initial);
   const [tab, setTab] = useState<Tab>(initial.cards.length > 0 ? 'deck' : 'pool');
@@ -102,14 +134,18 @@ export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = fa
   const notes = draftNotes(draft);
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
 
-  const setCount = (card: string, count: number): void => setDraft((current) => ({ ...current, cards: withCount(current.cards, card, count) }));
+  const setCount = (card: string, count: number): void =>
+    setDraft((current) => ({ ...current, cards: withCount(current.cards, card, count) }));
   const add = (card: string): void => {
     if (canAdd(draft.cards, pool, card)) setCount(card, copiesIn(draft.cards, card) + 1);
   };
   const remove = (card: string): void => setCount(card, Math.max(0, copiesIn(draft.cards, card) - 1));
 
   const locale = getLocale();
-  const poolDefs = useMemo(() => pool.map((allowance) => getCardDef(allowance.card)).sort(byCostThenName), [pool, locale]);
+  const poolDefs = useMemo(
+    () => pool.map((allowance) => getCardDef(allowance.card)).sort(byCostThenName),
+    [pool, locale],
+  );
   const shown = poolDefs.filter((def) => {
     if (kind !== 'all' && kindOf(def) !== kind) return false;
     if (colors.length > 0 && !cardColors(def).some((color) => colors.includes(color))) return false;
@@ -196,10 +232,24 @@ export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = fa
       )}
 
       <div class="segmented builder-tabs" role="tablist" aria-label={text.sections}>
-        <button type="button" role="tab" aria-selected={tab === 'deck'} class={tab === 'deck' ? 'on' : ''} data-testid="builder-tab-deck" onClick={() => setTab('deck')}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'deck'}
+          class={tab === 'deck' ? 'on' : ''}
+          data-testid="builder-tab-deck"
+          onClick={() => setTab('deck')}
+        >
           {text.deckTab}
         </button>
-        <button type="button" role="tab" aria-selected={tab === 'pool'} class={tab === 'pool' ? 'on' : ''} data-testid="builder-tab-pool" onClick={() => setTab('pool')}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'pool'}
+          class={tab === 'pool' ? 'on' : ''}
+          data-testid="builder-tab-pool"
+          onClick={() => setTab('pool')}
+        >
           {text.poolTab}
         </button>
       </div>
@@ -233,7 +283,9 @@ export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = fa
                 <h3>
                   {group.title} <span class="num">{countCards(group.entries)}</span>
                 </h3>
-                <div class="builder-grid">{group.entries.map((entry) => tile(getCardDef(entry.card), 'builder-deck'))}</div>
+                <div class="builder-grid">
+                  {group.entries.map((entry) => tile(getCardDef(entry.card), 'builder-deck'))}
+                </div>
               </section>
             ))}
           </>
@@ -259,7 +311,11 @@ export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = fa
                     aria-label={manaName(color)}
                     style={cssVars({ '--dot': `var(--mana-${color})` })}
                     data-testid={`builder-color-${color}`}
-                    onClick={() => setColors((current) => (current.includes(color) ? current.filter((c) => c !== color) : [...current, color]))}
+                    onClick={() =>
+                      setColors((current) =>
+                        current.includes(color) ? current.filter((c) => c !== color) : [...current, color],
+                      )
+                    }
                   />
                 ))}
               </div>
@@ -287,9 +343,20 @@ export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = fa
       </div>
 
       {inspectedDef && (
-        <CardDefSheet def={inspectedDef} statuses={[{ text: text.inDeck(copiesIn(draft.cards, inspectedDef.id)) }]} raised onClose={() => setInspected(null)}>
+        <CardDefSheet
+          def={inspectedDef}
+          statuses={[{ text: text.inDeck(copiesIn(draft.cards, inspectedDef.id)) }]}
+          raised
+          onClose={() => setInspected(null)}
+        >
           <div class="sheet-actions">
-            <button type="button" class="btn" data-testid="sheet-add" disabled={!canAdd(draft.cards, pool, inspectedDef.id)} onClick={() => add(inspectedDef.id)}>
+            <button
+              type="button"
+              class="btn"
+              data-testid="sheet-add"
+              disabled={!canAdd(draft.cards, pool, inspectedDef.id)}
+              onClick={() => add(inspectedDef.id)}
+            >
               {text.addCopy}
             </button>
             <button
@@ -301,16 +368,18 @@ export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = fa
             >
               {text.removeCopy}
             </button>
-            {copiesIn(draft.cards, inspectedDef.id) > 0 && !inspectedDef.types.includes('land') && deck.featured !== inspectedDef.id && (
-              <button
-                type="button"
-                class="btn secondary"
-                data-testid="sheet-feature"
-                onClick={() => setDraft((current) => ({ ...current, featured: inspectedDef.id }))}
-              >
-                {text.feature}
-              </button>
-            )}
+            {copiesIn(draft.cards, inspectedDef.id) > 0 &&
+              !inspectedDef.types.includes('land') &&
+              deck.featured !== inspectedDef.id && (
+                <button
+                  type="button"
+                  class="btn secondary"
+                  data-testid="sheet-feature"
+                  onClick={() => setDraft((current) => ({ ...current, featured: inspectedDef.id }))}
+                >
+                  {text.feature}
+                </button>
+              )}
           </div>
         </CardDefSheet>
       )}
@@ -324,7 +393,12 @@ export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = fa
               <button type="button" class="btn danger" data-testid="btn-builder-discard" onClick={onClose}>
                 {text.leave}
               </button>
-              <button type="button" class="btn secondary" data-testid="btn-builder-stay" onClick={() => setLeaving(false)}>
+              <button
+                type="button"
+                class="btn secondary"
+                data-testid="btn-builder-stay"
+                onClick={() => setLeaving(false)}
+              >
                 {text.stay}
               </button>
             </div>

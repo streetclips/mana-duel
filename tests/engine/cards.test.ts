@@ -85,7 +85,8 @@ describe('decks', () => {
       it('only uses its own colors', () => {
         for (const id of new Set(expandDeck(deck))) {
           const def = getCardDef(id);
-          for (const color of [...costColors(getCost(id)), ...(def.mana ?? [])]) expect(deck.colors, id).toContain(color);
+          for (const color of [...costColors(getCost(id)), ...(def.mana ?? [])])
+            expect(deck.colors, id).toContain(color);
         }
       });
 
@@ -115,10 +116,16 @@ describe('decks', () => {
       [...used].flatMap((id) => {
         const def = getCardDef(id);
         const abilities = [def.spell, ...(def.triggers ?? []), ...(def.activated ?? [])];
-        return abilities.flatMap((ability) => (ability?.effects ?? []).flatMap((effect) => (effect.kind === 'createTokens' ? [effect.token] : [])));
+        return abilities.flatMap((ability) =>
+          (ability?.effects ?? []).flatMap((effect) => (effect.kind === 'createTokens' ? [effect.token] : [])),
+        );
       }),
     );
-    expect([...created].sort()).toEqual(CORE_CARDS.filter((def) => def.token).map((def) => def.id).sort());
+    expect([...created].sort()).toEqual(
+      CORE_CARDS.filter((def) => def.token)
+        .map((def) => def.id)
+        .sort(),
+    );
     for (const id of created) expect(getCardDef(id).token).toBe(true);
   });
 
@@ -146,7 +153,10 @@ describe('rules text', () => {
     bramble_warden: { type: 'Criatura — Guerrero planta', text: ['Vigilancia.'] },
     timberland_rhino: { type: 'Criatura — Rinoceronte', text: ['Arrolla.'] },
     cinderwing_drake: { type: 'Criatura — Draco', text: ['Vuela.'] },
-    crag_dragon: { type: 'Criatura — Dragón', text: ['Vuela.', '{R}: Esta criatura obtiene +1/+0 hasta el final del turno.'] },
+    crag_dragon: {
+      type: 'Criatura — Dragón',
+      text: ['Vuela.', '{R}: Esta criatura obtiene +1/+0 hasta el final del turno.'],
+    },
     ember_snap: { type: 'Instantáneo', text: ['Chasquido de brasas hace 2 puntos de daño a cualquier objetivo.'] },
     magma_lance: { type: 'Conjuro', text: ['Lanza de magma hace 4 puntos de daño a la criatura objetivo.'] },
     verdant_surge: { type: 'Instantáneo', text: ['La criatura objetivo obtiene +3/+3 hasta el final del turno.'] },
@@ -180,10 +190,15 @@ describe('rules text', () => {
     mire_prowler: { type: 'Criatura — Zombie', text: ['Amenaza.'] },
     grave_hexer: {
       type: 'Criatura — Brujo humano',
-      text: ['Cuando esta criatura entre, la criatura objetivo que no controlas obtiene -1/-1 hasta el final del turno.'],
+      text: [
+        'Cuando esta criatura entre, la criatura objetivo que no controlas obtiene -1/-1 hasta el final del turno.',
+      ],
     },
     bog_lurker: { type: 'Criatura — Horror', text: ['Toque mortal.'] },
-    crypt_ghoul: { type: 'Criatura — Zombie', text: ['Cuando esta criatura muera, hace 1 punto de daño al oponente objetivo.'] },
+    crypt_ghoul: {
+      type: 'Criatura — Zombie',
+      text: ['Cuando esta criatura muera, hace 1 punto de daño al oponente objetivo.'],
+    },
     duskmire_shade: { type: 'Criatura — Sombra', text: ['{B}: Esta criatura obtiene +1/+1 hasta el final del turno.'] },
     blood_reaver: { type: 'Criatura — Vampiro', text: ['Vínculo vital.'] },
     nightveil_wraith: {
@@ -193,7 +208,10 @@ describe('rules text', () => {
     dread_tyrant: { type: 'Criatura — Demonio', text: ['Vuela.', 'Cuando esta criatura entre, pierdes 2 vidas.'] },
     withering_touch: { type: 'Instantáneo', text: ['La criatura objetivo obtiene -2/-2 hasta el final del turno.'] },
     nights_bargain: { type: 'Conjuro', text: ['Roba dos cartas. Pierdes 2 vidas.'] },
-    soul_siphon: { type: 'Conjuro', text: ['Sifón de almas hace 2 puntos de daño a cualquier objetivo. Ganas 2 vidas.'] },
+    soul_siphon: {
+      type: 'Conjuro',
+      text: ['Sifón de almas hace 2 puntos de daño a cualquier objetivo. Ganas 2 vidas.'],
+    },
     grave_sentence: { type: 'Instantáneo', text: ['Destruye la criatura objetivo.'] },
     kiln_sprite: { type: 'Criatura — Elemental', text: ['Prisa, destreza.'] },
     squall_skimmer: { type: 'Criatura — Ave', text: ['Destello, vuela.'] },
@@ -214,15 +232,24 @@ describe('rules text', () => {
     },
     stormglass_drake: {
       type: 'Criatura — Draco',
-      text: ['Vuela.', 'Siempre que lances un hechizo de instantáneo o de conjuro, pon un contador +1/+1 sobre esta criatura.'],
+      text: [
+        'Vuela.',
+        'Siempre que lances un hechizo de instantáneo o de conjuro, pon un contador +1/+1 sobre esta criatura.',
+      ],
     },
     thunderhead_djinn: {
       type: 'Criatura — Djinn',
       text: ['Vuela.', 'Cuando esta criatura entre, hace 2 puntos de daño a cualquier objetivo.'],
     },
-    static_jolt: { type: 'Instantáneo', text: ['Descarga estática hace 1 punto de daño a cualquier objetivo. Roba una carta.'] },
+    static_jolt: {
+      type: 'Instantáneo',
+      text: ['Descarga estática hace 1 punto de daño a cualquier objetivo. Roba una carta.'],
+    },
     stormflare: { type: 'Conjuro', text: ['Fulgor de tormenta hace 3 puntos de daño a cualquier objetivo.'] },
-    brine_rebuke: { type: 'Instantáneo', text: ['Regresa la criatura objetivo a la mano de su propietario. Roba una carta.'] },
+    brine_rebuke: {
+      type: 'Instantáneo',
+      text: ['Regresa la criatura objetivo a la mano de su propietario. Roba una carta.'],
+    },
     refracted_insight: {
       type: 'Instantáneo',
       text: ['Roba dos cartas. Visión refractada hace 1 punto de daño a cualquier objetivo.'],
@@ -259,7 +286,10 @@ describe('rules text', () => {
       type: 'Criatura — Alce',
       text: ['Vigilancia.', 'Cuando esta criatura entre, pon un contador +1/+1 sobre cada criatura que controlas.'],
     },
-    rally_the_meadow: { type: 'Instantáneo', text: ['Las criaturas que controlas obtienen +1/+1 hasta el final del turno.'] },
+    rally_the_meadow: {
+      type: 'Instantáneo',
+      text: ['Las criaturas que controlas obtienen +1/+1 hasta el final del turno.'],
+    },
     wild_blossom: { type: 'Instantáneo', text: ['Pon dos contadores +1/+1 sobre la criatura objetivo.'] },
     pack_pounce: {
       type: 'Conjuro',
@@ -267,7 +297,10 @@ describe('rules text', () => {
         'Pon un contador +1/+1 sobre la criatura objetivo que controlas. Esa criatura lucha contra la criatura objetivo que no controlas.',
       ],
     },
-    harvest_hymn: { type: 'Conjuro', text: ['Pon un contador +1/+1 sobre cada criatura que controlas. Ganas 2 vidas.'] },
+    harvest_hymn: {
+      type: 'Conjuro',
+      text: ['Pon un contador +1/+1 sobre cada criatura que controlas. Ganas 2 vidas.'],
+    },
     soldier_token: { type: 'Criatura ficha — Soldado', text: [] },
     elemental_token: { type: 'Criatura ficha — Elemental', text: ['Prisa.'] },
     saproling_token: { type: 'Criatura ficha — Saprolín', text: [] },
@@ -290,7 +323,9 @@ describe('rules text', () => {
     },
     hammerfall_raider: {
       type: 'Criatura — Guerrero humano',
-      text: ['Siempre que esta criatura ataque, crea una ficha de criatura Elemental roja 1/1 con la habilidad de prisa.'],
+      text: [
+        'Siempre que esta criatura ataque, crea una ficha de criatura Elemental roja 1/1 con la habilidad de prisa.',
+      ],
     },
     brightforge_marshal: {
       type: 'Criatura — Soldado humano',
@@ -311,9 +346,14 @@ describe('rules text', () => {
     sunbrand: { type: 'Instantáneo', text: ['Marca solar hace 3 puntos de daño a cualquier objetivo. Ganas 3 vidas.'] },
     charge_of_the_forge: {
       type: 'Instantáneo',
-      text: ['Las criaturas que controlas obtienen +1/+0 y ganan la habilidad de dañar primero hasta el final del turno.'],
+      text: [
+        'Las criaturas que controlas obtienen +1/+0 y ganan la habilidad de dañar primero hasta el final del turno.',
+      ],
     },
-    stoke_the_forge: { type: 'Conjuro', text: ['Crea dos fichas de criatura Elemental rojas 1/1 con la habilidad de prisa.'] },
+    stoke_the_forge: {
+      type: 'Conjuro',
+      text: ['Crea dos fichas de criatura Elemental rojas 1/1 con la habilidad de prisa.'],
+    },
     gutterfang_rat: { type: 'Criatura — Rata', text: ['Escurridizo, toque mortal.'] },
     fogslip_thief: {
       type: 'Criatura — Bribón humano',
@@ -327,7 +367,10 @@ describe('rules text', () => {
       type: 'Criatura — Hechicero humano',
       text: ['Cuando esta criatura entre, roba una carta y luego descarta una carta.'],
     },
-    memory_leech: { type: 'Criatura — Sanguijuela', text: ['Cuando esta criatura entre, cada oponente descarta una carta.'] },
+    memory_leech: {
+      type: 'Criatura — Sanguijuela',
+      text: ['Cuando esta criatura entre, cada oponente descarta una carta.'],
+    },
     mistcloak_ambusher: { type: 'Criatura — Bribón humano', text: ['Destello, escurridizo.'] },
     veilborn_specter: {
       type: 'Criatura — Espectro',
@@ -343,7 +386,9 @@ describe('rules text', () => {
     rob_the_mind: { type: 'Conjuro', text: ['Cada oponente descarta dos cartas.'] },
     drag_below: {
       type: 'Instantáneo',
-      text: ['Regresa la criatura objetivo que no controlas a la mano de su propietario. Cada oponente descarta una carta.'],
+      text: [
+        'Regresa la criatura objetivo que no controlas a la mano de su propietario. Cada oponente descarta una carta.',
+      ],
     },
     choking_mist: { type: 'Instantáneo', text: ['La criatura objetivo obtiene -3/-3 hasta el final del turno.'] },
     sift_the_depths: { type: 'Instantáneo', text: ['Roba dos cartas y luego descarta una carta.'] },
@@ -373,7 +418,10 @@ describe('rules text', () => {
     rotbark_treefolk: { type: 'Criatura — Pueblo-arbóreo', text: ['Resiliencia.'] },
     gloamwood_elder: {
       type: 'Criatura — Chamán pueblo-arbóreo',
-      text: ['Alcance.', 'Siempre que otra criatura que controlas muera, crea una ficha de criatura Saprolín verde 1/1.'],
+      text: [
+        'Alcance.',
+        'Siempre que otra criatura que controlas muera, crea una ficha de criatura Saprolín verde 1/1.',
+      ],
     },
     venom_duel: {
       type: 'Conjuro',
@@ -383,7 +431,9 @@ describe('rules text', () => {
     },
     rot_into_loam: {
       type: 'Instantáneo',
-      text: ['La criatura objetivo obtiene -2/-2 hasta el final del turno. Crea una ficha de criatura Saprolín verde 1/1.'],
+      text: [
+        'La criatura objetivo obtiene -2/-2 hasta el final del turno. Crea una ficha de criatura Saprolín verde 1/1.',
+      ],
     },
     sporecall: { type: 'Conjuro', text: ['Crea dos fichas de criatura Saprolín verdes 1/1.'] },
     nightshade_tonic: {
@@ -402,9 +452,14 @@ describe('rules text', () => {
     ghostlit_penitent: { type: 'Criatura — Clérigo espíritu', text: ['Vuela, vínculo vital.'] },
     censer_bearer: {
       type: 'Criatura — Clérigo humano',
-      text: ['Cuando esta criatura entre, crea una ficha de criatura Espíritu blanca y negra 1/1 con la habilidad de volar.'],
+      text: [
+        'Cuando esta criatura entre, crea una ficha de criatura Espíritu blanca y negra 1/1 con la habilidad de volar.',
+      ],
     },
-    sanguine_chorister: { type: 'Criatura — Clérigo vampiro', text: ['Siempre que ganes vidas, cada oponente pierde 1 vida.'] },
+    sanguine_chorister: {
+      type: 'Criatura — Clérigo vampiro',
+      text: ['Siempre que ganes vidas, cada oponente pierde 1 vida.'],
+    },
     ashveil_executioner: { type: 'Criatura — Asesino humano', text: ['Toque mortal, vínculo vital.'] },
     lanternwing_angel: { type: 'Criatura — Ángel', text: ['Vuela, vínculo vital.'] },
     gilded_confessor: {
@@ -417,7 +472,10 @@ describe('rules text', () => {
       type: 'Criatura — Noble vampiro',
       text: ['Vuela.', 'Siempre que ganes vidas, pon un contador +1/+1 sobre esta criatura.'],
     },
-    penance: { type: 'Instantáneo', text: ['La criatura objetivo obtiene -2/-2 hasta el final del turno. Ganas 2 vidas.'] },
+    penance: {
+      type: 'Instantáneo',
+      text: ['La criatura objetivo obtiene -2/-2 hasta el final del turno. Ganas 2 vidas.'],
+    },
     vesper_vow: {
       type: 'Instantáneo',
       text: ['La criatura objetivo obtiene +2/+2 y gana la habilidad de vínculo vital hasta el final del turno.'],
@@ -444,7 +502,9 @@ describe('rules text', () => {
     },
     blistering_hellion: {
       type: 'Criatura — Infernal',
-      text: ['Cuando esta criatura entre, si un oponente recibió daño este turno, pon dos contadores +1/+1 sobre ella.'],
+      text: [
+        'Cuando esta criatura entre, si un oponente recibió daño este turno, pon dos contadores +1/+1 sobre ella.',
+      ],
     },
     pyre_ghast: {
       type: 'Criatura — Espíritu zombie',
@@ -452,7 +512,10 @@ describe('rules text', () => {
     },
     gorehorn_minotaur: {
       type: 'Criatura — Berserker minotauro',
-      text: ['Amenaza.', 'Cuando esta criatura entre, si un oponente recibió daño este turno, pon un contador +1/+1 sobre ella.'],
+      text: [
+        'Amenaza.',
+        'Cuando esta criatura entre, si un oponente recibió daño este turno, pon un contador +1/+1 sobre ella.',
+      ],
     },
     scorchfang_hound: {
       type: 'Criatura — Sabueso',
@@ -460,7 +523,10 @@ describe('rules text', () => {
     },
     cindermaw_demon: {
       type: 'Criatura — Demonio',
-      text: ['Vuela.', 'Cuando esta criatura entre, si un oponente recibió daño este turno, pon dos contadores +1/+1 sobre ella.'],
+      text: [
+        'Vuela.',
+        'Cuando esta criatura entre, si un oponente recibió daño este turno, pon dos contadores +1/+1 sobre ella.',
+      ],
     },
     splitting_flame: {
       type: 'Conjuro',
@@ -472,7 +538,10 @@ describe('rules text', () => {
       type: 'Instantáneo',
       text: ['La criatura objetivo obtiene +2/+0 y gana la habilidad de dañar primero hasta el final del turno.'],
     },
-    grim_kindling: { type: 'Conjuro', text: ['Roba dos cartas. Yesca siniestra hace 1 punto de daño al oponente objetivo.'] },
+    grim_kindling: {
+      type: 'Conjuro',
+      text: ['Roba dos cartas. Yesca siniestra hace 1 punto de daño al oponente objetivo.'],
+    },
     shoal_hatchling: { type: 'Criatura — Rana', text: ['Evolucionar.'] },
     reefwing_fledgling: { type: 'Criatura — Ave', text: ['Vuela, evolucionar.'] },
     kelpweaver_druid: { type: 'Criatura — Druida tritón', text: ['{T}: Agrega {G} o {U}.'] },
@@ -493,14 +562,19 @@ describe('rules text', () => {
     },
     shell_of_the_deep: {
       type: 'Instantáneo',
-      text: ['La criatura objetivo que controlas obtiene +1/+1 y gana la habilidad de antimaleficio hasta el final del turno.'],
+      text: [
+        'La criatura objetivo que controlas obtiene +1/+1 y gana la habilidad de antimaleficio hasta el final del turno.',
+      ],
     },
     adaptive_bloom: {
       type: 'Instantáneo',
       text: ['Pon un contador +1/+1 sobre la criatura objetivo que controlas. Roba una carta.'],
     },
     undertide_lore: { type: 'Conjuro', text: ['Roba dos cartas.'] },
-    riptide_recall: { type: 'Instantáneo', text: ['Regresa la criatura objetivo que no controlas a la mano de su propietario.'] },
+    riptide_recall: {
+      type: 'Instantáneo',
+      text: ['Regresa la criatura objetivo que no controlas a la mano de su propietario.'],
+    },
     cloister_lancer: { type: 'Criatura — Monje humano', text: ['Prisa, destreza.'] },
     temple_blade: { type: 'Criatura — Monje humano', text: ['Daña primero, destreza.'] },
     brazier_disciple: {
@@ -521,7 +595,10 @@ describe('rules text', () => {
     thousand_blows_monk: { type: 'Criatura — Monje humano', text: ['Daña dos veces, destreza.'] },
     crater_elemental: { type: 'Criatura — Elemental', text: ['Prisa, destreza.'] },
     temple_dragon: { type: 'Criatura — Dragón', text: ['Vuela, destreza.'] },
-    palm_strike: { type: 'Instantáneo', text: ['La criatura objetivo obtiene +1/+0 hasta el final del turno. Roba una carta.'] },
+    palm_strike: {
+      type: 'Instantáneo',
+      text: ['La criatura objetivo obtiene +1/+0 hasta el final del turno. Roba una carta.'],
+    },
     spark_volley: {
       type: 'Instantáneo',
       text: [
@@ -530,14 +607,21 @@ describe('rules text', () => {
     },
     lava_fist: {
       type: 'Instantáneo',
-      text: ['La criatura objetivo que controlas hace una cantidad de daño igual a su fuerza a la criatura objetivo que no controlas.'],
+      text: [
+        'La criatura objetivo que controlas hace una cantidad de daño igual a su fuerza a la criatura objetivo que no controlas.',
+      ],
     },
-    twin_strike: { type: 'Instantáneo', text: ['La criatura objetivo gana la habilidad de dañar dos veces hasta el final del turno.'] },
+    twin_strike: {
+      type: 'Instantáneo',
+      text: ['La criatura objetivo gana la habilidad de dañar dos veces hasta el final del turno.'],
+    },
     dragons_breath: { type: 'Instantáneo', text: ['Aliento del dragón hace 3 puntos de daño a cualquier objetivo.'] },
     flame_cut: { type: 'Instantáneo', text: ['Corte de llama hace 2 puntos de daño a la criatura objetivo.'] },
     cliff_lynx: {
       type: 'Criatura — Felino',
-      text: ['Aterrizaje — Siempre que una tierra que controlas entre, esta criatura obtiene +2/+2 hasta el final del turno.'],
+      text: [
+        'Aterrizaje — Siempre que una tierra que controlas entre, esta criatura obtiene +2/+2 hasta el final del turno.',
+      ],
     },
     trail_scout: {
       type: 'Criatura — Explorador elfo',
@@ -555,11 +639,16 @@ describe('rules text', () => {
       type: 'Criatura — Jabalí',
       text: ['Aterrizaje — Siempre que una tierra que controlas entre, pon un contador +1/+1 sobre esta criatura.'],
     },
-    springhorn_stag: { type: 'Criatura — Ciervo', text: ['Aterrizaje — Siempre que una tierra que controlas entre, ganas 2 vidas.'] },
+    springhorn_stag: {
+      type: 'Criatura — Ciervo',
+      text: ['Aterrizaje — Siempre que una tierra que controlas entre, ganas 2 vidas.'],
+    },
     boulder_spider: { type: 'Criatura — Araña', text: ['Alcance.'] },
     territorial_beast: {
       type: 'Criatura — Bestia',
-      text: ['Aterrizaje — Siempre que una tierra que controlas entre, esta criatura obtiene +2/+2 hasta el final del turno.'],
+      text: [
+        'Aterrizaje — Siempre que una tierra que controlas entre, esta criatura obtiene +2/+2 hasta el final del turno.',
+      ],
     },
     peak_giant: {
       type: 'Criatura — Gigante',
@@ -569,7 +658,10 @@ describe('rules text', () => {
     },
     wildland_colossus: {
       type: 'Criatura — Bestia elemental',
-      text: ['Arrolla.', 'Aterrizaje — Siempre que una tierra que controlas entre, crea una ficha de criatura Bestia verde 3/3.'],
+      text: [
+        'Arrolla.',
+        'Aterrizaje — Siempre que una tierra que controlas entre, crea una ficha de criatura Bestia verde 3/3.',
+      ],
     },
     open_path: { type: 'Conjuro', text: ['Puedes jugar una tierra adicional este turno. Roba una carta.'] },
     deep_sowing: {
@@ -590,7 +682,9 @@ describe('rules text', () => {
     },
     sure_swipe: {
       type: 'Instantáneo',
-      text: ['La criatura objetivo que controlas hace una cantidad de daño igual a su fuerza a la criatura objetivo que no controlas.'],
+      text: [
+        'La criatura objetivo que controlas hace una cantidad de daño igual a su fuerza a la criatura objetivo que no controlas.',
+      ],
     },
     herd_roar: {
       type: 'Conjuro',
@@ -604,17 +698,26 @@ describe('rules text', () => {
     prismatic_fount: { type: 'Tierra', text: ['Esta tierra entra girada.', '{T}: Agrega un maná de cualquier color.'] },
     wayfarer_druid: { type: 'Criatura — Druida elfo', text: ['{T}: Agrega un maná de cualquier color.'] },
     sky_messenger: { type: 'Criatura — Espíritu', text: ['Vuela.'] },
-    smoke_warlock: { type: 'Criatura — Brujo humano', text: ['Cuando esta criatura entre, hace 1 punto de daño a cualquier objetivo.'] },
+    smoke_warlock: {
+      type: 'Criatura — Brujo humano',
+      text: ['Cuando esta criatura entre, hace 1 punto de daño a cualquier objetivo.'],
+    },
     root_warden: { type: 'Criatura — Guerrero elfo', text: ['Vigilancia.'] },
     meadow_griffin: { type: 'Criatura — Grifo', text: ['Vuela, vigilancia.'] },
     smoldering_devourer: { type: 'Criatura — Bestia', text: ['Prisa, arrolla.'] },
     canyon_titan: { type: 'Criatura — Gigante', text: ['Vigilancia, arrolla.'] },
     prismatic_dragon: { type: 'Criatura — Dragón', text: ['Vuela, vínculo vital.'] },
     spire_judgment: { type: 'Instantáneo', text: ['Destruye la criatura objetivo. Roba una carta.'] },
-    ash_storm: { type: 'Conjuro', text: ['Tormenta de ceniza hace 2 puntos de daño a cualquier objetivo. Roba una carta.'] },
+    ash_storm: {
+      type: 'Conjuro',
+      text: ['Tormenta de ceniza hace 2 puntos de daño a cualquier objetivo. Roba una carta.'],
+    },
     council_veto: { type: 'Instantáneo', text: ['Contrarresta el hechizo objetivo. Ganas 2 vidas.'] },
     convergent_vision: { type: 'Instantáneo', text: ['Roba dos cartas.'] },
-    purifying_fire: { type: 'Instantáneo', text: ['Fuego purificador hace 2 puntos de daño a cualquier objetivo. Ganas 2 vidas.'] },
+    purifying_fire: {
+      type: 'Instantáneo',
+      text: ['Fuego purificador hace 2 puntos de daño a cualquier objetivo. Ganas 2 vidas.'],
+    },
     monk_token: { type: 'Criatura ficha — Monje', text: ['Destreza.'] },
     beast_token: { type: 'Criatura ficha — Bestia', text: [] },
   };
@@ -633,8 +736,12 @@ describe('rules text', () => {
   });
 
   it('builds one-line summaries', () => {
-    expect(cardSummary('timberland_rhino')).toBe('Rinoceronte forestal · {2}{G}{G} · Criatura — Rinoceronte · 4/4 · Arrolla.');
-    expect(cardSummary('turn_the_tide')).toBe('Cambio de marea · {1}{U}{U} · Instantáneo · Contrarresta el hechizo objetivo.');
+    expect(cardSummary('timberland_rhino')).toBe(
+      'Rinoceronte forestal · {2}{G}{G} · Criatura — Rinoceronte · 4/4 · Arrolla.',
+    );
+    expect(cardSummary('turn_the_tide')).toBe(
+      'Cambio de marea · {1}{U}{U} · Instantáneo · Contrarresta el hechizo objetivo.',
+    );
     expect(cardSummary('squall_skimmer')).toBe('Ave de la borrasca · {1}{U} · Criatura — Ave · 2/1 · Destello, vuela.');
     expect(cardSummary('elemental_token')).toBe('Elemental · Criatura ficha — Elemental · 1/1 · Prisa.');
   });
@@ -655,7 +762,9 @@ describe('rules text', () => {
     expect(rulesText(getCardDef('pack_pounce'))).toEqual([
       'Pon un contador +1/+1 sobre la criatura objetivo que controlas. Esa criatura lucha contra la criatura objetivo que no controlas.',
     ]);
-    expect(rulesText(getCardDef('feral_clash'))).toEqual(['La criatura objetivo que controlas lucha contra la criatura objetivo que no controlas.']);
+    expect(rulesText(getCardDef('feral_clash'))).toEqual([
+      'La criatura objetivo que controlas lucha contra la criatura objetivo que no controlas.',
+    ]);
   });
 });
 
@@ -714,11 +823,25 @@ describe('card validation', () => {
   });
 
   it('rejects nonland cards that enter tapped, land searches without cards or split unevenly, and no extra land plays', () => {
-    expect(() => registerCard({ id: 'bad11', name: 'Bad', types: ['creature'], cost: '{G}', power: 1, toughness: 1, entersTapped: true })).toThrow(
-      /only lands enter tapped/,
-    );
     expect(() =>
-      registerCard({ id: 'bad12', name: 'Bad', types: ['sorcery'], cost: '{G}', spell: { targets: [], effects: [{ kind: 'searchLand', land: 'forest', battlefield: 0 }] } }),
+      registerCard({
+        id: 'bad11',
+        name: 'Bad',
+        types: ['creature'],
+        cost: '{G}',
+        power: 1,
+        toughness: 1,
+        entersTapped: true,
+      }),
+    ).toThrow(/only lands enter tapped/);
+    expect(() =>
+      registerCard({
+        id: 'bad12',
+        name: 'Bad',
+        types: ['sorcery'],
+        cost: '{G}',
+        spell: { targets: [], effects: [{ kind: 'searchLand', land: 'forest', battlefield: 0 }] },
+      }),
     ).toThrow(/needs cards to find/);
     expect(() =>
       registerCard({
@@ -730,7 +853,13 @@ describe('card validation', () => {
       }),
     ).toThrow(/one onto the battlefield and the other into the hand/);
     expect(() =>
-      registerCard({ id: 'bad14', name: 'Bad', types: ['sorcery'], cost: '{G}', spell: { targets: [], effects: [{ kind: 'extraLands', amount: 0 }] } }),
+      registerCard({
+        id: 'bad14',
+        name: 'Bad',
+        types: ['sorcery'],
+        cost: '{G}',
+        spell: { targets: [], effects: [{ kind: 'extraLands', amount: 0 }] },
+      }),
     ).toThrow(/positive amount/);
   });
 
@@ -743,13 +872,21 @@ describe('card validation', () => {
         cost: '{G}',
         spell: { targets: [], effects: [{ kind: 'searchLand', land: 'plains', battlefield, hand, tapped }] },
       });
-    expect(search(2, 0, false)).toEqual(['Busca en tu biblioteca dos cartas de Llanura básica, ponlas en el campo de batalla y luego baraja.']);
-    expect(search(2, 0, true)).toEqual(['Busca en tu biblioteca dos cartas de Llanura básica, ponlas en el campo de batalla giradas y luego baraja.']);
-    expect(search(0, 1, false)).toEqual(['Busca en tu biblioteca una carta de Llanura básica, revélala, ponla en tu mano y luego baraja.']);
+    expect(search(2, 0, false)).toEqual([
+      'Busca en tu biblioteca dos cartas de Llanura básica, ponlas en el campo de batalla y luego baraja.',
+    ]);
+    expect(search(2, 0, true)).toEqual([
+      'Busca en tu biblioteca dos cartas de Llanura básica, ponlas en el campo de batalla giradas y luego baraja.',
+    ]);
+    expect(search(0, 1, false)).toEqual([
+      'Busca en tu biblioteca una carta de Llanura básica, revélala, ponla en tu mano y luego baraja.',
+    ]);
   });
 
   it('rejects tokens with a cost, discards before other effects, undying returns and sacrificed sources that affect themselves', () => {
-    expect(() => registerCard({ id: 'bad7', name: 'Bad', types: ['creature'], cost: '{W}', token: true, power: 1, toughness: 1 })).toThrow(/tokens/);
+    expect(() =>
+      registerCard({ id: 'bad7', name: 'Bad', types: ['creature'], cost: '{W}', token: true, power: 1, toughness: 1 }),
+    ).toThrow(/tokens/);
     expect(() =>
       registerCard({
         id: 'bad8',
@@ -784,7 +921,14 @@ describe('card validation', () => {
         cost: '{B}',
         power: 1,
         toughness: 1,
-        activated: [{ cost: '{0}', sacrifice: true, targets: [], effects: [{ kind: 'pump', power: 1, toughness: 1, to: 'self' }] }],
+        activated: [
+          {
+            cost: '{0}',
+            sacrifice: true,
+            targets: [],
+            effects: [{ kind: 'pump', power: 1, toughness: 1, to: 'self' }],
+          },
+        ],
       }),
     ).toThrow(/sacrifices its creature/);
   });

@@ -245,7 +245,8 @@ function enterBattlefield(s: GameState, id: CardId): void {
   for (const other of triggerSources(s, card.controller)) {
     if (other === id) continue;
     queueTriggers(s, other, 'allyEnters', card.controller);
-    if (evolves(s, other, id)) s.triggers.push({ id: newId(s, 't'), controller: card.controller, source: other, ability: EVOLVE_TRIGGER });
+    if (evolves(s, other, id))
+      s.triggers.push({ id: newId(s, 't'), controller: card.controller, source: other, ability: EVOLVE_TRIGGER });
   }
 }
 
@@ -302,7 +303,8 @@ export function moveCard(s: GameState, id: CardId, to: Zone, options: MoveOption
     for (const watcher of options.watchers ?? triggerSources(s, previousController)) {
       if (watcher !== id) queueTriggers(s, watcher, 'allyDies', previousController);
     }
-    if (undying) s.triggers.push({ id: newId(s, 't'), controller: previousController, source: id, ability: UNDYING_TRIGGER });
+    if (undying)
+      s.triggers.push({ id: newId(s, 't'), controller: previousController, source: id, ability: UNDYING_TRIGGER });
   }
   if (to === 'battlefield') enterBattlefield(s, id);
   if (isTokenDef(def) && to !== 'battlefield') {
@@ -314,7 +316,8 @@ export function moveCard(s: GameState, id: CardId, to: Zone, options: MoveOption
 function loseTargetsOn(s: GameState, id: CardId): void {
   for (const item of s.stack) {
     item.targets.forEach((target, index) => {
-      if ('card' in target && target.card === id && !item.lost?.includes(index)) item.lost = [...(item.lost ?? []), index];
+      if ('card' in target && target.card === id && !item.lost?.includes(index))
+        item.lost = [...(item.lost ?? []), index];
     });
   }
 }
@@ -340,7 +343,8 @@ function conditionHolds(s: GameState, condition: TriggerCondition | undefined, c
 export function queueTriggers(s: GameState, source: CardId, event: TriggerEvent, controller: PlayerId): void {
   const triggers = defOf(s, source).triggers ?? [];
   triggers.forEach((trigger, ability) => {
-    if (trigger.on === event && conditionHolds(s, trigger.condition, controller)) s.triggers.push({ id: newId(s, 't'), controller, source, ability });
+    if (trigger.on === event && conditionHolds(s, trigger.condition, controller))
+      s.triggers.push({ id: newId(s, 't'), controller, source, ability });
   });
 }
 

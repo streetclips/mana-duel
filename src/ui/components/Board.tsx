@@ -82,7 +82,13 @@ export function PlayerBar({ s, player, human, deckName, tag, badge, targetable, 
   const ps = s.players[player];
   const text = gameText();
   const hasPriority = s.pending?.kind === 'priority' && s.pending.player === player;
-  const label = text.playerSummary(`${ps.name}${tag ? ` (${tag.title})` : ''}`, ps.life, ps.hand.length, ps.library.length, ps.graveyard.length);
+  const label = text.playerSummary(
+    `${ps.name}${tag ? ` (${tag.title})` : ''}`,
+    ps.life,
+    ps.hand.length,
+    ps.library.length,
+    ps.graveyard.length,
+  );
   return (
     <div class="player-bar">
       <button
@@ -100,7 +106,13 @@ export function PlayerBar({ s, player, human, deckName, tag, badge, targetable, 
           {player === human ? commonText().you : ps.name.slice(0, 2)}
         </span>
         {fx?.drawn && (
-          <span key={fx.drawn.key} class="fx-drawn" data-testid={`fx-drawn-${player}`} data-fx="draw" aria-hidden="true">
+          <span
+            key={fx.drawn.key}
+            class="fx-drawn"
+            data-testid={`fx-drawn-${player}`}
+            data-fx="draw"
+            aria-hidden="true"
+          >
             <i />
             <span>+{fx.drawn.count}</span>
           </span>
@@ -122,7 +134,12 @@ export function PlayerBar({ s, player, human, deckName, tag, badge, targetable, 
           )}
         </span>
         {fx?.life && (
-          <span key={`chip-${fx.life.key}`} class={`fx-chip ${fx.life.tone}`} style={fxDelay(fx.life.delay)} aria-hidden="true" />
+          <span
+            key={`chip-${fx.life.key}`}
+            class={`fx-chip ${fx.life.tone}`}
+            style={fxDelay(fx.life.delay)}
+            aria-hidden="true"
+          />
         )}
         <span class="player-meta">
           <b>
@@ -170,7 +187,9 @@ export function Lands({ s, player, cardFx }: { s: GameState; player: PlayerId; c
           <span
             key={id}
             class={`land-pip${multi ? ' multi' : ''}${s.cards[id]?.tapped ? ' tapped' : ''}`}
-            style={cssVars(multi ? { '--pip': cardColorVar(def), '--pip-fill': manaFill(mana) } : { '--pip': cardColorVar(def) })}
+            style={cssVars(
+              multi ? { '--pip': cardColorVar(def), '--pip-fill': manaFill(mana) } : { '--pip': cardColorVar(def) },
+            )}
             data-color={mana.join('')}
             title={s.cards[id]?.tapped ? text.tappedLand(def.name) : def.name}
             data-testid={`card-${id}`}
@@ -191,7 +210,10 @@ export function Lands({ s, player, cardFx }: { s: GameState; player: PlayerId; c
 const PHASES: { id: PhaseId; steps: Step[] }[] = [
   { id: 'beginning', steps: ['untap', 'upkeep', 'draw'] },
   { id: 'main1', steps: ['main1'] },
-  { id: 'combat', steps: ['beginCombat', 'declareAttackers', 'declareBlockers', 'firstStrikeDamage', 'combatDamage', 'endCombat'] },
+  {
+    id: 'combat',
+    steps: ['beginCombat', 'declareAttackers', 'declareBlockers', 'firstStrikeDamage', 'combatDamage', 'endCombat'],
+  },
   { id: 'main2', steps: ['main2'] },
   { id: 'end', steps: ['end', 'cleanup'] },
 ];
@@ -212,7 +234,14 @@ export function CenterStrip({ s, human, bar, targets, aimed, fx, onStackTap }: C
   return (
     <section class="center" aria-live="polite">
       {fx.turn && (
-        <div key={fx.turn.key} class="fx-turn" data-testid="fx-turn" data-fx="turn" data-player={fx.turn.player} aria-hidden="true">
+        <div
+          key={fx.turn.key}
+          class="fx-turn"
+          data-testid="fx-turn"
+          data-fx="turn"
+          data-player={fx.turn.player}
+          aria-hidden="true"
+        >
           <span>
             {text.turnOf(fx.turn.player === human)}
             <small>{text.turn(fx.turn.turn)}</small>

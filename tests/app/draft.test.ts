@@ -115,8 +115,16 @@ describe('building', () => {
     expect(deckColors(deck).length).toBeLessThanOrEqual(3);
     const spells = deck.filter((entry) => !getCardDef(entry.card).types.includes('land'));
     expect(countCards(spells)).toBeGreaterThanOrEqual(21);
-    for (const entry of spells) expect(run.picks[1].filter((card) => card === entry.card).length).toBeGreaterThanOrEqual(entry.count);
-    const reds = autoBuild(['ember_hound', 'cinder_adept', 'ridge_marauder', 'ashen_duelist', 'ember_snap', 'magma_lance']);
+    for (const entry of spells)
+      expect(run.picks[1].filter((card) => card === entry.card).length).toBeGreaterThanOrEqual(entry.count);
+    const reds = autoBuild([
+      'ember_hound',
+      'cinder_adept',
+      'ridge_marauder',
+      'ashen_duelist',
+      'ember_snap',
+      'magma_lance',
+    ]);
     expect(deckColors(reds)).toEqual(['R']);
     expect(countCards(reds)).toBe(40);
   });
@@ -125,18 +133,28 @@ describe('building', () => {
     const run = pickAll(createDraft('draft', 12));
     const limits = allowances(run);
     const first = run.picks[0][0] ?? '';
-    expect(limits.find((allowance) => allowance.card === first)?.max).toBe(run.picks[0].filter((card) => card === first).length);
-    expect(limits.filter((allowance) => allowance.max === null).map((allowance) => allowance.card).sort()).toEqual([
-      'forest',
-      'island',
-      'mountain',
-      'plains',
-      'swamp',
-    ]);
+    expect(limits.find((allowance) => allowance.card === first)?.max).toBe(
+      run.picks[0].filter((card) => card === first).length,
+    );
+    expect(
+      limits
+        .filter((allowance) => allowance.max === null)
+        .map((allowance) => allowance.card)
+        .sort(),
+    ).toEqual(['forest', 'island', 'mountain', 'plains', 'swamp']);
     expect(draftProblems({ id: null, name: 'x', featured: null, cards: suggestedDeck(run) }, limits)).toEqual([]);
     const notMine = draftPool().find((card) => !run.picks[0].includes(card)) ?? '';
-    expect(() => saveDeck(run, { id: null, name: 'x', featured: null, cards: [...suggestedDeck(run), { card: notMine, count: 1 }] })).toThrow(/cannot be played/);
-    expect(() => saveDeck(run, { id: null, name: 'x', featured: null, cards: [{ card: 'forest', count: 20 }] })).toThrow(/Faltan 20 cartas/);
+    expect(() =>
+      saveDeck(run, {
+        id: null,
+        name: 'x',
+        featured: null,
+        cards: [...suggestedDeck(run), { card: notMine, count: 1 }],
+      }),
+    ).toThrow(/cannot be played/);
+    expect(() =>
+      saveDeck(run, { id: null, name: 'x', featured: null, cards: [{ card: 'forest', count: 20 }] }),
+    ).toThrow(/Faltan 20 cartas/);
     const saved = built(run);
     expect(saved.stage).toBe('match');
     expect(countCards(saved.deck ?? [])).toBe(40);
@@ -146,7 +164,12 @@ describe('building', () => {
 describe('the match', () => {
   it('flips a coin for the first game, lets the loser start the next, and ends at two wins', () => {
     const run = built(pickAll(createDraft('sealed', 3)));
-    const firsts = new Set(Array.from({ length: 12 }, (_, n) => startGame({ ...run, rng: Math.imul(n + 1, 0x9e3779b9) >>> 0 }).startingPlayer));
+    const firsts = new Set(
+      Array.from(
+        { length: 12 },
+        (_, n) => startGame({ ...run, rng: Math.imul(n + 1, 0x9e3779b9) >>> 0 }).startingPlayer,
+      ),
+    );
     expect(firsts).toEqual(new Set([0, 1]));
     const lost = recordGame(run, 1, 12);
     expect(startGame(lost).startingPlayer).toBe(0);
@@ -183,10 +206,15 @@ describe('the match', () => {
 
 function swapOneSpell(run: DraftRun, cards: DeckEntry[]): DeckEntry[] {
   const used = new Map(cards.map((entry) => [entry.card, entry.count]));
-  const spare = allowances(run).find((allowance) => allowance.max !== null && !isLandCard(allowance.card) && (used.get(allowance.card) ?? 0) < allowance.max);
+  const spare = allowances(run).find(
+    (allowance) =>
+      allowance.max !== null && !isLandCard(allowance.card) && (used.get(allowance.card) ?? 0) < allowance.max,
+  );
   const dropped = cards.find((entry) => !isLandCard(entry.card) && entry.card !== spare?.card);
   if (!spare || !dropped) throw new Error('no spell to swap');
-  const swapped = cards.map((entry) => (entry === dropped ? { ...entry, count: entry.count - 1 } : { ...entry })).filter((entry) => entry.count > 0);
+  const swapped = cards
+    .map((entry) => (entry === dropped ? { ...entry, count: entry.count - 1 } : { ...entry }))
+    .filter((entry) => entry.count > 0);
   const added = swapped.find((entry) => entry.card === spare.card);
   if (added) added.count += 1;
   else swapped.push({ card: spare.card, count: 1 });

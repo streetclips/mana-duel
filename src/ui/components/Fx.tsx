@@ -39,7 +39,9 @@ function Reveal({ s, human, reveal }: { s: GameState; human: PlayerId; reveal: R
 export function FxLayer({ s, human, fx }: { s: GameState; human: PlayerId; fx: FxView }) {
   return (
     <div class="fx-layer" aria-hidden="true">
-      {fx.hurt && <span key={fx.hurt.key} class="fx-hurt" data-testid="fx-hurt" data-fx="hurt" style={fxDelay(fx.hurt.delay)} />}
+      {fx.hurt && (
+        <span key={fx.hurt.key} class="fx-hurt" data-testid="fx-hurt" data-fx="hurt" style={fxDelay(fx.hurt.delay)} />
+      )}
       {fx.reveal && <Reveal key={fx.reveal.key} s={s} human={human} reveal={fx.reveal} />}
     </div>
   );

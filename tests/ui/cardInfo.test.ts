@@ -37,7 +37,9 @@ describe('short card texts', () => {
     expect(landHint(getCardDef('prismatic_fount'))).toBe('Entra girada. {any}');
     expect(landHint(getCardDef('forest'))).toBeNull();
     expect(effectHint({ kind: 'extraLands', amount: 1 })).toBe('+1 tierra');
-    expect(effectHint({ kind: 'searchLand', land: 'forest', battlefield: 1, hand: 1, tapped: true })).toBe('busca 2 Bosques');
+    expect(effectHint({ kind: 'searchLand', land: 'forest', battlefield: 1, hand: 1, tapped: true })).toBe(
+      'busca 2 Bosques',
+    );
   });
 
   it('keep for the battlefield only the triggers that can still happen', () => {

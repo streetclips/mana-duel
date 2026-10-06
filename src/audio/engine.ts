@@ -2,7 +2,16 @@ import type { Color } from '../engine';
 import { SoundGate } from './gate';
 import { STEPS_PER_BAR, TITLE_THEME, nextMood, notesAt, stepSeconds, type Mood, type Theme } from './music';
 import { JINGLES, type SoundEvent, type SoundId } from './sounds';
-import { MASTER_LEVEL, MUSIC_LEVEL, SFX_LEVEL, createMix, noteLayers, playLayers, soundLayers, type Mix } from './synth';
+import {
+  MASTER_LEVEL,
+  MUSIC_LEVEL,
+  SFX_LEVEL,
+  createMix,
+  noteLayers,
+  playLayers,
+  soundLayers,
+  type Mix,
+} from './synth';
 
 export type ContextState = 'none' | 'suspended' | 'running' | 'closed' | 'interrupted';
 
@@ -25,7 +34,16 @@ export interface AudioState {
   context: ContextState;
   hidden: boolean;
   volume: number;
-  music: { on: boolean; playing: boolean; theme: string; mood: Mood; heard: Mood; tempo: number; bar: number; notes: number };
+  music: {
+    on: boolean;
+    playing: boolean;
+    theme: string;
+    mood: Mood;
+    heard: Mood;
+    tempo: number;
+    bar: number;
+    notes: number;
+  };
   sfx: { on: boolean; played: number; dropped: number };
 }
 
@@ -263,7 +281,12 @@ export class AudioEngine {
     try {
       const ctx = this.factory();
       this.ctx = ctx;
-      this.mix = createMix(ctx, { master: MASTER_LEVEL * this.volume, music: 0, sfx: this.sfx ? SFX_LEVEL : 0, analyser: true });
+      this.mix = createMix(ctx, {
+        master: MASTER_LEVEL * this.volume,
+        music: 0,
+        sfx: this.sfx ? SFX_LEVEL : 0,
+        analyser: true,
+      });
       ctx.onstatechange = () => this.contextChanged();
       this.restartMusic();
       if (this.music) this.ramp(this.mix.music.gain, MUSIC_LEVEL);
@@ -291,10 +314,13 @@ export class AudioEngine {
   }
 
   private suspendAfterFade(): void {
-    this.timers.setTimeout(() => {
-      const ctx = this.ctx;
-      if (!this.wantsSound() && ctx?.state === 'running') ctx.suspend().catch(() => undefined);
-    }, FADE_SECONDS * 1000 + 50);
+    this.timers.setTimeout(
+      () => {
+        const ctx = this.ctx;
+        if (!this.wantsSound() && ctx?.state === 'running') ctx.suspend().catch(() => undefined);
+      },
+      FADE_SECONDS * 1000 + 50,
+    );
   }
 
   private ramp(param: AudioParam, value: number): void {

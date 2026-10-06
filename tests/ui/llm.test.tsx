@@ -77,7 +77,11 @@ describe('choosing who plays the AI', () => {
     fireEvent.click(byTestId('ai-llm'));
     expect((byTestId('llm-effort') as HTMLSelectElement).value).toBe('default');
     fireEvent.change(byTestId('llm-effort'), { target: { value: 'low' } });
-    expect(JSON.parse(localStorage.getItem('manaDuel.opponent') ?? 'null')).toEqual({ kind: 'llm', model: DEFAULT_MODEL, effort: 'low' });
+    expect(JSON.parse(localStorage.getItem('manaDuel.opponent') ?? 'null')).toEqual({
+      kind: 'llm',
+      model: DEFAULT_MODEL,
+      effort: 'low',
+    });
     closeSettings();
     fireEvent.click(byTestId('btn-play'));
     expect(controller.opponent).toEqual({ kind: 'llm', model: DEFAULT_MODEL, effort: 'low' });
@@ -91,7 +95,9 @@ describe('choosing who plays the AI', () => {
     fireEvent.click(byTestId('ai-llm'));
     type('llm-key', 'sk-or-test');
     type('llm-model', 'gpt');
-    expect(byTestId('llm-hint').textContent).toContain(`Escribe el id de un modelo de OpenRouter, como ${DEFAULT_MODEL}.`);
+    expect(byTestId('llm-hint').textContent).toContain(
+      `Escribe el id de un modelo de OpenRouter, como ${DEFAULT_MODEL}.`,
+    );
     expect((byTestId('btn-play') as HTMLButtonElement).disabled).toBe(true);
     type('llm-model', 'google/gemini-3.8-flash');
     expect((byTestId('btn-play') as HTMLButtonElement).disabled).toBe(false);
@@ -123,7 +129,8 @@ describe('choosing who plays the AI', () => {
     expect(loadModels).not.toHaveBeenCalled();
     openSettings();
     fireEvent.click(byTestId('ai-llm'));
-    const options = (): (string | null)[] => [...byTestId('llm-models').querySelectorAll('option')].map((option) => option.getAttribute('value'));
+    const options = (): (string | null)[] =>
+      [...byTestId('llm-models').querySelectorAll('option')].map((option) => option.getAttribute('value'));
     await vi.waitFor(() => expect(options()).toContain('zeta/model'));
     expect(options()).toContain(DEFAULT_MODEL);
     expect(loadModels).toHaveBeenCalledTimes(1);
@@ -181,7 +188,9 @@ describe('a game against the LLM', () => {
     await settled(controller);
     fireEvent.click(byTestId('btn-menu'));
     fireEvent.click(byTestId('menu-log'));
-    const note = [...byTestId('log-panel').querySelectorAll('li')].find((item) => item.textContent === 'El rival piensa: A fine hand.');
+    const note = [...byTestId('log-panel').querySelectorAll('li')].find(
+      (item) => item.textContent === 'El rival piensa: A fine hand.',
+    );
     expect(note?.className).toBe('note');
   });
 
@@ -193,9 +202,13 @@ describe('a game against the LLM', () => {
     const { controller } = startLlmGame(llm);
     fireEvent.click(byTestId('btn-keep'));
     await settled(controller);
-    expect(byTestId('llm-notice-text').textContent).toBe('LLM no disponible: OpenRouter 402: Insufficient credits. Juega la IA clásica.');
+    expect(byTestId('llm-notice-text').textContent).toBe(
+      'LLM no disponible: OpenRouter 402: Insufficient credits. Juega la IA clásica.',
+    );
     expect(byTestId('game').getAttribute('data-llm')).toBe('unavailable');
-    expect(byTestId('player-tag-1').getAttribute('title')).toBe('LLM no disponible: OpenRouter 402: Insufficient credits');
+    expect(byTestId('player-tag-1').getAttribute('title')).toBe(
+      'LLM no disponible: OpenRouter 402: Insufficient credits',
+    );
     fireEvent.click(byTestId('llm-notice-hide'));
     expect(screen.queryByTestId('llm-notice')).toBeNull();
     expect(byTestId('game').getAttribute('data-llm')).toBe('unavailable');

@@ -78,9 +78,14 @@ export function createScenario(spec: ScenarioSpec): GameState {
   const place = (player: PlayerId, zone: Exclude<Zone, 'stack' | 'gone'>, entry: ScenarioEntry): void => {
     const card = typeof entry === 'string' ? { card: entry } : entry;
     if (!hasCardDef(card.card)) throw new Error(`Unknown card definition "${card.card}"`);
-    if (getCardDef(card.card).token && zone !== 'battlefield') throw new Error(`The token "${card.card}" can only be on the battlefield`);
+    if (getCardDef(card.card).token && zone !== 'battlefield')
+      throw new Error(`The token "${card.card}" can only be on the battlefield`);
     if (isRelicDef(getCardDef(card.card)) !== (zone === 'command')) {
-      throw new Error(zone === 'command' ? `"${card.card}" is not a relic` : `The relic "${card.card}" can only be among a player's relics`);
+      throw new Error(
+        zone === 'command'
+          ? `"${card.card}" is not a relic`
+          : `The relic "${card.card}" can only be among a player's relics`,
+      );
     }
     const id = card.id ?? nextAutoId();
     s.cards[id] = {

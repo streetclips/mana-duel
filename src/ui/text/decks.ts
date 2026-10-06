@@ -3,13 +3,15 @@ import { count, messages } from '../../i18n';
 export const decksText = messages({
   es: {
     screen: {
-      status: (decks: number) => (decks === 0 ? 'Crea mazos con las cartas de todos los mazos' : count(decks, 'mazo propio', 'mazos propios')),
+      status: (decks: number) =>
+        decks === 0 ? 'Crea mazos con las cartas de todos los mazos' : count(decks, 'mazo propio', 'mazos propios'),
       title: 'Mis mazos',
       back: 'Volver al menú principal',
       intro:
         'Construye tus propios mazos con las cartas de los catorce mazos del juego: al menos 40 cartas y hasta cuatro copias de cada una, salvo las tierras básicas. Los mazos listos para jugar aparecen al elegir tu mazo o el de la IA, y en la Expedición.',
       yourDecks: 'Tus mazos',
-      deckLine: (cards: number, ready: boolean) => `${count(cards, 'carta', 'cartas')} · ${ready ? 'listo para jugar' : 'incompleto'}`,
+      deckLine: (cards: number, ready: boolean) =>
+        `${count(cards, 'carta', 'cartas')} · ${ready ? 'listo para jugar' : 'incompleto'}`,
       edit: 'Editar',
       deleteDeck: (name: string) => `Borrar ${name}`,
       startFrom: 'Partir de un mazo del juego',
@@ -30,7 +32,8 @@ export const decksText = messages({
       aiDeck: 'El mazo de la IA',
       deckCount: (decks: number) => count(decks, 'mazo', 'mazos'),
       done: 'Listo',
-      randomDescription: (decks: number) => `Un mazo distinto en cada partida: uno de los ${decks}, elegido al empezar.`,
+      randomDescription: (decks: number) =>
+        `Un mazo distinto en cada partida: uno de los ${decks}, elegido al empezar.`,
       viewDeck: (name: string) => `Ver el mazo ${name}`,
       cards: 'Cartas',
       myDecks: 'Mis mazos',
@@ -84,13 +87,15 @@ export const decksText = messages({
   },
   en: {
     screen: {
-      status: (decks: number) => (decks === 0 ? 'Build decks with the cards of every deck' : count(decks, 'custom deck', 'custom decks')),
+      status: (decks: number) =>
+        decks === 0 ? 'Build decks with the cards of every deck' : count(decks, 'custom deck', 'custom decks'),
       title: 'My decks',
       back: 'Back to the main menu',
       intro:
         "Build your own decks with the cards of the game's fourteen decks: at least 40 cards and up to four copies of each, except basic lands. Decks that are ready to play show up when you choose your deck or the AI's, and in the Expedition.",
       yourDecks: 'Your decks',
-      deckLine: (cards: number, ready: boolean) => `${count(cards, 'card', 'cards')} · ${ready ? 'ready to play' : 'incomplete'}`,
+      deckLine: (cards: number, ready: boolean) =>
+        `${count(cards, 'card', 'cards')} · ${ready ? 'ready to play' : 'incomplete'}`,
       edit: 'Edit',
       deleteDeck: (name: string) => `Delete ${name}`,
       startFrom: 'Start from a game deck',

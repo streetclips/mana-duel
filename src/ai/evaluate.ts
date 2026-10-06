@@ -32,7 +32,15 @@ function printedKeywords(s: GameState, id: CardId): readonly Keyword[] {
   return getCardDef(s.cards[id]?.def ?? '').keywords ?? [];
 }
 
-const LASTING_TRIGGERS: ReadonlySet<TriggerEvent> = new Set(['attacks', 'spell', 'allyEnters', 'allyDies', 'damagesPlayer', 'lifeGain', 'landfall']);
+const LASTING_TRIGGERS: ReadonlySet<TriggerEvent> = new Set([
+  'attacks',
+  'spell',
+  'allyEnters',
+  'allyDies',
+  'damagesPlayer',
+  'lifeGain',
+  'landfall',
+]);
 
 export function creatureValue(s: GameState, id: CardId): number {
   const def = getCardDef(s.cards[id]?.def ?? '');
@@ -120,7 +128,10 @@ function exposurePenalty(s: GameState, player: PlayerId): number {
   const opp = opponent(player);
   const attackers = s.players[opp].battlefield
     .filter((id) => isCreature(s, id) && !printedKeywords(s, id).includes('defender'))
-    .map((id) => ({ power: (getCardDef(s.cards[id]?.def ?? '').power ?? 0) + counters(s, id), flying: printedKeywords(s, id).includes('flying') }))
+    .map((id) => ({
+      power: (getCardDef(s.cards[id]?.def ?? '').power ?? 0) + counters(s, id),
+      flying: printedKeywords(s, id).includes('flying'),
+    }))
     .sort((a, b) => b.power - a.power);
   const blockers = s.players[player].battlefield.filter((id) => isCreature(s, id) && !s.cards[id]?.tapped);
   let flyingBlockers = blockers.filter((id) => {

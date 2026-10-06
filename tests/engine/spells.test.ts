@@ -54,7 +54,12 @@ describe('Ember Snap (instant, any target)', () => {
     let s = scenario({
       players: [
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
-        { battlefield: [{ card: 'ember_hound', id: 'hound' }, { card: 'canopy_spider', id: 'spider' }] },
+        {
+          battlefield: [
+            { card: 'ember_hound', id: 'hound' },
+            { card: 'canopy_spider', id: 'spider' },
+          ],
+        },
       ],
     });
     const killed = resolveStack(cast(s, 'snap', [{ card: 'hound' }]));
@@ -68,7 +73,10 @@ describe('Ember Snap (instant, any target)', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'ember_snap', id: 'snap1' }, { card: 'ember_snap', id: 'snap2' }],
+          hand: [
+            { card: 'ember_snap', id: 'snap1' },
+            { card: 'ember_snap', id: 'snap2' },
+          ],
           battlefield: ['mountain', 'mountain'],
         },
         { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
@@ -83,7 +91,9 @@ describe('Ember Snap (instant, any target)', () => {
   });
 
   it('cannot be cast without the right color of mana', () => {
-    const s = scenario({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['forest', 'forest'] }, {}] });
+    const s = scenario({
+      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['forest', 'forest'] }, {}],
+    });
     expect(castBlocker(s, 0, 'snap')).toEqual({ code: 'notEnoughMana' });
   });
 });
@@ -97,7 +107,9 @@ describe('Magma Lance (sorcery, target creature)', () => {
       ],
     });
     const casts = getLegalActions(s).filter((action) => action.type === 'cast');
-    expect(casts.every((action) => action.type === 'cast' && action.targets.every((target) => 'card' in target))).toBe(true);
+    expect(casts.every((action) => action.type === 'cast' && action.targets.every((target) => 'card' in target))).toBe(
+      true,
+    );
     expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'lance', targets: [{ player: 1 }] })).toMatchObject({
       ok: false,
     });
@@ -111,7 +123,10 @@ describe('Verdant Surge (instant pump)', () => {
     let s = scenario({
       players: [
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'moss_viper', id: 'viper' }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'moss_viper', id: 'viper' }],
+        },
       ],
     });
     s = pass(cast(s, 'snap', [{ card: 'viper' }]));
@@ -127,7 +142,10 @@ describe('Feral Clash (fight)', () => {
   it('makes two creatures deal damage equal to their power to each other', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'feral_clash', id: 'clash' }], battlefield: ['forest', 'forest', { card: 'timberland_rhino', id: 'rhino' }] },
+        {
+          hand: [{ card: 'feral_clash', id: 'clash' }],
+          battlefield: ['forest', 'forest', { card: 'timberland_rhino', id: 'rhino' }],
+        },
         { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
       ],
     });
@@ -139,19 +157,26 @@ describe('Feral Clash (fight)', () => {
   it('needs a creature you control and one you do not', () => {
     const s = scenario({
       players: [
-        { hand: [{ card: 'feral_clash', id: 'clash' }], battlefield: ['forest', 'forest', { card: 'timberland_rhino', id: 'rhino' }] },
+        {
+          hand: [{ card: 'feral_clash', id: 'clash' }],
+          battlefield: ['forest', 'forest', { card: 'timberland_rhino', id: 'rhino' }],
+        },
         {},
       ],
     });
     expect(getLegalActions(s).some((action) => action.type === 'cast')).toBe(false);
-    expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'clash', targets: [{ card: 'rhino' }, { card: 'rhino' }] }))
-      .toMatchObject({ ok: false });
+    expect(
+      tryApplyAction(s, { type: 'cast', player: 0, card: 'clash', targets: [{ card: 'rhino' }, { card: 'rhino' }] }),
+    ).toMatchObject({ ok: false });
   });
 
   it('does not deal damage if one of the creatures is gone', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'feral_clash', id: 'clash' }], battlefield: ['forest', 'forest', { card: 'ember_hound', id: 'hound' }] },
+        {
+          hand: [{ card: 'feral_clash', id: 'clash' }],
+          battlefield: ['forest', 'forest', { card: 'ember_hound', id: 'hound' }],
+        },
         {
           hand: [{ card: 'ember_snap', id: 'snap' }],
           battlefield: ['mountain', { card: 'canopy_spider', id: 'spider' }],
@@ -167,7 +192,10 @@ describe('Feral Clash (fight)', () => {
   it('applies deathtouch to fight damage', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'feral_clash', id: 'clash' }], battlefield: ['forest', 'forest', { card: 'moss_viper', id: 'viper' }] },
+        {
+          hand: [{ card: 'feral_clash', id: 'clash' }],
+          battlefield: ['forest', 'forest', { card: 'moss_viper', id: 'viper' }],
+        },
         { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
       ],
     });
@@ -218,7 +246,10 @@ describe('triggered abilities', () => {
 
   it('can target players too', () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'cinder_adept', id: 'adept' }], battlefield: ['mountain', 'mountain', 'mountain'] }, {}],
+      players: [
+        { hand: [{ card: 'cinder_adept', id: 'adept' }], battlefield: ['mountain', 'mountain', 'mountain'] },
+        {},
+      ],
     });
     s = pass(pass(cast(s, 'adept')));
     s = resolveStack(chooseTargets(s, [{ player: 1 }]));
@@ -227,11 +258,16 @@ describe('triggered abilities', () => {
 
   it('rejects illegal trigger targets', () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'cinder_adept', id: 'adept' }], battlefield: ['mountain', 'mountain', 'mountain'] }, {}],
+      players: [
+        { hand: [{ card: 'cinder_adept', id: 'adept' }], battlefield: ['mountain', 'mountain', 'mountain'] },
+        {},
+      ],
     });
     s = pass(pass(cast(s, 'adept')));
     expect(tryApplyAction(s, { type: 'chooseTargets', player: 0, targets: [] })).toMatchObject({ ok: false });
-    expect(tryApplyAction(s, { type: 'chooseTargets', player: 0, targets: [{ card: 'nope' }] })).toMatchObject({ ok: false });
+    expect(tryApplyAction(s, { type: 'chooseTargets', player: 0, targets: [{ card: 'nope' }] })).toMatchObject({
+      ok: false,
+    });
   });
 
   it('fires "when this creature dies" triggers', () => {
@@ -253,7 +289,10 @@ describe('other effects', () => {
       players: [
         {
           life: 15,
-          hand: [{ card: 'test_murder', id: 'murder' }, { card: 'test_heal', id: 'heal' }],
+          hand: [
+            { card: 'test_murder', id: 'murder' },
+            { card: 'test_heal', id: 'heal' },
+          ],
           battlefield: ['forest', 'forest', 'forest'],
         },
         { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
@@ -269,7 +308,13 @@ describe('other effects', () => {
 describe('event text', () => {
   const s = scenario({
     players: [
-      { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: [{ card: 'test_bear', id: 'bear' }, { card: 'timberland_rhino', id: 'rhino' }] },
+      {
+        hand: [{ card: 'ember_snap', id: 'snap' }],
+        battlefield: [
+          { card: 'test_bear', id: 'bear' },
+          { card: 'timberland_rhino', id: 'rhino' },
+        ],
+      },
       { hand: [{ card: 'forest', id: 'secret' }], battlefield: [{ card: 'grove_tender', id: 'elf' }] },
     ],
   });
@@ -282,12 +327,30 @@ describe('event text', () => {
     const cast: GameEvent = { t: 'cast', player: 0, card: 'snap', targets: [{ card: 'elf' }] };
     expect(describeEventParts(s, cast, 0)).toEqual(['Lanzas ', snap, ' sobre ', elf, ' del rival.']);
     expect(describeEvent(s, cast, 0)).toBe('Lanzas Chasquido de brasas sobre Elfa del soto del rival.');
-    expect(describeEventParts(s, { t: 'attack', player: 0, attackers: ['bear', 'rhino'] }, 0)).toEqual(['Atacas con ', bear, ' y ', rhino, '.']);
+    expect(describeEventParts(s, { t: 'attack', player: 0, attackers: ['bear', 'rhino'] }, 0)).toEqual([
+      'Atacas con ',
+      bear,
+      ' y ',
+      rhino,
+      '.',
+    ]);
     const blocks = [{ blocker: 'elf', attacker: 'rhino' }];
-    expect(describeEventParts(s, { t: 'block', player: 1, blocks }, 0)).toEqual(['El rival bloquea: ', elf, ' → ', rhino, '.']);
+    expect(describeEventParts(s, { t: 'block', player: 1, blocks }, 0)).toEqual([
+      'El rival bloquea: ',
+      elf,
+      ' → ',
+      rhino,
+      '.',
+    ]);
     const damage: GameEvent = { t: 'damage', source: 'rhino', target: { player: 1 }, amount: 4, combat: true };
     expect(describeEventParts(s, damage, 0)).toEqual(['Tu ', rhino, ' hace 4 puntos de daño al rival.']);
-    expect(describeEventParts(s, { t: 'fight', a: 'bear', b: 'elf' }, 0)).toEqual(['Tu ', bear, ' lucha contra ', elf, ' del rival.']);
+    expect(describeEventParts(s, { t: 'fight', a: 'bear', b: 'elf' }, 0)).toEqual([
+      'Tu ',
+      bear,
+      ' lucha contra ',
+      elf,
+      ' del rival.',
+    ]);
     expect(describeEventParts(s, { t: 'dies', card: 'elf', player: 1 }, 0)).toEqual(['Muere ', elf, ' del rival.']);
   });
 
@@ -295,7 +358,13 @@ describe('event text', () => {
     expect(describeEventParts(s, { t: 'turn', turn: 3, player: 1 }, 0)).toEqual(['Turno 3 — turno del rival.']);
     expect(describeEventParts(s, { t: 'draw', player: 1, card: 'secret' }, 0)).toEqual(['El rival roba una carta.']);
     expect(describeEventParts(s, { t: 'draw', player: 0, card: 'snap' }, 0)).toEqual(['Robas ', snap, '.']);
-    expect(describeEventParts(s, { t: 'resolve', item: { id: 'x', kind: 'spell', card: 'snap', controller: 0, targets: [] } }, 0)).toBeNull();
+    expect(
+      describeEventParts(
+        s,
+        { t: 'resolve', item: { id: 'x', kind: 'spell', card: 'snap', controller: 0, targets: [] } },
+        0,
+      ),
+    ).toBeNull();
   });
 });
 
@@ -333,15 +402,22 @@ describe('Turn the Tide (counterspell)', () => {
   it('needs a spell on the stack: abilities, permanents and players are not spells', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'turn_the_tide', id: 'tide' }], battlefield: ['island', 'island', 'island', { card: 'crag_dragon', id: 'dragon' }, 'mountain'] },
+        {
+          hand: [{ card: 'turn_the_tide', id: 'tide' }],
+          battlefield: ['island', 'island', 'island', { card: 'crag_dragon', id: 'dragon' }, 'mountain'],
+        },
         {},
       ],
     });
     expect(getLegalActions(s).some((action) => action.type === 'cast')).toBe(false);
     expect(castBlocker(s, 0, 'tide')).toBeNull();
     s = activate(s, 'dragon');
-    expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'tide', targets: [{ card: 'dragon' }] })).toMatchObject({ ok: false });
-    expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'tide', targets: [{ player: 1 }] })).toMatchObject({ ok: false });
+    expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'tide', targets: [{ card: 'dragon' }] })).toMatchObject({
+      ok: false,
+    });
+    expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'tide', targets: [{ player: 1 }] })).toMatchObject({
+      ok: false,
+    });
     expect(getLegalActions(s).some((action) => action.type === 'cast')).toBe(false);
   });
 
@@ -351,7 +427,10 @@ describe('Turn the Tide (counterspell)', () => {
       players: [
         { hand: [{ card: 'turn_the_tide', id: 'tide' }], battlefield: ['island', 'island', 'island'] },
         {
-          hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'turn_the_tide', id: 'answer' }],
+          hand: [
+            { card: 'ember_snap', id: 'snap' },
+            { card: 'turn_the_tide', id: 'answer' },
+          ],
           battlefield: ['mountain', 'island', 'island', 'island'],
         },
       ],
@@ -359,7 +438,11 @@ describe('Turn the Tide (counterspell)', () => {
     s = pass(cast(s, 'snap', [{ player: 0 }]));
     s = pass(cast(s, 'tide', [{ card: 'snap' }]));
     s = resolveStack(cast(s, 'answer', [{ card: 'tide' }]));
-    expect([zoneOf(s, 'tide'), zoneOf(s, 'answer'), zoneOf(s, 'snap')]).toEqual(['graveyard', 'graveyard', 'graveyard']);
+    expect([zoneOf(s, 'tide'), zoneOf(s, 'answer'), zoneOf(s, 'snap')]).toEqual([
+      'graveyard',
+      'graveyard',
+      'graveyard',
+    ]);
     expect(life(s, 0)).toBe(18);
   });
 
@@ -368,7 +451,10 @@ describe('Turn the Tide (counterspell)', () => {
       activePlayer: 1,
       players: [
         {
-          hand: [{ card: 'turn_the_tide', id: 'first' }, { card: 'turn_the_tide', id: 'second' }],
+          hand: [
+            { card: 'turn_the_tide', id: 'first' },
+            { card: 'turn_the_tide', id: 'second' },
+          ],
           battlefield: ['island', 'island', 'island', 'island', 'island', 'island'],
         },
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
@@ -382,7 +468,9 @@ describe('Turn the Tide (counterspell)', () => {
       events.push(...s.events);
     }
     expect(events.filter((event) => event.t === 'counter')).toEqual([{ t: 'counter', card: 'snap', player: 1 }]);
-    expect(events.some((event) => event.t === 'fizzle' && event.item.kind === 'spell' && event.item.card === 'first')).toBe(true);
+    expect(
+      events.some((event) => event.t === 'fizzle' && event.item.kind === 'spell' && event.item.card === 'first'),
+    ).toBe(true);
     expect(life(s, 0)).toBe(20);
   });
 });
@@ -422,8 +510,19 @@ describe('Withering Touch (-2/-2)', () => {
   it('kills a creature with 2 toughness and shrinks a bigger one until end of turn', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'withering_touch', id: 't1' }, { card: 'withering_touch', id: 't2' }], battlefield: ['swamp', 'swamp'] },
-        { battlefield: [{ card: 'cinder_adept', id: 'adept' }, { card: 'timberland_rhino', id: 'rhino' }] },
+        {
+          hand: [
+            { card: 'withering_touch', id: 't1' },
+            { card: 'withering_touch', id: 't2' },
+          ],
+          battlefield: ['swamp', 'swamp'],
+        },
+        {
+          battlefield: [
+            { card: 'cinder_adept', id: 'adept' },
+            { card: 'timberland_rhino', id: 'rhino' },
+          ],
+        },
       ],
     });
     s = resolveStack(cast(s, 't1', [{ card: 'adept' }]));
@@ -451,20 +550,32 @@ describe("Dawn's Verdict (destroy target tapped creature)", () => {
     const s = scenario({
       players: [
         { hand: [{ card: 'dawns_verdict', id: 'verdict' }], battlefield: ['plains', 'plains', 'plains'] },
-        { battlefield: [{ card: 'timberland_rhino', id: 'tapped', tapped: true }, { card: 'crag_dragon', id: 'untapped' }] },
+        {
+          battlefield: [
+            { card: 'timberland_rhino', id: 'tapped', tapped: true },
+            { card: 'crag_dragon', id: 'untapped' },
+          ],
+        },
       ],
     });
     expect(getLegalActions(s).filter((action) => action.type === 'cast')).toEqual([
       { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'tapped' }] },
     ]);
-    expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] })).toMatchObject({ ok: false });
+    expect(
+      tryApplyAction(s, { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] }),
+    ).toMatchObject({ ok: false });
     expect(zoneOf(resolveStack(cast(s, 'verdict', [{ card: 'tapped' }])), 'tapped')).toBe('graveyard');
   });
 
   it('destroys an attacker that tapped to attack, but not a vigilant one', () => {
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'bramble_warden', id: 'warden' }] },
+        {
+          battlefield: [
+            { card: 'timberland_rhino', id: 'rhino' },
+            { card: 'bramble_warden', id: 'warden' },
+          ],
+        },
         { hand: [{ card: 'dawns_verdict', id: 'verdict' }], battlefield: ['plains', 'plains', 'plains'] },
       ],
     });
@@ -481,7 +592,14 @@ describe("Dawn's Verdict (destroy target tapped creature)", () => {
 describe('life drain and life payment', () => {
   it("Night's Bargain draws two cards and costs 2 life", () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'nights_bargain', id: 'bargain' }], battlefield: ['swamp', 'swamp'], library: ['forest', 'forest', 'forest'] }, {}],
+      players: [
+        {
+          hand: [{ card: 'nights_bargain', id: 'bargain' }],
+          battlefield: ['swamp', 'swamp'],
+          library: ['forest', 'forest', 'forest'],
+        },
+        {},
+      ],
     });
     s = resolveStack(cast(s, 'bargain'));
     expect(s.players[0].hand).toHaveLength(2);
@@ -490,14 +608,19 @@ describe('life drain and life payment', () => {
   });
 
   it("paying life can lose the game: Night's Bargain at 2 life", () => {
-    let s = scenario({ players: [{ life: 2, hand: [{ card: 'nights_bargain', id: 'bargain' }], battlefield: ['swamp', 'swamp'] }, {}] });
+    let s = scenario({
+      players: [{ life: 2, hand: [{ card: 'nights_bargain', id: 'bargain' }], battlefield: ['swamp', 'swamp'] }, {}],
+    });
     s = resolveStack(cast(s, 'bargain'));
     expect(s.pending).toEqual({ kind: 'gameOver', winner: 1, reason: 'life' });
   });
 
   it('Soul Siphon deals 2 damage and gains 2 life', () => {
     let s = scenario({
-      players: [{ life: 10, hand: [{ card: 'soul_siphon', id: 'siphon' }], battlefield: ['swamp', 'swamp', 'swamp'] }, {}],
+      players: [
+        { life: 10, hand: [{ card: 'soul_siphon', id: 'siphon' }], battlefield: ['swamp', 'swamp', 'swamp'] },
+        {},
+      ],
     });
     s = resolveStack(cast(s, 'siphon', [{ player: 1 }]));
     expect([life(s, 0), life(s, 1)]).toEqual([12, 18]);
@@ -505,7 +628,13 @@ describe('life drain and life payment', () => {
 
   it('Radiant Blessing pumps a creature and gains 2 life', () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'radiant_blessing', id: 'blessing' }], battlefield: ['plains', { card: 'beacon_squire', id: 'squire' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'radiant_blessing', id: 'blessing' }],
+          battlefield: ['plains', { card: 'beacon_squire', id: 'squire' }],
+        },
+        {},
+      ],
     });
     s = resolveStack(cast(s, 'blessing', [{ card: 'squire' }]));
     expect(getPower(s, 'squire')).toBe(4);
@@ -528,7 +657,9 @@ describe('life drain and life payment', () => {
 
 describe('Dawntide and Duskmire creature abilities', () => {
   it('Reef Scholar draws a card when it enters', () => {
-    let s = scenario({ players: [{ hand: [{ card: 'reef_scholar', id: 'scholar' }], battlefield: ['island', 'island', 'island'] }, {}] });
+    let s = scenario({
+      players: [{ hand: [{ card: 'reef_scholar', id: 'scholar' }], battlefield: ['island', 'island', 'island'] }, {}],
+    });
     s = resolveStack(cast(s, 'scholar'));
     expect(zoneOf(s, 'scholar')).toBe('battlefield');
     expect(s.players[0].hand).toHaveLength(1);
@@ -550,10 +681,18 @@ describe('Dawntide and Duskmire creature abilities', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'magma_lance', id: 'lance' }],
+          hand: [
+            { card: 'ember_snap', id: 'snap' },
+            { card: 'magma_lance', id: 'lance' },
+          ],
           battlefield: ['mountain', 'mountain', 'mountain', 'mountain', { card: 'grove_tender', id: 'elf' }],
         },
-        { battlefield: [{ card: 'crypt_ghoul', id: 'ghoul', damage: 1 }, { card: 'nightveil_wraith', id: 'wraith' }] },
+        {
+          battlefield: [
+            { card: 'crypt_ghoul', id: 'ghoul', damage: 1 },
+            { card: 'nightveil_wraith', id: 'wraith' },
+          ],
+        },
       ],
     });
     s = pass(cast(s, 'snap', [{ card: 'ghoul' }]));
@@ -570,7 +709,10 @@ describe('Dawntide and Duskmire creature abilities', () => {
   it('Grave Hexer shrinks a creature it does not control when it enters, and only such a creature', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'grave_hexer', id: 'hexer' }], battlefield: ['swamp', 'swamp', 'swamp', { card: 'gloom_wisp', id: 'wisp' }] },
+        {
+          hand: [{ card: 'grave_hexer', id: 'hexer' }],
+          battlefield: ['swamp', 'swamp', 'swamp', { card: 'gloom_wisp', id: 'wisp' }],
+        },
         { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
       ],
     });
@@ -582,35 +724,66 @@ describe('Dawntide and Duskmire creature abilities', () => {
   });
 
   it('Grave Hexer’s trigger is skipped when the opponent has no creature', () => {
-    let s = scenario({ players: [{ hand: [{ card: 'grave_hexer', id: 'hexer' }], battlefield: ['swamp', 'swamp', 'swamp'] }, {}] });
+    let s = scenario({
+      players: [{ hand: [{ card: 'grave_hexer', id: 'hexer' }], battlefield: ['swamp', 'swamp', 'swamp'] }, {}],
+    });
     s = resolveStack(cast(s, 'hexer'));
     expect(zoneOf(s, 'hexer')).toBe('battlefield');
     expect(s.pending).toEqual({ kind: 'priority', player: 0 });
   });
 
   it('Dread Tyrant costs its controller 2 life when it enters', () => {
-    let s = scenario({ players: [{ hand: [{ card: 'dread_tyrant', id: 'tyrant' }], battlefield: ['swamp', 'swamp', 'swamp', 'swamp', 'swamp'] }, {}] });
+    let s = scenario({
+      players: [
+        { hand: [{ card: 'dread_tyrant', id: 'tyrant' }], battlefield: ['swamp', 'swamp', 'swamp', 'swamp', 'swamp'] },
+        {},
+      ],
+    });
     s = resolveStack(cast(s, 'tyrant'));
     expect(zoneOf(s, 'tyrant')).toBe('battlefield');
     expect(life(s, 0)).toBe(18);
   });
 
   it('Duskmire Shade grows +1/+1 for each {B}', () => {
-    let s = scenario({ players: [{ battlefield: [{ card: 'duskmire_shade', id: 'shade' }, 'swamp', 'swamp', 'swamp'] }, {}] });
+    let s = scenario({
+      players: [{ battlefield: [{ card: 'duskmire_shade', id: 'shade' }, 'swamp', 'swamp', 'swamp'] }, {}],
+    });
     for (let i = 0; i < 3; i++) s = resolveStack(activate(s, 'shade'));
     expect([getPower(s, 'shade'), getToughness(s, 'shade')]).toEqual([4, 4]);
   });
 
   it('Reefshell Crab has defender and cannot attack', () => {
-    const s = passTo(scenario({ players: [{ battlefield: [{ card: 'reefshell_crab', id: 'crab' }, { card: 'beacon_squire', id: 'squire' }] }, {}] }), 'declareAttackers');
-    expect(getLegalActions(s).map((action) => (action.type === 'declareAttackers' ? action.attackers : null))).toEqual([[], ['squire']]);
+    const s = passTo(
+      scenario({
+        players: [
+          {
+            battlefield: [
+              { card: 'reefshell_crab', id: 'crab' },
+              { card: 'beacon_squire', id: 'squire' },
+            ],
+          },
+          {},
+        ],
+      }),
+      'declareAttackers',
+    );
+    expect(getLegalActions(s).map((action) => (action.type === 'declareAttackers' ? action.attackers : null))).toEqual([
+      [],
+      ['squire'],
+    ]);
   });
 });
 
 describe('Stormglass: flash and "whenever you cast an instant or sorcery spell"', () => {
   it('puts the trigger above the spell, so it resolves first', () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'static_jolt', id: 'jolt' }], battlefield: ['mountain', { card: 'arc_initiate', id: 'initiate' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'static_jolt', id: 'jolt' }],
+          battlefield: ['mountain', { card: 'arc_initiate', id: 'initiate' }],
+        },
+        {},
+      ],
     });
     s = cast(s, 'jolt', [{ player: 1 }]);
     expect(s.stack.map((item) => item.kind)).toEqual(['spell', 'trigger']);
@@ -625,7 +798,10 @@ describe('Stormglass: flash and "whenever you cast an instant or sorcery spell"'
   it('ignores creature spells and the opponent’s spells', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'kiln_sprite', id: 'sprite' }], battlefield: ['mountain', { card: 'arc_initiate', id: 'initiate' }] },
+        {
+          hand: [{ card: 'kiln_sprite', id: 'sprite' }],
+          battlefield: ['mountain', { card: 'arc_initiate', id: 'initiate' }],
+        },
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
       ],
     });
@@ -635,7 +811,13 @@ describe('Stormglass: flash and "whenever you cast an instant or sorcery spell"'
 
   it('Galvanic Channeler deals 1 damage to the opponent for each instant or sorcery', () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'stormflare', id: 'flare' }], battlefield: ['mountain', 'mountain', { card: 'galvanic_channeler', id: 'channeler' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'stormflare', id: 'flare' }],
+          battlefield: ['mountain', 'mountain', { card: 'galvanic_channeler', id: 'channeler' }],
+        },
+        {},
+      ],
     });
     s = cast(s, 'flare', [{ player: 1 }]);
     expect(getLegalActions(s)).toEqual([{ type: 'chooseTargets', player: 0, targets: [{ player: 1 }] }]);
@@ -647,7 +829,10 @@ describe('Stormglass: flash and "whenever you cast an instant or sorcery spell"'
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'static_jolt', id: 'j1' }, { card: 'static_jolt', id: 'j2' }],
+          hand: [
+            { card: 'static_jolt', id: 'j1' },
+            { card: 'static_jolt', id: 'j2' },
+          ],
           battlefield: ['mountain', 'mountain', { card: 'stormglass_drake', id: 'drake' }],
         },
         {},
@@ -680,7 +865,12 @@ describe('Stormglass: flash and "whenever you cast an instant or sorcery spell"'
       activePlayer: 1,
       players: [
         { hand: [{ card: 'wavecrest_mystic', id: 'mystic' }], battlefield: ['island', 'island', 'island', 'island'] },
-        { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }, { card: 'ember_hound', id: 'hound' }] },
+        {
+          battlefield: [
+            { card: 'timberland_rhino', id: 'rhino' },
+            { card: 'ember_hound', id: 'hound' },
+          ],
+        },
       ],
     });
     s = pass(attack(s, ['rhino', 'hound']));
@@ -699,7 +889,10 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'wild_blossom', id: 'blossom' }, { card: 'undertow', id: 'undertow' }],
+          hand: [
+            { card: 'wild_blossom', id: 'blossom' },
+            { card: 'undertow', id: 'undertow' },
+          ],
           battlefield: ['forest', 'forest', 'island', 'island', { card: 'test_bear', id: 'bear' }],
         },
         {},
@@ -708,7 +901,9 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
     s = pass(cast(s, 'blossom', [{ card: 'bear' }]));
     s = act(s, { type: 'pass', player: 1 });
     expect(s.events).toContainEqual({ t: 'addCounters', card: 'bear', amount: 2 });
-    expect(describeEvent(s, { t: 'addCounters', card: 'bear', amount: 2 }, 0)).toBe('Tu Test Bear recibe 2 contadores +1/+1.');
+    expect(describeEvent(s, { t: 'addCounters', card: 'bear', amount: 2 }, 0)).toBe(
+      'Tu Test Bear recibe 2 contadores +1/+1.',
+    );
     expect(describeState(s)).toContain('Test Bear(bear) 4/4 [2 contadores +1/+1]');
     s = passToStep(s, 'main1', s.turn + 2);
     expect([s.cards.bear?.counters, getPower(s, 'bear'), getToughness(s, 'bear')]).toEqual([2, 4, 4]);
@@ -719,7 +914,13 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
   it('counts counters against damage and -N/-N like printed power and toughness', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'withering_touch', id: 'touch' }, { card: 'ember_snap', id: 'snap' }], battlefield: ['swamp', 'mountain'] },
+        {
+          hand: [
+            { card: 'withering_touch', id: 'touch' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
+          battlefield: ['swamp', 'mountain'],
+        },
         { battlefield: [{ card: 'test_bear', id: 'bear', counters: 2 }] },
       ],
     });
@@ -739,7 +940,10 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
   it('Bloomcaller Druid grows itself or another creature you control, never the opponent’s', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'bloomcaller_druid', id: 'druid' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] },
+        {
+          hand: [{ card: 'bloomcaller_druid', id: 'druid' }],
+          battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }],
+        },
         { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
       ],
     });
@@ -753,7 +957,12 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
   });
 
   it('Hopeful Squire gets its counter when it attacks, before blockers are declared', () => {
-    let s = scenario({ players: [{ battlefield: [{ card: 'hopeful_squire', id: 'squire' }] }, { battlefield: [{ card: 'test_bear', id: 'bear' }] }] });
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'hopeful_squire', id: 'squire' }] },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+      ],
+    });
     s = passTo(attack(s, ['squire']), 'declareBlockers');
     expect([getPower(s, 'squire'), getToughness(s, 'squire')]).toEqual([2, 2]);
     s = finishCombat(block(s, [{ blocker: 'bear', attacker: 'squire' }]));
@@ -763,8 +972,19 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
   it('Warren Hare passes a counter on when it dies, and its trigger is skipped with no creature left', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }], battlefield: ['mountain', 'mountain'] },
-        { battlefield: [{ card: 'warren_hare', id: 'hare' }, { card: 'warren_hare', id: 'last' }] },
+        {
+          hand: [
+            { card: 'ember_snap', id: 's1' },
+            { card: 'ember_snap', id: 's2' },
+          ],
+          battlefield: ['mountain', 'mountain'],
+        },
+        {
+          battlefield: [
+            { card: 'warren_hare', id: 'hare' },
+            { card: 'warren_hare', id: 'last' },
+          ],
+        },
       ],
     });
     s = pass(pass(cast(s, 's1', [{ card: 'hare' }])));
@@ -779,7 +999,10 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'sunantler_monarch', id: 'monarch' }, { card: 'harvest_hymn', id: 'hymn' }],
+          hand: [
+            { card: 'sunantler_monarch', id: 'monarch' },
+            { card: 'harvest_hymn', id: 'hymn' },
+          ],
           battlefield: [...Array(5).fill('forest'), ...Array(5).fill('plains'), { card: 'test_bear', id: 'bear' }],
         },
         { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
@@ -795,29 +1018,57 @@ describe('Sunmeadow: +1/+1 counters and team pumps', () => {
   it('Pack Pounce grows your creature before it fights, so it survives', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'pack_pounce', id: 'pounce' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] },
+        {
+          hand: [{ card: 'pack_pounce', id: 'pounce' }],
+          battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }],
+        },
         { battlefield: [{ card: 'cinder_adept', id: 'adept' }] },
       ],
     });
     s = resolveStack(cast(s, 'pounce', [{ card: 'bear' }, { card: 'adept' }]));
-    expect([zoneOf(s, 'bear'), zoneOf(s, 'adept'), s.cards.bear?.damage, getToughness(s, 'bear')]).toEqual(['battlefield', 'graveyard', 2, 3]);
+    expect([zoneOf(s, 'bear'), zoneOf(s, 'adept'), s.cards.bear?.damage, getToughness(s, 'bear')]).toEqual([
+      'battlefield',
+      'graveyard',
+      2,
+      3,
+    ]);
   });
 
   it('Rally the Meadow pumps only your creatures, until end of turn', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'rally_the_meadow', id: 'rally' }], battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear' }, { card: 'warren_hare', id: 'hare' }] },
+        {
+          hand: [{ card: 'rally_the_meadow', id: 'rally' }],
+          battlefield: ['plains', 'plains', { card: 'test_bear', id: 'bear' }, { card: 'warren_hare', id: 'hare' }],
+        },
         { battlefield: [{ card: 'ember_hound', id: 'hound' }] },
       ],
     });
     s = resolveStack(cast(s, 'rally'));
-    expect(['bear', 'hare', 'hound'].map((id) => [getPower(s, id), getToughness(s, id)])).toEqual([[3, 3], [2, 2], [2, 1]]);
+    expect(['bear', 'hare', 'hound'].map((id) => [getPower(s, id), getToughness(s, id)])).toEqual([
+      [3, 3],
+      [2, 2],
+      [2, 1],
+    ]);
     s = passToStep(s, 'main1', s.turn + 1);
-    expect(['bear', 'hare'].map((id) => [getPower(s, id), getToughness(s, id)])).toEqual([[2, 2], [1, 1]]);
+    expect(['bear', 'hare'].map((id) => [getPower(s, id), getToughness(s, id)])).toEqual([
+      [2, 2],
+      [1, 1],
+    ]);
   });
 
   it('Sunmeadow Herald gives every creature you control +1/+0 when it attacks', () => {
-    let s = scenario({ players: [{ battlefield: [{ card: 'sunmeadow_herald', id: 'herald' }, { card: 'test_bear', id: 'bear' }] }, {}] });
+    let s = scenario({
+      players: [
+        {
+          battlefield: [
+            { card: 'sunmeadow_herald', id: 'herald' },
+            { card: 'test_bear', id: 'bear' },
+          ],
+        },
+        {},
+      ],
+    });
     s = finishCombat(attack(s, ['herald']));
     expect([getPower(s, 'herald'), getPower(s, 'bear'), getToughness(s, 'bear'), life(s, 1)]).toEqual([3, 3, 2, 17]);
   });
@@ -829,22 +1080,39 @@ function tokensOf(s: GameState, player: 0 | 1, def: string): string[] {
 
 describe('Brightforge: creature tokens and "whenever another creature you control enters"', () => {
   it('Raise the Banners creates two 1/1 Soldier tokens, summoning sick like any new creature', () => {
-    let s = scenario({ players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}] });
+    let s = scenario({
+      players: [{ hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] }, {}],
+    });
     s = resolveStack(cast(s, 'banners'));
     const tokens = tokensOf(s, 0, 'soldier_token');
     expect(tokens.map((id) => [getPower(s, id), getToughness(s, id), s.cards[id]?.summoningSick])).toEqual([
       [1, 1, true],
       [1, 1, true],
     ]);
-    expect(s.events.filter((event) => event.t === 'create')).toEqual(tokens.map((card) => ({ t: 'create', player: 0, card })));
-    expect(describeEvent(s, { t: 'create', player: 0, card: tokens[0] as string }, 0)).toBe('Creas una ficha de Soldado.');
+    expect(s.events.filter((event) => event.t === 'create')).toEqual(
+      tokens.map((card) => ({ t: 'create', player: 0, card })),
+    );
+    expect(describeEvent(s, { t: 'create', player: 0, card: tokens[0] as string }, 0)).toBe(
+      'Creas una ficha de Soldado.',
+    );
   });
 
   it('a token that dies goes to the graveyard long enough to die, then ceases to exist; so does one returned to hand', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'ember_snap', id: 'snap' }, { card: 'undertow', id: 'undertow' }], battlefield: ['mountain', 'island', 'island'] },
-        { battlefield: [{ card: 'soldier_token', id: 't1' }, { card: 'soldier_token', id: 't2' }] },
+        {
+          hand: [
+            { card: 'ember_snap', id: 'snap' },
+            { card: 'undertow', id: 'undertow' },
+          ],
+          battlefield: ['mountain', 'island', 'island'],
+        },
+        {
+          battlefield: [
+            { card: 'soldier_token', id: 't1' },
+            { card: 'soldier_token', id: 't2' },
+          ],
+        },
       ],
     });
     s = resolveStack(cast(s, 'snap', [{ card: 't1' }]));
@@ -856,8 +1124,15 @@ describe('Brightforge: creature tokens and "whenever another creature you contro
   });
 
   it('tokens exist only on the battlefield', () => {
-    expect(() => createScenario({ players: [{ hand: ['soldier_token'] }, {}] })).toThrow(/can only be on the battlefield/);
-    const s = scenario({ players: [{ hand: [{ card: 'test_bear', id: 'bear' }], battlefield: [{ card: 'soldier_token', id: 'token' }] }, {}] });
+    expect(() => createScenario({ players: [{ hand: ['soldier_token'] }, {}] })).toThrow(
+      /can only be on the battlefield/,
+    );
+    const s = scenario({
+      players: [
+        { hand: [{ card: 'test_bear', id: 'bear' }], battlefield: [{ card: 'soldier_token', id: 'token' }] },
+        {},
+      ],
+    });
     const inHand = structuredClone(s);
     inHand.players[0].battlefield = [];
     inHand.players[0].hand.push('token');
@@ -872,7 +1147,10 @@ describe('Brightforge: creature tokens and "whenever another creature you contro
   it('Forge Cadet gets a +1/+1 counter for each other creature entering under your control, tokens included', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'muster_sergeant', id: 'sergeant' }], battlefield: ['plains', 'plains', { card: 'forge_cadet', id: 'cadet' }] },
+        {
+          hand: [{ card: 'muster_sergeant', id: 'sergeant' }],
+          battlefield: ['plains', 'plains', { card: 'forge_cadet', id: 'cadet' }],
+        },
         { hand: [{ card: 'raise_the_banners', id: 'banners' }], battlefield: ['plains', 'plains'] },
       ],
     });
@@ -883,7 +1161,9 @@ describe('Brightforge: creature tokens and "whenever another creature you contro
   });
 
   it("Kindling Caller's Elemental token has haste and attacks the turn it is created", () => {
-    let s = scenario({ players: [{ hand: [{ card: 'kindling_caller', id: 'caller' }], battlefield: ['mountain', 'mountain'] }, {}] });
+    let s = scenario({
+      players: [{ hand: [{ card: 'kindling_caller', id: 'caller' }], battlefield: ['mountain', 'mountain'] }, {}],
+    });
     s = resolveStack(cast(s, 'caller'));
     const [token] = tokensOf(s, 0, 'elemental_token');
     s = passTo(s, 'declareAttackers');
@@ -905,7 +1185,14 @@ describe('Brightforge: creature tokens and "whenever another creature you contro
       players: [
         {
           hand: [{ card: 'brightforge_warlord', id: 'warlord' }],
-          battlefield: ['mountain', 'mountain', 'mountain', 'plains', 'plains', { card: 'forge_cadet', id: 'cadet', sick: true }],
+          battlefield: [
+            'mountain',
+            'mountain',
+            'mountain',
+            'plains',
+            'plains',
+            { card: 'forge_cadet', id: 'cadet', sick: true },
+          ],
         },
         {},
       ],
@@ -924,7 +1211,10 @@ describe('Brightforge: creature tokens and "whenever another creature you contro
   it('Charge of the Forge gives your creatures +1/+0 and first strike, so they strike before their blockers', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'charge_of_the_forge', id: 'charge' }], battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }] },
+        {
+          hand: [{ card: 'charge_of_the_forge', id: 'charge' }],
+          battlefield: ['mountain', 'plains', { card: 'soldier_token', id: 'soldier' }],
+        },
         { battlefield: [{ card: 'test_bear', id: 'bear' }] },
       ],
     });
@@ -941,19 +1231,29 @@ describe('Mistgrave: skulk, discards and "whenever this creature deals combat da
     let s = scenario({
       players: [
         { battlefield: [{ card: 'fogslip_thief', id: 'thief' }] },
-        { battlefield: [{ card: 'test_bear', id: 'bear' }, { card: 'test_giant', id: 'giant' }] },
+        {
+          battlefield: [
+            { card: 'test_bear', id: 'bear' },
+            { card: 'test_giant', id: 'giant' },
+          ],
+        },
       ],
     });
     s = passTo(attack(s, ['thief']), 'declareBlockers');
     expect(blockOptions(s)).toEqual({ bear: ['thief'] });
-    expect(tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'giant', attacker: 'thief' }] })).toEqual({
+    expect(
+      tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'giant', attacker: 'thief' }] }),
+    ).toEqual({
       ok: false,
       error: 'giant no puede bloquear a thief',
       refusal: { code: 'cannotBlock', blocker: 'giant', attacker: 'thief' },
     });
     let pumped = scenario({
       players: [
-        { hand: [{ card: 'verdant_surge', id: 'surge' }], battlefield: ['forest', { card: 'fogslip_thief', id: 'thief' }] },
+        {
+          hand: [{ card: 'verdant_surge', id: 'surge' }],
+          battlefield: ['forest', { card: 'fogslip_thief', id: 'thief' }],
+        },
         { battlefield: [{ card: 'test_giant', id: 'giant' }] },
       ],
     });
@@ -965,7 +1265,12 @@ describe('Mistgrave: skulk, discards and "whenever this creature deals combat da
     let s = scenario({
       players: [
         { hand: [{ card: 'memory_leech', id: 'leech' }], battlefield: ['swamp', 'swamp', 'swamp'] },
-        { hand: [{ card: 'forest', id: 'f' }, { card: 'ember_snap', id: 'snap' }] },
+        {
+          hand: [
+            { card: 'forest', id: 'f' },
+            { card: 'ember_snap', id: 'snap' },
+          ],
+        },
       ],
     });
     s = pass(pass(pass(pass(cast(s, 'leech')))));
@@ -975,24 +1280,58 @@ describe('Mistgrave: skulk, discards and "whenever this creature deals combat da
       { type: 'discard', player: 1, cards: ['snap'] },
     ]);
     s = act(s, { type: 'discard', player: 1, cards: ['snap'] });
-    expect([zoneOf(s, 'snap'), s.players[1].hand, s.pending]).toEqual(['graveyard', ['f'], { kind: 'priority', player: 0 }]);
-    expect(describeEvent(s, { t: 'discard', player: 1, card: 'snap' }, 0)).toBe('El rival descarta Chasquido de brasas.');
+    expect([zoneOf(s, 'snap'), s.players[1].hand, s.pending]).toEqual([
+      'graveyard',
+      ['f'],
+      { kind: 'priority', player: 0 },
+    ]);
+    expect(describeEvent(s, { t: 'discard', player: 1, card: 'snap' }, 0)).toBe(
+      'El rival descarta Chasquido de brasas.',
+    );
   });
 
   it('an effect asks for no more cards than the hand holds, and for none from an empty hand', () => {
     const rob = (hand: string[]): GameState =>
-      resolveStack(cast(scenario({ players: [{ hand: [{ card: 'rob_the_mind', id: 'rob' }], battlefield: ['swamp', 'swamp', 'swamp'] }, { hand }] }), 'rob'));
-    expect(rob(['forest', 'forest', 'forest']).pending).toEqual({ kind: 'discard', player: 1, count: 2, source: 'rob' });
+      resolveStack(
+        cast(
+          scenario({
+            players: [
+              { hand: [{ card: 'rob_the_mind', id: 'rob' }], battlefield: ['swamp', 'swamp', 'swamp'] },
+              { hand },
+            ],
+          }),
+          'rob',
+        ),
+      );
+    expect(rob(['forest', 'forest', 'forest']).pending).toEqual({
+      kind: 'discard',
+      player: 1,
+      count: 2,
+      source: 'rob',
+    });
     expect(rob(['forest']).pending).toEqual({ kind: 'discard', player: 1, count: 1, source: 'rob' });
     expect(rob([]).pending).toEqual({ kind: 'priority', player: 0 });
   });
 
   it('Sift the Depths draws two cards, then you discard one, in the middle of your turn', () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'sift_the_depths', id: 'sift' }], battlefield: ['island', 'island'], library: [{ card: 'forest', id: 'a' }, { card: 'island', id: 'b' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'sift_the_depths', id: 'sift' }],
+          battlefield: ['island', 'island'],
+          library: [
+            { card: 'forest', id: 'a' },
+            { card: 'island', id: 'b' },
+          ],
+        },
+        {},
+      ],
     });
     s = resolveStack(cast(s, 'sift'));
-    expect([s.pending, s.players[0].hand]).toEqual([{ kind: 'discard', player: 0, count: 1, source: 'sift' }, ['a', 'b']]);
+    expect([s.pending, s.players[0].hand]).toEqual([
+      { kind: 'discard', player: 0, count: 1, source: 'sift' },
+      ['a', 'b'],
+    ]);
     s = act(s, { type: 'discard', player: 0, cards: ['a'] });
     expect([s.players[0].hand, s.step, s.pending]).toEqual([['b'], 'main1', { kind: 'priority', player: 0 }]);
   });
@@ -1000,7 +1339,13 @@ describe('Mistgrave: skulk, discards and "whenever this creature deals combat da
   it('combat damage to a player: Hushwing Bat makes that player discard, Fogslip Thief draws a card', () => {
     let s = scenario({
       players: [
-        { battlefield: [{ card: 'fogslip_thief', id: 'thief' }, { card: 'hushwing_bat', id: 'bat' }], library: [{ card: 'island', id: 'top' }] },
+        {
+          battlefield: [
+            { card: 'fogslip_thief', id: 'thief' },
+            { card: 'hushwing_bat', id: 'bat' },
+          ],
+          library: [{ card: 'island', id: 'top' }],
+        },
         { hand: [{ card: 'forest', id: 'f' }] },
       ],
     });
@@ -1017,7 +1362,12 @@ describe('Mistgrave: skulk, discards and "whenever this creature deals combat da
   });
 
   it('only combat damage dealt to a player triggers it', () => {
-    let s = scenario({ players: [{ battlefield: [{ card: 'fogslip_thief', id: 'thief' }] }, { battlefield: [{ card: 'test_bear', id: 'bear' }] }] });
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'fogslip_thief', id: 'thief' }] },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+      ],
+    });
     s = finishCombat(block(attack(s, ['thief']), [{ blocker: 'bear', attacker: 'thief' }]));
     expect([s.players[0].hand, zoneOf(s, 'thief'), zoneOf(s, 'bear')]).toEqual([[], 'graveyard', 'graveyard']);
   });
@@ -1040,20 +1390,31 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
   it('an undying creature returns with a +1/+1 counter the first time it dies, and stays dead the second time', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }], battlefield: ['mountain', 'mountain'] },
+        {
+          hand: [
+            { card: 'ember_snap', id: 's1' },
+            { card: 'ember_snap', id: 's2' },
+          ],
+          battlefield: ['mountain', 'mountain'],
+        },
         { battlefield: [{ card: 'gravebloom_sprout', id: 'sprout' }] },
       ],
     });
     s = pass(pass(cast(s, 's1', [{ card: 'sprout' }])));
-    expect([zoneOf(s, 'sprout'), s.stack.map((item) => (item.kind === 'trigger' ? item.ability : item.kind))]).toEqual(['graveyard', [UNDYING_TRIGGER]]);
-    s = resolveStack(s);
-    expect([zoneOf(s, 'sprout'), s.cards.sprout?.counters, getPower(s, 'sprout'), s.cards.sprout?.summoningSick]).toEqual([
-      'battlefield',
-      1,
-      2,
-      true,
+    expect([zoneOf(s, 'sprout'), s.stack.map((item) => (item.kind === 'trigger' ? item.ability : item.kind))]).toEqual([
+      'graveyard',
+      [UNDYING_TRIGGER],
     ]);
-    expect(describeEvent(s, { t: 'return', player: 1, card: 'sprout' }, 0)).toBe('Retoño de la tumba del rival regresa al campo de batalla.');
+    s = resolveStack(s);
+    expect([
+      zoneOf(s, 'sprout'),
+      s.cards.sprout?.counters,
+      getPower(s, 'sprout'),
+      s.cards.sprout?.summoningSick,
+    ]).toEqual(['battlefield', 1, 2, true]);
+    expect(describeEvent(s, { t: 'return', player: 1, card: 'sprout' }, 0)).toBe(
+      'Retoño de la tumba del rival regresa al campo de batalla.',
+    );
     s = resolveStack(cast(s, 's2', [{ card: 'sprout' }]));
     expect([zoneOf(s, 'sprout'), s.stack, s.cards.sprout?.counters]).toEqual(['graveyard', [], 0]);
   });
@@ -1080,22 +1441,42 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
     s = activate(pass(cast(s, 'sentence', [{ card: 'thrall' }])), 'thrall');
     expect(s.stack.map((item) => item.lost ?? [])).toEqual([[0], [], []]);
     s = resolveStack(s);
-    expect(s.events).toContainEqual({ t: 'fizzle', item: expect.objectContaining({ kind: 'spell', card: 'sentence' }) });
-    expect([zoneOf(s, 'thrall'), s.cards.thrall?.counters, life(s, 0), zoneOf(s, 'sentence')]).toEqual(['battlefield', 1, 19, 'graveyard']);
+    expect(s.events).toContainEqual({
+      t: 'fizzle',
+      item: expect.objectContaining({ kind: 'spell', card: 'sentence' }),
+    });
+    expect([zoneOf(s, 'thrall'), s.cards.thrall?.counters, life(s, 0), zoneOf(s, 'sentence')]).toEqual([
+      'battlefield',
+      1,
+      19,
+      'graveyard',
+    ]);
   });
 
   it('Bonewood Stalker sacrifices itself to give a creature -2/-2, and the ability resolves without its source', () => {
-    let s = scenario({ players: [{ battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] }, { battlefield: [{ card: 'test_bear', id: 'bear' }] }] });
+    let s = scenario({
+      players: [
+        { battlefield: [{ card: 'bonewood_stalker', id: 'stalker' }] },
+        { battlefield: [{ card: 'test_bear', id: 'bear' }] },
+      ],
+    });
     s = resolveStack(activate(s, 'stalker', 0, [{ card: 'bear' }]));
     expect([zoneOf(s, 'stalker'), zoneOf(s, 'bear')]).toEqual(['graveyard', 'graveyard']);
-    expect(activatedText(getCardDef('bonewood_stalker'), 0)).toBe('Sacrificar esta criatura: La criatura objetivo obtiene -2/-2 hasta el final del turno.');
+    expect(activatedText(getCardDef('bonewood_stalker'), 0)).toBe(
+      'Sacrificar esta criatura: La criatura objetivo obtiene -2/-2 hasta el final del turno.',
+    );
   });
 
   it('Rotwing Crow drains the opponent for each other creature of yours that dies, one dying at the same time included', () => {
     let s = scenario({
       activePlayer: 1,
       players: [
-        { battlefield: [{ card: 'rotwing_crow', id: 'crowA' }, { card: 'rotwing_crow', id: 'crowB' }] },
+        {
+          battlefield: [
+            { card: 'rotwing_crow', id: 'crowA' },
+            { card: 'rotwing_crow', id: 'crowB' },
+          ],
+        },
         { battlefield: [{ card: 'test_giant', id: 'giant' }] },
       ],
     });
@@ -1111,8 +1492,16 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'ember_snap', id: 's1' }, { card: 'ember_snap', id: 's2' }],
-          battlefield: ['mountain', 'mountain', { card: 'test_bear', id: 'mine' }, { card: 'rootgnaw_boar', id: 'boar' }],
+          hand: [
+            { card: 'ember_snap', id: 's1' },
+            { card: 'ember_snap', id: 's2' },
+          ],
+          battlefield: [
+            'mountain',
+            'mountain',
+            { card: 'test_bear', id: 'mine' },
+            { card: 'rootgnaw_boar', id: 'boar' },
+          ],
         },
         { battlefield: [{ card: 'test_bear', id: 'theirs' }] },
       ],
@@ -1126,7 +1515,12 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
     let s = scenario({
       players: [
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
-        { battlefield: [{ card: 'sporecap_shambler', id: 'shambler' }, { card: 'gloamwood_elder', id: 'elder' }] },
+        {
+          battlefield: [
+            { card: 'sporecap_shambler', id: 'shambler' },
+            { card: 'gloamwood_elder', id: 'elder' },
+          ],
+        },
       ],
     });
     s = resolveStack(cast(s, 'snap', [{ card: 'shambler' }]));
@@ -1136,7 +1530,10 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
   it('Venom Duel gives your creature deathtouch before it fights, so a 1/1 Saproling kills a 5/5', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'venom_duel', id: 'duel' }], battlefield: ['swamp', 'forest', 'forest', { card: 'saproling_token', id: 'sap' }] },
+        {
+          hand: [{ card: 'venom_duel', id: 'duel' }],
+          battlefield: ['swamp', 'forest', 'forest', { card: 'saproling_token', id: 'sap' }],
+        },
         { battlefield: [{ card: 'test_giant', id: 'giant' }] },
       ],
     });
@@ -1145,11 +1542,25 @@ describe('Gloamwood: undying, sacrifice and "whenever another creature you contr
   });
 
   it('Nightshade Tonic grants +1/+1 and deathtouch until end of turn', () => {
-    let s = scenario({ players: [{ hand: [{ card: 'nightshade_tonic', id: 'tonic' }], battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }] }, {}] });
+    let s = scenario({
+      players: [
+        {
+          hand: [{ card: 'nightshade_tonic', id: 'tonic' }],
+          battlefield: ['forest', 'forest', { card: 'test_bear', id: 'bear' }],
+        },
+        {},
+      ],
+    });
     s = resolveStack(cast(s, 'tonic', [{ card: 'bear' }]));
     const pump: GameEvent = { t: 'pump', card: 'bear', power: 1, toughness: 1, keywords: ['deathtouch'] };
-    expect([getPower(s, 'bear'), getKeywords(s, 'bear'), s.events]).toEqual([3, ['deathtouch'], expect.arrayContaining([pump])]);
-    expect(describeEvent(s, pump, 0)).toBe('Tu Test Bear obtiene +1/+1 y gana la habilidad de toque mortal hasta el final del turno.');
+    expect([getPower(s, 'bear'), getKeywords(s, 'bear'), s.events]).toEqual([
+      3,
+      ['deathtouch'],
+      expect.arrayContaining([pump]),
+    ]);
+    expect(describeEvent(s, pump, 0)).toBe(
+      'Tu Test Bear obtiene +1/+1 y gana la habilidad de toque mortal hasta el final del turno.',
+    );
     expect(describeState(s)).toContain('Test Bear(bear) 3/3');
     s = passToStep(s, 'main1', s.turn + 2);
     expect([getPower(s, 'bear'), getKeywords(s, 'bear')]).toEqual([2, []]);
@@ -1160,18 +1571,29 @@ describe('Vesperhall: "whenever you gain life", lifelink and life drain', () => 
   it('Vesper Novice gets a +1/+1 counter each time you gain life', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'penance', id: 'penance' }], battlefield: ['plains', 'swamp', { card: 'vesper_novice', id: 'novice' }] },
+        {
+          hand: [{ card: 'penance', id: 'penance' }],
+          battlefield: ['plains', 'swamp', { card: 'vesper_novice', id: 'novice' }],
+        },
         { battlefield: [{ card: 'test_bear', id: 'bear' }] },
       ],
     });
     s = resolveStack(cast(s, 'penance', [{ card: 'bear' }]));
-    expect([zoneOf(s, 'bear'), life(s, 0), s.cards.novice?.counters, getPower(s, 'novice')]).toEqual(['graveyard', 22, 1, 2]);
+    expect([zoneOf(s, 'bear'), life(s, 0), s.cards.novice?.counters, getPower(s, 'novice')]).toEqual([
+      'graveyard',
+      22,
+      1,
+      2,
+    ]);
   });
 
   it('is not triggered when the opponent gains life', () => {
     let s = scenario({
       activePlayer: 1,
-      players: [{ battlefield: [{ card: 'vesper_novice', id: 'novice' }] }, { hand: [{ card: 'test_heal', id: 'heal' }], battlefield: ['forest'] }],
+      players: [
+        { battlefield: [{ card: 'vesper_novice', id: 'novice' }] },
+        { hand: [{ card: 'test_heal', id: 'heal' }], battlefield: ['forest'] },
+      ],
     });
     s = resolveStack(cast(s, 'heal'));
     expect([life(s, 1), s.cards.novice?.counters]).toEqual([23, 0]);
@@ -1197,7 +1619,10 @@ describe('Vesperhall: "whenever you gain life", lifelink and life drain', () => 
   it('Sanguine Chorister drains the opponent whenever you gain life, so Tithe Collector drains twice', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'tithe_collector', id: 'collector' }], battlefield: ['swamp', 'swamp', { card: 'sanguine_chorister', id: 'chorister' }] },
+        {
+          hand: [{ card: 'tithe_collector', id: 'collector' }],
+          battlefield: ['swamp', 'swamp', { card: 'sanguine_chorister', id: 'chorister' }],
+        },
         {},
       ],
     });
@@ -1208,7 +1633,10 @@ describe('Vesperhall: "whenever you gain life", lifelink and life drain', () => 
   it('Vesperhall Matriarch grows when Blood Tithe drains the opponent', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'blood_tithe', id: 'tithe' }], battlefield: ['swamp', 'swamp', 'swamp', { card: 'vesperhall_matriarch', id: 'matriarch' }] },
+        {
+          hand: [{ card: 'blood_tithe', id: 'tithe' }],
+          battlefield: ['swamp', 'swamp', 'swamp', { card: 'vesperhall_matriarch', id: 'matriarch' }],
+        },
         {},
       ],
     });
@@ -1220,7 +1648,10 @@ describe('Vesperhall: "whenever you gain life", lifelink and life drain', () => 
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'censer_bearer', id: 'censer' }, { card: 'rite_of_lanterns', id: 'rite' }],
+          hand: [
+            { card: 'censer_bearer', id: 'censer' },
+            { card: 'rite_of_lanterns', id: 'rite' },
+          ],
           battlefield: ['plains', 'plains', 'plains', 'plains', 'plains', 'plains'],
         },
         {},
@@ -1239,8 +1670,22 @@ describe('Cindermaw: "if an opponent was dealt damage this turn"', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'blistering_hellion', id: 'h1' }, { card: 'blistering_hellion', id: 'h2' }, { card: 'bloodfire_bolt', id: 'bolt' }],
-          battlefield: ['mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'swamp', 'swamp', 'swamp'],
+          hand: [
+            { card: 'blistering_hellion', id: 'h1' },
+            { card: 'blistering_hellion', id: 'h2' },
+            { card: 'bloodfire_bolt', id: 'bolt' },
+          ],
+          battlefield: [
+            'mountain',
+            'mountain',
+            'mountain',
+            'mountain',
+            'mountain',
+            'mountain',
+            'swamp',
+            'swamp',
+            'swamp',
+          ],
         },
         {},
       ],
@@ -1252,7 +1697,9 @@ describe('Cindermaw: "if an opponent was dealt damage this turn"', () => {
     s = pass(pass(cast(s, 'h2')));
     expect(s.stack.map((item) => item.kind)).toEqual(['trigger']);
     s = resolveStack(s);
-    expect([s.cards.h2?.counters, getPower(s, 'h2'), getToughness(s, 'h2'), s.cards.h1?.counters]).toEqual([2, 5, 4, 0]);
+    expect([s.cards.h2?.counters, getPower(s, 'h2'), getToughness(s, 'h2'), s.cards.h1?.counters]).toEqual([
+      2, 5, 4, 0,
+    ]);
   });
 
   it('losing life is not being dealt damage, and damage to yourself does not count', () => {
@@ -1274,7 +1721,13 @@ describe('Cindermaw: "if an opponent was dealt damage this turn"', () => {
 
   it('combat damage counts, and the wound is forgotten when the next turn begins', () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'bloodhungry_ghoul', id: 'ghoul' }], battlefield: ['swamp', 'swamp', { card: 'test_bear', id: 'bear' }] }, {}],
+      players: [
+        {
+          hand: [{ card: 'bloodhungry_ghoul', id: 'ghoul' }],
+          battlefield: ['swamp', 'swamp', { card: 'test_bear', id: 'bear' }],
+        },
+        {},
+      ],
     });
     s = finishCombat(attack(s, ['bear']));
     expect([life(s, 1), s.players[1].damagedThisTurn]).toEqual([18, true]);
@@ -1288,7 +1741,10 @@ describe('Cindermaw: "if an opponent was dealt damage this turn"', () => {
     let s = attack(
       scenario({
         players: [
-          { hand: [{ card: 'bloodhungry_ghoul', id: 'ghoul' }], battlefield: ['swamp', 'swamp', { card: 'brimstone_skirmisher', id: 'skirmisher' }] },
+          {
+            hand: [{ card: 'bloodhungry_ghoul', id: 'ghoul' }],
+            battlefield: ['swamp', 'swamp', { card: 'brimstone_skirmisher', id: 'skirmisher' }],
+          },
           { battlefield: [{ card: 'test_wall', id: 'wall' }] },
         ],
       }),
@@ -1304,7 +1760,10 @@ describe('Cindermaw: "if an opponent was dealt damage this turn"', () => {
     let s = scenario({
       players: [
         { hand: [{ card: 'splitting_flame', id: 'flame' }], battlefield: ['mountain', 'mountain'] },
-        { hand: [{ card: 'undertow', id: 'undertow' }], battlefield: ['island', 'island', { card: 'test_bear', id: 'bear' }] },
+        {
+          hand: [{ card: 'undertow', id: 'undertow' }],
+          battlefield: ['island', 'island', { card: 'test_bear', id: 'bear' }],
+        },
       ],
     });
     s = resolveStack(cast(pass(cast(s, 'flame', [{ card: 'bear' }, { player: 1 }])), 'undertow', [{ card: 'bear' }]));
@@ -1313,7 +1772,10 @@ describe('Cindermaw: "if an opponent was dealt damage this turn"', () => {
 
   it('Pyre Ghast deals 2 damage to any target when it dies', () => {
     let s = scenario({
-      players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain', { card: 'pyre_ghast', id: 'ghast' }] }, {}],
+      players: [
+        { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain', { card: 'pyre_ghast', id: 'ghast' }] },
+        {},
+      ],
     });
     s = pass(pass(cast(s, 'snap', [{ card: 'ghast' }])));
     expect(zoneOf(s, 'ghast')).toBe('graveyard');
@@ -1327,14 +1789,28 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'kelpweaver_druid', id: 'druid' }, { card: 'shoal_hatchling', id: 'second' }, { card: 'mossfin_lurker', id: 'lurker' }],
-          battlefield: ['forest', 'forest', 'forest', 'forest', 'forest', 'forest', { card: 'shoal_hatchling', id: 'first' }],
+          hand: [
+            { card: 'kelpweaver_druid', id: 'druid' },
+            { card: 'shoal_hatchling', id: 'second' },
+            { card: 'mossfin_lurker', id: 'lurker' },
+          ],
+          battlefield: [
+            'forest',
+            'forest',
+            'forest',
+            'forest',
+            'forest',
+            'forest',
+            { card: 'shoal_hatchling', id: 'first' },
+          ],
         },
         {},
       ],
     });
     s = pass(pass(cast(s, 'druid')));
-    expect(s.stack.map((item) => (item.kind === 'trigger' ? [item.source, item.ability] : item.kind))).toEqual([['first', EVOLVE_TRIGGER]]);
+    expect(s.stack.map((item) => (item.kind === 'trigger' ? [item.source, item.ability] : item.kind))).toEqual([
+      ['first', EVOLVE_TRIGGER],
+    ]);
     s = resolveStack(s);
     expect([s.cards.first?.counters, getPower(s, 'first'), getToughness(s, 'first')]).toEqual([1, 2, 2]);
     s = resolveStack(cast(s, 'second'));
@@ -1348,7 +1824,10 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
       activePlayer: 1,
       players: [
         { battlefield: [{ card: 'shoal_hatchling', id: 'hatchling' }] },
-        { hand: [{ card: 'test_giant', id: 'giant' }], battlefield: ['forest', 'forest', 'forest', 'forest', 'forest'] },
+        {
+          hand: [{ card: 'test_giant', id: 'giant' }],
+          battlefield: ['forest', 'forest', 'forest', 'forest', 'forest'],
+        },
       ],
     });
     s = resolveStack(cast(s, 'giant'));
@@ -1359,10 +1838,15 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
     let s = scenario({
       players: [
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain', { card: 'test_bear', id: 'bear' }] },
-        { hand: [{ card: 'adaptive_bloom', id: 'bloom' }], battlefield: ['forest', 'island', { card: 'mossfin_lurker', id: 'lurker' }] },
+        {
+          hand: [{ card: 'adaptive_bloom', id: 'bloom' }],
+          battlefield: ['forest', 'island', { card: 'mossfin_lurker', id: 'lurker' }],
+        },
       ],
     });
-    const snapTargets = getLegalActions(s).flatMap((action) => (action.type === 'cast' && action.card === 'snap' ? action.targets : []));
+    const snapTargets = getLegalActions(s).flatMap((action) =>
+      action.type === 'cast' && action.card === 'snap' ? action.targets : [],
+    );
     expect(snapTargets).toEqual([{ player: 0 }, { player: 1 }, { card: 'bear' }]);
     expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] })).toEqual({
       ok: false,
@@ -1377,30 +1861,53 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
     let s = scenario({
       players: [
         { hand: [{ card: 'magma_lance', id: 'lance' }], battlefield: ['mountain', 'mountain', 'mountain'] },
-        { hand: [{ card: 'shell_of_the_deep', id: 'shell' }], battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }] },
+        {
+          hand: [{ card: 'shell_of_the_deep', id: 'shell' }],
+          battlefield: ['forest', { card: 'tanglejaw_croc', id: 'croc' }],
+        },
       ],
     });
     s = resolveStack(cast(pass(cast(s, 'lance', [{ card: 'croc' }])), 'shell', [{ card: 'croc' }]));
     expect(s.events).toContainEqual({ t: 'fizzle', item: expect.objectContaining({ kind: 'spell', card: 'lance' }) });
-    expect([zoneOf(s, 'croc'), s.cards.croc?.damage, getPower(s, 'croc'), getKeywords(s, 'croc')]).toEqual(['battlefield', 0, 4, ['hexproof']]);
+    expect([zoneOf(s, 'croc'), s.cards.croc?.damage, getPower(s, 'croc'), getKeywords(s, 'croc')]).toEqual([
+      'battlefield',
+      0,
+      4,
+      ['hexproof'],
+    ]);
   });
 
   it('Snapjaw Strike: your creature deals damage equal to its power and takes none back, deathtouch included', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'snapjaw_strike', id: 'strike' }, { card: 'snapjaw_strike', id: 'strike2' }],
-          battlefield: ['forest', 'forest', 'forest', 'forest', { card: 'mossfin_lurker', id: 'lurker' }, { card: 'moss_viper', id: 'viper' }],
+          hand: [
+            { card: 'snapjaw_strike', id: 'strike' },
+            { card: 'snapjaw_strike', id: 'strike2' },
+          ],
+          battlefield: [
+            'forest',
+            'forest',
+            'forest',
+            'forest',
+            { card: 'mossfin_lurker', id: 'lurker' },
+            { card: 'moss_viper', id: 'viper' },
+          ],
         },
-        { battlefield: [{ card: 'test_bear', id: 'bear' }, { card: 'test_giant', id: 'giant' }] },
+        {
+          battlefield: [
+            { card: 'test_bear', id: 'bear' },
+            { card: 'test_giant', id: 'giant' },
+          ],
+        },
       ],
     });
     s = resolveStack(cast(s, 'strike', [{ card: 'lurker' }, { card: 'bear' }]));
     expect([zoneOf(s, 'bear'), s.cards.lurker?.damage]).toEqual(['graveyard', 0]);
     expect(s.events).toContainEqual({ t: 'bite', a: 'lurker', b: 'bear' });
-    expect(describeEvent(s, { t: 'damage', source: 'lurker', target: { card: 'bear' }, amount: 3, combat: false }, 0)).toBe(
-      'Tu Pez musgoso hace 3 puntos de daño a Test Bear del rival.',
-    );
+    expect(
+      describeEvent(s, { t: 'damage', source: 'lurker', target: { card: 'bear' }, amount: 3, combat: false }, 0),
+    ).toBe('Tu Pez musgoso hace 3 puntos de daño a Test Bear del rival.');
     s = resolveStack(cast(s, 'strike2', [{ card: 'viper' }, { card: 'giant' }]));
     expect([zoneOf(s, 'giant'), zoneOf(s, 'viper')]).toEqual(['graveyard', 'battlefield']);
   });
@@ -1408,7 +1915,13 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
   it('Kelpweaver Druid taps for green or blue', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'riptide_recall', id: 'recall' }, { card: 'forest', id: 'land' }], battlefield: [{ card: 'kelpweaver_druid', id: 'druid' }] },
+        {
+          hand: [
+            { card: 'riptide_recall', id: 'recall' },
+            { card: 'forest', id: 'land' },
+          ],
+          battlefield: [{ card: 'kelpweaver_druid', id: 'druid' }],
+        },
         { battlefield: [{ card: 'test_bear', id: 'bear' }] },
       ],
     });
@@ -1422,12 +1935,18 @@ describe('Flamecrest: prowess', () => {
   it('an instant gives each creature with prowess +1/+1 until end of turn, and the trigger resolves before the spell', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'flame_cut', id: 'cut' }], battlefield: ['mountain', 'mountain', { card: 'cloister_lancer', id: 'lancer' }] },
+        {
+          hand: [{ card: 'flame_cut', id: 'cut' }],
+          battlefield: ['mountain', 'mountain', { card: 'cloister_lancer', id: 'lancer' }],
+        },
         { battlefield: [{ card: 'test_bear', id: 'bear' }] },
       ],
     });
     s = cast(s, 'cut', [{ card: 'bear' }]);
-    expect(s.stack.map((item) => (item.kind === 'trigger' ? [item.source, item.ability] : item.kind))).toEqual(['spell', ['lancer', PROWESS_TRIGGER]]);
+    expect(s.stack.map((item) => (item.kind === 'trigger' ? [item.source, item.ability] : item.kind))).toEqual([
+      'spell',
+      ['lancer', PROWESS_TRIGGER],
+    ]);
     s = pass(pass(s));
     expect([getPower(s, 'lancer'), getToughness(s, 'lancer'), s.stack.length]).toEqual([2, 3, 1]);
     s = resolveStack(s);
@@ -1439,7 +1958,10 @@ describe('Flamecrest: prowess', () => {
   it('creature spells and the opponent’s spells do not trigger it', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'temple_blade', id: 'blade' }], battlefield: ['mountain', 'mountain', { card: 'arc_initiate', id: 'initiate' }] },
+        {
+          hand: [{ card: 'temple_blade', id: 'blade' }],
+          battlefield: ['mountain', 'mountain', { card: 'arc_initiate', id: 'initiate' }],
+        },
         { hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['mountain'] },
       ],
     });
@@ -1451,7 +1973,10 @@ describe('Flamecrest: prowess', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'spark_volley', id: 'v1' }, { card: 'spark_volley', id: 'v2' }],
+          hand: [
+            { card: 'spark_volley', id: 'v1' },
+            { card: 'spark_volley', id: 'v2' },
+          ],
           battlefield: ['mountain', 'mountain', { card: 'flamecrest_mentor', id: 'mentor' }],
         },
         {},
@@ -1459,32 +1984,48 @@ describe('Flamecrest: prowess', () => {
     });
     s = resolveStack(cast(s, 'v1', [{ player: 1 }]));
     const monk = s.players[0].battlefield.find((id) => s.cards[id]?.def === 'monk_token') as string;
-    expect([getPower(s, 'mentor'), getToughness(s, 'mentor'), getKeywords(s, monk), getPower(s, monk), life(s, 1)]).toEqual([4, 3, ['prowess'], 2, 19]);
+    expect([
+      getPower(s, 'mentor'),
+      getToughness(s, 'mentor'),
+      getKeywords(s, monk),
+      getPower(s, monk),
+      life(s, 1),
+    ]).toEqual([4, 3, ['prowess'], 2, 19]);
     s = resolveStack(cast(s, 'v2', [{ player: 1 }]));
-    expect([getPower(s, monk), getToughness(s, monk), s.players[0].battlefield.filter((id) => s.cards[id]?.def === 'monk_token')]).toEqual([4, 2, [monk, expect.any(String)]]);
+    expect([
+      getPower(s, monk),
+      getToughness(s, monk),
+      s.players[0].battlefield.filter((id) => s.cards[id]?.def === 'monk_token'),
+    ]).toEqual([4, 2, [monk, expect.any(String)]]);
   });
 
   it('Brazier Disciple gains first strike with every instant, on top of its prowess', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'palm_strike', id: 'palm' }], battlefield: ['mountain', { card: 'brazier_disciple', id: 'disciple' }] },
+        {
+          hand: [{ card: 'palm_strike', id: 'palm' }],
+          battlefield: ['mountain', { card: 'brazier_disciple', id: 'disciple' }],
+        },
         {},
       ],
     });
     s = resolveStack(cast(s, 'palm', [{ card: 'disciple' }]));
-    expect([getPower(s, 'disciple'), getToughness(s, 'disciple'), getKeywords(s, 'disciple'), s.players[0].hand.length]).toEqual([
-      3,
-      3,
-      ['prowess', 'firstStrike'],
-      1,
-    ]);
+    expect([
+      getPower(s, 'disciple'),
+      getToughness(s, 'disciple'),
+      getKeywords(s, 'disciple'),
+      s.players[0].hand.length,
+    ]).toEqual([3, 3, ['prowess', 'firstStrike'], 1]);
   });
 
   it('Lava Fist bites with the power prowess just gave, and Twin Strike makes a creature deal its damage twice', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'lava_fist', id: 'fist' }, { card: 'twin_strike', id: 'twin' }],
+          hand: [
+            { card: 'lava_fist', id: 'fist' },
+            { card: 'twin_strike', id: 'twin' },
+          ],
           battlefield: ['mountain', 'mountain', 'mountain', 'mountain', { card: 'temple_blade', id: 'blade' }],
         },
         { battlefield: [{ card: 'test_wall', id: 'wall' }] },
@@ -1501,14 +2042,22 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
   it('landfall: each land that enters under your control triggers it, the opponent’s lands do not', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'forest', id: 'land' }], battlefield: [{ card: 'cliff_lynx', id: 'lynx' }, { card: 'quake_boar', id: 'boar' }] },
+        {
+          hand: [{ card: 'forest', id: 'land' }],
+          battlefield: [
+            { card: 'cliff_lynx', id: 'lynx' },
+            { card: 'quake_boar', id: 'boar' },
+          ],
+        },
         { battlefield: [{ card: 'cliff_lynx', id: 'theirs' }] },
       ],
     });
     s = playLand(s, 'land');
     expect(s.stack.map((item) => (item.kind === 'trigger' ? item.source : item.kind)).sort()).toEqual(['boar', 'lynx']);
     s = resolveStack(s);
-    expect([getPower(s, 'lynx'), getToughness(s, 'lynx'), s.cards.boar?.counters, getPower(s, 'theirs')]).toEqual([3, 3, 1, 1]);
+    expect([getPower(s, 'lynx'), getToughness(s, 'lynx'), s.cards.boar?.counters, getPower(s, 'theirs')]).toEqual([
+      3, 3, 1, 1,
+    ]);
     s = passToStep(s, 'main1', s.turn + 1);
     expect([getPower(s, 'lynx'), s.cards.boar?.counters]).toEqual([1, 1]);
   });
@@ -1525,7 +2074,12 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
       ],
     });
     s = resolveStack(cast(s, 'scout'));
-    expect([zoneOf(s, 'deep'), s.cards.deep?.tapped, s.players[0].library.length, s.cards.boar?.counters]).toEqual(['battlefield', true, 5, 1]);
+    expect([zoneOf(s, 'deep'), s.cards.deep?.tapped, s.players[0].library.length, s.cards.boar?.counters]).toEqual([
+      'battlefield',
+      true,
+      5,
+      1,
+    ]);
     expect(describeEvent(s, { t: 'search', player: 0, card: 'deep', to: 'battlefield' }, 0)).toBe(
       'Buscas en tu biblioteca y pones Bosque en el campo de batalla.',
     );
@@ -1538,7 +2092,10 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'deep_sowing', id: 'sowing' }, { card: 'deep_sowing', id: 'again' }],
+          hand: [
+            { card: 'deep_sowing', id: 'sowing' },
+            { card: 'deep_sowing', id: 'again' },
+          ],
           battlefield: ['forest', 'forest', 'forest', 'forest', 'forest', 'forest'],
           library: [{ card: 'forest', id: 'f1' }, 'mountain', { card: 'forest', id: 'f2' }, 'mountain'],
         },
@@ -1546,7 +2103,12 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
       ],
     });
     s = resolveStack(cast(s, 'sowing'));
-    expect([zoneOf(s, 'f1'), s.cards.f1?.tapped, zoneOf(s, 'f2'), s.players[0].library.length]).toEqual(['battlefield', true, 'hand', 2]);
+    expect([zoneOf(s, 'f1'), s.cards.f1?.tapped, zoneOf(s, 'f2'), s.players[0].library.length]).toEqual([
+      'battlefield',
+      true,
+      'hand',
+      2,
+    ]);
     expect(describeEvent(s, { t: 'search', player: 1, card: 'f2', to: 'hand' }, 0)).toBe(
       'El rival busca en su biblioteca y pone Bosque en su mano.',
     );
@@ -1559,7 +2121,12 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'open_path', id: 'path' }, { card: 'forest', id: 'f1' }, { card: 'forest', id: 'f2' }, { card: 'forest', id: 'f3' }],
+          hand: [
+            { card: 'open_path', id: 'path' },
+            { card: 'forest', id: 'f1' },
+            { card: 'forest', id: 'f2' },
+            { card: 'forest', id: 'f3' },
+          ],
           battlefield: ['forest'],
           library: ['forest', 'forest', 'forest', 'forest', 'forest', 'forest'],
         },
@@ -1567,12 +2134,20 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
       ],
     });
     s = playLand(s, 'f1');
-    expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f2' })).toEqual({ ok: false, error: 'ya has jugado una tierra este turno', refusal: { code: 'landPlayed' } });
+    expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f2' })).toEqual({
+      ok: false,
+      error: 'ya has jugado una tierra este turno',
+      refusal: { code: 'landPlayed' },
+    });
     s = resolveStack(cast(s, 'path'));
     expect([s.players[0].extraLandsThisTurn, s.players[0].hand.length]).toEqual([1, 3]);
     expect(s.events).toContainEqual({ t: 'extraLands', player: 0, amount: 1 });
-    expect(describeEvent(s, { t: 'extraLands', player: 0, amount: 1 }, 0)).toBe('Puedes jugar una tierra adicional este turno.');
-    expect(describeEvent(s, { t: 'extraLands', player: 0, amount: 1 }, 1)).toBe('El rival puede jugar una tierra adicional este turno.');
+    expect(describeEvent(s, { t: 'extraLands', player: 0, amount: 1 }, 0)).toBe(
+      'Puedes jugar una tierra adicional este turno.',
+    );
+    expect(describeEvent(s, { t: 'extraLands', player: 0, amount: 1 }, 1)).toBe(
+      'El rival puede jugar una tierra adicional este turno.',
+    );
     s = playLand(s, 'f2');
     expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f3' })).toEqual({
       ok: false,
@@ -1589,7 +2164,10 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
     let s = scenario({
       players: [
         {
-          battlefield: [{ card: 'tribe_elder', id: 'elder' }, { card: 'territorial_beast', id: 'beast' }],
+          battlefield: [
+            { card: 'tribe_elder', id: 'elder' },
+            { card: 'territorial_beast', id: 'beast' },
+          ],
           library: [{ card: 'forest', id: 'fetched' }, 'mountain', 'mountain'],
         },
         { battlefield: [{ card: 'timberland_rhino', id: 'rhino' }] },
@@ -1597,13 +2175,13 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
     });
     s = block(attack(s, ['beast']), [{ blocker: 'rhino', attacker: 'beast' }]);
     s = resolveStack(activate(s, 'elder'));
-    expect([zoneOf(s, 'elder'), zoneOf(s, 'fetched'), s.cards.fetched?.tapped, getPower(s, 'beast'), getToughness(s, 'beast')]).toEqual([
-      'graveyard',
-      'battlefield',
-      true,
-      5,
-      5,
-    ]);
+    expect([
+      zoneOf(s, 'elder'),
+      zoneOf(s, 'fetched'),
+      s.cards.fetched?.tapped,
+      getPower(s, 'beast'),
+      getToughness(s, 'beast'),
+    ]).toEqual(['graveyard', 'battlefield', true, 5, 5]);
     s = finishCombat(s);
     expect([zoneOf(s, 'beast'), zoneOf(s, 'rhino')]).toEqual(['battlefield', 'graveyard']);
   });
@@ -1612,7 +2190,10 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
     let s = scenario({
       players: [
         {
-          hand: [{ card: 'forest', id: 'land' }, { card: 'herd_roar', id: 'roar' }],
+          hand: [
+            { card: 'forest', id: 'land' },
+            { card: 'herd_roar', id: 'roar' },
+          ],
           battlefield: ['forest', 'forest', 'forest', { card: 'wildland_colossus', id: 'colossus' }],
         },
         {},
@@ -1630,7 +2211,13 @@ describe('Crossroads: lands that enter tapped and mana of three or five colors',
   it('a tri-land enters tapped, so it cannot pay this turn, and untaps with the others next turn', () => {
     let s = scenario({
       players: [
-        { hand: [{ card: 'silver_spire', id: 'spire' }, { card: 'sky_messenger', id: 'messenger' }], battlefield: ['plains'] },
+        {
+          hand: [
+            { card: 'silver_spire', id: 'spire' },
+            { card: 'sky_messenger', id: 'messenger' },
+          ],
+          battlefield: ['plains'],
+        },
         {},
       ],
     });
@@ -1660,7 +2247,10 @@ describe('Crossroads: lands that enter tapped and mana of three or five colors',
     });
     expect(castBlocker(s, 0, 'dragon')).toBeNull();
     s = resolveStack(cast(s, 'dragon'));
-    expect([zoneOf(s, 'dragon'), ['spire', 'harbor', 'meadow', 'fount', 'druid'].every((id) => s.cards[id]?.tapped)]).toEqual(['battlefield', true]);
+    expect([
+      zoneOf(s, 'dragon'),
+      ['spire', 'harbor', 'meadow', 'fount', 'druid'].every((id) => s.cards[id]?.tapped),
+    ]).toEqual(['battlefield', true]);
   });
 
   it('a Forest that a search puts onto the battlefield tapped stays tapped until your next untap step', () => {

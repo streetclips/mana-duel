@@ -386,11 +386,26 @@ export function createTestApi(controller: GameController, showGame: () => void, 
     cards: () =>
       allCardDefs()
         .filter((def) => !def.id.startsWith('test_') && !isRelicDef(def))
-        .map((def) => ({ id: def.id, name: def.name, type: typeLine(def), cost: def.cost ?? null, text: rulesText(def), token: def.token === true })),
-    decks: () => [...DECK_LIST.map((deck) => summary(deck, false, [])), ...library.decks.map((deck) => summary(deck, true, library.problems(deck)))],
+        .map((def) => ({
+          id: def.id,
+          name: def.name,
+          type: typeLine(def),
+          cost: def.cost ?? null,
+          text: rulesText(def),
+          token: def.token === true,
+        })),
+    decks: () => [
+      ...DECK_LIST.map((deck) => summary(deck, false, [])),
+      ...library.decks.map((deck) => summary(deck, true, library.problems(deck))),
+    ],
     saveDeck: (input) => {
       try {
-        const draft: DeckDraft = { id: input.id ?? null, name: input.name, featured: input.featured ?? null, cards: input.cards.map((entry) => ({ ...entry })) };
+        const draft: DeckDraft = {
+          id: input.id ?? null,
+          name: input.name,
+          featured: input.featured ?? null,
+          cards: input.cards.map((entry) => ({ ...entry })),
+        };
         const deck = library.save(draft);
         const problems = library.problems(deck);
         return { ok: true, deck: summary(deck, true, problems), problems };
@@ -410,7 +425,11 @@ export function createTestApi(controller: GameController, showGame: () => void, 
     checks: () => CHECKS.map((check) => ({ id: check.id, title: check.title })),
     runChecks: (ids) => runChecks(ids),
     audio: audioApi(ui.audio ?? new GameAudio({ createContext: null })),
-    expedition: expeditionApi(ui.expedition ?? new ExpeditionController(controller), ui.showExpedition ?? (() => undefined), showGame),
+    expedition: expeditionApi(
+      ui.expedition ?? new ExpeditionController(controller),
+      ui.showExpedition ?? (() => undefined),
+      showGame,
+    ),
     draft: draftApi(ui.draft ?? new DraftController(controller), ui.showDraft ?? (() => undefined), showGame),
     engine: {
       createGame,

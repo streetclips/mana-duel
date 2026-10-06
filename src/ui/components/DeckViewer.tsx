@@ -49,7 +49,11 @@ export function deckGroups(deck: DeckDef): DeckGroup[] {
     return def.types.includes('creature') ? 'creature' : 'spell';
   };
   const groups: DeckGroup[] = [
-    { kind: 'creature', title: text.creatures, entries: byCost(deck.cards.filter((entry) => kind(entry) === 'creature')) },
+    {
+      kind: 'creature',
+      title: text.creatures,
+      entries: byCost(deck.cards.filter((entry) => kind(entry) === 'creature')),
+    },
     { kind: 'spell', title: text.spells, entries: byCost(deck.cards.filter((entry) => kind(entry) === 'spell')) },
     { kind: 'land', title: text.lands, entries: deck.cards.filter((entry) => kind(entry) === 'land') },
   ];
@@ -121,7 +125,13 @@ export function DeckViewer({ tabs, initial, onClose }: DeckViewerProps) {
   const inspectedEntry = inspected ? deck.cards.find((entry) => entry.card === inspected) : undefined;
 
   return (
-    <div class="deck-viewer" role="dialog" aria-label={text.dialog(deck.name)} data-testid="deck-viewer" data-deck={deck.id}>
+    <div
+      class="deck-viewer"
+      role="dialog"
+      aria-label={text.dialog(deck.name)}
+      data-testid="deck-viewer"
+      data-deck={deck.id}
+    >
       <header class="deck-viewer-bar">
         <button type="button" class="icon-btn" aria-label={text.close} data-testid="btn-deck-close" onClick={onClose}>
           <CloseIcon />

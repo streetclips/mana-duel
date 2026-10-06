@@ -3,7 +3,16 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GameController } from '../../src/app/controller';
 import { DeckLibrary } from '../../src/app/deckLibrary';
-import { PACK_SIZE, aiPick, createDraft, pickCard, recordGame, saveDeck, suggestedDeck, type DraftRun } from '../../src/app/draft';
+import {
+  PACK_SIZE,
+  aiPick,
+  createDraft,
+  pickCard,
+  recordGame,
+  saveDeck,
+  suggestedDeck,
+  type DraftRun,
+} from '../../src/app/draft';
 import { DraftController } from '../../src/app/draftController';
 import { App, type Screen } from '../../src/ui/App';
 import { localDraftStore } from '../../src/ui/draftStore';
@@ -112,13 +121,17 @@ describe('reading the cards of a pack', () => {
     });
     fireEvent.pointerUp(card);
     click(card);
-    expect(within(byTestId('card-sheet')).getByRole('dialog').getAttribute('aria-label')).toBe(card.getAttribute('aria-label'));
+    expect(within(byTestId('card-sheet')).getByRole('dialog').getAttribute('aria-label')).toBe(
+      card.getAttribute('aria-label'),
+    );
     expect(card.getAttribute('aria-checked')).toBe('false');
     expect(byTestId(`draft-card-${first}`).getAttribute('aria-checked')).toBe('true');
     click(byTestId('card-sheet'));
     expect(screen.queryByTestId('card-sheet')).toBeNull();
     fireEvent.contextMenu(card);
-    expect(within(byTestId('card-sheet')).getByRole('dialog').getAttribute('aria-label')).toBe(card.getAttribute('aria-label'));
+    expect(within(byTestId('card-sheet')).getByRole('dialog').getAttribute('aria-label')).toBe(
+      card.getAttribute('aria-label'),
+    );
   });
 
   it('adds nothing to the screen when you choose a card', () => {
@@ -193,7 +206,10 @@ describe('building and playing the match', () => {
     expect(screen.queryByTestId('deck-builder')).toBeNull();
     click(byTestId('btn-draft-edit'));
     const tiles = within(byTestId('deck-builder')).getAllByTestId(/^builder-deck-/);
-    const basic = tiles.map((tile) => (tile.dataset.testid ?? '').replace('builder-deck-', '')).find((card) => ['plains', 'island', 'swamp', 'mountain', 'forest'].includes(card)) ?? '';
+    const basic =
+      tiles
+        .map((tile) => (tile.dataset.testid ?? '').replace('builder-deck-', ''))
+        .find((card) => ['plains', 'island', 'swamp', 'mountain', 'forest'].includes(card)) ?? '';
     click(byTestId(`add-${basic}`));
     click(byTestId('btn-builder-save'));
     expect(draft.run?.deck?.find((entry) => entry.card === basic)?.count).toBeGreaterThan(0);

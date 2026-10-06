@@ -1,4 +1,12 @@
-import { APICallError, LoadAPIKeyError, NoObjectGeneratedError, Output, RetryError, generateText, type LanguageModel } from 'ai';
+import {
+  APICallError,
+  LoadAPIKeyError,
+  NoObjectGeneratedError,
+  Output,
+  RetryError,
+  generateText,
+  type LanguageModel,
+} from 'ai';
 import { chooseAction } from '../ai';
 import { forcedAction, tryApplyAction, type Action, type GameState, type PlayerId } from '../engine';
 import { DecisionError, decisionFor } from './decision';
@@ -153,11 +161,16 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
     },
     async decide(s, player, decideOptions = {}) {
       const started = clock();
-      const finish = (decision: Omit<LlmDecision, 'model' | 'ms'>): LlmDecision => ({ model: name, ms: clock() - started, ...decision });
+      const finish = (decision: Omit<LlmDecision, 'model' | 'ms'>): LlmDecision => ({
+        model: name,
+        ms: clock() - started,
+        ...decision,
+      });
       const decision = decisionFor(s, player);
       const forced = forcedAction(s);
       if (forced) return finish({ action: forced, source: 'forced', attempts: 0 });
-      if (unavailable) return finish({ action: fallback(s, player), source: 'fallback', attempts: 0, error: unavailable });
+      if (unavailable)
+        return finish({ action: fallback(s, player), source: 'fallback', attempts: 0, error: unavailable });
 
       const prompt = buildPrompt(s, player, decision, decideOptions);
       const limit = deadline(timeoutMs, decideOptions.signal);
@@ -191,7 +204,11 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
               source: 'model',
               attempts: tries,
               reason: reasonOf(answer),
-              usage: { inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens, cost: costOf(result.finalStep.providerMetadata) },
+              usage: {
+                inputTokens: result.usage.inputTokens,
+                outputTokens: result.usage.outputTokens,
+                cost: costOf(result.finalStep.providerMetadata),
+              },
             });
           } catch (failure) {
             if (decideOptions.signal?.aborted) throw abortError(decideOptions.signal);

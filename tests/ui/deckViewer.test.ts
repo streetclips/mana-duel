@@ -11,7 +11,9 @@ describe('deck viewer data', () => {
     it(`groups every card of ${deck.name} by type, cheapest first`, () => {
       const groups = deckGroups(deck);
       expect(groups.map((group) => group.title)).toEqual(['Criaturas', 'Instantáneos y conjuros', 'Tierras']);
-      expect(groups.flatMap((group) => group.entries).reduce((sum, entry) => sum + entry.count, 0)).toBe(deckSize(deck));
+      expect(groups.flatMap((group) => group.entries).reduce((sum, entry) => sum + entry.count, 0)).toBe(
+        deckSize(deck),
+      );
       const lands = groups[2]?.entries.reduce((sum, entry) => sum + entry.count, 0) ?? 0;
       expect(manaCurve(deck).reduce((sum, count) => sum + count, 0)).toBe(deckSize(deck) - lands);
       for (const group of groups) {

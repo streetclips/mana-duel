@@ -20,7 +20,18 @@ import {
   type GameState,
   type Keyword,
 } from '../../engine';
-import { abilityHints, cardArtUrl, cardColorVar, cssVars, effectHint, landHint, lastingTriggers, manaFill, manaName, triggerHint } from '../cardInfo';
+import {
+  abilityHints,
+  cardArtUrl,
+  cardColorVar,
+  cssVars,
+  effectHint,
+  landHint,
+  lastingTriggers,
+  manaFill,
+  manaName,
+  triggerHint,
+} from '../cardInfo';
 import type { CardFx, GhostFx } from '../fx';
 import { cardText } from '../text/card';
 import { usePress } from '../useController';
@@ -61,7 +72,12 @@ function ManaSymbol({ symbol }: { symbol: string }) {
     );
   }
   return (
-    <span class="pip" style={cssVars({ '--pip': `var(--mana-${symbol})` })} data-color={symbol} aria-label={manaName(symbol)}>
+    <span
+      class="pip"
+      style={cssVars({ '--pip': `var(--mana-${symbol})` })}
+      data-color={symbol}
+      aria-label={manaName(symbol)}
+    >
       {symbol}
     </span>
   );
@@ -131,7 +147,9 @@ function FxOverlays({ id, fx }: { id: CardId; fx?: CardFx }) {
   return (
     <>
       {fx.ring && <span key={`ring-${fx.ring.key}`} class={`fx-ring ${fx.ring.tone}`} aria-hidden="true" />}
-      {fx.burst && <span key={`burst-${fx.burst.key}`} class="fx-burst" style={fxDelay(fx.burst.delay)} aria-hidden="true" />}
+      {fx.burst && (
+        <span key={`burst-${fx.burst.key}`} class="fx-burst" style={fxDelay(fx.burst.delay)} aria-hidden="true" />
+      )}
       {fx.float && (
         <span
           key={`float-${fx.float.key}`}
@@ -168,7 +186,8 @@ function AbilityCost({ ability }: { ability: ActivatedAbility }) {
   const parts: ComponentChildren[] = [];
   if (ability.tap) parts.push(<ManaSymbol symbol="T" />);
   if (ability.sacrifice) parts.push(cardText().sacrificeShort);
-  if (ability.cost !== '{0}') parts.push(costSymbols(parseCost(ability.cost)).map((symbol, index) => <ManaSymbol key={index} symbol={symbol} />));
+  if (ability.cost !== '{0}')
+    parts.push(costSymbols(parseCost(ability.cost)).map((symbol, index) => <ManaSymbol key={index} symbol={symbol} />));
   return (
     <span class="cost">
       {parts.map((part, index) => (
@@ -183,10 +202,7 @@ function AbilityCost({ ability }: { ability: ActivatedAbility }) {
 }
 
 function abilityEffect(ability: ActivatedAbility): string {
-  return ability.effects
-    .map(effectHint)
-    .join(', ')
-    .replace(/(\d) /g, '$1\u00a0');
+  return ability.effects.map(effectHint).join(', ').replace(/(\d) /g, '$1\u00a0');
 }
 
 interface AbilityPillsProps {
@@ -203,7 +219,11 @@ function AbilityPills({ def, id, usable = [], manaSpent = false }: AbilityPillsP
   return (
     <span class="abilities" aria-hidden="true">
       {mana.length > 0 && (
-        <span class="ability symbol-led" data-testid={id && `ability-${id}-mana`} data-spent={manaSpent ? 'true' : undefined}>
+        <span
+          class="ability symbol-led"
+          data-testid={id && `ability-${id}-mana`}
+          data-spent={manaSpent ? 'true' : undefined}
+        >
           <span class="cost">
             <ManaSymbol symbol="T" />:
           </span>{' '}
@@ -244,7 +264,8 @@ function PowerToughness({ s, id }: { s: GameState; id: CardId }) {
   const toughness = getToughness(s, id);
   const remaining = toughness - card.damage;
   const powerClass = power > (def.power ?? 0) ? 'up' : power < (def.power ?? 0) ? 'down' : '';
-  const toughClass = card.damage > 0 || toughness < (def.toughness ?? 0) ? 'down' : toughness > (def.toughness ?? 0) ? 'up' : '';
+  const toughClass =
+    card.damage > 0 || toughness < (def.toughness ?? 0) ? 'down' : toughness > (def.toughness ?? 0) ? 'up' : '';
   return (
     <span class="pt num" data-testid={`pt-${id}`}>
       <span class={powerClass}>{power}</span>/<span class={toughClass}>{remaining}</span>
@@ -478,5 +499,10 @@ export function DetailFace({ def, pt }: { def: CardDef; pt?: ComponentChildren }
 export function DetailCard({ s, id }: { s: GameState; id: CardId }) {
   const card = s.cards[id];
   if (!card) return null;
-  return <DetailFace def={getCardDef(card.def)} pt={card.zone === 'battlefield' ? <PowerToughness s={s} id={id} /> : undefined} />;
+  return (
+    <DetailFace
+      def={getCardDef(card.def)}
+      pt={card.zone === 'battlefield' ? <PowerToughness s={s} id={id} /> : undefined}
+    />
+  );
 }

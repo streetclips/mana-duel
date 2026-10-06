@@ -153,7 +153,8 @@ function checkSetup(setup: PlayerSetup): void {
   for (const id of setup.battlefield ?? []) {
     if (!hasCardDef(id)) throw new Error(`Unknown card definition "${id}"`);
     const def = getCardDef(id);
-    if (!def.types.includes('land') && !def.types.includes('creature')) throw new Error(`"${id}" is not a permanent, so it cannot start on the battlefield`);
+    if (!def.types.includes('land') && !def.types.includes('creature'))
+      throw new Error(`"${id}" is not a permanent, so it cannot start on the battlefield`);
   }
   for (const id of setup.relics ?? []) {
     if (!hasCardDef(id)) throw new Error(`Unknown card definition "${id}"`);
@@ -195,7 +196,10 @@ function placeRelic(s: GameState, player: PlayerId, defId: string, id: CardId): 
 
 export function createGame(options: GameOptions = {}): GameState {
   const defaults = defaultPlayerNames();
-  const names: [string, string] = [options.players?.[0]?.name ?? defaults[0], options.players?.[1]?.name ?? defaults[1]];
+  const names: [string, string] = [
+    options.players?.[0]?.name ?? defaults[0],
+    options.players?.[1]?.name ?? defaults[1],
+  ];
   const s = emptyState(options.seed ?? 1, names, options.turnLimit);
   for (const setup of options.players ?? []) if (setup) checkSetup(setup);
   let counter = 0;
@@ -394,7 +398,8 @@ function performAction(s: GameState, action: Action): void {
       if (isInstantOrSorceryDef(defOf(s, action.card))) {
         for (const id of triggerSources(s, player)) {
           queueTriggers(s, id, 'spell', player);
-          if (hasKeyword(s, id, 'prowess')) s.triggers.push({ id: newId(s, 't'), controller: player, source: id, ability: PROWESS_TRIGGER });
+          if (hasKeyword(s, id, 'prowess'))
+            s.triggers.push({ id: newId(s, 't'), controller: player, source: id, ability: PROWESS_TRIGGER });
         }
       }
       s.pending = null;

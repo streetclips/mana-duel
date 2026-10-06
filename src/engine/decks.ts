@@ -101,7 +101,8 @@ export const DUSKMIRE: DeckDef = {
 export const STORMGLASS: DeckDef = {
   id: 'stormglass',
   name: 'Cristormenta',
-  description: 'Azul y rojo: destello, daño directo y robo de cartas; cada instantáneo y cada conjuro potencian a sus criaturas.',
+  description:
+    'Azul y rojo: destello, daño directo y robo de cartas; cada instantáneo y cada conjuro potencian a sus criaturas.',
   colors: ['U', 'R'],
   featured: 'stormglass_drake',
   cards: [
@@ -126,7 +127,8 @@ export const STORMGLASS: DeckDef = {
 export const SUNMEADOW: DeckDef = {
   id: 'sunmeadow',
   name: 'Pradosol',
-  description: 'Verde y blanco: un ejército que crece con contadores +1/+1, refuerzos para todas sus criaturas y ganancia de vidas.',
+  description:
+    'Verde y blanco: un ejército que crece con contadores +1/+1, refuerzos para todas sus criaturas y ganancia de vidas.',
   colors: ['G', 'W'],
   featured: 'sunantler_monarch',
   cards: [
@@ -178,7 +180,8 @@ export const BRIGHTFORGE: DeckDef = {
 export const MISTGRAVE: DeckDef = {
   id: 'mistgrave',
   name: 'Brumafosa',
-  description: 'Azul y negro: criaturas escurridizas que esquivan a bloqueadoras más grandes y vacían la mano del rival.',
+  description:
+    'Azul y negro: criaturas escurridizas que esquivan a bloqueadoras más grandes y vacían la mano del rival.',
   colors: ['U', 'B'],
   featured: 'mistgrave_revenant',
   cards: [
@@ -228,7 +231,8 @@ export const GLOAMWOOD: DeckDef = {
 export const VESPERHALL: DeckDef = {
   id: 'vesperhall',
   name: 'Vesperia',
-  description: 'Blanco y negro: vínculo vital y drenaje de vidas; cada vida que gana fortalece a sus fieles y desangra al rival.',
+  description:
+    'Blanco y negro: vínculo vital y drenaje de vidas; cada vida que gana fortalece a sus fieles y desangra al rival.',
   colors: ['W', 'B'],
   featured: 'vesperhall_matriarch',
   cards: [
@@ -255,7 +259,8 @@ export const VESPERHALL: DeckDef = {
 export const CINDERMAW: DeckDef = {
   id: 'cindermaw',
   name: 'Fauceniza',
-  description: 'Negro y rojo: prisa, amenaza y daño directo; en cuanto el rival sangra, sus criaturas sedientas de sangre llegan más grandes.',
+  description:
+    'Negro y rojo: prisa, amenaza y daño directo; en cuanto el rival sangra, sus criaturas sedientas de sangre llegan más grandes.',
   colors: ['B', 'R'],
   featured: 'cindermaw_demon',
   cards: [
@@ -281,7 +286,8 @@ export const CINDERMAW: DeckDef = {
 export const DEEPGROVE: DeckDef = {
   id: 'deepgrove',
   name: 'Sotohondo',
-  description: 'Verde y azul: criaturas que evolucionan con cada llegada más grande y gigantes con antimaleficio que ignoran los hechizos del rival.',
+  description:
+    'Verde y azul: criaturas que evolucionan con cada llegada más grande y gigantes con antimaleficio que ignoran los hechizos del rival.',
   colors: ['G', 'U'],
   featured: 'deepgrove_leviathan',
   cards: [
@@ -307,7 +313,8 @@ export const DEEPGROVE: DeckDef = {
 export const FLAMECREST: DeckDef = {
   id: 'flamecrest',
   name: 'Crestafuego',
-  description: 'Rojo: monjes con destreza que golpean primero y dos veces; cada instantáneo los enciende y el daño directo remata.',
+  description:
+    'Rojo: monjes con destreza que golpean primero y dos veces; cada instantáneo los enciende y el daño directo remata.',
   colors: ['R'],
   featured: 'flamecrest_mentor',
   cards: [
@@ -332,7 +339,8 @@ export const FLAMECREST: DeckDef = {
 export const WILDLAND: DeckDef = {
   id: 'wildland',
   name: 'Tierrabrava',
-  description: 'Verde: cada tierra que entra despierta a sus bestias; busca bosques y juega tierras de más para crecer sin freno.',
+  description:
+    'Verde: cada tierra que entra despierta a sus bestias; busca bosques y juega tierras de más para crecer sin freno.',
   colors: ['G'],
   featured: 'wildland_colossus',
   cards: [
@@ -358,7 +366,8 @@ export const WILDLAND: DeckDef = {
 export const CROSSROADS: DeckDef = {
   id: 'crossroads',
   name: 'Encrucijada',
-  description: 'Los cinco colores: tierras que dan maná de tres colores o de cualquiera, aunque entran giradas, y hechizos multicolores con lo mejor de cada color.',
+  description:
+    'Los cinco colores: tierras que dan maná de tres colores o de cualquiera, aunque entran giradas, y hechizos multicolores con lo mejor de cada color.',
   colors: ['W', 'U', 'B', 'R', 'G'],
   featured: 'prismatic_dragon',
   cards: [

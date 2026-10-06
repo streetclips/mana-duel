@@ -42,7 +42,10 @@ export function manaFill(colors: readonly Color[]): string {
   if (colors.length === 0) return 'var(--mana-C)';
   if (colors.length === 1) return `var(--mana-${colors[0]})`;
   const share = 100 / colors.length;
-  const stops = colors.map((color, index) => `var(--mana-${color}) 0 ${index === colors.length - 1 ? 100 : Math.round(share * (index + 1) * 10) / 10}%`);
+  const stops = colors.map(
+    (color, index) =>
+      `var(--mana-${color}) 0 ${index === colors.length - 1 ? 100 : Math.round(share * (index + 1) * 10) / 10}%`,
+  );
   return `conic-gradient(${stops.join(', ')})`;
 }
 
@@ -122,7 +125,8 @@ export function abilityHints(defId: string): string[] {
   const parts: string[] = [];
   if (def.mana?.length && def.types.includes('creature')) parts.push(`T: +${manaHint(def.mana)}`);
   for (const trigger of def.triggers ?? []) parts.push(triggerHint(trigger));
-  for (const ability of def.activated ?? []) parts.push(`${activatedCost(ability)}: ${ability.effects.map(effectHint).join(', ')}`);
+  for (const ability of def.activated ?? [])
+    parts.push(`${activatedCost(ability)}: ${ability.effects.map(effectHint).join(', ')}`);
   return parts;
 }
 

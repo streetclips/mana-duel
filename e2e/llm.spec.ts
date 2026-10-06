@@ -39,7 +39,9 @@ function cautious(schema: Schema): unknown {
 function textOf(body: ChatBody, role: string): string {
   const message = body.messages.find((candidate) => candidate.role === role);
   if (!message) return '';
-  return typeof message.content === 'string' ? message.content : message.content.map((part) => part.text ?? '').join('');
+  return typeof message.content === 'string'
+    ? message.content
+    : message.content.map((part) => part.text ?? '').join('');
 }
 
 async function mockOpenRouter(page: Page, status = 200): Promise<Sent[]> {
@@ -53,7 +55,16 @@ async function mockOpenRouter(page: Page, status = 200): Promise<Sent[]> {
     if (await preflight(route)) return;
     await route.fulfill({
       headers: CORS,
-      json: { data: [{ id: 'mock/model', name: 'Mock', supported_parameters: ['structured_outputs'], pricing: { prompt: '0', completion: '0' } }] },
+      json: {
+        data: [
+          {
+            id: 'mock/model',
+            name: 'Mock',
+            supported_parameters: ['structured_outputs'],
+            pricing: { prompt: '0', completion: '0' },
+          },
+        ],
+      },
     });
   });
   await page.route('https://openrouter.ai/api/v1/chat/completions', async (route) => {
@@ -61,7 +72,11 @@ async function mockOpenRouter(page: Page, status = 200): Promise<Sent[]> {
     const body = route.request().postDataJSON() as ChatBody;
     sent.push({ headers: route.request().headers(), body });
     if (status !== 200) {
-      await route.fulfill({ status, headers: CORS, json: { error: { code: status, message: 'No auth credentials found' } } });
+      await route.fulfill({
+        status,
+        headers: CORS,
+        json: { error: { code: status, message: 'No auth credentials found' } },
+      });
       return;
     }
     const answer = cautious(body.response_format?.json_schema?.schema ?? {});
@@ -84,7 +99,8 @@ function collectErrors(page: Page, allowed: RegExp[] = []): string[] {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
-    if (message.type() === 'error' && !allowed.some((pattern) => pattern.test(message.text()))) errors.push(message.text());
+    if (message.type() === 'error' && !allowed.some((pattern) => pattern.test(message.text())))
+      errors.push(message.text());
   });
   return errors;
 }
@@ -108,7 +124,8 @@ test('an LLM from OpenRouter plays the AI seat, seeing only what the AI may see'
   expect(await page.evaluate(() => window.manaDuel.opponent())).toEqual({ kind: 'llm', model: 'mock/model' });
 
   await page.evaluate(() => window.manaDuel.setAiDelay(0));
-  if ((await page.evaluate(() => window.manaDuel.pending()))?.kind !== 'mulligan') await page.evaluate(() => window.manaDuel.idle());
+  if ((await page.evaluate(() => window.manaDuel.pending()))?.kind !== 'mulligan')
+    await page.evaluate(() => window.manaDuel.idle());
   await page.evaluate(() => window.manaDuel.dispatch({ type: 'keep', player: 0 }));
   await page.evaluate(() => window.manaDuel.idle());
   await expect.poll(() => sent.length).toBeGreaterThan(0);
@@ -117,7 +134,10 @@ test('an LLM from OpenRouter plays the AI seat, seeing only what the AI may see'
   if (!first) throw new Error('no request reached OpenRouter');
   expect(first.headers.authorization).toBe('Bearer sk-or-e2e');
   expect(first.body.model).toBe('mock/model');
-  expect(first.body.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'decision', strict: true } });
+  expect(first.body.response_format).toMatchObject({
+    type: 'json_schema',
+    json_schema: { name: 'decision', strict: true },
+  });
   expect(textOf(first.body, 'system')).toContain('Juegas en el asiento llamado "you"');
   const hand = await page.evaluate(() => window.manaDuel.state().players[0].hand);
   for (const request of sent) {
@@ -128,10 +148,17 @@ test('an LLM from OpenRouter plays the AI seat, seeing only what the AI may see'
 
   const decisions = await page.evaluate(() => window.manaDuel.llmDecisions());
   expect(decisions.length).toBeGreaterThan(0);
-  expect(decisions[0]).toMatchObject({ source: 'model', model: 'mock/model', reason: 'Playing it safe.', usage: { cost: 0.0002 } });
+  expect(decisions[0]).toMatchObject({
+    source: 'model',
+    model: 'mock/model',
+    reason: 'Playing it safe.',
+    usage: { cost: 0.0002 },
+  });
   await page.getByTestId('btn-menu').click();
   await page.getByTestId('menu-log').click();
-  await expect(page.getByTestId('log-panel').locator('li.note').first()).toHaveText('El rival piensa: Playing it safe.');
+  await expect(page.getByTestId('log-panel').locator('li.note').first()).toHaveText(
+    'El rival piensa: Playing it safe.',
+  );
   expect(errors).toEqual([]);
 });
 

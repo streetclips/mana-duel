@@ -92,7 +92,13 @@ function resolveCreatureTarget(s: GameState, ctx: EffectContext, ref: EffectTarg
   return target.card;
 }
 
-function pumpUntilEndOfTurn(s: GameState, card: CardId, power: number, toughness: number, keywords: Keyword[] = []): void {
+function pumpUntilEndOfTurn(
+  s: GameState,
+  card: CardId,
+  power: number,
+  toughness: number,
+  keywords: Keyword[] = [],
+): void {
   const effect: ContinuousEffect = { id: newId(s, 'e'), card, power, toughness, until: 'endOfTurn' };
   const event: GameEvent = { t: 'pump', card, power, toughness };
   if (keywords.length > 0) {
@@ -113,7 +119,14 @@ function addCounters(s: GameState, card: CardId, amount: number): void {
   s.events.push({ t: 'addCounters', card, amount });
 }
 
-function searchLand(s: GameState, player: PlayerId, land: string, battlefield: number, hand: number, tapped: boolean): void {
+function searchLand(
+  s: GameState,
+  player: PlayerId,
+  land: string,
+  battlefield: number,
+  hand: number,
+  tapped: boolean,
+): void {
   const library = s.players[player].library;
   const found = library.filter((id) => getCard(s, id).def === land).slice(0, battlefield + hand);
   found.forEach((id, index) => {
@@ -139,7 +152,8 @@ export function executeEffects(s: GameState, effects: Effect[], ctx: EffectConte
         break;
       }
       case 'pumpTeam':
-        for (const card of creaturesOf(s, ctx.controller)) pumpUntilEndOfTurn(s, card, effect.power, effect.toughness, effect.keywords);
+        for (const card of creaturesOf(s, ctx.controller))
+          pumpUntilEndOfTurn(s, card, effect.power, effect.toughness, effect.keywords);
         break;
       case 'addCounters': {
         const card = resolveCreatureTarget(s, ctx, effect.to);

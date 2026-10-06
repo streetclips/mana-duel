@@ -15,7 +15,9 @@ describe('card art', () => {
   it('draws every card on the same 120×80 canvas', () => {
     for (const file of artFiles) {
       const svg = readFileSync(new URL(file, artDir), 'utf8');
-      expect(svg, file).toMatch(/^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" width="120" height="80" viewBox="0 0 120 80">/);
+      expect(svg, file).toMatch(
+        /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" width="120" height="80" viewBox="0 0 120 80">/,
+      );
       expect(svg.trimEnd(), file).toMatch(/<\/svg>$/);
     }
   });

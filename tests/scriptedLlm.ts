@@ -15,7 +15,9 @@ export class ScriptedLlm implements LlmPlayer {
 
   constructor(
     readonly model: string,
-    private readonly auto: ((s: GameState, player: PlayerId) => Partial<LlmDecision> & { action: Action }) | null = null,
+    private readonly auto:
+      | ((s: GameState, player: PlayerId) => Partial<LlmDecision> & { action: Action })
+      | null = null,
   ) {}
 
   decide(state: GameState, player: PlayerId, options: DecideOptions = {}): Promise<LlmDecision> {

@@ -91,7 +91,8 @@ export function interactionFor(s: GameState, human: PlayerId): Interaction {
 
 export function actionsForCard(actions: Action[], card: CardId): Action[] {
   return actions.filter(
-    (action) => (action.type === 'cast' || action.type === 'playLand' || action.type === 'activate') && action.card === card,
+    (action) =>
+      (action.type === 'cast' || action.type === 'playLand' || action.type === 'activate') && action.card === card,
   );
 }
 
@@ -105,7 +106,10 @@ function hasPrefix(targets: Target[], prefix: Target[]): boolean {
 export function matchingTargetActions(actions: Action[], interaction: Interaction): Action[] {
   if (interaction.kind === 'target') {
     return actions.filter((action) => {
-      if (interaction.mode === 'cast') return action.type === 'cast' && action.card === interaction.source && hasPrefix(action.targets, interaction.chosen);
+      if (interaction.mode === 'cast')
+        return (
+          action.type === 'cast' && action.card === interaction.source && hasPrefix(action.targets, interaction.chosen)
+        );
       return (
         action.type === 'activate' &&
         action.card === interaction.source &&
@@ -134,14 +138,18 @@ export function selectableTargets(actions: Action[], interaction: Interaction): 
 function targetSpecsFor(s: GameState, interaction: Interaction): { specs: TargetSpec[]; source: CardId } | null {
   if (interaction.kind === 'target') {
     const def = defOf(s, interaction.source);
-    const specs = interaction.mode === 'cast' ? (def.spell?.targets ?? []) : (def.activated?.[interaction.ability]?.targets ?? []);
+    const specs =
+      interaction.mode === 'cast' ? (def.spell?.targets ?? []) : (def.activated?.[interaction.ability]?.targets ?? []);
     return { specs, source: interaction.source };
   }
   if (interaction.kind === 'triggerTarget' && s.pending?.kind === 'chooseTargets') {
     const triggerId = s.pending.trigger;
     const trigger = s.triggers.find((candidate) => candidate.id === triggerId);
     if (!trigger) return null;
-    return { specs: triggeredAbility(defOf(s, trigger.source), trigger.ability)?.targets ?? [], source: trigger.source };
+    return {
+      specs: triggeredAbility(defOf(s, trigger.source), trigger.ability)?.targets ?? [],
+      source: trigger.source,
+    };
   }
   return null;
 }
@@ -157,7 +165,9 @@ export function chooseTarget(actions: Action[], interaction: Interaction, target
   const chosen = [...interaction.chosen, target];
   const next = { ...interaction, chosen } as Interaction;
   const complete = matchingTargetActions(actions, next).find(
-    (action) => (action.type === 'cast' || action.type === 'activate' || action.type === 'chooseTargets') && action.targets.length === chosen.length,
+    (action) =>
+      (action.type === 'cast' || action.type === 'activate' || action.type === 'chooseTargets') &&
+      action.targets.length === chosen.length,
   );
   return complete ? { interaction: { kind: 'none' }, action: complete } : { interaction: next };
 }
@@ -197,7 +207,11 @@ export function tapForBlock(s: GameState, human: PlayerId, interaction: Interact
     if (interaction.blocker === card) return { ...interaction, blocker: null };
     const attackers = options[card] ?? [];
     if (attackers.length === 1) {
-      return { kind: 'block', blocks: [...interaction.blocks, { blocker: card, attacker: attackers[0] as CardId }], blocker: null };
+      return {
+        kind: 'block',
+        blocks: [...interaction.blocks, { blocker: card, attacker: attackers[0] as CardId }],
+        blocker: null,
+      };
     }
     return { ...interaction, blocker: card };
   }
@@ -221,7 +235,8 @@ function describeStackTop(s: GameState, human: PlayerId): string | null {
   const source = stackItemSource(top);
   const mine = top.controller === human;
   const text = gameText();
-  const what = top.kind === 'spell' ? text.castSpell(mine, cardName(s, source)) : text.useAbility(mine, cardName(s, source));
+  const what =
+    top.kind === 'spell' ? text.castSpell(mine, cardName(s, source)) : text.useAbility(mine, cardName(s, source));
   const targets = top.targets.length ? ` → ${top.targets.map((target) => targetRef(s, target, human)).join(', ')}` : '';
   return `${what}${targets}`;
 }
@@ -263,7 +278,7 @@ export function barModel(
           ? text.opponentChoosesAttack
           : pending.kind === 'mulligan'
             ? text.opponentLooksAtHand
-            : describeStackTop(s, human) ?? recent ?? text.opponentThinks;
+            : (describeStackTop(s, human) ?? recent ?? text.opponentThinks);
     return { prompt: { title: busy ? text.opponentPlays : text.waiting, detail }, buttons: [] };
   }
 
@@ -273,7 +288,9 @@ export function barModel(
     const title = text.choose(spec ? targetChoice(spec) : text.aTarget);
     const detail = info ? text.forCard(cardName(s, info.source)) : undefined;
     const buttons: UiButton[] =
-      interaction.kind === 'target' ? [{ id: 'cancel', label: text.cancel, command: { kind: 'cancel' }, tone: 'secondary' }] : [];
+      interaction.kind === 'target'
+        ? [{ id: 'cancel', label: text.cancel, command: { kind: 'cancel' }, tone: 'secondary' }]
+        : [];
     return { prompt: { title, detail }, buttons };
   }
 
@@ -288,7 +305,12 @@ export function barModel(
           detail: `${text.landsInHand(lands)}${ps.mulligans ? text.willBottom(ps.mulligans) : ''}`,
         },
         buttons: [
-          { id: 'keep', label: text.keep, command: { kind: 'dispatch', action: { type: 'keep', player: human } }, tone: 'primary' },
+          {
+            id: 'keep',
+            label: text.keep,
+            command: { kind: 'dispatch', action: { type: 'keep', player: human } },
+            tone: 'primary',
+          },
           ...(ps.mulligans < 6
             ? [
                 {
@@ -383,7 +405,9 @@ function priorityBar(s: GameState, human: PlayerId, pass: Action): BarModel {
   if (top && top.controller !== human) {
     return {
       prompt: { title: describeStackTop(s, human) ?? text.respond, detail: text.respondHint },
-      buttons: [{ id: 'resolve', label: text.letResolve, command: { kind: 'dispatch', action: pass }, tone: 'primary' }],
+      buttons: [
+        { id: 'resolve', label: text.letResolve, command: { kind: 'dispatch', action: pass }, tone: 'primary' },
+      ],
     };
   }
   if (top) {

@@ -119,7 +119,9 @@ test('the boss carries a boss relic, shown on the map and beside its bar in the 
   await expect(floor.locator('.relic-pill.boss')).toHaveAttribute('data-testid', `rival-relic-${special}`);
   await expectNoHorizontalOverflow(page);
   await page.getByTestId(`rival-relic-${special}`).click();
-  await expect(page.getByTestId('relic-sheet')).toContainText('Su habilidad especial: solo los jefes llevan esta reliquia.');
+  await expect(page.getByTestId('relic-sheet')).toContainText(
+    'Su habilidad especial: solo los jefes llevan esta reliquia.',
+  );
   await page.getByTestId('relic-sheet').click({ position: { x: 10, y: 10 } });
   await expect(page.getByTestId('relic-sheet')).toHaveCount(0);
 
@@ -143,7 +145,9 @@ test('the boss carries a boss relic, shown on the map and beside its bar in the 
   const badges = page.getByTestId('relics-1').getByRole('button');
   await expect(badges).toHaveCount(inPlay.length);
   await expect(badges.first()).toHaveAttribute('data-def', special);
-  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth))
+    .toBeLessThanOrEqual(0);
   await badges.first().click();
   await expect(page.getByTestId('card-sheet')).toContainText('Reliquia del rival');
   expect(errors).toEqual([]);

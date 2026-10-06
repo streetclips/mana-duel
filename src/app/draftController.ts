@@ -1,7 +1,19 @@
 import type { PlayerId } from '../engine';
 import { randomSeed, type GameController, type OpponentSetup, type Replay } from './controller';
 import type { DeckDraft } from './deckBuilding';
-import { createDraft, isDraftRun, matchSetup, pickCard, recordGame, resumeSetup, saveDeck, startGame, withGame, type DraftFormat, type DraftRun } from './draft';
+import {
+  createDraft,
+  isDraftRun,
+  matchSetup,
+  pickCard,
+  recordGame,
+  resumeSetup,
+  saveDeck,
+  startGame,
+  withGame,
+  type DraftFormat,
+  type DraftRun,
+} from './draft';
 import { DuelTracker, type DuelResult } from './duelTracker';
 
 export interface DraftStore {
@@ -31,7 +43,10 @@ export class DraftController {
   ) {
     const stored = store.load();
     this.run = isDraftRun(stored) ? stored : null;
-    this.tracker = new DuelTracker(game, { save: (replay) => this.saveGame(replay), end: (result, turns) => this.endGame(result, turns) });
+    this.tracker = new DuelTracker(game, {
+      save: (replay) => this.saveGame(replay),
+      end: (result, turns) => this.endGame(result, turns),
+    });
   }
 
   get inGame(): boolean {
@@ -85,7 +100,15 @@ export class DraftController {
       return;
     }
     const { run: next, seed, startingPlayer } = startGame(run);
-    this.game.newGame({ decks, perks: [{}, {}], seed, startingPlayer, opponent, autoplay: false, skipMulligans: false });
+    this.game.newGame({
+      decks,
+      perks: [{}, {}],
+      seed,
+      startingPlayer,
+      opponent,
+      autoplay: false,
+      skipMulligans: false,
+    });
     this.follow(withGame(next, this.game.getReplay()));
   }
 

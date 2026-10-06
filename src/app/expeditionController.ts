@@ -46,7 +46,10 @@ export class ExpeditionController {
   ) {
     const stored = store.load();
     this.run = isExpeditionRun(stored) ? stored : null;
-    this.tracker = new DuelTracker(game, { save: (replay) => this.saveDuel(replay), end: (result, turns) => this.endDuel(result, turns) });
+    this.tracker = new DuelTracker(game, {
+      save: (replay) => this.saveDuel(replay),
+      end: (result, turns) => this.endDuel(result, turns),
+    });
   }
 
   get inDuel(): boolean {
@@ -112,7 +115,14 @@ export class ExpeditionController {
   private follow(run: ExpeditionRun): void {
     const rival = currentRival(run);
     this.duelInfo = rival
-      ? { number: run.wins + 1, total: run.rivals.length, rival: rival.deck, boss: rival.boss, result: null, revived: false }
+      ? {
+          number: run.wins + 1,
+          total: run.rivals.length,
+          rival: rival.deck,
+          boss: rival.boss,
+          result: null,
+          revived: false,
+        }
       : null;
     this.update(run);
     this.tracker.follow();
@@ -127,7 +137,8 @@ export class ExpeditionController {
     const run = this.run;
     if (run?.stage.kind !== 'duel' || !currentRival(run)) return;
     const next = recordDuel(run, result, turns);
-    if (this.duelInfo) this.duelInfo = { ...this.duelInfo, result, revived: result === 'lost' && next.stage.kind === 'duel' };
+    if (this.duelInfo)
+      this.duelInfo = { ...this.duelInfo, result, revived: result === 'lost' && next.stage.kind === 'duel' };
     this.update(next);
   }
 

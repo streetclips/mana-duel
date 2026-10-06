@@ -23,7 +23,8 @@ export const startText = messages({
     apiKey: 'Clave de API de OpenRouter',
     apiKeyOptional: 'Opcional con el servidor de desarrollo',
     getKey: 'Consigue una clave',
-    proxyHint: 'El servidor de desarrollo añade su propia OPENROUTER_API_KEY, así que aquí no hace falta ninguna clave.',
+    proxyHint:
+      'El servidor de desarrollo añade su propia OPENROUTER_API_KEY, así que aquí no hace falta ninguna clave.',
     keyHint:
       'Tu clave se queda en este dispositivo. Cada decisión de la IA es una petición a OpenRouter que se cobra a esa clave. Con menos esfuerzo de razonamiento, los modelos que razonan responden antes.',
     modelProblem: (example: string) => `Escribe el id de un modelo de OpenRouter, como ${example}.`,

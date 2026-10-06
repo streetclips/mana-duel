@@ -32,7 +32,10 @@ export function line(literals: TemplateStringsArray, ...pieces: TextPiece[]): Te
 }
 
 export function joined(items: (TextPart | TextPart[])[], separator: string): TextPart[] {
-  return items.flatMap((item, index) => [...(index === 0 ? [] : [separator]), ...(Array.isArray(item) ? item : [item])]);
+  return items.flatMap((item, index) => [
+    ...(index === 0 ? [] : [separator]),
+    ...(Array.isArray(item) ? item : [item]),
+  ]);
 }
 
 export function capitalize(text: string): string {

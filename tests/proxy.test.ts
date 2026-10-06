@@ -36,7 +36,10 @@ function recorder(): { fetch: typeof fetch; seen: Forwarded[] } {
         headers: Object.fromEntries(new Headers(init?.headers).entries()),
         body: init?.body ? JSON.parse(String(init.body)) : undefined,
       });
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } });
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
     },
   };
 }
@@ -56,7 +59,11 @@ describe('the dev server OpenRouter proxy', () => {
       {
         url: 'https://upstream.test/api/v1/chat/completions',
         method: 'POST',
-        headers: { authorization: 'Bearer sk-secret', 'content-type': 'application/json', 'x-openrouter-title': 'Mana Duel' },
+        headers: {
+          authorization: 'Bearer sk-secret',
+          'content-type': 'application/json',
+          'x-openrouter-title': 'Mana Duel',
+        },
         body: { model: 'openai/gpt-6-luna' },
       },
     ]);
@@ -79,6 +86,8 @@ describe('the dev server OpenRouter proxy', () => {
     });
     const response = await fetch(`${base}/chat/completions`, { method: 'POST', headers: { origin: base }, body: '{}' });
     expect(response.status).toBe(502);
-    expect(await response.json()).toEqual({ error: { code: 502, message: 'No se puede contactar con OpenRouter: getaddrinfo ENOTFOUND' } });
+    expect(await response.json()).toEqual({
+      error: { code: 502, message: 'No se puede contactar con OpenRouter: getaddrinfo ENOTFOUND' },
+    });
   });
 });

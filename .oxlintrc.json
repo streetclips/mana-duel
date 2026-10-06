@@ -53,7 +53,11 @@
         ],
         "no-restricted-properties": [
           "error",
-          { "object": "Math", "property": "random", "message": "Randomness lives in state.rng: a seed and its actions replay a game." }
+          {
+            "object": "Math",
+            "property": "random",
+            "message": "Randomness lives in state.rng: a seed and its actions replay a game."
+          }
         ]
       }
     },
@@ -85,7 +89,11 @@
         ],
         "no-restricted-properties": [
           "error",
-          { "object": "Math", "property": "random", "message": "Randomness lives in state.rng: a seed and its actions replay a game." }
+          {
+            "object": "Math",
+            "property": "random",
+            "message": "Randomness lives in state.rng: a seed and its actions replay a game."
+          }
         ]
       }
     },
@@ -96,7 +104,10 @@
           "error",
           {
             "patterns": [
-              { "regex": "^(\\.\\./)+(ai|app|audio|engine|llm|ui)(/|$)", "message": "src/i18n imports nothing: every layer reads it." },
+              {
+                "regex": "^(\\.\\./)+(ai|app|audio|engine|llm|ui)(/|$)",
+                "message": "src/i18n imports nothing: every layer reads it."
+              },
               { "regex": "^[^.]", "message": "src/i18n uses no packages." }
             ]
           }
@@ -110,7 +121,10 @@
           "error",
           {
             "patterns": [
-              { "regex": "^(\\.\\./)+(app|audio|ui)(/|$)", "message": "src/llm reads only src/engine, src/ai and src/i18n." }
+              {
+                "regex": "^(\\.\\./)+(app|audio|ui)(/|$)",
+                "message": "src/llm reads only src/engine, src/ai and src/i18n."
+              }
             ]
           }
         ]
@@ -134,7 +148,10 @@
           "error",
           {
             "patterns": [
-              { "regex": "^(\\.\\./)+(ai|i18n|llm)(/|$)", "message": "src/audio reads only src/engine, src/app and src/ui." }
+              {
+                "regex": "^(\\.\\./)+(ai|i18n|llm)(/|$)",
+                "message": "src/audio reads only src/engine, src/app and src/ui."
+              }
             ]
           }
         ]
@@ -146,7 +163,9 @@
         "no-restricted-imports": [
           "error",
           {
-            "patterns": [{ "regex": "^(\\.\\./)+ai(/|$)", "message": "src/ui reaches the AI through the controller in src/app." }]
+            "patterns": [
+              { "regex": "^(\\.\\./)+ai(/|$)", "message": "src/ui reaches the AI through the controller in src/app." }
+            ]
           }
         ]
       }

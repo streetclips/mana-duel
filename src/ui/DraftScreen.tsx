@@ -67,7 +67,8 @@ function poolDeck(run: DraftRun): DeckDef {
 
 function colorCounts(cards: readonly string[]): [Color, number][] {
   const counts = new Map<Color, number>();
-  for (const card of cards) for (const color of cardColors(getCardDef(card))) counts.set(color, (counts.get(color) ?? 0) + 1);
+  for (const card of cards)
+    for (const color of cardColors(getCardDef(card))) counts.set(color, (counts.get(color) ?? 0) + 1);
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
 
@@ -308,10 +309,20 @@ function Done({ run, library, onNew, onHome, onView }: DoneProps) {
         </header>
         <GameHistory run={run} />
         <div class="draft-actions">
-          <button type="button" class="btn secondary" data-testid="btn-draft-deck" onClick={() => onView(draftDeck(run))}>
+          <button
+            type="button"
+            class="btn secondary"
+            data-testid="btn-draft-deck"
+            onClick={() => onView(draftDeck(run))}
+          >
             {text.viewYourDeck}
           </button>
-          <button type="button" class="btn secondary" data-testid="btn-draft-ai-deck" onClick={() => onView(aiDraftDeck(run))}>
+          <button
+            type="button"
+            class="btn secondary"
+            data-testid="btn-draft-ai-deck"
+            onClick={() => onView(aiDraftDeck(run))}
+          >
             {text.viewAiDeck}
           </button>
           <button
@@ -321,7 +332,12 @@ function Done({ run, library, onNew, onHome, onView }: DoneProps) {
             disabled={savedAs !== null}
             onClick={() => {
               const deck = draftDeck(run);
-              const saved = library.save({ id: null, name: library.nextName(deck.name), featured: deck.featured, cards: deck.cards });
+              const saved = library.save({
+                id: null,
+                name: library.nextName(deck.name),
+                featured: deck.featured,
+                cards: deck.cards,
+              });
               setSavedAs(saved.name);
             }}
           >
@@ -432,14 +448,21 @@ export function DraftScreen({ draft, library, problem, onPlay, onHome }: DraftSc
               >
                 {text.abandonDraft}
               </button>
-              <button type="button" class="btn secondary" data-testid="btn-draft-abandon-no" onClick={() => setConfirming(false)}>
+              <button
+                type="button"
+                class="btn secondary"
+                data-testid="btn-draft-abandon-no"
+                onClick={() => setConfirming(false)}
+              >
                 {text.keepGoing}
               </button>
             </div>
           </div>
         </div>
       )}
-      {viewing && <DeckViewer tabs={[{ key: viewing.id, label: viewing.name, deck: viewing }]} onClose={() => setViewing(null)} />}
+      {viewing && (
+        <DeckViewer tabs={[{ key: viewing.id, label: viewing.name, deck: viewing }]} onClose={() => setViewing(null)} />
+      )}
     </main>
   );
 }

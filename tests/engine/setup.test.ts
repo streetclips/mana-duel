@@ -109,7 +109,14 @@ describe('player setup', () => {
     expect(s.players[1].hand).toHaveLength(7);
     expect(s.players[0].library).toHaveLength(32);
     const [token, land] = s.players[0].battlefield.map((id) => s.cards[id]);
-    expect(token).toMatchObject({ def: 'soldier_token', zone: 'battlefield', tapped: false, summoningSick: false, owner: 0, controller: 0 });
+    expect(token).toMatchObject({
+      def: 'soldier_token',
+      zone: 'battlefield',
+      tapped: false,
+      summoningSick: false,
+      owner: 0,
+      controller: 0,
+    });
     expect(token?.id).toMatch(/^tk\d+$/);
     expect(land).toMatchObject({ id: 'c81', def: 'mountain', zone: 'battlefield', tapped: false });
     expect(s.events.map((event) => event.t)).not.toContain('enter');
@@ -117,7 +124,9 @@ describe('player setup', () => {
   });
 
   it('lets a starting creature attack and a starting land pay on the first turn', () => {
-    let s = keepBoth(createGame({ seed: 4, startingPlayer: 0, players: [{ battlefield: ['soldier_token', 'mountain'] }, {}] }));
+    let s = keepBoth(
+      createGame({ seed: 4, startingPlayer: 0, players: [{ battlefield: ['soldier_token', 'mountain'] }, {}] }),
+    );
     const [token, land] = s.players[0].battlefield;
     expect(canAttack(s, token ?? '')).toBe(true);
     expect(s.players[0].landsPlayedThisTurn).toBe(0);
@@ -131,8 +140,14 @@ describe('player setup', () => {
     const first = keepBoth(createGame({ seed: 4, startingPlayer: 0, players: [{ drawOnFirstTurn: true }, {}] }));
     expect([first.turn, first.step, first.players[0].hand.length]).toEqual([1, 'main1', 8]);
     expect(first.players[0].drawOnFirstTurn).toBe(true);
-    const second = passToStep(keepBoth(createGame({ seed: 4, startingPlayer: 0, players: [{}, { drawOnFirstTurn: true }] })), 'main1', 2);
-    expect([first.players[1].hand.length, second.players[0].hand.length, second.players[1].hand.length]).toEqual([7, 7, 8]);
+    const second = passToStep(
+      keepBoth(createGame({ seed: 4, startingPlayer: 0, players: [{}, { drawOnFirstTurn: true }] })),
+      'main1',
+      2,
+    );
+    expect([first.players[1].hand.length, second.players[0].hand.length, second.players[1].hand.length]).toEqual([
+      7, 7, 8,
+    ]);
   });
 
   it('draws the bigger hand again after a mulligan', () => {
@@ -146,14 +161,26 @@ describe('player setup', () => {
   it('shuffles the same libraries whatever each player starts with', () => {
     const order = (s: GameState) => s.players.map((ps) => ps.library.map((id) => s.cards[id]?.def));
     const plain = createGame({ seed: 13, startingPlayer: 0 });
-    const boosted = createGame({ seed: 13, startingPlayer: 0, players: [{ life: 40, battlefield: ['forest'] }, { openingHand: 7 }] });
+    const boosted = createGame({
+      seed: 13,
+      startingPlayer: 0,
+      players: [{ life: 40, battlefield: ['forest'] }, { openingHand: 7 }],
+    });
     expect(order(boosted)).toEqual(order(plain));
     expect(boosted.players[1].openingHand).toBeUndefined();
   });
 
   it('plays a deck given as a definition as well as one named by its id', () => {
     const base = getDeck('duskmire');
-    const custom: DeckDef = { ...base, id: 'my_deck', name: 'Mi mazo', cards: [{ card: 'swamp', count: 20 }, { card: 'gloom_wisp', count: 20 }] };
+    const custom: DeckDef = {
+      ...base,
+      id: 'my_deck',
+      name: 'Mi mazo',
+      cards: [
+        { card: 'swamp', count: 20 },
+        { card: 'gloom_wisp', count: 20 },
+      ],
+    };
     const s = createGame({ seed: 8, players: [{ deck: custom }, { deck: 'duskmire' }] });
     expectSound(s);
     const defsOf = (player: 0 | 1) =>

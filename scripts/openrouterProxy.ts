@@ -38,7 +38,8 @@ export function openRouterProxy(options: ProxyOptions): Handler {
   const upstream = options.upstream ?? OPENROUTER_UPSTREAM;
   const send = options.fetch ?? fetch;
   return async (req, res) => {
-    if (!sameOrigin(req)) return fail(res, 403, 'El proxy de OpenRouter solo responde al juego que sirve este servidor de desarrollo.');
+    if (!sameOrigin(req))
+      return fail(res, 403, 'El proxy de OpenRouter solo responde al juego que sirve este servidor de desarrollo.');
     try {
       const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await readBody(req);
       const response = await send(`${upstream}${req.url ?? ''}`, {

@@ -129,7 +129,11 @@ function joinedAnd(items: TextPart[][]): TextPart[] {
 }
 
 function typeLine(def: CardDef): string {
-  const words = [...(def.supertypes ?? []), ...(def.token ? ['Token'] : []), ...def.types.map((type) => TYPE_NAMES[type])];
+  const words = [
+    ...(def.supertypes ?? []),
+    ...(def.token ? ['Token'] : []),
+    ...def.types.map((type) => TYPE_NAMES[type]),
+  ];
   const subtypes = (def.subtypes ?? []).join(' ');
   return subtypes ? `${words.join(' ')} — ${subtypes}` : words.join(' ');
 }
@@ -217,7 +221,8 @@ function searchLandSentence(land: string, battlefield: number, hand: number, tap
     const put = battlefield === 1 ? 'put it' : 'put them';
     return `${search}, ${put} onto the battlefield${tapped ? ' tapped' : ''}, then shuffle.`;
   }
-  if (battlefield === 0) return `${search}, ${hand === 1 ? 'reveal it, put it' : 'reveal them, put them'} into your hand, then shuffle.`;
+  if (battlefield === 0)
+    return `${search}, ${hand === 1 ? 'reveal it, put it' : 'reveal them, put them'} into your hand, then shuffle.`;
   return `${search}, put one onto the battlefield${tapped ? ' tapped' : ''} and the other into your hand, then shuffle.`;
 }
 
@@ -257,7 +262,9 @@ function effectSentence(effect: Effect, ref: TargetRef, context: SentenceContext
     case 'gainLife':
       return `You gain ${lifeAmount(effect.amount)}.`;
     case 'loseLife':
-      return effect.who === 'opponent' ? `Each opponent loses ${lifeAmount(effect.amount)}.` : `You lose ${lifeAmount(effect.amount)}.`;
+      return effect.who === 'opponent'
+        ? `Each opponent loses ${lifeAmount(effect.amount)}.`
+        : `You lose ${lifeAmount(effect.amount)}.`;
     case 'fight':
       return `${ref(effect.a, 'subject')} fights ${ref(effect.b, 'object')}.`;
     case 'bite':
@@ -358,20 +365,25 @@ function describeEventParts(s: GameState, event: GameEvent, viewer: PlayerId): T
     case 'draw':
       return event.player === viewer ? line`You draw ${mention(s, event.card)}.` : line`The opponent draws a card.`;
     case 'drawEmpty':
-      return event.player === viewer ? line`You can't draw: your library is empty.` : line`The opponent can't draw: their library is empty.`;
+      return event.player === viewer
+        ? line`You can't draw: your library is empty.`
+        : line`The opponent can't draw: their library is empty.`;
     case 'land':
       return line`${act(event.player, viewer, 'play', 'plays')} ${mention(s, event.card)}.`;
     case 'cast':
       return line`${act(event.player, viewer, 'cast', 'casts')} ${mention(s, event.card)}${targetsSuffix(s, event.targets, viewer)}.`;
     case 'activate': {
       const own = s.cards[event.card]?.controller === event.player;
-      const source = own ? line`${possessive(event.player, viewer)} ${mention(s, event.card)}` : cardRefParts(s, event.card, viewer);
+      const source = own
+        ? line`${possessive(event.player, viewer)} ${mention(s, event.card)}`
+        : cardRefParts(s, event.card, viewer);
       return line`${act(event.player, viewer, 'activate', 'activates')} ${source}${targetsSuffix(s, event.targets, viewer)}.`;
     }
     case 'trigger':
       return line`${capitalizeParts(cardRefParts(s, event.card, viewer))} triggers${targetsSuffix(s, event.targets, viewer)}.`;
     case 'fizzle': {
-      const subject = event.item.kind === 'spell' ? [mention(s, event.item.card)] : line`${mention(s, event.item.source)}'s ability`;
+      const subject =
+        event.item.kind === 'spell' ? [mention(s, event.item.card)] : line`${mention(s, event.item.source)}'s ability`;
       return line`${subject} doesn't resolve: its targets are gone.`;
     }
     case 'counter':
@@ -390,7 +402,9 @@ function describeEventParts(s: GameState, event: GameEvent, viewer: PlayerId): T
     case 'damage':
       return line`${capitalizeParts(cardRefParts(s, event.source, viewer))} deals ${damageAmount(event.amount)} to ${targetRefParts(s, event.target, viewer)}.`;
     case 'life':
-      return event.delta > 0 ? line`${act(event.player, viewer, 'gain', 'gains')} ${lifeAmount(event.delta)} (${event.life}).` : null;
+      return event.delta > 0
+        ? line`${act(event.player, viewer, 'gain', 'gains')} ${lifeAmount(event.delta)} (${event.life}).`
+        : null;
     case 'loseLife':
       return line`${act(event.player, viewer, 'lose', 'loses')} ${lifeAmount(event.amount)}.`;
     case 'pump':

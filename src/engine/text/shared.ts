@@ -1,5 +1,14 @@
 import { getCardDef } from '../registry';
-import { EVOLVE_TRIGGER, PROWESS_TRIGGER, UNDYING_TRIGGER, getCard, getPower, getToughness, isCreatureDef, isRelicDef } from '../state';
+import {
+  EVOLVE_TRIGGER,
+  PROWESS_TRIGGER,
+  UNDYING_TRIGGER,
+  getCard,
+  getPower,
+  getToughness,
+  isCreatureDef,
+  isRelicDef,
+} from '../state';
 import type {
   CardDef,
   CardId,
@@ -82,7 +91,13 @@ function withoutPeriod(sentence: string): string {
   return sentence.replace(/\.$/, '');
 }
 
-function sentences(grammar: RulesGrammar, effects: Effect[], specs: TargetSpec[], context: SentenceContext, self: SelfReference): string {
+function sentences(
+  grammar: RulesGrammar,
+  effects: Effect[],
+  specs: TargetSpec[],
+  context: SentenceContext,
+  self: SelfReference,
+): string {
   const named = new Set<number>();
   const ref: TargetRef = (target, role) => {
     if (target === 'self') return self[role];
@@ -96,7 +111,9 @@ function sentences(grammar: RulesGrammar, effects: Effect[], specs: TargetSpec[]
   effects.forEach((effect, index) => {
     const previous = effects[index - 1];
     if (effect.kind === 'damage' && previous?.kind === 'damage' && lines.length > 0) {
-      lines.push(`${withoutPeriod(lines.pop() as string)} ${grammar.moreDamage(effect.amount, ref(effect.to, 'object'))}`);
+      lines.push(
+        `${withoutPeriod(lines.pop() as string)} ${grammar.moreDamage(effect.amount, ref(effect.to, 'object'))}`,
+      );
       return;
     }
     const text = capitalize(grammar.effectSentence(effect, ref, context));
@@ -110,7 +127,9 @@ function sentences(grammar: RulesGrammar, effects: Effect[], specs: TargetSpec[]
 export function rulesText(grammar: RulesGrammar, def: CardDef): string[] {
   const lines: string[] = [];
   if (def.keywords?.length) {
-    const names = def.keywords.map((keyword, i) => (i === 0 ? grammar.keywordNames[keyword] : lowerFirst(grammar.keywordNames[keyword])));
+    const names = def.keywords.map((keyword, i) =>
+      i === 0 ? grammar.keywordNames[keyword] : lowerFirst(grammar.keywordNames[keyword]),
+    );
     lines.push(grammar.keywordLine(names.join(', ')));
   }
   if (def.entersTapped) lines.push(grammar.entersTapped);
@@ -164,15 +183,22 @@ function permanentLabel(words: StateWords, s: GameState, id: CardId): string {
 
 export function describeState(words: StateWords, s: GameState, viewer: PlayerId, revealAll: boolean): string {
   const lines: string[] = [];
-  lines.push(`${words.turn} ${s.turn} · ${words.stepName(s.step)} · ${words.active}: ${s.players[s.activePlayer].name} (p${s.activePlayer})`);
+  lines.push(
+    `${words.turn} ${s.turn} · ${words.stepName(s.step)} · ${words.active}: ${s.players[s.activePlayer].name} (p${s.activePlayer})`,
+  );
   for (const player of [viewer, viewer === 0 ? 1 : 0] as PlayerId[]) {
     const ps = s.players[player];
     const showHand = revealAll || player === viewer;
-    const hand = showHand ? ps.hand.map((id) => `${cardName(s, id)}(${id})`).join(', ') : words.hiddenHand(ps.hand.length);
-    lines.push(`${ps.name} (p${player}): ${words.life(ps.life)} · ${words.library} ${ps.library.length} · ${words.graveyard} ${ps.graveyard.length}`);
+    const hand = showHand
+      ? ps.hand.map((id) => `${cardName(s, id)}(${id})`).join(', ')
+      : words.hiddenHand(ps.hand.length);
+    lines.push(
+      `${ps.name} (p${player}): ${words.life(ps.life)} · ${words.library} ${ps.library.length} · ${words.graveyard} ${ps.graveyard.length}`,
+    );
     lines.push(`  ${words.hand}: ${hand || '—'}`);
     lines.push(`  ${words.battlefield}: ${ps.battlefield.map((id) => permanentLabel(words, s, id)).join(', ') || '—'}`);
-    if (ps.command.length > 0) lines.push(`  ${words.relics}: ${ps.command.map((id) => `${cardName(s, id)}(${id})`).join(', ')}`);
+    if (ps.command.length > 0)
+      lines.push(`  ${words.relics}: ${ps.command.map((id) => `${cardName(s, id)}(${id})`).join(', ')}`);
   }
   const stack = [...s.stack]
     .reverse()

@@ -38,11 +38,17 @@ export function DeckBox({ deck, open, printed = false }: DeckBoxProps) {
         <span class="box-face box-front">
           <span class="box-pips">
             {COLORS.map((color) => (
-              <i key={color} class={lit.includes(color) ? 'lit' : undefined} style={cssVars({ '--pip': `var(--mana-${color})` })} />
+              <i
+                key={color}
+                class={lit.includes(color) ? 'lit' : undefined}
+                style={cssVars({ '--pip': `var(--mana-${color})` })}
+              />
             ))}
           </span>
           {printed && <span class="box-brand">{common.title}</span>}
-          <span class="box-art">{deck ? <img src={cardArtUrl(deck.featured)} alt="" draggable={false} /> : <b>?</b>}</span>
+          <span class="box-art">
+            {deck ? <img src={cardArtUrl(deck.featured)} alt="" draggable={false} /> : <b>?</b>}
+          </span>
           {printed && <span class="box-name">{name}</span>}
         </span>
         <span class="box-lid">

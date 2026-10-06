@@ -210,7 +210,9 @@ export function visibleCardDefs(s: GameState, viewer: PlayerId): string[] {
 
 export function cardGlossary(defIds: Iterable<string>): string[] {
   const unique = [...new Set(defIds)];
-  return unique.sort((a, b) => getCardDef(a).name.localeCompare(getCardDef(b).name, getLocale())).map((id) => cardSummary(id));
+  return unique
+    .sort((a, b) => getCardDef(a).name.localeCompare(getCardDef(b).name, getLocale()))
+    .map((id) => cardSummary(id));
 }
 
 function deckOf(spec: DeckSpec): DeckDef | null {

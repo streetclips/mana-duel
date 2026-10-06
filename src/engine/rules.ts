@@ -48,7 +48,12 @@ export function castError(s: GameState, player: PlayerId, cardId: CardId, target
   return targetsError(s, player, defOf(s, cardId).spell?.targets ?? [], targets);
 }
 
-export function activationBlocker(s: GameState, player: PlayerId, cardId: CardId, abilityIndex: number): Refusal | null {
+export function activationBlocker(
+  s: GameState,
+  player: PlayerId,
+  cardId: CardId,
+  abilityIndex: number,
+): Refusal | null {
   const card = s.cards[cardId];
   if (!card || card.zone !== 'battlefield' || card.controller !== player) return { code: 'notYourPermanent' };
   const ability = defOf(s, cardId).activated?.[abilityIndex];
