@@ -1,15 +1,17 @@
 import { Fragment } from 'preact';
 import { useLayoutEffect, useRef } from 'preact/hooks';
-import { DECK_LIST, type DeckDef, type PlayerId } from '../../engine';
+import { DECK_LIST, localizeDeck, type DeckDef, type PlayerId } from '../../engine';
 import { chosenDeck, deckOptions, seatDeck, withSeatDeck, type DeckChoice } from '../deckChoice';
 import { cssVars } from '../cardInfo';
+import { commonText } from '../text/common';
+import { decksText } from '../text/decks';
 import { DeckBox } from './DeckBox';
 import { ColorDots } from './DeckViewer';
 
 export const PICKER_ID = 'deck-picker';
 
 function deckName(id: string, customs: readonly DeckDef[]): string {
-  return chosenDeck(id, customs)?.name ?? 'Aleatorio';
+  return chosenDeck(id, customs)?.name ?? commonText().random;
 }
 
 function ChevronIcon() {
@@ -73,7 +75,7 @@ export function Versus({ choice, customs = [], picking, names, onPick }: VersusP
     />
   );
   return (
-    <div class={`versus${picking === null ? '' : ' picking'}`} role="group" aria-label="Enfrentamiento" data-testid="versus">
+    <div class={`versus${picking === null ? '' : ' picking'}`} role="group" aria-label={decksText().picker.matchup} data-testid="versus">
       {seat(0)}
       <span key={`${choice.deck}:${choice.opponent}`} class="vs" aria-hidden="true">
         vs
@@ -103,7 +105,7 @@ export function DeckOption({ deck, index, checked, testId, onSelect }: DeckOptio
       onClick={onSelect}
     >
       <DeckBox deck={deck} open={checked} />
-      <span class="deck-option-name">{deck?.name ?? 'Aleatorio'}</span>
+      <span class="deck-option-name">{deck ? localizeDeck(deck).name : commonText().random}</span>
     </button>
   );
 }
@@ -122,7 +124,8 @@ export function DeckPicker({ seat, choice, customs = [], onChange, onView, onDon
   const selected = seatDeck(choice, seat);
   const deck = chosenDeck(selected, customs);
   const options = deckOptions(customs);
-  const title = seat === 0 ? 'Tu mazo' : 'El mazo de la IA';
+  const text = decksText().picker;
+  const title = seat === 0 ? text.yourDeck : text.aiDeck;
 
   useLayoutEffect(() => {
     const list = grid.current;
@@ -137,28 +140,28 @@ export function DeckPicker({ seat, choice, customs = [], onChange, onView, onDon
     <section id={PICKER_ID} class="picker" data-testid="deck-picker" data-seat={seat} aria-label={title}>
       <header class="picker-head">
         <h2 class="section-label">{title}</h2>
-        <span class="picker-count num">{options.length - 1} mazos</span>
+        <span class="picker-count num">{text.deckCount(options.length - 1)}</span>
         <button type="button" class="picker-done" data-testid="btn-picker-done" onClick={onDone}>
-          Listo
+          {text.done}
         </button>
       </header>
       <div class="picker-detail" data-testid="deck-detail" aria-live="polite">
         <div class="picker-detail-text">
           <h3>
-            {deck ? deck.name : 'Aleatorio'}
+            {deck ? deck.name : commonText().random}
             {deck && <ColorDots deck={deck} />}
           </h3>
-          <p>{deck ? deck.description : `Un mazo distinto en cada partida: uno de los ${DECK_LIST.length}, elegido al empezar.`}</p>
+          <p>{deck ? deck.description : text.randomDescription(DECK_LIST.length)}</p>
         </div>
         {deck && (
           <button
             type="button"
             class="btn secondary"
-            aria-label={`Ver el mazo ${deck.name}`}
+            aria-label={text.viewDeck(deck.name)}
             data-testid={`deck-view-${deck.id}`}
             onClick={() => onView(deck.id)}
           >
-            Cartas
+            {text.cards}
           </button>
         )}
       </div>
@@ -167,7 +170,7 @@ export function DeckPicker({ seat, choice, customs = [], onChange, onView, onDon
           <Fragment key={id}>
             {id === customs[0]?.id && (
               <h3 class="picker-group" data-testid="picker-custom">
-                Mis mazos
+                {text.myDecks}
               </h3>
             )}
             <DeckOption

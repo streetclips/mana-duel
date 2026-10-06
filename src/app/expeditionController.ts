@@ -87,7 +87,7 @@ export class ExpeditionController {
     const run = this.run;
     if (!run || run.stage.kind !== 'duel') throw new Error('the expedition has no duel to fight now');
     this.game.setAutoplay(false);
-    if (run.duel && this.game.loadReplay(run.duel, opponent).ok) {
+    if (run.duel && this.game.loadReplay({ ...run.duel, decks: duelSetup(run).decks }, opponent).ok) {
       this.follow(run);
       return;
     }

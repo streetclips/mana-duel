@@ -19,6 +19,7 @@ import {
   type Action,
   type GameState,
   type PlayerId,
+  type Refusal,
 } from '../engine';
 import { fxCues, type FxCue } from './fx';
 
@@ -71,10 +72,10 @@ function toMain2(s: GameState): GameState {
   return passUntil(s, (state) => state.step === 'main2' && state.pending?.kind === 'priority');
 }
 
-function refused(s: GameState, action: Action, expected: string): string | null {
+function refused(s: GameState, action: Action, expected: Refusal): string | null {
   const result = tryApplyAction(s, action);
   if (result.ok) return `expected "${action.type}" to be refused`;
-  return result.error === expected ? null : `refused with "${result.error}" instead of "${expected}"`;
+  return expectValue(result.refusal, expected, `refusal of "${action.type}"`);
 }
 
 function expectValue<T>(actual: T, expected: T, what: string): string | null {
@@ -170,7 +171,7 @@ export const CHECKS: Check[] = [
       s = play(s, [{ type: 'playLand', player: 0, card: 'f1' }]);
       return first(
         expectValue(zone(s, 'f1'), 'battlefield', 'first land'),
-        refused(s, { type: 'playLand', player: 0, card: 'f2' }, 'ya has jugado una tierra este turno'),
+        refused(s, { type: 'playLand', player: 0, card: 'f2' }, { code: 'landPlayed' }),
       );
     },
   },
@@ -185,7 +186,7 @@ export const CHECKS: Check[] = [
         ],
       });
       s = play(s, [{ type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] }]);
-      return refused(s, { type: 'cast', player: 0, card: 'hound', targets: [] }, 'esto solo se puede lanzar en tu fase principal con la pila vacía');
+      return refused(s, { type: 'cast', player: 0, card: 'hound', targets: [] }, { code: 'sorceryTiming' });
     },
   },
   {
@@ -219,8 +220,8 @@ export const CHECKS: Check[] = [
         players: [{ hand: [{ card: 'moss_viper', id: 'viper' }], battlefield: [{ card: 'grove_tender', sick: true }] }, {}],
       });
       return first(
-        refused(wrongColor, { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] }, 'no hay suficiente maná'),
-        refused(sickElf, { type: 'cast', player: 0, card: 'viper', targets: [] }, 'no hay suficiente maná'),
+        refused(wrongColor, { type: 'cast', player: 0, card: 'snap', targets: [{ player: 1 }] }, { code: 'notEnoughMana' }),
+        refused(sickElf, { type: 'cast', player: 0, card: 'viper', targets: [] }, { code: 'notEnoughMana' }),
       );
     },
   },
@@ -265,11 +266,11 @@ export const CHECKS: Check[] = [
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['drake', 'marauder'] }]));
       return first(
-        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'drake' }] }, 'elf no puede bloquear a drake'),
+        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'drake' }] }, { code: 'cannotBlock', blocker: 'elf', attacker: 'drake' }),
         refused(
           s,
           { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'elf', attacker: 'marauder' }] },
-          'marauder tiene la habilidad de amenaza y no puede ser bloqueada excepto por dos o más criaturas',
+          { code: 'menace', attacker: 'marauder' },
         ),
         tryApplyAction(s, {
           type: 'declareBlockers',
@@ -442,7 +443,7 @@ export const CHECKS: Check[] = [
         s = passUntil(s, (state) => state.stack.length === 0);
       }
       const pumped = getPower(s, 'dragon');
-      const refusal = refused(s, { type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] }, 'no hay suficiente maná');
+      const refusal = refused(s, { type: 'activate', player: 0, card: 'dragon', ability: 0, targets: [] }, { code: 'notEnoughMana' });
       return first(expectValue(pumped, 6, 'power after two activations'), refusal);
     },
   },
@@ -632,7 +633,7 @@ export const CHECKS: Check[] = [
       const after = resolve(play(s, [{ type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'tapped' }] }]));
       return first(
         expectValue(targets, [{ card: 'tapped' }], 'legal targets'),
-        refused(s, { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] }, 'el objetivo 0 (untapped) no es legal'),
+        refused(s, { type: 'cast', player: 0, card: 'verdict', targets: [{ card: 'untapped' }] }, { code: 'illegalTarget', index: 0, target: 'untapped' }),
         expectValue(zone(after, 'tapped'), 'graveyard', 'tapped rhino'),
       );
     },
@@ -707,7 +708,7 @@ export const CHECKS: Check[] = [
         { type: 'cast', player: 1, card: 'snap', targets: [{ player: 0 }] },
         { type: 'pass', player: 1 },
       ]);
-      const falcon = refused(s, { type: 'cast', player: 0, card: 'falcon', targets: [] }, 'esto solo se puede lanzar en tu fase principal con la pila vacía');
+      const falcon = refused(s, { type: 'cast', player: 0, card: 'falcon', targets: [] }, { code: 'sorceryTiming' });
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'skimmer', targets: [] }]));
       return first(
         falcon,
@@ -904,7 +905,7 @@ export const CHECKS: Check[] = [
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['thief'] }]));
       return first(
         expectValue(blockOptions(s), { squire: ['thief'] }, 'blockers for Fogslip Thief'),
-        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'thief' }] }, 'rhino no puede bloquear a thief'),
+        refused(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'rhino', attacker: 'thief' }] }, { code: 'cannotBlock', blocker: 'rhino', attacker: 'thief' }),
       );
     },
   },
@@ -1069,7 +1070,7 @@ export const CHECKS: Check[] = [
         ]),
       );
       return first(
-        refused(snap, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] }, 'el objetivo 0 (lurker) no es legal'),
+        refused(snap, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] }, { code: 'illegalTarget', index: 0, target: 'lurker' }),
         expectValue([zone(lance, 'croc'), zone(lance, 'lance'), getKeywords(lance, 'croc')], ['battlefield', 'graveyard', ['hexproof']], 'after Magma Lance'),
       );
     },
@@ -1190,13 +1191,13 @@ export const CHECKS: Check[] = [
         ],
       });
       s = play(s, [{ type: 'playLand', player: 0, card: 'f1' }]);
-      const second = refused(s, { type: 'playLand', player: 0, card: 'f2' }, 'ya has jugado una tierra este turno');
+      const second = refused(s, { type: 'playLand', player: 0, card: 'f2' }, { code: 'landPlayed' });
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'path', targets: [] }]));
       s = play(s, [{ type: 'playLand', player: 0, card: 'f2' }]);
       return first(
         second,
         expectValue([zone(s, 'f2'), s.players[0].landsPlayedThisTurn], ['battlefield', 2], 'after Open Path'),
-        refused(s, { type: 'playLand', player: 0, card: 'f3' }, 'ya has jugado todas las tierras que puedes este turno'),
+        refused(s, { type: 'playLand', player: 0, card: 'f3' }, { code: 'allLandsPlayed' }),
       );
     },
   },
@@ -1225,7 +1226,7 @@ export const CHECKS: Check[] = [
       });
       dragon = resolve(play(dragon, [{ type: 'cast', player: 0, card: 'dragon', targets: [] }]));
       return first(
-        expectValue(now, [true, 'no hay suficiente maná'], 'the turn Silver Spire is played'),
+        expectValue(now, [true, { code: 'notEnoughMana' }], 'the turn Silver Spire is played'),
         expectValue(zone(s, 'messenger'), 'battlefield', 'Sky Messenger two turns later'),
         expectValue(zone(dragon, 'dragon'), 'battlefield', 'Prismatic Dragon paid by three tri-lands, the Fount and the Druid'),
       );
@@ -1268,7 +1269,7 @@ export const CHECKS: Check[] = [
           { battlefield: [{ card: 'grove_tender', id: 'elf' }], relics: [{ card: 'urn', id: 'urn' }] },
         ],
       });
-      const untargetable = refused(s, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'urn' }] }, 'el objetivo 0 (urn) no es legal');
+      const untargetable = refused(s, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'urn' }] }, { code: 'illegalTarget', index: 0, target: 'urn' });
       s = resolve(play(s, [{ type: 'cast', player: 0, card: 'snap', targets: [{ card: 'elf' }] }]));
       const saprolings = s.players[0].battlefield.filter((id) => s.cards[id]?.def === 'saproling_token').length;
       return first(

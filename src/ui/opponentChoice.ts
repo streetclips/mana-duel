@@ -1,5 +1,6 @@
 import type { OpponentSetup } from '../app/controller';
 import { DEFAULT_MODEL, isModelId, isReasoningEffort, type ReasoningEffort } from '../llm/models';
+import { startText } from './text/start';
 
 export type OpponentKind = OpponentSetup['kind'];
 
@@ -61,7 +62,7 @@ export function opponentSetup(choice: OpponentChoice): OpponentSetup {
 
 export function llmProblem(choice: OpponentChoice, apiKey: string, proxy: boolean): string | null {
   if (choice.kind !== 'llm') return null;
-  if (!isModelId(choice.model)) return `Escribe el id de un modelo de OpenRouter, como ${DEFAULT_MODEL}.`;
-  if (!apiKey.trim() && !proxy) return 'Escribe tu clave de API de OpenRouter.';
+  if (!isModelId(choice.model)) return startText().modelProblem(DEFAULT_MODEL);
+  if (!apiKey.trim() && !proxy) return startText().keyProblem;
   return null;
 }

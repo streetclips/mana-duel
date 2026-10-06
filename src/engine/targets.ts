@@ -1,3 +1,4 @@
+import type { Refusal } from './refusals';
 import { allCreatures, getCard, hasKeyword, isCreature } from './state';
 import type { CardId, GameState, PlayerId, Target, TargetSpec } from './types';
 
@@ -65,15 +66,15 @@ export function targetCombos(s: GameState, controller: PlayerId, specs: TargetSp
   return combos;
 }
 
-export function targetsError(s: GameState, controller: PlayerId, specs: TargetSpec[], targets: Target[]): string | null {
-  if (!Array.isArray(targets)) return 'los objetivos deben ser una lista';
-  if (targets.length !== specs.length) return `número de objetivos incorrecto: ${targets.length} en vez de ${specs.length}`;
+export function targetsError(s: GameState, controller: PlayerId, specs: TargetSpec[], targets: Target[]): Refusal | null {
+  if (!Array.isArray(targets)) return { code: 'targetsNotList' };
+  if (targets.length !== specs.length) return { code: 'targetCount', given: targets.length, expected: specs.length };
   for (let i = 0; i < specs.length; i++) {
     const target = targets[i] as Target;
-    if (!target || typeof target !== 'object') return `el objetivo ${i} está mal formado`;
-    if (!isLegalTarget(s, controller, specs[i] as TargetSpec, target)) return `el objetivo ${i} (${targetKey(target)}) no es legal`;
+    if (!target || typeof target !== 'object') return { code: 'targetMalformed', index: i };
+    if (!isLegalTarget(s, controller, specs[i] as TargetSpec, target)) return { code: 'illegalTarget', index: i, target: targetKey(target) };
     for (let j = 0; j < i; j++) {
-      if (sameTarget(targets[j] as Target, target)) return 'no se puede elegir el mismo objetivo dos veces';
+      if (sameTarget(targets[j] as Target, target)) return { code: 'sameTargetTwice' };
     }
   }
   return null;

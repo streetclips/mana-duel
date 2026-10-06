@@ -1,23 +1,38 @@
+import { getLocale, type Locale } from '../i18n/locale';
 import { CORE_CARDS } from './cards';
 import { parseCost } from './mana';
 import { RELIC_DEFS } from './relics';
+import { CARD_TEXTS } from './text/content';
 import type { CardDef, ManaCost, TriggerEvent } from './types';
 
 const RELIC_EVENTS: ReadonlySet<TriggerEvent> = new Set(['upkeep', 'spell', 'allyEnters', 'allyDies', 'lifeGain', 'landfall']);
 
 const registry = new Map<string, CardDef>();
+const translated = new Map<Locale, Map<string, CardDef>>();
 const costCache = new Map<string, ManaCost>();
 
 export function registerCard(def: CardDef): void {
   validateCardDef(def);
   registry.set(def.id, def);
   costCache.delete(def.id);
+  for (const defs of translated.values()) defs.delete(def.id);
+}
+
+function inLocale(def: CardDef): CardDef {
+  const locale = getLocale();
+  const text = CARD_TEXTS[locale]?.[def.id];
+  if (!text) return def;
+  let defs = translated.get(locale);
+  if (!defs) translated.set(locale, (defs = new Map()));
+  let copy = defs.get(def.id);
+  if (!copy) defs.set(def.id, (copy = { ...def, ...text }));
+  return copy;
 }
 
 export function getCardDef(id: string): CardDef {
   const def = registry.get(id);
   if (!def) throw new Error(`Unknown card definition "${id}"`);
-  return def;
+  return inLocale(def);
 }
 
 export function hasCardDef(id: string): boolean {
@@ -25,7 +40,7 @@ export function hasCardDef(id: string): boolean {
 }
 
 export function allCardDefs(): CardDef[] {
-  return [...registry.values()];
+  return [...registry.values()].map(inLocale);
 }
 
 export function getCost(defId: string): ManaCost {

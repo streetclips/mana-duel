@@ -1,4 +1,5 @@
 import type { ComponentChildren } from 'preact';
+import { startText } from '../text/start';
 
 export interface AudioToggles {
   music: boolean;
@@ -46,13 +47,14 @@ function SoundRow({ testId, label, on, icon, onToggle }: { testId: string; label
 }
 
 export function SoundToggles({ audio }: { audio: AudioToggles }) {
+  const text = startText();
   return (
     <section class="setting-rows" aria-labelledby="sound-label">
       <h2 id="sound-label" class="section-label">
-        Sonido
+        {text.sound}
       </h2>
-      <SoundRow testId="btn-music" label="Música" on={audio.music} icon={<MusicIcon off={!audio.music} />} onToggle={audio.onToggleMusic} />
-      <SoundRow testId="btn-sfx" label="Efectos de sonido" on={audio.sfx} icon={<SoundIcon off={!audio.sfx} />} onToggle={audio.onToggleSfx} />
+      <SoundRow testId="btn-music" label={text.music} on={audio.music} icon={<MusicIcon off={!audio.music} />} onToggle={audio.onToggleMusic} />
+      <SoundRow testId="btn-sfx" label={text.sfx} on={audio.sfx} icon={<SoundIcon off={!audio.sfx} />} onToggle={audio.onToggleSfx} />
     </section>
   );
 }

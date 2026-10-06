@@ -15,6 +15,7 @@ import { RANDOM_DECK } from './ui/deckChoice';
 import { localDeckStore } from './ui/deckLibraryStore';
 import { localDraftStore } from './ui/draftStore';
 import { localRunStore } from './ui/expeditionStore';
+import { applyLocale, loadLocaleChoice, localeFrom } from './ui/localeChoice';
 import { freezeFx } from './ui/motion';
 import { loadApiKey, loadOpponentChoice } from './ui/opponentChoice';
 import './ui/styles.css';
@@ -26,6 +27,7 @@ declare global {
 }
 
 const params = new URLSearchParams(window.location.search);
+applyLocale(localeFrom(params, loadLocaleChoice(), navigator.languages));
 const numberParam = (name: string): number | undefined => {
   const value = params.get(name);
   return value === null || value === '' || Number.isNaN(Number(value)) ? undefined : Number(value);

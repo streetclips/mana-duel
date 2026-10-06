@@ -5,11 +5,13 @@ import {
   createGame,
   createScenario,
   deckIdOf,
+  defaultPlayerNames,
   describeEventParts,
   forcedAction,
   getLegalActions,
   opponent,
   plainText,
+  refusalText,
   tryApplyAction,
   type Action,
   type ActionResult,
@@ -20,6 +22,7 @@ import {
   type PendingDecision,
   type PlayerId,
   type PlayerSetup,
+  type Refusal,
   type ScenarioSpec,
   type Step,
   type TextPart,
@@ -30,6 +33,13 @@ import type { Prompt, PromptContext } from '../llm/prompt';
 import { eventLines, thoughtLine } from '../llm/view';
 import { autoPassReason } from './autopass';
 import { fxCues, fxHoldMs, type FxBatch, type FxCue } from './fx';
+import { noteText } from './text/game';
+
+export type ReplayResult = { ok: true; state: GameState } | { ok: false; error: string };
+
+function refuse(refusal: Refusal): ActionResult {
+  return { ok: false, error: refusalText(refusal), refusal };
+}
 
 export interface LogEntry {
   id: number;
@@ -176,13 +186,14 @@ export class GameController {
   }
 
   private setupFrom(options: ControllerOptions, decks: Matchup, perks: SeatPerks): GameOptions {
+    const names = defaultPlayerNames();
     return {
       seed: options.seed ?? randomSeed(),
       skipMulligans: options.skipMulligans ?? false,
       startingPlayer: options.startingPlayer,
       players: [
-        { name: 'Tú', deck: decks[0], ...perks[0] },
-        { name: 'IA', deck: decks[1], ...perks[1] },
+        { name: names[0], deck: decks[0], ...perks[0] },
+        { name: names[1], deck: decks[1], ...perks[1] },
       ],
     };
   }
@@ -268,7 +279,7 @@ export class GameController {
     this.resetSession(true);
   }
 
-  loadReplay(replay: Replay, opponent?: OpponentSetup): ActionResult {
+  loadReplay(replay: Replay, opponent?: OpponentSetup): ReplayResult {
     this.clearTimer();
     const decks: Matchup = [...(replay.decks ?? DEFAULT_MATCHUP)];
     const perks = copyPerks(replay.perks ?? NO_PERKS);
@@ -353,8 +364,8 @@ export class GameController {
   }
 
   dispatch(action: Action): ActionResult {
-    if (action.player !== this.human) return { ok: false, error: 'solo puedes actuar por tu propio asiento' };
-    if (action.type !== 'concede' && !this.isHumanTurnToDecide()) return { ok: false, error: 'no te toca decidir' };
+    if (action.player !== this.human) return refuse({ code: 'otherSeat' });
+    if (action.type !== 'concede' && !this.isHumanTurnToDecide()) return refuse({ code: 'notYourDecision' });
     return this.apply(action);
   }
 
@@ -433,11 +444,10 @@ export class GameController {
   }
 
   private noteFor(decision: LlmDecision): string | undefined {
-    if (decision.source === 'model') return decision.reason ? `El rival piensa: ${decision.reason}` : undefined;
+    const text = noteText();
+    if (decision.source === 'model') return decision.reason ? text.opponentThinks(decision.reason) : undefined;
     if (decision.source !== 'fallback') return undefined;
-    return this.llmUnavailable
-      ? `El LLM no está disponible (${this.llmUnavailable}): la IA clásica juega el resto de la partida.`
-      : `El LLM no pudo decidir (${decision.error ?? 'error desconocido'}): la IA clásica hizo esta jugada.`;
+    return this.llmUnavailable ? text.llmUnavailable(this.llmUnavailable) : text.llmFailed(decision.error ?? text.unknownError);
   }
 
   private recordFx(cues: FxCue[]): void {

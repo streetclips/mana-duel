@@ -9,6 +9,7 @@ import {
 } from '../engine';
 import { isLandCard } from './cardPool';
 import type { Perks, SeatPerks } from './controller';
+import { modesText, type RelicText } from './text/modes';
 
 export type RelicId =
   | 'vigor'
@@ -43,42 +44,40 @@ export const VIGOR_LIFE = 6;
 
 const BASIC_OF: Record<Color, string> = { W: 'plains', U: 'island', B: 'swamp', R: 'mountain', G: 'forest' };
 
+function relic(id: RelicId, kind: RelicKind, owner: RelicOwner, describe: () => RelicText): Relic {
+  return {
+    id,
+    get name() {
+      return describe().name;
+    },
+    get text() {
+      return describe().text;
+    },
+    kind,
+    owner,
+  };
+}
+
 function inPlay(id: RelicId, owner: RelicOwner): Relic {
-  const def = getCardDef(id);
-  return { id, name: def.name, text: rulesText(def).join(' '), kind: 'play', owner };
+  return relic(id, 'play', owner, () => {
+    const def = getCardDef(id);
+    return { name: def.name, text: rulesText(def).join(' ') };
+  });
 }
 
 export const RELICS: readonly Relic[] = [
-  { id: 'vigor', name: 'Amuleto de vigor', text: `Empiezas cada duelo con ${VIGOR_LIFE} vidas más.`, kind: 'start', owner: 'any' },
-  { id: 'foresight', name: 'Ojo del augur', text: 'Tu mano inicial tiene una carta más.', kind: 'start', owner: 'any' },
-  {
-    id: 'banner',
-    name: 'Estandarte del alba',
-    text: `Empiezas cada duelo con una ${tokenDescription('soldier_token')}.`,
-    kind: 'start',
-    owner: 'any',
-  },
-  {
-    id: 'cartographer',
-    name: 'Mapa del cartógrafo',
-    text: 'Empiezas cada duelo con una tierra más en el campo de batalla, la que más copias tiene tu mazo, y una carta menos en la mano inicial.',
-    kind: 'start',
-    owner: 'any',
-  },
-  { id: 'hourglass', name: 'Reloj de arena', text: 'Empiezas tú cada duelo, y robas también en tu primer turno.', kind: 'start', owner: 'player' },
-  { id: 'mask', name: 'Máscara del silencio', text: 'Tu rival empieza cada duelo con una carta menos en la mano inicial.', kind: 'start', owner: 'any' },
+  relic('vigor', 'start', 'any', () => modesText().relics.vigor(VIGOR_LIFE)),
+  relic('foresight', 'start', 'any', () => modesText().relics.foresight()),
+  relic('banner', 'start', 'any', () => modesText().relics.banner(tokenDescription('soldier_token'))),
+  relic('cartographer', 'start', 'any', () => modesText().relics.cartographer()),
+  relic('hourglass', 'start', 'player', () => modesText().relics.hourglass()),
+  relic('mask', 'start', 'any', () => modesText().relics.mask()),
   inPlay('censer', 'any'),
   inPlay('urn', 'any'),
   inPlay('drum', 'any'),
   inPlay('chalice', 'any'),
   inPlay('tome', 'any'),
-  {
-    id: 'phoenix',
-    name: 'Pluma de fénix',
-    text: 'La primera vez que pierdas un duelo, la pluma arde y lo repites en lugar de terminar la expedición.',
-    kind: 'run',
-    owner: 'player',
-  },
+  relic('phoenix', 'run', 'player', () => modesText().relics.phoenix()),
   inPlay('bell', 'boss'),
   inPlay('grimoire', 'boss'),
   inPlay('crown', 'boss'),

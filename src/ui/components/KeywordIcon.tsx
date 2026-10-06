@@ -1,5 +1,6 @@
 import type { JSX } from 'preact';
-import { KEYWORD_NAMES, type Keyword } from '../../engine';
+import { keywordName, type Keyword } from '../../engine';
+import { cardText } from '../text/card';
 
 export type IconName = Keyword | 'trigger';
 
@@ -93,7 +94,7 @@ const GLYPHS: Record<IconName, () => JSX.Element> = {
 export function CardIcon({ name, title }: { name: IconName; title?: string }) {
   return (
     <svg class="icon" viewBox="0 0 20 20" data-icon={name} aria-hidden="true">
-      <title>{title ?? (name === 'trigger' ? 'Habilidad disparada' : KEYWORD_NAMES[name])}</title>
+      <title>{title ?? (name === 'trigger' ? cardText().triggeredAbility : keywordName(name))}</title>
       <circle class="icon-disc" cx="10" cy="10" r="9.7" />
       <circle class="icon-ring" cx="10" cy="10" r="9.15" />
       <g class="icon-glyph" transform="translate(2 2)">

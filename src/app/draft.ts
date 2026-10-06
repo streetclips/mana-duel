@@ -21,6 +21,7 @@ import {
 import { isBasicLand, isLandCard, poolCards } from './cardPool';
 import type { Matchup, Replay } from './controller';
 import { buildDeck, countCards, draftProblems, fillWithBasics, type Allowance, type DeckDraft } from './deckBuilding';
+import { modesText } from './text/modes';
 
 export const PACK_SIZE = 12;
 export const ROUNDS = 3;
@@ -29,7 +30,6 @@ export const MATCH_WINS = 2;
 export const DECK_SPELLS = 23;
 export const DRAFT_DECK_ID = 'draft';
 export const AI_DRAFT_DECK_ID = 'draft-ai';
-export const DEFAULT_DRAFT_NAME = 'Mi draft';
 
 const BASICS = ['plains', 'island', 'swamp', 'mountain', 'forest'];
 const COMMIT_AFTER = 5;
@@ -265,7 +265,12 @@ export function draftDeck(run: DraftRun): DeckDef {
 }
 
 export function aiDraftDeck(run: DraftRun): DeckDef {
-  return { ...buildDeck({ id: AI_DRAFT_DECK_ID, name: 'Draft de la IA', featured: null, cards: run.aiDeck }, AI_DRAFT_DECK_ID), description: 'El mazo que la IA se construyó con sus cartas.' };
+  const text = modesText();
+  return { ...buildDeck({ id: AI_DRAFT_DECK_ID, name: text.aiDraftDeckName, featured: null, cards: run.aiDeck }, AI_DRAFT_DECK_ID), description: text.aiDraftDeckDescription };
+}
+
+export function defaultDraftName(): string {
+  return modesText().defaultDraftName;
 }
 
 function finishPicking(run: DraftRun): DraftRun {
@@ -285,7 +290,7 @@ export function createDraft(format: DraftFormat, seed: number): DraftRun {
     packs: [[], []],
     picks: [[], []],
     deck: null,
-    name: DEFAULT_DRAFT_NAME,
+    name: defaultDraftName(),
     featured: null,
     aiDeck: [],
     wins: [0, 0],

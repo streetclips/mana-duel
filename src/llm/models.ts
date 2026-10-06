@@ -1,3 +1,5 @@
+import { loadingText } from './text/loading';
+
 export const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
 export const DEFAULT_MODEL = 'openai/gpt-6-luna';
 export const SUGGESTED_MODELS: readonly string[] = [
@@ -11,8 +13,6 @@ export const SUGGESTED_MODELS: readonly string[] = [
 
 export const REASONING_EFFORTS = ['minimal', 'low', 'medium', 'high'] as const;
 export type ReasoningEffort = (typeof REASONING_EFFORTS)[number];
-
-export const EFFORT_LABELS: Record<ReasoningEffort, string> = { minimal: 'Mínimo', low: 'Bajo', medium: 'Medio', high: 'Alto' };
 
 export function isReasoningEffort(value: unknown): value is ReasoningEffort {
   return REASONING_EFFORTS.some((effort) => effort === value);
@@ -55,7 +55,7 @@ function modelInfo(model: unknown): ModelInfo[] {
 
 export async function fetchModels(options: { fetch?: typeof fetch; signal?: AbortSignal } = {}): Promise<ModelInfo[]> {
   const response = await (options.fetch ?? fetch)(`${OPENROUTER_API_URL}/models`, { signal: options.signal });
-  if (!response.ok) throw new Error(`OpenRouter ${response.status}: la lista de modelos no está disponible`);
+  if (!response.ok) throw new Error(loadingText().modelList(String(response.status)));
   const catalog: unknown = await response.json();
   const data = isRecord(catalog) && Array.isArray(catalog.data) ? catalog.data : [];
   return data.flatMap(modelInfo).sort((a, b) => a.id.localeCompare(b.id));

@@ -11,7 +11,7 @@ describe('winning and losing', () => {
     expect(s.pending).toEqual({ kind: 'gameOver', winner: 0, reason: 'life' });
     expect(s.events.at(-1)).toEqual({ t: 'gameOver', winner: 0, reason: 'life' });
     expect(getLegalActions(s)).toEqual([]);
-    expect(tryApplyAction(s, { type: 'pass', player: 0 })).toEqual({ ok: false, error: 'la partida ha terminado' });
+    expect(tryApplyAction(s, { type: 'pass', player: 0 })).toEqual({ ok: false, error: 'la partida ha terminado', refusal: { code: 'gameOver' } });
   });
 
   it('ends the game through combat damage', () => {

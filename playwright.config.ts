@@ -9,6 +9,7 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: `http://localhost:${PORT}`,
+    locale: 'es-ES',
     trace: 'retain-on-failure',
   },
   projects: [

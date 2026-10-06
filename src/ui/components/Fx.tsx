@@ -1,14 +1,15 @@
 import { getCardDef, targetRef, type GameState, type PlayerId } from '../../engine';
 import { cardColorVar, cssVars } from '../cardInfo';
 import type { FxView, RevealFx } from '../fx';
+import { gameText } from '../text/game';
 import { MiniFace, fxDelay } from './Card';
 
 function revealCaption(human: PlayerId, reveal: RevealFx): string {
-  if (reveal.kind === 'counter') return 'Contrarrestado';
-  if (reveal.kind === 'fizzle') return 'Sin efecto';
-  const land = reveal.via === 'land';
-  if (reveal.player === human) return land ? 'Juegas' : 'Lanzas';
-  return land ? 'El rival juega' : 'El rival lanza';
+  const text = gameText().reveal;
+  if (reveal.kind === 'counter') return text.countered;
+  if (reveal.kind === 'fizzle') return text.fizzled;
+  const mine = reveal.player === human;
+  return reveal.via === 'land' ? text.play(mine) : text.cast(mine);
 }
 
 function Reveal({ s, human, reveal }: { s: GameState; human: PlayerId; reveal: RevealFx }) {

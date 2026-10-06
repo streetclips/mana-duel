@@ -84,7 +84,7 @@ describe('Ember Snap (instant, any target)', () => {
 
   it('cannot be cast without the right color of mana', () => {
     const s = scenario({ players: [{ hand: [{ card: 'ember_snap', id: 'snap' }], battlefield: ['forest', 'forest'] }, {}] });
-    expect(castBlocker(s, 0, 'snap')).toBe('no hay suficiente maná');
+    expect(castBlocker(s, 0, 'snap')).toEqual({ code: 'notEnoughMana' });
   });
 });
 
@@ -949,6 +949,7 @@ describe('Mistgrave: skulk, discards and "whenever this creature deals combat da
     expect(tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'giant', attacker: 'thief' }] })).toEqual({
       ok: false,
       error: 'giant no puede bloquear a thief',
+      refusal: { code: 'cannotBlock', blocker: 'giant', attacker: 'thief' },
     });
     let pumped = scenario({
       players: [
@@ -1366,6 +1367,7 @@ describe('Deepgrove: evolve, hexproof and a creature that bites', () => {
     expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'snap', targets: [{ card: 'lurker' }] })).toEqual({
       ok: false,
       error: 'el objetivo 0 (lurker) no es legal',
+      refusal: { code: 'illegalTarget', index: 0, target: 'lurker' },
     });
     s = resolveStack(cast(pass(cast(s, 'snap', [{ player: 1 }])), 'bloom', [{ card: 'lurker' }]));
     expect([s.cards.lurker?.counters, life(s, 1)]).toEqual([1, 18]);
@@ -1565,7 +1567,7 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
       ],
     });
     s = playLand(s, 'f1');
-    expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f2' })).toEqual({ ok: false, error: 'ya has jugado una tierra este turno' });
+    expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f2' })).toEqual({ ok: false, error: 'ya has jugado una tierra este turno', refusal: { code: 'landPlayed' } });
     s = resolveStack(cast(s, 'path'));
     expect([s.players[0].extraLandsThisTurn, s.players[0].hand.length]).toEqual([1, 3]);
     expect(s.events).toContainEqual({ t: 'extraLands', player: 0, amount: 1 });
@@ -1575,6 +1577,7 @@ describe('Wildland: landfall, land searches and extra land plays', () => {
     expect(tryApplyAction(s, { type: 'playLand', player: 0, card: 'f3' })).toEqual({
       ok: false,
       error: 'ya has jugado todas las tierras que puedes este turno',
+      refusal: { code: 'allLandsPlayed' },
     });
     s = passToStep(s, 'main1', s.turn + 2);
     expect(s.players[0].extraLandsThisTurn).toBe(0);
@@ -1632,7 +1635,7 @@ describe('Crossroads: lands that enter tapped and mana of three or five colors',
       ],
     });
     s = playLand(s, 'spire');
-    expect([s.cards.spire?.tapped, castBlocker(s, 0, 'messenger')]).toEqual([true, 'no hay suficiente maná']);
+    expect([s.cards.spire?.tapped, castBlocker(s, 0, 'messenger')]).toEqual([true, { code: 'notEnoughMana' }]);
     s = passToStep(s, 'main1', s.turn + 2);
     expect([s.cards.spire?.tapped, castBlocker(s, 0, 'messenger')]).toEqual([false, null]);
     s = resolveStack(cast(s, 'messenger'));

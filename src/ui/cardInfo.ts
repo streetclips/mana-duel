@@ -9,52 +9,26 @@ import {
   type Color,
   type Effect,
   type Keyword,
-  type TriggerCondition,
-  type TriggerEvent,
   type TriggeredAbility,
 } from '../engine';
+import { cardText } from './text/card';
 
-export const SHORT_KEYWORDS: Record<Keyword, string> = {
-  flying: 'Vuela',
-  reach: 'Alcance',
-  haste: 'Prisa',
-  vigilance: 'Vigilancia',
-  trample: 'Arrolla',
-  firstStrike: 'Daña 1.º',
-  doubleStrike: 'Daña 2×',
-  deathtouch: 'Toque mortal',
-  lifelink: 'Vínculo vital',
-  menace: 'Amenaza',
-  defender: 'Defensor',
-  flash: 'Destello',
-  skulk: 'Escurridizo',
-  undying: 'Resiliencia',
-  hexproof: 'Antimaleficio',
-  evolve: 'Evolucionar',
-  prowess: 'Destreza',
-};
-
-const MANA_NAMES: Record<string, string> = { W: 'blanco', U: 'azul', B: 'negro', R: 'rojo', G: 'verde' };
+function isColor(symbol: string): symbol is Color {
+  return COLORS.some((color) => color === symbol);
+}
 
 export function manaName(symbol: string): string {
-  if (symbol === 'T') return 'girar';
-  if (/^\d+$/.test(symbol)) return `${symbol} genérico`;
-  return MANA_NAMES[symbol] ?? symbol;
-}
-
-function pluralName(name: string): string {
-  if (/[aeiouáéíóú]$/i.test(name)) return `${name}s`;
-  return `${name.replace(/[áéíóú](?=[a-z]$)/i, (vowel) => vowel.normalize('NFD').charAt(0))}es`;
-}
-
-function lives(amount: number): string {
-  return amount === 1 ? 'vida' : 'vidas';
+  const text = cardText();
+  if (symbol === 'T') return text.tap;
+  if (/^\d+$/.test(symbol)) return text.generic(symbol);
+  return isColor(symbol) ? text.manaNames[symbol] : symbol;
 }
 
 export { cardColors };
 
 function shortKeywords(keywords: readonly Keyword[] = []): string {
-  return keywords.map((keyword) => SHORT_KEYWORDS[keyword].toLowerCase()).join(', ');
+  const names = cardText().shortKeywords;
+  return keywords.map((keyword) => names[keyword].toLowerCase()).join(', ');
 }
 
 function pumpHint(power: number, toughness: number, keywords: readonly Keyword[] = []): string {
@@ -79,88 +53,67 @@ export function cardColorVar(def: CardDef): string {
 }
 
 export function effectHint(effect: Effect): string {
+  const hints = cardText().hints;
   switch (effect.kind) {
     case 'damage':
-      return `${effect.amount} de daño`;
+      return hints.damage(effect.amount);
     case 'pump':
       return pumpHint(effect.power, effect.toughness, effect.keywords);
     case 'destroy':
-      return 'destruir';
+      return hints.destroy;
     case 'bounce':
-      return 'a la mano';
+      return hints.bounce;
     case 'counter':
-      return 'contrarrestar';
+      return hints.counter;
     case 'draw':
-      return `robar ${effect.amount}`;
+      return hints.draw(effect.amount);
     case 'gainLife':
-      return `+${effect.amount} ${lives(effect.amount)}`;
+      return hints.gainLife(effect.amount);
     case 'loseLife':
-      return effect.who === 'opponent' ? `rival -${effect.amount} ${lives(effect.amount)}` : `-${effect.amount} ${lives(effect.amount)}`;
+      return hints.loseLife(effect.amount, effect.who === 'opponent');
     case 'fight':
-      return 'luchar';
+      return hints.fight;
     case 'bite':
-      return 'morder';
+      return hints.bite;
     case 'pumpTeam':
-      return `todas ${pumpHint(effect.power, effect.toughness, effect.keywords)}`;
+      return hints.team(pumpHint(effect.power, effect.toughness, effect.keywords));
     case 'addCounters':
-      return `+${effect.amount} ${effect.amount === 1 ? 'contador' : 'contadores'}`;
+      return hints.counters(effect.amount);
     case 'addCountersTeam':
-      return `todas +${effect.amount} ${effect.amount === 1 ? 'contador' : 'contadores'}`;
-    case 'createTokens': {
-      const name = getCardDef(effect.token).name;
-      return `+${effect.amount} ${effect.amount === 1 ? name : pluralName(name)}`;
-    }
+      return hints.team(hints.counters(effect.amount));
+    case 'createTokens':
+      return hints.tokens(effect.amount, getCardDef(effect.token).name);
     case 'discard':
-      return effect.who === 'opponent' ? `rival descarta ${effect.amount}` : `descartar ${effect.amount}`;
+      return hints.discard(effect.amount, effect.who === 'opponent');
     case 'returnToBattlefield':
-      return 'regresa';
+      return hints.returns;
     case 'extraLands':
-      return `+${effect.amount} ${effect.amount === 1 ? 'tierra' : 'tierras'}`;
-    case 'searchLand': {
-      const total = effect.battlefield + (effect.hand ?? 0);
-      const name = getCardDef(effect.land).name;
-      return `busca ${total === 1 ? name : `${total} ${pluralName(name)}`}`;
-    }
+      return hints.extraLands(effect.amount);
+    case 'searchLand':
+      return hints.search(effect.battlefield + (effect.hand ?? 0), getCardDef(effect.land).name);
   }
 }
 
-const TRIGGER_HINTS: Record<TriggerEvent, string> = {
-  upkeep: 'Mantenimiento',
-  enters: 'Entra',
-  dies: 'Muere',
-  attacks: 'Ataca',
-  spell: 'Hechizo',
-  allyEnters: 'Otra entra',
-  allyDies: 'Otra muere',
-  damagesPlayer: 'Golpea',
-  lifeGain: 'Ganas vidas',
-  landfall: 'Aterrizaje',
-};
-
-const CONDITION_HINTS: Record<TriggerCondition, string> = {
-  opponentDamaged: 'Sed de sangre',
-  emptyHand: 'Mano vacía',
-};
-
 export function activatedCost(ability: ActivatedAbility): string {
   const cost = ability.cost === '{0}' ? '' : ability.cost.replace(/[{}]/g, '');
-  return [ability.tap ? 'T' : '', ability.sacrifice ? 'Sacr.' : '', cost].filter(Boolean).join(',');
+  return [ability.tap ? 'T' : '', ability.sacrifice ? cardText().sacrificeShort : '', cost].filter(Boolean).join(',');
 }
 
 export function triggerHint(trigger: TriggeredAbility): string {
-  const hint = trigger.condition ? CONDITION_HINTS[trigger.condition] : TRIGGER_HINTS[trigger.on];
+  const text = cardText();
+  const hint = trigger.condition ? text.conditionHints[trigger.condition] : text.triggerHints[trigger.on];
   return `${hint}: ${trigger.effects.map(effectHint).join(', ')}`;
 }
 
 export function manaHint(colors: readonly Color[]): string {
-  return colors.length === COLORS.length ? 'cualquier color' : colors.join('/');
+  return colors.length === COLORS.length ? cardText().anyColor : colors.join('/');
 }
 
 export function landHint(def: CardDef): string | null {
   const mana = def.mana ?? [];
   if (!def.types.includes('land') || (!def.entersTapped && mana.length <= 1)) return null;
   const produces = mana.length === COLORS.length ? '{any}' : mana.map((color) => `{${color}}`).join('');
-  return `${def.entersTapped ? 'Entra girada. ' : ''}${produces}`;
+  return `${def.entersTapped ? cardText().hints.entersTapped : ''}${produces}`;
 }
 
 export function abilityHints(defId: string): string[] {

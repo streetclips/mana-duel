@@ -1,3 +1,4 @@
+import { defaultPlayerNames } from './describe';
 import { advance, emptyState } from './game';
 import { getCardDef, hasCardDef } from './registry';
 import { isRelicDef } from './state';
@@ -40,7 +41,8 @@ export interface ScenarioSpec {
 const DEFAULT_LIBRARY: ScenarioEntry[] = Array.from({ length: 10 }, () => 'mountain');
 
 export function createScenario(spec: ScenarioSpec): GameState {
-  const names: [string, string] = [spec.players[0]?.name ?? 'Tú', spec.players[1]?.name ?? 'IA'];
+  const defaults = defaultPlayerNames();
+  const names: [string, string] = [spec.players[0]?.name ?? defaults[0], spec.players[1]?.name ?? defaults[1]];
   const s = emptyState(spec.seed ?? 1, names, spec.turnLimit);
   s.turn = spec.turn ?? 3;
   s.activePlayer = spec.activePlayer ?? 0;

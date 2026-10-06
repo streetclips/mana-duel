@@ -13,7 +13,6 @@ import {
   type PlayerId,
   type Target,
 } from '../engine';
-import { EFFORT_LABELS } from '../llm/models';
 import { saveAutoPass } from './autoPassChoice';
 import { cssVars } from './cardInfo';
 import { FxTracker, fxNow, fxTime, fxView, withGhosts, type BattlefieldItem } from './fx';
@@ -25,6 +24,8 @@ import { DeckViewer } from './components/DeckViewer';
 import { FxLayer } from './components/Fx';
 import { CardSheet, CloseIcon, GameOverModal, LogPanel, Menu, MenuIcon } from './components/Overlays';
 import type { AudioToggles } from './components/SoundToggles';
+import { commonText } from './text/common';
+import { gameText } from './text/game';
 import {
   actionsForCard,
   barModel,
@@ -381,11 +382,13 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
     );
   };
 
+  const text = gameText();
   const decider = pending && pending.kind !== 'gameOver' ? pending.player : null;
   const thinking = controller.busy && decider !== null && (decider !== human || controller.autoplay);
   const gameOver = pending?.kind === 'gameOver';
   const llmModel = controller.opponent.kind === 'llm' ? controller.opponent.model : null;
-  const llmEffort = controller.opponent.kind === 'llm' && controller.opponent.effort ? ` · esfuerzo ${EFFORT_LABELS[controller.opponent.effort].toLowerCase()}` : '';
+  const llmEffort =
+    controller.opponent.kind === 'llm' && controller.opponent.effort ? ` · ${text.effort(commonText().efforts[controller.opponent.effort].toLowerCase())}` : '';
   const llmState = llmModel ? (controller.llmUnavailable ? 'unavailable' : controller.llmThinking ? 'thinking' : 'ready') : undefined;
   const thinkerName = s.players[decider ?? opponent].name;
   const thinkerLabel = controller.llmThinking && llmModel ? `${thinkerName} · ${llmModel.split('/').pop()}` : thinkerName;
@@ -406,12 +409,12 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
       style={cssVars({ '--fx-time': String(fxTime(controller.fxSpeed)) })}
     >
       <div class="top-actions">
-        <button type="button" class="icon-btn" aria-label="Menú" data-testid="btn-menu" onClick={() => setMenuOpen(true)}>
+        <button type="button" class="icon-btn" aria-label={text.menu} data-testid="btn-menu" onClick={() => setMenuOpen(true)}>
           <MenuIcon />
         </button>
       </div>
 
-      <section class="side opponent" aria-label="Lado del rival">
+      <section class="side opponent" aria-label={text.opponentSide}>
         <PlayerBar
           s={s}
           player={opponent}
@@ -420,7 +423,7 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
           badge={mode?.badge}
           tag={
             llmModel
-              ? { text: 'LLM', title: controller.llmUnavailable ? `LLM no disponible: ${controller.llmUnavailable}` : `OpenRouter · ${llmModel}${llmEffort}` }
+              ? { text: 'LLM', title: controller.llmUnavailable ? text.llmUnavailable(controller.llmUnavailable) : `OpenRouter · ${llmModel}${llmEffort}` }
               : undefined
           }
           targetable={targeting && targets.has(targetKey({ player: opponent }))}
@@ -445,7 +448,7 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
         onStackTap={onStackTap}
       />
 
-      <section class="side me" aria-label="Tu lado">
+      <section class="side me" aria-label={text.yourSide}>
         {renderSide(human)}
         <div class="lands-row">
           <Lands s={s} player={human} cardFx={fx.cards} />
@@ -483,8 +486,8 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
 
       {controller.llmUnavailable && !llmNoticeHidden && (
         <div class="llm-notice" role="status" data-testid="llm-notice">
-          <span data-testid="llm-notice-text">LLM no disponible: {controller.llmUnavailable}. Juega la IA clásica.</span>
-          <button type="button" class="icon-btn" aria-label="Ocultar" data-testid="llm-notice-hide" onClick={() => setLlmNoticeHidden(true)}>
+          <span data-testid="llm-notice-text">{text.llmNotice(controller.llmUnavailable)}</span>
+          <button type="button" class="icon-btn" aria-label={text.hide} data-testid="llm-notice-hide" onClick={() => setLlmNoticeHidden(true)}>
             <CloseIcon />
           </button>
         </div>
@@ -584,7 +587,7 @@ export function Game({ controller, audio, mode, onHome }: GameProps) {
         <DeckViewer
           tabs={([human, opponent] as PlayerId[]).map((player) => ({
             key: String(player),
-            label: `${player === human ? 'Tú' : s.players[player].name} · ${resolveDeck(decks[player]).name}`,
+            label: `${player === human ? commonText().you : s.players[player].name} · ${resolveDeck(decks[player]).name}`,
             deck: resolveDeck(decks[player]),
           }))}
           onClose={() => setDecksOpen(false)}

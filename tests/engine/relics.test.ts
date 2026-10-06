@@ -171,6 +171,7 @@ describe('relics', () => {
     expect(tryApplyAction(s, { type: 'cast', player: 0, card: 'kill', targets: [{ card: 'urn' }] })).toEqual({
       ok: false,
       error: 'el objetivo 0 (urn) no es legal',
+      refusal: { code: 'illegalTarget', index: 0, target: 'urn' },
     });
   });
 

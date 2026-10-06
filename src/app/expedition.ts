@@ -21,6 +21,7 @@ import { MAX_COPIES, spellPool } from './cardPool';
 import type { Matchup, Perks, Replay, SeatPerks } from './controller';
 import type { DuelResult } from './duelTracker';
 import { duelPerks, isRelicId, relicOf, relicsOf, startsEveryDuel, type RelicId, type RelicOwner, type SeatRelics } from './relics';
+import { modesText } from './text/modes';
 
 export type { DuelResult };
 
@@ -158,16 +159,19 @@ export function copiesOf(run: ExpeditionRun, card: string): number {
 }
 
 export function changesLabel(run: ExpeditionRun): string {
-  const changes = run.added.length;
-  if (changes === 0) return 'sin cambios';
-  return changes === 1 ? 'con 1 carta nueva' : `con ${changes} cartas nuevas`;
+  return modesText().changes(run.added.length);
+}
+
+export function baseName(run: ExpeditionRun): string {
+  return hasDeck(run.base.id) ? getDeck(run.base.id).name : run.base.name;
 }
 
 export function runDeck(run: ExpeditionRun): DeckDef {
+  const name = baseName(run);
   return {
     id: EXPEDITION_DECK_ID,
-    name: run.base.name,
-    description: `Tu mazo de la expedición: ${run.base.name} ${changesLabel(run)}.`,
+    name,
+    description: modesText().runDeckDescription(name, changesLabel(run)),
     colors: [...run.base.colors],
     featured: run.base.featured,
     cards: run.deck.map((entry) => ({ ...entry })),

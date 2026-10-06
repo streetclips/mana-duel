@@ -25,6 +25,7 @@ export {
   expandDeck,
   getDeck,
   hasDeck,
+  localizeDeck,
   resolveDeck,
 } from './decks';
 export type { DeckDef, DeckEntry, DeckSpec } from './decks';
@@ -92,31 +93,34 @@ export {
 } from './state';
 export { isLegalTarget, isPlayerTarget, isSpellOnStack, legalTargets, sameTarget, targetCombos, targetKey } from './targets';
 export {
-  KEYWORD_NAMES,
-  KEYWORD_REMINDERS,
-  STEP_NAMES,
   activatedText,
   cardName,
   cardRef,
   cardSummary,
   countersLabel,
+  defaultPlayerNames,
   describeEvent,
   describeEventParts,
   describeState,
   formatModifier,
   formatPump,
   keywordList,
+  keywordName,
+  keywordReminder,
   manaChoice,
   plainText,
-  tokenDescription,
+  refusalText,
   rulesText,
+  stepName,
   targetChoice,
   targetPhrase,
   targetRef,
+  tokenDescription,
   triggerText,
   typeLine,
 } from './describe';
 export type { CardMention, TextPart } from './describe';
+export type { Refusal, RefusalCode } from './refusals';
 export { checkInvariants } from './invariants';
 export { createScenario } from './scenario';
 export type { ScenarioCard, ScenarioEntry, ScenarioPlayer, ScenarioSpec } from './scenario';

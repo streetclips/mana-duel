@@ -1,9 +1,9 @@
 # Mana Duel
 
-Minimalist, mobile-first card duel on the rules of Magic: The Gathering, played in Spanish: fourteen decks, one per
-pair of colors, black, red and green alone, and one of all five colors, and a human against an AI: the classic one,
-or an OpenRouter model through the AI SDK, one duel at a time, seven in a row in the Expedition, or a best of three
-with cards from packs in the Draft.
+Minimalist, mobile-first card duel on the rules of Magic: The Gathering, played in Spanish or English: fourteen
+decks, one per pair of colors, black, red and green alone, and one of all five colors, and a human against an AI: the
+classic one, or an OpenRouter model through the AI SDK, one duel at a time, seven in a row in the Expedition, or a best
+of three with cards from packs in the Draft.
 TypeScript, Preact, Vite; Vitest and Playwright.
 
 ## Layout
@@ -22,16 +22,18 @@ src/ui/      Preact views of controller.state; every tap becomes an engine Actio
              public/cards/; animations of the fx cues (fx.ts, motion.ts)
 src/audio/   music and sound effects synthesized with Web Audio: a theme per deck whose mood follows the game, a
              sound per fx cue; GameAudio starts on the first tap
+src/i18n/    the current language (es, en) and messages({ es, en }), the typed catalog each layer keeps in its text/
 tests/       Vitest: engine, ai, llm, app, ui (happy-dom), audio (fake AudioContext) e2e/  Playwright on the
              production build
-scripts/     sim.ts (headless AI games in every matchup + invariants, in parallel), cards.ts (writes docs/CARDS.md),
-             openrouterProxy.ts (dev server proxy that adds OPENROUTER_API_KEY)
+scripts/     sim.ts (headless AI games in every matchup + invariants, in parallel), cards.ts (writes docs/CARDS.md and
+             CARDS.en.md), openrouterProxy.ts (dev server proxy that adds OPENROUTER_API_KEY)
 ```
 
 ## Engine model
 
 - `applyAction(state, action)` returns a new state or throws `IllegalActionError`; `tryApplyAction` returns
-  `{ ok, error }` instead. Input states are never mutated.
+  `{ ok, error, refusal }` instead: `refusal` is a code from `src/engine/refusals.ts`, `error` its text in the current
+  language. Input states are never mutated.
 - `state.pending` is the single decision the game waits for — `priority`, `declareAttackers`, `declareBlockers`,
   `chooseTargets`, `mulligan`, `bottom`, `discard` (at cleanup, or with the `source` of the effect that asks for it)
   or `gameOver` — and `getLegalActions(state)` lists the moves of `pending.player`.
@@ -40,7 +42,7 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 
 ## Verify a change
 
-1. After editing cards or decks, run `npm run cards` to regenerate `docs/CARDS.md`.
+1. After editing cards or decks, run `npm run cards` to regenerate `docs/CARDS.md` and `docs/CARDS.en.md`.
 2. Run `npm run verify` (typecheck, unit tests, 196 AI-vs-AI games, one per matchup, with invariant checks,
    production build). Done when it exits 0.
 3. After changing cards, decks or the AI, check the balance with `npm run sim -- --games 3000 --quiet` (under a
@@ -61,8 +63,9 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 - URL parameters: `seed`, `first=you|ai`, `aiDelay` (ms), `skipMulligan=1`, `autoplay=1` (AI plays both seats),
   `deck=<id>|random` (yours; one of your decks by its `mine-<n>` id too), `aiDeck=<id>|random`, `ai=llm` with `model=<openrouter id>` and `effort=minimal|low|medium|high`
   (the LLM plays the AI seat), `autoPass=off|on` (off: you pass by hand wherever you could act; the menu toggle is
-  remembered), `theme=dark|light`, `fx=off|slow|<speed>` (animations), `music=on|off` and `sfx=on|off` (over the
-  remembered toggles; `off` keeps a browser you drive quiet). Decks default to `emberwild`.
+  remembered), `theme=dark|light`, `lang=es|en` (over the remembered choice; without either, the browser's language,
+  else Spanish), `fx=off|slow|<speed>` (animations), `music=on|off` and `sfx=on|off` (over the remembered toggles;
+  `off` keeps a browser you drive quiet). Decks default to `emberwild`.
   Any of `seed`, `first`, `skipMulligan`, `autoplay`, `deck`, `aiDeck`, `ai`, `model`, `effort` skips the start screen.
 - `window.manaDuel` (`manaDuel.help()` prints it): read with `state()`, `describe()`, `pending()`,
   `legalActions()`, `decks()` (yours too, with `custom` and `playable`), `matchup()`; act for player 0 with `dispatch(action)`, `pass()`, `endTurn()`,
@@ -89,8 +92,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   Start screen: `seat-<p>` (a deck box: `data-deck`, `aria-expanded`) opens `deck-picker` (`data-seat`), which holds
   `deck-<deckId|random>` or `opponent-<deckId|random>` radios (`aria-checked`), `deck-detail`, `deck-view-<deckId>` and
   `btn-picker-done`; each box's `.deck-box[data-open]` tells whether its lid is open. `btn-settings` opens `settings`
-  (`btn-settings-close`), with `ai-classic`, `ai-llm`, `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, the sound
-  toggles and how to play; `start-problem` says what the LLM still lacks, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
+  (`btn-settings-close`), with `lang-<es|en>` (`aria-checked`; `html[lang]` follows), `ai-classic`, `ai-llm`,
+  `llm-model`, `llm-effort`, `llm-key`, `llm-hint`, the sound toggles and how to play; `start-problem` says what the LLM still lacks, `btn-play`, `btn-watch`. LLM in game: `player-tag-1`,
   `llm-notice` (unavailable, `llm-notice-hide` closes it), `game[data-llm]` (`thinking`, `ready`, `unavailable`). Deck viewer: `deck-viewer` (`data-deck`), `deck-card-<defId>` (`data-count`),
   `deck-tab-<p>` in game, `mana-curve`, `btn-deck-close`; `menu-decks` opens it in game.
   `menu-autopass` (`aria-checked`) toggles auto-pass. Expedition: `btn-expedition` (start screen) opens `expedition`
@@ -131,7 +134,7 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 - `docs/VERIFICATION.md` — map of every feature to its tests and built-in check; read it when verifying or adding
   a feature.
 - `docs/RULES.md` — implemented rules, automatic passing, differences from Magic; read it for any rules question.
-- `docs/CARDS.md` — generated card and keyword list.
+- `docs/CARDS.md` — generated card and keyword list as the game shows it in Spanish; `docs/CARDS.en.md` in English.
 - `docs/LLM.md` — LLM opponent: prompt, answer schemas, fallbacks, keys and dev proxy, live tests; read it before
   touching `src/llm` or the controller's AI seat.
 - `docs/AUDIO.md` — music and sound effects: themes per color, moods, the sound of each fx cue, mix, test hooks; read
@@ -143,22 +146,24 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 ## Extending
 
 - A card is one typed `CardDef` in `src/engine/cards/<id>.ts`, listed in `src/engine/cards/index.ts`; its rules text
-  is generated by `src/engine/describe.ts`. Its art is `public/cards/<id>.svg` on a 120×80 viewBox with the subject
-  centred: it fills the whole card, so a battlefield card shows about its central half, with keyword icons in the
-  top-left corner, ability pills above the bottom edge and the P/T in the bottom-right corner, and a hand card lays
-  its name and text over the bottom third. Its `name`, `subtypes` and `flavor` are Spanish; `subtypes` follow a
-  Spanish type line (`['Soldado', 'Humano']` prints «Soldado humano»), and the name fits the two-line name box of a
-  hand card (68 px wide, 60 px on short screens, so a word of eleven letters seldom fits): `e2e/game.spec.ts` checks
-  that no `.card .name` in hand overflows.
+  is generated by `src/engine/text/es.ts` and `en.ts`. Its art is `public/cards/<id>.svg` on a 120×80 viewBox with the
+  subject centred: it fills the whole card, so a battlefield card shows about its central half, with keyword icons in
+  the top-left corner, ability pills above the bottom edge and the P/T in the bottom-right corner, and a hand card
+  lays its name and text over the bottom third. Its `name`, `subtypes` and `flavor` are Spanish; `subtypes` follow a
+  Spanish type line (`['Soldado', 'Humano']` prints «Soldado humano»). Their English versions go in
+  `src/engine/text/cards.en.ts`, subtypes in English order (`['Human', 'Soldier']`), and `getCardDef` serves those of
+  the current language. In both languages the name fits the two-line name box of a hand card (68 px wide, 60 px on
+  short screens, so a word of eleven letters seldom fits): `e2e/game.spec.ts` and `e2e/i18n.spec.ts` check that no
+  `.card .name` in hand overflows.
 - A token is a creature `CardDef` with `token: true`, its `colors` and no cost, filed and drawn like any card but in
   no deck; a `createTokens` effect names it. Tokens get ids `tk<n>` and, once they leave the battlefield, stay in
   `state.cards` with zone `gone` so the log and the animations can still name them.
 - A new effect, trigger or keyword touches `src/engine/types.ts`, its behaviour where it happens (`effects.ts`,
   `combat.ts`, `rules.ts` for timing, `game.ts` for cast triggers and costs, `state.ts` `moveCard` for enters, dies
-  and "another creature" triggers), its text in `describe.ts`, its short label in `src/ui/cardInfo.ts` (a keyword,
-  its icon in `src/ui/components/KeywordIcon.tsx`), and
-  `src/ai/evaluate.ts` when it changes what a creature is worth. An effect that waits for a player's choice sets
-  `state.pending` during resolution (see the `discard` effect) and needs a case in `src/ai/rollout.ts`. State a
+  and "another creature" triggers), its text in `src/engine/text/es.ts` and `en.ts`, its short label in
+  `src/ui/cardInfo.ts` (a keyword, its icon in `src/ui/components/KeywordIcon.tsx`), and `src/ai/evaluate.ts` when
+  it changes what a creature is worth. An effect that waits for a player's choice sets `state.pending` during
+  resolution (see the `discard` effect) and needs a case in `src/ai/rollout.ts`. State a
   creature keeps on the battlefield, like +1/+1 counters, also needs its reset in `moveCard`, a rule in
   `invariants.ts`, a scenario field and a place in `src/llm/view.ts`; state a player keeps for the turn, like
   `damagedThisTurn`, resets in `goToNextStep` and needs the same scenario field and view. A keyword that triggers
@@ -173,19 +178,23 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 - A new `GameEvent` animates once `src/app/fx.ts` turns it into a cue (`tests/app/fx.test.ts`) and `src/ui/fx.ts`
   gives the cue its hooks and overlays (`tests/ui/animations.test.tsx`, `e2e/animations.spec.ts`); it sounds once
   `soundsOf` in `src/audio/cues.ts` maps the cue to a sound (`tests/audio/cues.test.ts`).
-- Decks live in `src/engine/decks.ts`: 40 cards, 16 lands, only the deck's colors, and no nonland card shared with
-  another deck (basic lands may be). `featured` names the card whose art is on the deck's box. A new deck
-  appears in both seats' pickers, the viewer, the simulator and `docs/CARDS.md` on its own, and gets a music theme
-  from its colors.
+- Decks live in `src/engine/decks.ts`, with their English names and descriptions in `src/engine/text/decks.en.ts`:
+  40 cards, 16 lands, only the deck's colors, and no nonland card shared with another deck (basic lands may be).
+  `featured` names the card whose art is on the deck's box. A new deck appears in both seats' pickers, the viewer, the
+  simulator and `docs/CARDS.md` on its own, and gets a music theme from its colors.
 
 ## Conventions
 
 - Code, docs, tests, commit messages and developer-facing strings (`manaDuel.help()`, check titles, programmer
   errors, the output of `npm run sim`) are English. Code carries no comments: names and tests explain it.
-- Every text the player reads is Spanish: card and deck names, rules text, the UI, the log, engine refusals (they
-  reach toasts and prompts) and the LLM prompt (its reasons reach the log). Rules text follows the official Spanish
-  templates of Magic, built in `src/engine/describe.ts`; the log and the prompts call the other player «el rival».
-  Ids of cards, decks, test hooks and URL parameters keep their English names.
+- Every text the player reads exists in Spanish and English: card and deck names, rules text, the UI, the log, engine
+  refusals (they reach toasts and prompts) and the LLM prompt (its reasons reach the log). The engine writes its text in
+  `src/engine/text/es.ts` and `en.ts` on the official templates of Magic in each language, and the log and the prompts
+  call the other player «el rival» or "the opponent"; every other layer keeps a `messages({ es, en })` catalog in its
+  `text/` folder, where a missing English key fails `tsc`, and reads it each time it renders (a value read at import
+  keeps the language of that moment). Spanish is the default and the tests' language: an English test calls
+  `setLocale('en')` and expects `spanishIn(shownText(...))` (`tests/i18n.ts`) to find nothing. Ids of cards, decks,
+  test hooks and URL parameters keep their English names.
 - Tests build positions with `scenario(...)` and explicit card ids (`tests/helpers.ts`); seeds are for whole games.
 - The AI and the LLM read only public state, their own hand and card counts; `tests/ai/ai.test.ts` › AI fairness and
   `tests/llm/player.test.ts` › the LLM prompt guard this.

@@ -22,6 +22,7 @@ import {
 } from '../../engine';
 import { abilityHints, cardArtUrl, cardColorVar, cssVars, effectHint, landHint, lastingTriggers, manaFill, manaName, triggerHint } from '../cardInfo';
 import type { CardFx, GhostFx } from '../fx';
+import { cardText } from '../text/card';
 import { usePress } from '../useController';
 import { CardIcon } from './KeywordIcon';
 import { RelicIcon, hasRelicGlyph } from './ModeIcons';
@@ -43,18 +44,18 @@ export function CardArt({ defId }: { defId: string }) {
 
 function ManaSymbol({ symbol }: { symbol: string }) {
   if (symbol === 'any') {
-    return <span class="pip any" style={cssVars({ '--pip': manaFill(COLORS) })} aria-label="cualquier color" />;
+    return <span class="pip any" style={cssVars({ '--pip': manaFill(COLORS) })} aria-label={cardText().anyColor} />;
   }
   if (symbol === 'T') {
     return (
-      <span class="pip tap" aria-label="girar">
+      <span class="pip tap" aria-label={manaName(symbol)}>
         T
       </span>
     );
   }
   if (/^\d+$/.test(symbol)) {
     return (
-      <span class="pip generic" aria-label={`${symbol} genérico`}>
+      <span class="pip generic" aria-label={manaName(symbol)}>
         {symbol}
       </span>
     );
@@ -70,7 +71,7 @@ export function ManaCost({ defId }: { defId: string }) {
   const symbols = costSymbols(getCost(defId));
   if (symbols.length === 0) return null;
   return (
-    <span class="pips" aria-label={`Coste: ${symbols.map(manaName).join(', ')}`}>
+    <span class="pips" aria-label={cardText().cost(symbols.map(manaName).join(', '))}>
       {symbols.map((symbol, index) => (
         <ManaSymbol key={index} symbol={symbol} />
       ))}
@@ -166,7 +167,7 @@ function leadsWithSymbol(ability: ActivatedAbility): boolean {
 function AbilityCost({ ability }: { ability: ActivatedAbility }) {
   const parts: ComponentChildren[] = [];
   if (ability.tap) parts.push(<ManaSymbol symbol="T" />);
-  if (ability.sacrifice) parts.push('Sacr.');
+  if (ability.sacrifice) parts.push(cardText().sacrificeShort);
   if (ability.cost !== '{0}') parts.push(costSymbols(parseCost(ability.cost)).map((symbol, index) => <ManaSymbol key={index} symbol={symbol} />));
   return (
     <span class="cost">
@@ -255,13 +256,14 @@ export function permanentLabel(s: GameState, id: CardId): string {
   const card = s.cards[id];
   if (!card) return id;
   const def = getCardDef(card.def);
+  const flags = cardText().flags;
   const parts = [def.name];
   if (def.types.includes('creature')) parts.push(`${getPower(s, id)}/${getToughness(s, id) - card.damage}`);
   if (card.counters > 0) parts.push(countersLabel(card.counters));
-  if (card.tapped) parts.push('girada');
-  if (card.summoningSick && def.types.includes('creature') && !hasKeyword(s, id, 'haste')) parts.push('con mareo de invocación');
-  if (s.combat?.attackers.includes(id)) parts.push('atacando');
-  if (s.combat?.blocks.some((block) => block.blocker === id)) parts.push('bloqueando');
+  if (card.tapped) parts.push(flags.tapped);
+  if (card.summoningSick && def.types.includes('creature') && !hasKeyword(s, id, 'haste')) parts.push(flags.sick);
+  if (s.combat?.attackers.includes(id)) parts.push(flags.attacking);
+  if (s.combat?.blocks.some((block) => block.blocker === id)) parts.push(flags.blocking);
   return parts.join(', ');
 }
 
@@ -308,7 +310,7 @@ export function PermanentCard({ s, id, flags, fx, onTap, onInspect }: PermanentP
         <CardIcons def={def} keywords={getKeywords(s, id)} />
         <AbilityPills def={def} id={id} usable={flags.usable} manaSpent={card.tapped || !isReadyToTap(s, id)} />
         {def.types.includes('creature') && <PowerToughness s={s} id={id} />}
-        {sick && <span class="sick" title="Mareo de invocación" />}
+        {sick && <span class="sick" title={cardText().summoningSickness} />}
         {flags.badge && <span class={`badge ${flags.badge.kind}`}>{flags.badge.value}</span>}
         <FxFlash fx={fx} />
       </button>
@@ -445,7 +447,7 @@ export function HandCard({ s, id, flags, fx, onTap, onInspect }: HandCardProps) 
       data-fx={fx?.kinds.join(' ')}
       data-fx-seq={fx?.seq}
       data-playable={flags.playable ? 'true' : undefined}
-      aria-label={`${def.name}${flags.playable ? ', jugable' : ''}`}
+      aria-label={`${def.name}${flags.playable ? cardText().flags.playable : ''}`}
       aria-pressed={flags.selected ? 'true' : undefined}
       {...press}
     >

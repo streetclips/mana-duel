@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import {
-  KEYWORD_NAMES,
-  KEYWORD_REMINDERS,
   castBlocker,
   countersLabel,
   formatPump,
   getCardDef,
   hasKeyword,
+  keywordName,
+  keywordReminder,
   landPlayError,
+  refusalText,
   rulesText,
   typeLine,
   type Action,
@@ -20,6 +21,8 @@ import {
 } from '../../engine';
 import type { LogEntry } from '../../app/controller';
 import { effectHint } from '../cardInfo';
+import { cardText } from '../text/card';
+import { gameText } from '../text/game';
 import { DetailCard, DetailFace, RulesLine } from './Card';
 import type { AudioToggles } from './SoundToggles';
 
@@ -61,7 +64,7 @@ export function CardDetail({ def, face, statuses = [] }: { def: CardDef; face: C
         ))}
         {(def.keywords ?? []).map((keyword) => (
           <p key={keyword} class="reminder">
-            <b>{KEYWORD_NAMES[keyword]}:</b> {KEYWORD_REMINDERS[keyword]}
+            <b>{keywordName(keyword)}:</b> {keywordReminder(keyword)}
           </p>
         ))}
         {def.flavor && <p class="flavor">{def.flavor}</p>}
@@ -106,15 +109,16 @@ interface CardSheetProps {
 }
 
 function actionLabel(s: GameState, action: Action): string {
-  if (action.type === 'playLand') return `Jugar ${getCardDef(s.cards[action.card]?.def ?? '').name}`;
-  if (action.type === 'cast') return `Lanzar ${getCardDef(s.cards[action.card]?.def ?? '').name}`;
+  const text = cardText().actions;
+  if (action.type === 'playLand') return text.play(getCardDef(s.cards[action.card]?.def ?? '').name);
+  if (action.type === 'cast') return text.cast(getCardDef(s.cards[action.card]?.def ?? '').name);
   if (action.type === 'activate') {
     const ability = getCardDef(s.cards[action.card]?.def ?? '').activated?.[action.ability];
-    if (!ability) return 'Activar';
-    const cost = [ability.cost === '{0}' ? '' : ability.cost, ability.tap ? '{T}' : '', ability.sacrifice ? 'sacrificar' : '']
+    if (!ability) return text.activate;
+    const cost = [ability.cost === '{0}' ? '' : ability.cost, ability.tap ? '{T}' : '', ability.sacrifice ? text.sacrifice : '']
       .filter(Boolean)
       .join(', ');
-    return `Activar (${cost}): ${ability.effects.map(effectHint).join(', ')}`;
+    return text.activateWith(cost, ability.effects.map(effectHint).join(', '));
   }
   return action.type;
 }
@@ -135,47 +139,50 @@ function whyNot(s: GameState, id: CardId, human: PlayerId): string | null {
   if (card.zone !== 'hand' || card.owner !== human) return null;
   const def = getCardDef(card.def);
   const reason = def.types.includes('land') ? landPlayError(s, human, id) : castBlocker(s, human, id);
-  if (!reason) return def.types.includes('land') ? null : 'Ahora no hay objetivos legales';
-  return reason.charAt(0).toUpperCase() + reason.slice(1);
+  if (!reason) return def.types.includes('land') ? null : cardText().noLegalTargets;
+  const text = refusalText(reason);
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function battlefieldStatuses(s: GameState, id: CardId, human: PlayerId): Status[] {
   const card = s.cards[id];
   if (card?.zone !== 'battlefield') return [];
   const def = getCardDef(card.def);
+  const text = cardText();
   const statuses: Status[] = [];
-  if (card.tapped) statuses.push({ text: 'Girada' });
+  if (card.tapped) statuses.push({ text: text.statuses.tapped });
   if (card.summoningSick && def.types.includes('creature') && !hasKeyword(s, id, 'haste')) {
-    statuses.push({ text: 'Mareo de invocación' });
+    statuses.push({ text: text.summoningSickness });
   }
-  if (card.damage > 0) statuses.push({ text: `${card.damage} de daño`, tone: 'bad' });
+  if (card.damage > 0) statuses.push({ text: text.statuses.damage(card.damage), tone: 'bad' });
   if (card.counters > 0) statuses.push({ text: countersLabel(card.counters), tone: 'good' });
   const pumps = s.effects.filter((effect) => effect.card === id);
   for (const pump of pumps) {
     const tone = pump.power < 0 || pump.toughness < 0 ? 'bad' : 'good';
-    statuses.push({ text: `${formatPump(pump.power, pump.toughness, pump.keywords)} este turno`, tone });
+    statuses.push({ text: text.statuses.thisTurn(formatPump(pump.power, pump.toughness, pump.keywords)), tone });
   }
-  if (card.controller !== human) statuses.push({ text: 'Del rival' });
+  if (card.controller !== human) statuses.push({ text: text.statuses.opponents });
   return statuses;
 }
 
 function zoneLabel(card: CardInstance, human: PlayerId): string {
   const mine = card.owner === human;
+  const text = cardText();
   switch (card.zone) {
     case 'library':
-      return mine ? 'En tu biblioteca' : 'En la biblioteca del rival';
+      return text.zones.library(mine);
     case 'hand':
-      return mine ? 'En tu mano' : 'En la mano del rival';
+      return text.zones.hand(mine);
     case 'battlefield':
-      return 'En el campo de batalla';
+      return text.zones.battlefield;
     case 'graveyard':
-      return mine ? 'En tu cementerio' : 'En el cementerio del rival';
+      return text.zones.graveyard(mine);
     case 'command':
-      return mine ? 'Tu reliquia' : 'Reliquia del rival';
+      return text.relic(mine);
     case 'stack':
-      return 'En la pila';
+      return text.zones.stack;
     case 'gone':
-      return 'Ya no está en juego';
+      return text.zones.gone;
   }
 }
 
@@ -186,13 +193,13 @@ export function CardSheet({ s, id, human, actions, onAction, onClose }: CardShee
   const buttons = distinctActions(actions);
   const hidden = card.zone === 'hand' && card.owner !== human;
   const statuses: Status[] = [
-    ...(card.zone === 'stack' ? [{ text: 'En la pila' }] : []),
+    ...(card.zone === 'stack' ? [{ text: cardText().zones.stack }] : []),
     ...(card.zone === 'command' ? [{ text: zoneLabel(card, human) }] : []),
     ...battlefieldStatuses(s, id, human),
   ];
   const note = buttons.length === 0 ? whyNot(s, id, human) : null;
   return (
-    <Sheet label={hidden ? 'Carta oculta' : def.name} onClose={onClose}>
+    <Sheet label={hidden ? cardText().hiddenCard : def.name} onClose={onClose}>
       <CardDetail def={def} face={<DetailCard s={s} id={id} />} statuses={statuses} />
       {buttons.length > 0 && (
         <div class="sheet-actions">
@@ -239,13 +246,14 @@ export function LogPanel({ s, human, entries, onClose }: LogPanelProps) {
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight });
   }, [entries.length]);
+  const text = gameText();
   return (
     <>
       <div class="scrim clear" onClick={onClose} />
-      <aside class="log-panel" data-testid="log-panel" aria-label="Registro de la partida">
+      <aside class="log-panel" data-testid="log-panel" aria-label={text.log}>
         <header>
-          <h2>Registro de la partida</h2>
-          <button type="button" class="icon-btn" aria-label="Cerrar el registro" onClick={onClose}>
+          <h2>{text.log}</h2>
+          <button type="button" class="icon-btn" aria-label={text.closeLog} onClick={onClose}>
             <CloseIcon />
           </button>
         </header>
@@ -298,48 +306,49 @@ export function Menu({
   onToggleSpeed,
   onToggleAutoPass,
   onHome,
-  homeLabel = 'Menú principal',
+  homeLabel,
   onClose,
 }: MenuProps) {
+  const text = gameText();
   return (
     <>
       <div class="scrim clear" onClick={onClose} />
       <div class="popover" role="menu" data-testid="menu">
         <button type="button" role="menuitem" data-testid="menu-log" onClick={onLog}>
-          Registro de la partida
+          {text.log}
         </button>
         {onDecks && (
           <button type="button" role="menuitem" data-testid="menu-decks" onClick={onDecks}>
-            Mazos
+            {text.decks}
           </button>
         )}
         <button type="button" role="menuitem" data-testid="menu-speed" onClick={onToggleSpeed}>
-          Velocidad de la IA: {fast ? 'rápida' : 'normal'}
+          {text.aiSpeed(fast)}
         </button>
         <button type="button" role="menuitemcheckbox" aria-checked={autoPass} data-testid="menu-autopass" onClick={onToggleAutoPass}>
-          Pase automático: {autoPass ? 'sí' : 'no'}
+          {text.autoPass(autoPass)}
         </button>
         {audio && (
           <>
             <button type="button" role="menuitemcheckbox" aria-checked={audio.music} data-testid="menu-music" onClick={audio.onToggleMusic}>
-              Música: {audio.music ? 'sí' : 'no'}
+              {text.music(audio.music)}
             </button>
             <button type="button" role="menuitemcheckbox" aria-checked={audio.sfx} data-testid="menu-sfx" onClick={audio.onToggleSfx}>
-              Efectos de sonido: {audio.sfx ? 'sí' : 'no'}
+              {text.sfx(audio.sfx)}
             </button>
           </>
         )}
         {onNewGame && (
           <button type="button" role="menuitem" data-testid="menu-new-game" onClick={onNewGame}>
-            Nueva partida
+            {text.newGame}
           </button>
         )}
         <button type="button" role="menuitem" data-testid="menu-home" onClick={onHome}>
-          {homeLabel}
+          {homeLabel ?? text.home}
         </button>
         {!gameOver && (
           <button type="button" role="menuitem" class="danger" data-testid="menu-concede" onClick={onConcede}>
-            Rendirse
+            {text.concede}
           </button>
         )}
       </div>
@@ -362,6 +371,7 @@ interface GameOverProps {
 
 export function GameOverModal({ s, human, title, detail, onNewGame, onHome, continueLabel, onContinue, onLog, onClose }: GameOverProps) {
   const opponent: PlayerId = human === 0 ? 1 : 0;
+  const text = gameText();
   return (
     <div class="scrim center-modal" data-testid="game-over" onClick={onClose}>
       <div class="modal" role="dialog" aria-label={title} onClick={(event) => event.stopPropagation()}>
@@ -370,14 +380,15 @@ export function GameOverModal({ s, human, title, detail, onNewGame, onHome, cont
         <div class="stats">
           <span>
             <b class="num">{s.turn}</b>
-            {s.turn === 1 ? 'turno' : 'turnos'}
+            {text.turns(s.turn)}
           </span>
           <span>
-            <b class="num">{s.players[human].life}</b>tus vidas
+            <b class="num">{s.players[human].life}</b>
+            {text.yourLife}
           </span>
           <span>
             <b class="num">{s.players[opponent].life}</b>
-            vidas del rival
+            {text.opponentLife}
           </span>
         </div>
         <div class="sheet-actions">
@@ -388,15 +399,15 @@ export function GameOverModal({ s, human, title, detail, onNewGame, onHome, cont
           ) : (
             <>
               <button type="button" class="btn" data-testid="btn-play-again" onClick={onNewGame}>
-                Jugar otra vez
+                {text.playAgain}
               </button>
               <button type="button" class="btn secondary" data-testid="btn-home" onClick={onHome}>
-                Menú principal
+                {text.home}
               </button>
             </>
           )}
           <button type="button" class="btn secondary" data-testid="btn-view-log" onClick={onLog}>
-            Ver el registro
+            {text.viewLog}
           </button>
         </div>
       </div>

@@ -1,14 +1,17 @@
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
 import type { DeckDef, PlayerId } from '../engine';
+import { LOCALES, LOCALE_NAMES, type Locale } from '../i18n';
 import { DeckPicker, Versus } from './components/DeckSelect';
 import { CardsIcon, ChevronRightIcon, GearIcon, MapIcon, PackIcon } from './components/ModeIcons';
 import { ScreenBar } from './components/ScreenBar';
 import { SoundToggles, type AudioToggles } from './components/SoundToggles';
 import type { DeckChoice } from './deckChoice';
-import { EFFORT_LABELS, REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
+import { REASONING_EFFORTS, isReasoningEffort } from '../llm/models';
 import { prefersReducedMotion } from './motion';
 import { llmProblem, type OpponentChoice } from './opponentChoice';
+import { commonText } from './text/common';
+import { startText } from './text/start';
 
 export interface LlmSettings {
   choice: OpponentChoice;
@@ -24,6 +27,11 @@ export interface ModeEntry {
   onOpen: () => void;
 }
 
+export interface LanguageSettings {
+  locale: Locale;
+  onChange: (locale: Locale) => void;
+}
+
 interface StartScreenProps {
   choice: DeckChoice;
   onChange: (choice: DeckChoice) => void;
@@ -31,6 +39,7 @@ interface StartScreenProps {
   onPlay: () => void;
   onWatch: () => void;
   llm: LlmSettings;
+  language?: LanguageSettings;
   audio?: AudioToggles;
   customs?: readonly DeckDef[];
   expedition?: ModeEntry;
@@ -39,15 +48,12 @@ interface StartScreenProps {
 }
 
 function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null }) {
-  const hint =
-    problem ??
-    (llm.proxy && !llm.apiKey.trim()
-      ? 'El servidor de desarrollo añade su propia OPENROUTER_API_KEY, así que aquí no hace falta ninguna clave.'
-      : 'Tu clave se queda en este dispositivo. Cada decisión de la IA es una petición a OpenRouter que se cobra a esa clave. Con menos esfuerzo de razonamiento, los modelos que razonan responden antes.');
+  const text = startText();
+  const hint = problem ?? (llm.proxy && !llm.apiKey.trim() ? text.proxyHint : text.keyHint);
   return (
     <div class="llm-fields">
       <label class="field">
-        <span>Modelo</span>
+        <span>{text.model}</span>
         <input
           type="text"
           list="llm-models"
@@ -56,7 +62,7 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
           spellcheck={false}
           autocapitalize="off"
           autocomplete="off"
-          placeholder="proveedor/modelo"
+          placeholder={text.modelPlaceholder}
           onInput={(event) => llm.onChoice({ ...llm.choice, model: event.currentTarget.value })}
         />
       </label>
@@ -66,7 +72,7 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
         ))}
       </datalist>
       <label class="field">
-        <span>Esfuerzo de razonamiento</span>
+        <span>{text.effort}</span>
         <select
           data-testid="llm-effort"
           value={llm.choice.effort ?? 'default'}
@@ -75,22 +81,22 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
             llm.onChoice({ ...llm.choice, effort: isReasoningEffort(value) ? value : null });
           }}
         >
-          <option value="default">El del modelo</option>
+          <option value="default">{text.modelEffort}</option>
           {REASONING_EFFORTS.map((effort) => (
             <option key={effort} value={effort}>
-              {EFFORT_LABELS[effort]}
+              {commonText().efforts[effort]}
             </option>
           ))}
         </select>
       </label>
       <label class="field">
-        <span>Clave de API de OpenRouter</span>
+        <span>{text.apiKey}</span>
         <input
           type="password"
           data-testid="llm-key"
           value={llm.apiKey}
           autocomplete="off"
-          placeholder={llm.proxy ? 'Opcional con el servidor de desarrollo' : 'sk-or-…'}
+          placeholder={llm.proxy ? text.apiKeyOptional : 'sk-or-…'}
           onInput={(event) => llm.onApiKey(event.currentTarget.value)}
         />
       </label>
@@ -98,7 +104,7 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
         {hint}{' '}
         {!llm.apiKey.trim() && !llm.proxy && (
           <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">
-            Consigue una clave
+            {text.getKey}
           </a>
         )}
       </p>
@@ -106,40 +112,46 @@ function LlmFields({ llm, problem }: { llm: LlmSettings; problem: string | null 
   );
 }
 
-const PLAYERS = [
-  { kind: 'classic', label: 'Clásica' },
-  { kind: 'llm', label: 'LLM' },
-] as const;
+const PLAYERS = ['classic', 'llm'] as const;
 
 function Rules() {
+  const text = startText();
   return (
     <section class="rules" aria-labelledby="rules-label">
       <h2 id="rules-label" class="section-label">
-        Cómo se juega
+        {text.howToPlay}
       </h2>
       <ul>
-        <li>
-          Toca una caja de mazo para elegir tu mazo o el de la IA, o deja cualquiera de los dos al azar. Los dos empezáis con
-          20 vidas y 40 cartas.
-        </li>
-        <li>
-          La IA clásica juega por su cuenta. Elige LLM para que un modelo de lenguaje de OpenRouter tome las decisiones de la
-          IA: ve lo mismo que puede ver la IA, nunca tu mano, y la IA clásica lo sustituye si no responde.
-        </li>
-        <li>Deja a la IA a 0 vidas para ganar. Juega una tierra por turno; las tierras pagan los hechizos solas.</li>
-        <li>Las criaturas no pueden atacar el turno en que llegan, salvo que tengan la habilidad de prisa.</li>
-        <li>Ataca con tus criaturas; quien defiende elige las bloqueadoras. Todo el daño se hace a la vez.</li>
-        <li>Los instantáneos y las criaturas con destello se pueden lanzar siempre que tengas la prioridad, incluso en respuesta a un hechizo.</li>
-        <li>Un contrahechizo tiene como objetivo un hechizo de la pila: tócalo en la franja entre los dos lados.</li>
-        <li>Las fichas son criaturas que crean las cartas; desaparecen al salir del campo de batalla.</li>
-        <li>Toca una carta para ver qué hace. Mantenla pulsada o haz clic derecho para examinar cualquier carta.</li>
-        <li>
-          En la Expedición encadenas siete duelos con el mismo mazo: cada victoria te da una carta nueva y cada tres, una
-          reliquia. Una derrota la termina.
-        </li>
-        <li>En el Draft eliges cartas de sobres al azar, o abres seis en el Sellado, y juegas al mejor de tres con tu mazo.</li>
-        <li>En Mis mazos construyes tus propios mazos con todas las cartas del juego, para ti o para la IA.</li>
+        {text.rules.map((rule) => (
+          <li key={rule}>{rule}</li>
+        ))}
       </ul>
+    </section>
+  );
+}
+
+function LanguagePicker({ language }: { language: LanguageSettings }) {
+  return (
+    <section aria-labelledby="language-label">
+      <h2 id="language-label" class="section-label">
+        {startText().language}
+      </h2>
+      <div class="segmented" role="radiogroup" aria-labelledby="language-label">
+        {LOCALES.map((locale) => (
+          <button
+            key={locale}
+            type="button"
+            role="radio"
+            lang={locale}
+            aria-checked={language.locale === locale}
+            class={language.locale === locale ? 'on' : ''}
+            data-testid={`lang-${locale}`}
+            onClick={() => language.onChange(locale)}
+          >
+            {LOCALE_NAMES[locale]}
+          </button>
+        ))}
+      </div>
     </section>
   );
 }
@@ -147,32 +159,35 @@ function Rules() {
 interface SettingsProps {
   llm: LlmSettings;
   problem: string | null;
+  language?: LanguageSettings;
   audio?: AudioToggles;
   onClose: () => void;
 }
 
-function Settings({ llm, problem, audio, onClose }: SettingsProps) {
+function Settings({ llm, problem, language, audio, onClose }: SettingsProps) {
+  const text = startText();
   return (
-    <div class="settings" role="dialog" aria-label="Ajustes" data-testid="settings">
-      <ScreenBar title="Ajustes" backLabel="Cerrar los ajustes" backTestId="btn-settings-close" onBack={onClose} />
+    <div class="settings" role="dialog" aria-label={text.settings} data-testid="settings">
+      <ScreenBar title={text.settings} backLabel={text.closeSettings} backTestId="btn-settings-close" onBack={onClose} />
       <div class="settings-body">
+        {language && <LanguagePicker language={language} />}
         {audio && <SoundToggles audio={audio} />}
         <section aria-labelledby="ai-player-label">
           <h2 id="ai-player-label" class="section-label">
-            Quién controla la IA
+            {text.whoPlaysAi}
           </h2>
           <div class="segmented" role="radiogroup" aria-labelledby="ai-player-label">
-            {PLAYERS.map((player) => (
+            {PLAYERS.map((kind) => (
               <button
-                key={player.kind}
+                key={kind}
                 type="button"
                 role="radio"
-                aria-checked={llm.choice.kind === player.kind}
-                class={llm.choice.kind === player.kind ? 'on' : ''}
-                data-testid={`ai-${player.kind}`}
-                onClick={() => llm.onChoice({ ...llm.choice, kind: player.kind })}
+                aria-checked={llm.choice.kind === kind}
+                class={llm.choice.kind === kind ? 'on' : ''}
+                data-testid={`ai-${kind}`}
+                onClick={() => llm.onChoice({ ...llm.choice, kind })}
               >
-                {player.label}
+                {text[kind]}
               </button>
             ))}
           </div>
@@ -205,7 +220,7 @@ function ModeRow({ testId, title, icon, entry }: ModeRowProps) {
   );
 }
 
-export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, audio, customs = [], expedition, draft, myDecks }: StartScreenProps) {
+export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, language, audio, customs = [], expedition, draft, myDecks }: StartScreenProps) {
   const [picking, setPicking] = useState<PlayerId | null>(null);
   const [settings, setSettings] = useState(false);
   const matchup = useRef<HTMLDivElement>(null);
@@ -227,17 +242,19 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
     element.animate([{ translate: `0 ${offset}px` }, { translate: '0 0' }], { duration: 340, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
   }, [picking]);
 
-  const names = ['Tú', llm.choice.kind === 'llm' ? 'IA · LLM' : 'IA'] as const;
+  const common = commonText();
+  const text = startText();
+  const names = [common.you, llm.choice.kind === 'llm' ? common.aiLlm : common.ai] as const;
   return (
     <main class={`start${picking === null ? '' : ' picking'}`} data-testid="start-screen">
       <div class="start-body">
         <header class="start-head">
           <div class="start-title">
             <div>
-              <h1>Duelo de Maná</h1>
-              <p class="tagline">Un duelo de cartas minimalista. Toca una caja de mazo para elegir y enfréntate a la IA.</p>
+              <h1>{common.title}</h1>
+              <p class="tagline">{text.tagline}</p>
             </div>
-            <button type="button" class="icon-btn settings-btn" aria-label="Ajustes" data-testid="btn-settings" onClick={() => setSettings(true)}>
+            <button type="button" class="icon-btn settings-btn" aria-label={text.settings} data-testid="btn-settings" onClick={() => setSettings(true)}>
               <GearIcon />
             </button>
           </div>
@@ -266,7 +283,7 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
               <p class="field-hint problem" data-testid="start-problem">
                 {problem}{' '}
                 <button type="button" class="hint-link" onClick={() => setSettings(true)}>
-                  Abrir los ajustes
+                  {text.openSettings}
                 </button>
               </p>
             )}
@@ -274,11 +291,11 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
             {(expedition || draft || myDecks) && (
               <section class="start-section modes" aria-labelledby="modes-label">
                 <h2 id="modes-label" class="section-label">
-                  Más modos
+                  {text.moreModes}
                 </h2>
-                {expedition && <ModeRow testId="btn-expedition" title="Expedición" icon={<MapIcon />} entry={expedition} />}
-                {draft && <ModeRow testId="btn-draft" title="Draft" icon={<PackIcon />} entry={draft} />}
-                {myDecks && <ModeRow testId="btn-my-decks" title="Mis mazos" icon={<CardsIcon />} entry={myDecks} />}
+                {expedition && <ModeRow testId="btn-expedition" title={text.expedition} icon={<MapIcon />} entry={expedition} />}
+                {draft && <ModeRow testId="btn-draft" title={text.draft} icon={<PackIcon />} entry={draft} />}
+                {myDecks && <ModeRow testId="btn-my-decks" title={text.myDecks} icon={<CardsIcon />} entry={myDecks} />}
               </section>
             )}
           </>
@@ -287,13 +304,13 @@ export function StartScreen({ choice, onChange, onView, onPlay, onWatch, llm, au
 
       <div class="start-actions">
         <button type="button" class="btn" data-testid="btn-play" disabled={!!problem} onClick={onPlay}>
-          Jugar contra la IA
+          {text.play}
         </button>
         <button type="button" class="btn secondary" data-testid="btn-watch" disabled={!!problem} onClick={onWatch}>
-          Ver IA contra IA
+          {text.watch}
         </button>
       </div>
-      {settings && <Settings llm={llm} problem={problem} audio={audio} onClose={() => setSettings(false)} />}
+      {settings && <Settings llm={llm} problem={problem} language={language} audio={audio} onClose={() => setSettings(false)} />}
     </main>
   );
 }

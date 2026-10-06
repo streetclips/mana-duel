@@ -1,5 +1,6 @@
 import { COLORS, cardColors, getCardDef, getCost, hasCardDef, isRelicDef, manaValue, type Color, type DeckDef, type DeckEntry } from '../engine';
 import { MAX_COPIES, isBasicLand, isLandCard, poolCards } from './cardPool';
+import { deckBuildingText } from './text/decks';
 
 export const MIN_DECK = 40;
 export const MAX_DECK = 60;
@@ -7,8 +8,6 @@ export const MAX_NAME = 22;
 export const CUSTOM_PREFIX = 'mine-';
 
 const BASIC_OF: Record<Color, string> = { W: 'plains', U: 'island', B: 'swamp', R: 'mountain', G: 'forest' };
-const COLOR_WORDS: Record<Color, string> = { W: 'blanco', U: 'azul', B: 'negro', R: 'rojo', G: 'verde' };
-const COLOR_WORDS_PLURAL: Record<Color, string> = { W: 'blancas', U: 'azules', B: 'negras', R: 'rojas', G: 'verdes' };
 
 export interface Allowance {
   card: string;
@@ -72,10 +71,6 @@ export function suggestedFeatured(cards: readonly DeckEntry[]): string {
   return best ?? cards[0]?.card ?? BASIC_OF.G;
 }
 
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
-}
-
 function kindCounts(cards: readonly DeckEntry[]): { creatures: number; spells: number; lands: number } {
   let creatures = 0;
   let spells = 0;
@@ -91,42 +86,34 @@ function kindCounts(cards: readonly DeckEntry[]): { creatures: number; spells: n
 
 export function deckDescription(cards: readonly DeckEntry[]): string {
   const { creatures, spells, lands } = kindCounts(cards);
-  return `Mazo propio: ${plural(creatures, 'criatura', 'criaturas')}, ${plural(spells, 'hechizo', 'hechizos')} y ${plural(lands, 'tierra', 'tierras')}.`;
+  return deckBuildingText().description(creatures, spells, lands);
 }
 
 export function draftProblems(draft: DeckDraft, pool: readonly Allowance[]): string[] {
+  const text = deckBuildingText();
   const problems: string[] = [];
-  if (!draft.name.trim()) problems.push('Ponle un nombre al mazo.');
+  if (!draft.name.trim()) problems.push(text.unnamed);
   const size = countCards(draft.cards);
-  if (size < MIN_DECK) {
-    const missing = MIN_DECK - size;
-    problems.push(`${missing === 1 ? 'Falta 1 carta' : `Faltan ${missing} cartas`}: un mazo tiene al menos ${MIN_DECK}.`);
-  }
-  if (size > MAX_DECK) {
-    const extra = size - MAX_DECK;
-    problems.push(`${extra === 1 ? 'Sobra 1 carta' : `Sobran ${extra} cartas`}: un mazo tiene como mucho ${MAX_DECK}.`);
-  }
+  if (size < MIN_DECK) problems.push(text.tooFew(MIN_DECK - size, MIN_DECK));
+  if (size > MAX_DECK) problems.push(text.tooMany(size - MAX_DECK, MAX_DECK));
   for (const entry of draft.cards) {
     const name = getCardDef(entry.card).name;
     const allowance = allowanceOf(pool, entry.card);
-    if (!allowance) problems.push(`${name} no está entre las cartas que puedes usar.`);
-    else if (allowance.max !== null && entry.count > allowance.max) {
-      problems.push(`Llevas ${entry.count} copias de ${name}: puedes llevar ${allowance.max}.`);
-    }
+    if (!allowance) problems.push(text.notInPool(name));
+    else if (allowance.max !== null && entry.count > allowance.max) problems.push(text.tooManyCopies(entry.count, name, allowance.max));
   }
   return problems;
 }
 
 export function draftNotes(draft: DeckDraft): string[] {
+  const text = deckBuildingText();
   const notes: string[] = [];
   const size = countCards(draft.cards);
   const { lands } = kindCounts(draft.cards);
-  if (size >= MIN_DECK && (lands < 14 || lands > 20)) {
-    notes.push(`Llevas ${plural(lands, 'tierra', 'tierras')} de ${size}: la mayoría de los mazos llevan entre 15 y 17.`);
-  }
+  if (size >= MIN_DECK && (lands < 14 || lands > 20)) notes.push(text.landCount(lands, size));
   const produced = new Set(draft.cards.flatMap((entry) => getCardDef(entry.card).mana ?? []));
   const unpaid = deckColors(draft.cards).filter((color) => !produced.has(color));
-  for (const color of unpaid) notes.push(`Nada en el mazo da maná ${COLOR_WORDS[color]}: tus cartas ${COLOR_WORDS_PLURAL[color]} no podrán pagarse.`);
+  for (const color of unpaid) notes.push(text.unpaidColor(color));
   return notes;
 }
 

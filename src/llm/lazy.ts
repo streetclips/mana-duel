@@ -1,4 +1,5 @@
 import type { LlmPlayer } from './player';
+import { loadingText } from './text/loading';
 
 export function lazyLlmPlayer(model: string, load: () => Promise<LlmPlayer>): LlmPlayer {
   let player: LlmPlayer | null = null;
@@ -13,7 +14,7 @@ export function lazyLlmPlayer(model: string, load: () => Promise<LlmPlayer>): Ll
       loading ??= load().then(
         (loaded) => (player = loaded),
         (error: unknown) => {
-          failure = `el código del LLM no se cargó (${error instanceof Error ? error.message : String(error)})`;
+          failure = loadingText().codeFailed(error instanceof Error ? error.message : String(error));
           throw error;
         },
       );

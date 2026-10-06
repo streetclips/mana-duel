@@ -23,6 +23,8 @@ import { DeckBuilder } from './components/DeckBuilder';
 import { DeckViewer } from './components/DeckViewer';
 import { CardDefSheet } from './components/Overlays';
 import { ScreenBar } from './components/ScreenBar';
+import { commonText } from './text/common';
+import { draftText } from './text/draft';
 import { useSubscription } from './useController';
 
 interface DraftScreenProps {
@@ -33,18 +35,13 @@ interface DraftScreenProps {
   onHome: () => void;
 }
 
-const FORMATS: { format: DraftFormat; title: string; text: string }[] = [
-  {
-    format: 'draft',
-    title: 'Draft contra la IA',
-    text: `Abrís un sobre de ${PACK_SIZE} cartas cada uno, elegís una y os pasáis los sobres hasta vaciarlos; así ${ROUNDS} veces.`,
-  },
-  {
-    format: 'sealed',
-    title: 'Sellado',
-    text: `Abres ${SEALED_PACKS} sobres de ${PACK_SIZE} cartas y construyes tu mazo con lo que te toque. La IA hace lo mismo.`,
-  },
-];
+function formats(): { format: DraftFormat; title: string; text: string }[] {
+  const text = draftText();
+  return [
+    { format: 'draft', title: text.draftTitle, text: text.draftText(PACK_SIZE, ROUNDS) },
+    { format: 'sealed', title: text.sealedTitle, text: text.sealedText(SEALED_PACKS, PACK_SIZE) },
+  ];
+}
 
 function entriesOf(cards: readonly string[]): DeckEntry[] {
   const entries: DeckEntry[] = [];
@@ -57,10 +54,11 @@ function entriesOf(cards: readonly string[]): DeckEntry[] {
 }
 
 function poolDeck(run: DraftRun): DeckDef {
+  const text = draftText();
   return {
     id: 'draft-pool',
-    name: 'Tus cartas',
-    description: `Las ${run.picks[0].length} cartas que tienes para construir tu mazo, más las tierras básicas que quieras.`,
+    name: text.poolName,
+    description: text.poolDescription(run.picks[0].length),
     colors: [],
     featured: run.picks[0][0] ?? 'forest',
     cards: entriesOf(run.picks[0]),
@@ -78,44 +76,44 @@ function score(run: DraftRun): string {
 }
 
 export function draftStatus(run: DraftRun | null): string {
-  if (!run) return 'Elige cartas de sobres y juega con lo que construyas';
-  const format = run.format === 'draft' ? 'Draft' : 'Sellado';
+  const text = draftText();
+  if (!run) return text.statusNew;
+  const format = text.formats[run.format];
   switch (run.stage) {
     case 'picking':
-      return `${format} en curso: sobre ${run.round + 1} de ${ROUNDS}`;
+      return text.statusPicking(format, run.round + 1, ROUNDS);
     case 'building':
-      return `${format}: construye tu mazo`;
+      return text.statusBuilding(format);
     case 'match':
-      return `${format}: partida en curso, ${score(run)}`;
+      return text.statusMatch(format, score(run));
     case 'done':
-      return `${format} terminado: ${matchWinner(run) === 0 ? 'ganaste' : 'perdiste'} ${score(run)}`;
+      return text.statusDone(format, matchWinner(run) === 0, score(run));
   }
 }
 
 export function gameBadge(game: GameInfo): string {
-  return `Draft · partida ${game.number}`;
+  return draftText().gameBadge(game.number);
 }
 
 export function gameOutcome(game: GameInfo): string | null {
   if (game.result === null) return null;
+  const text = draftText();
   const [mine, theirs] = game.wins;
-  if (mine >= MATCH_WINS) return `¡Ganas el draft ${mine}-${theirs}!`;
-  if (theirs >= MATCH_WINS) return `La IA gana el draft ${theirs}-${mine}.`;
-  if (game.result === 'draw') return `Empate: el marcador sigue ${mine}-${theirs}.`;
-  return `${game.result === 'won' ? 'Ganas' : 'Pierdes'} esta partida: ${mine}-${theirs}. Gana quien llegue a ${MATCH_WINS}.`;
+  if (mine >= MATCH_WINS) return text.matchWon(mine, theirs);
+  if (theirs >= MATCH_WINS) return text.matchLost(mine, theirs);
+  if (game.result === 'draw') return text.gameDrawn(mine, theirs);
+  return text.gameOver(game.result === 'won', mine, theirs, MATCH_WINS);
 }
 
 function NewDraft({ onStart }: { onStart: (format: DraftFormat) => void }) {
+  const text = draftText();
   const [format, setFormat] = useState<DraftFormat>('draft');
   return (
     <>
       <div class="expedition-body" data-testid="draft-new">
-        <p class="run-intro">
-          Cartas nuevas en cada partida: consigue tus cartas de sobres al azar, construye un mazo de al menos 40 con las tierras básicas que quieras y
-          enfréntate al mazo que la IA se haya construido, al mejor de tres partidas.
-        </p>
-        <div class="relic-options" role="radiogroup" aria-label="Formato">
-          {FORMATS.map((option) => (
+        <p class="run-intro">{text.intro}</p>
+        <div class="relic-options" role="radiogroup" aria-label={text.format}>
+          {formats().map((option) => (
             <button
               key={option.format}
               type="button"
@@ -135,7 +133,7 @@ function NewDraft({ onStart }: { onStart: (format: DraftFormat) => void }) {
       </div>
       <div class="start-actions">
         <button type="button" class="btn" data-testid="btn-draft-start" onClick={() => onStart(format)}>
-          {format === 'draft' ? 'Abrir el primer sobre' : 'Abrir los sobres'}
+          {format === 'draft' ? text.openFirstPack : text.openPacks}
         </button>
       </div>
     </>
@@ -143,12 +141,13 @@ function NewDraft({ onStart }: { onStart: (format: DraftFormat) => void }) {
 }
 
 function PickSummary({ run, onView }: { run: DraftRun; onView: () => void }) {
+  const text = draftText();
   const picks = run.picks[0];
   return (
-    <section class="run-panel draft-picks" aria-label="Tus cartas">
+    <section class="run-panel draft-picks" aria-label={text.yourCards}>
       <div class="run-deck">
         <span class="floor-text">
-          <b data-testid="draft-pick-count">{picks.length === 1 ? '1 carta' : `${picks.length} cartas`}</b>
+          <b data-testid="draft-pick-count">{text.cardCount(picks.length)}</b>
           <span class="color-counts">
             {colorCounts(picks).map(([color, count]) => (
               <span key={color} title={manaName(color)} style={cssVars({ '--dot': `var(--mana-${color})` })}>
@@ -159,7 +158,7 @@ function PickSummary({ run, onView }: { run: DraftRun; onView: () => void }) {
         </span>
         {picks.length > 0 && (
           <button type="button" class="btn secondary" data-testid="btn-draft-picks" onClick={onView}>
-            Ver tus cartas
+            {text.viewYourCards}
           </button>
         )}
       </div>
@@ -168,6 +167,7 @@ function PickSummary({ run, onView }: { run: DraftRun; onView: () => void }) {
 }
 
 function Picking({ run, onPick, onView }: { run: DraftRun; onPick: (card: string) => void; onView: () => void }) {
+  const text = draftText();
   const [selected, setSelected] = useState<string | null>(null);
   const [inspected, setInspected] = useState<string | null>(null);
   const pack = run.packs[0];
@@ -176,13 +176,11 @@ function Picking({ run, onPick, onView }: { run: DraftRun; onPick: (card: string
     <>
       <div class="expedition-body" data-testid="draft-picking">
         <header class="reward-head">
-          <p class="eyebrow num">
-            Sobre {run.round + 1} de {ROUNDS} · carta {pickNumber(run)} de {PACK_SIZE}
-          </p>
-          <h2>Elige una carta</h2>
-          <p class="run-note">La IA elige a la vez del otro sobre; después os los pasáis. Mantén pulsada una carta para leerla entera.</p>
+          <p class="eyebrow num">{text.pickEyebrow(run.round + 1, ROUNDS, pickNumber(run), PACK_SIZE)}</p>
+          <h2>{text.chooseCard}</h2>
+          <p class="run-note">{text.pickNote}</p>
         </header>
-        <div class="draft-pack" role="radiogroup" aria-label="Cartas del sobre">
+        <div class="draft-pack" role="radiogroup" aria-label={text.packCards}>
           {pack.map((card) => (
             <MiniCard
               key={card}
@@ -210,7 +208,7 @@ function Picking({ run, onPick, onView }: { run: DraftRun; onPick: (card: string
             onPick(choice);
           }}
         >
-          {choice ? `Elegir ${getCardDef(choice).name}` : 'Toca una carta'}
+          {choice ? text.pick(getCardDef(choice).name) : text.tapCard}
         </button>
       </div>
       {inspected && <CardDefSheet def={getCardDef(inspected)} onClose={() => setInspected(null)} />}
@@ -220,13 +218,14 @@ function Picking({ run, onPick, onView }: { run: DraftRun; onPick: (card: string
 
 function GameHistory({ run }: { run: DraftRun }) {
   if (run.games.length === 0) return null;
+  const text = draftText();
   return (
-    <ol class="run-history" aria-label="Partidas">
+    <ol class="run-history" aria-label={text.games}>
       {run.games.map((game, index) => (
         <li key={index} data-result={game.winner === null ? 'draw' : game.winner === 0 ? 'won' : 'lost'}>
-          <span>Partida {index + 1}</span>
+          <span>{text.game(index + 1)}</span>
           <span class="num">
-            {game.winner === null ? 'Empate' : game.winner === 0 ? 'Victoria' : 'Derrota'} · {game.turns} {game.turns === 1 ? 'turno' : 'turnos'}
+            {game.winner === null ? text.draw : game.winner === 0 ? text.win : text.loss} · {text.turns(game.turns)}
           </span>
         </li>
       ))}
@@ -243,17 +242,19 @@ interface MatchProps {
 }
 
 function Match({ run, problem, onPlay, onEdit, onView }: MatchProps) {
+  const text = draftText();
+  const common = commonText();
   const deck = draftDeck(run);
   return (
     <>
       <div class="expedition-body" data-testid="draft-match">
         <header class="reward-head">
-          <p class="eyebrow">Al mejor de tres</p>
+          <p class="eyebrow">{text.bestOfThree}</p>
           <h2 class="num" data-testid="draft-score">
-            Tú {run.wins[0]} – {run.wins[1]} IA
+            {common.you} {run.wins[0]} – {run.wins[1]} {common.ai}
           </h2>
         </header>
-        <section class="run-panel" aria-label="Tu mazo">
+        <section class="run-panel" aria-label={text.yourDeck}>
           <div class="run-deck">
             <span class="floor-box">
               <DeckBox deck={deck} open={false} />
@@ -263,7 +264,7 @@ function Match({ run, problem, onPlay, onEdit, onView }: MatchProps) {
               <span class="num">{deck.description}</span>
             </span>
             <button type="button" class="btn secondary" data-testid="btn-draft-deck" onClick={() => onView(deck)}>
-              Ver
+              {text.view}
             </button>
           </div>
         </section>
@@ -276,10 +277,10 @@ function Match({ run, problem, onPlay, onEdit, onView }: MatchProps) {
       </div>
       <div class="start-actions">
         <button type="button" class="btn secondary" data-testid="btn-draft-edit" onClick={onEdit}>
-          Cambiar mi mazo
+          {text.changeDeck}
         </button>
         <button type="button" class="btn" data-testid="btn-draft-play" disabled={!!problem} onClick={onPlay}>
-          {run.duel ? 'Continuar la partida' : `Jugar la partida ${run.games.length + 1}`}
+          {run.duel ? text.continueGame : text.playGame(run.games.length + 1)}
         </button>
       </div>
     </>
@@ -295,24 +296,23 @@ interface DoneProps {
 }
 
 function Done({ run, library, onNew, onHome, onView }: DoneProps) {
+  const text = draftText();
   const [savedAs, setSavedAs] = useState<string | null>(null);
   const won = matchWinner(run) === 0;
   return (
     <>
       <div class="expedition-body" data-testid="draft-done" data-result={won ? 'won' : 'lost'}>
         <header class="reward-head result-head">
-          <h2 data-testid="draft-result-title">{won ? '¡Draft ganado!' : 'Draft perdido'}</h2>
-          <p class="run-note num">
-            {won ? `Ganaste ${run.wins[0]}-${run.wins[1]}` : `La IA ganó ${run.wins[1]}-${run.wins[0]}`} con {run.name}.
-          </p>
+          <h2 data-testid="draft-result-title">{won ? text.wonTitle : text.lostTitle}</h2>
+          <p class="run-note num">{text.resultNote(won, run.wins[0], run.wins[1], run.name)}</p>
         </header>
         <GameHistory run={run} />
         <div class="draft-actions">
           <button type="button" class="btn secondary" data-testid="btn-draft-deck" onClick={() => onView(draftDeck(run))}>
-            Ver tu mazo
+            {text.viewYourDeck}
           </button>
           <button type="button" class="btn secondary" data-testid="btn-draft-ai-deck" onClick={() => onView(aiDraftDeck(run))}>
-            Ver el mazo de la IA
+            {text.viewAiDeck}
           </button>
           <button
             type="button"
@@ -325,16 +325,16 @@ function Done({ run, library, onNew, onHome, onView }: DoneProps) {
               setSavedAs(saved.name);
             }}
           >
-            {savedAs ? `Guardado en Mis mazos como ${savedAs}` : 'Guardar tu mazo en Mis mazos'}
+            {savedAs ? text.savedAs(savedAs) : text.saveDeck}
           </button>
         </div>
       </div>
       <div class="start-actions">
         <button type="button" class="btn secondary" data-testid="btn-draft-home" onClick={onHome}>
-          Menú principal
+          {text.mainMenu}
         </button>
         <button type="button" class="btn" data-testid="btn-draft-new" onClick={onNew}>
-          Nuevo draft
+          {text.newDraft}
         </button>
       </div>
     </>
@@ -343,6 +343,7 @@ function Done({ run, library, onNew, onHome, onView }: DoneProps) {
 
 export function DraftScreen({ draft, library, problem, onPlay, onHome }: DraftScreenProps) {
   useSubscription(draft);
+  const text = draftText();
   const run = draft.run;
   const [choosing, setChoosing] = useState(false);
   const [building, setBuilding] = useState(false);
@@ -368,17 +369,15 @@ export function DraftScreen({ draft, library, problem, onPlay, onHome }: DraftSc
       <>
         <div class="expedition-body" data-testid="draft-building">
           <header class="reward-head">
-            <p class="eyebrow">{run.format === 'draft' ? 'Draft terminado' : 'Sobres abiertos'}</p>
-            <h2>Construye tu mazo</h2>
-            <p class="run-note">
-              Al menos 40 cartas entre las tuyas y las tierras básicas que quieras. Te proponemos uno para empezar; cámbialo a tu gusto.
-            </p>
+            <p class="eyebrow">{run.format === 'draft' ? text.draftOver : text.packsOpened}</p>
+            <h2>{text.buildTitle}</h2>
+            <p class="run-note">{text.buildNote}</p>
           </header>
           <PickSummary run={run} onView={() => setViewing(poolDeck(run))} />
         </div>
         <div class="start-actions">
           <button type="button" class="btn" data-testid="btn-draft-build" onClick={() => setBuilding(true)}>
-            Construir mi mazo
+            {text.build}
           </button>
         </div>
       </>
@@ -389,14 +388,14 @@ export function DraftScreen({ draft, library, problem, onPlay, onHome }: DraftSc
     body = <Done run={run} library={library} onNew={() => setChoosing(true)} onHome={onHome} onView={setViewing} />;
   }
 
-  const title = fresh || !run ? 'Draft' : run.format === 'draft' ? 'Draft' : 'Sellado';
+  const title = fresh || !run ? text.formats.draft : text.formats[run.format];
   const detail = !fresh && run && (run.stage === 'match' || run.stage === 'done') ? score(run) : undefined;
   return (
     <main class="expedition draft" data-testid="draft" data-stage={stage}>
-      <ScreenBar title={title} detail={detail} backLabel="Volver al menú principal" backTestId="btn-draft-back" onBack={onHome}>
+      <ScreenBar title={title} detail={detail} backLabel={text.backToMenu} backTestId="btn-draft-back" onBack={onHome}>
         {!fresh && run && run.stage !== 'done' && (
           <button type="button" class="link-button" data-testid="btn-draft-abandon" onClick={() => setConfirming(true)}>
-            Abandonar
+            {text.abandon}
           </button>
         )}
       </ScreenBar>
@@ -405,8 +404,8 @@ export function DraftScreen({ draft, library, problem, onPlay, onHome }: DraftSc
         <DeckBuilder
           initial={{ id: null, name: run.name, featured: run.featured, cards: run.deck ?? suggestedDeck(run) }}
           pool={allowances(run)}
-          title="Tu mazo de draft"
-          saveLabel="Listo"
+          title={text.builderTitle}
+          saveLabel={text.builderSave}
           requireValid
           suggest={() => suggestedDeck(run)}
           onSave={(deck) => {
@@ -418,9 +417,9 @@ export function DraftScreen({ draft, library, problem, onPlay, onHome }: DraftSc
       )}
       {confirming && run && (
         <div class="scrim center-modal" data-testid="draft-abandon" onClick={() => setConfirming(false)}>
-          <div class="modal" role="dialog" aria-label="Abandonar el draft" onClick={(event) => event.stopPropagation()}>
-            <h2 class="modal-title">¿Abandonar?</h2>
-            <p>Perderás tus cartas y la partida al mejor de tres.</p>
+          <div class="modal" role="dialog" aria-label={text.abandonDraft} onClick={(event) => event.stopPropagation()}>
+            <h2 class="modal-title">{text.abandonTitle}</h2>
+            <p>{text.abandonWarning}</p>
             <div class="sheet-actions">
               <button
                 type="button"
@@ -431,10 +430,10 @@ export function DraftScreen({ draft, library, problem, onPlay, onHome }: DraftSc
                   draft.abandon();
                 }}
               >
-                Abandonar el draft
+                {text.abandonDraft}
               </button>
               <button type="button" class="btn secondary" data-testid="btn-draft-abandon-no" onClick={() => setConfirming(false)}>
-                Seguir
+                {text.keepGoing}
               </button>
             </div>
           </div>

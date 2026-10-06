@@ -1,5 +1,6 @@
 import type { DeckDef } from '../engine';
-import { CUSTOM_PREFIX, buildDeck, checkDraft, collectionPool, draftOf, draftProblems, isCustomDeck, type DeckDraft } from './deckBuilding';
+import { CUSTOM_PREFIX, buildDeck, checkDraft, collectionPool, deckDescription, draftOf, draftProblems, isCustomDeck, type DeckDraft } from './deckBuilding';
+import { deckBuildingText } from './text/decks';
 
 export interface DeckStore {
   load(): unknown;
@@ -8,17 +9,23 @@ export interface DeckStore {
 
 export const NO_DECK_STORE: DeckStore = { load: () => [], save: () => undefined };
 
-export const DEFAULT_DECK_NAME = 'Mi mazo';
+export function defaultDeckName(): string {
+  return deckBuildingText().defaultName;
+}
 
 type Listener = () => void;
 
 export class DeckLibrary {
-  decks: DeckDef[];
+  private saved: DeckDef[];
   private listeners = new Set<Listener>();
 
   constructor(private readonly store: DeckStore = NO_DECK_STORE) {
     const stored = store.load();
-    this.decks = Array.isArray(stored) ? stored.filter(isCustomDeck) : [];
+    this.saved = Array.isArray(stored) ? stored.filter(isCustomDeck) : [];
+  }
+
+  get decks(): DeckDef[] {
+    return this.saved.map((deck) => ({ ...deck, description: deckDescription(deck.cards) }));
   }
 
   subscribe(listener: Listener): () => void {
@@ -38,31 +45,31 @@ export class DeckLibrary {
     return this.decks.filter((deck) => this.problems(deck).length === 0);
   }
 
-  nextName(base = DEFAULT_DECK_NAME): string {
-    const taken = new Set(this.decks.map((deck) => deck.name));
+  nextName(base = defaultDeckName()): string {
+    const taken = new Set(this.saved.map((deck) => deck.name));
     if (!taken.has(base)) return base;
     for (let n = 2; ; n++) if (!taken.has(`${base} ${n}`)) return `${base} ${n}`;
   }
 
   save(draft: DeckDraft): DeckDef {
     checkDraft(draft);
-    const known = draft.id !== null && this.get(draft.id) !== null;
+    const known = draft.id !== null && this.saved.some((deck) => deck.id === draft.id);
     const deck = buildDeck(draft, known && draft.id ? draft.id : this.nextId());
-    this.update(known ? this.decks.map((existing) => (existing.id === deck.id ? deck : existing)) : [...this.decks, deck]);
+    this.update(known ? this.saved.map((existing) => (existing.id === deck.id ? deck : existing)) : [...this.saved, deck]);
     return deck;
   }
 
   remove(id: string): void {
-    this.update(this.decks.filter((deck) => deck.id !== id));
+    this.update(this.saved.filter((deck) => deck.id !== id));
   }
 
   private nextId(): string {
-    const used = new Set(this.decks.map((deck) => deck.id));
+    const used = new Set(this.saved.map((deck) => deck.id));
     for (let n = 1; ; n++) if (!used.has(`${CUSTOM_PREFIX}${n}`)) return `${CUSTOM_PREFIX}${n}`;
   }
 
   private update(decks: DeckDef[]): void {
-    this.decks = decks;
+    this.saved = decks;
     this.store.save(decks);
     for (const listener of this.listeners) listener();
   }

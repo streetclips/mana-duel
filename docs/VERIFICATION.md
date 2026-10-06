@@ -3,7 +3,7 @@
 Each feature lists the automated tests that cover it and, when there is one, its built-in **check**: a
 deterministic scenario that runs on the pure engine, in Node (`tests/app/checks.test.ts`) and in the browser build
 (`e2e/game.spec.ts`). Like the test titles, the table calls cards and decks by the English names their ids keep; the
-game shows them in Spanish, and `docs/CARDS.md` pairs each id with its Spanish name. With the game open (`npm run dev`), run any check from the console or Playwright `evaluate`:
+game shows them in Spanish or English, and `docs/CARDS.md` pairs each id with its Spanish name. With the game open (`npm run dev`), run any check from the console or Playwright `evaluate`:
 
 ```js
 manaDuel.runChecks()                 // every check; healthy when no result has ok: false
@@ -169,8 +169,9 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 | Auto-pass off: stops wherever you could act, End turn still works; the menu toggle, remembered, `?autoPass=on\|off`, `setAutoPass()`; prompts that name whose step it is | `tests/app/controller.test.ts` › auto-pass · `tests/ui/game.test.tsx` › auto-pass · `e2e/game.spec.ts` › auto-pass |
 | AI runs on timers the player can follow, and waits for the animations it should see; controller replays and concessions | `tests/app/controller.test.ts` › GameController, animation cues |
 | Mobile layout without horizontal overflow at 360×640 and on a Pixel 7; no console errors | `e2e/game.spec.ts` (projects `mobile`, `small-phone`) |
-| Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`, `opponent()`, `llmDecisions()`, `llmPrompt()`, `idle()`, `setAutoPass()`, `audio.*`, `expedition.*`), URL parameters (`deck`, `aiDeck`, `fx`, `ai`, `model`, `autoPass`, `music`, `sfx`), `data-testid`, `data-fx`, `data-llm` and `data-audio` hooks | `tests/app/controller.test.ts` › test API, animation cues · `tests/app/llm.test.ts` · `e2e/game.spec.ts` · `e2e/animations.spec.ts` · `e2e/llm.spec.ts` |
-| `docs/CARDS.md` matches the card definitions | `tests/docs.test.ts` · `npm run cards -- --check` |
+| Automation surface: `window.manaDuel` (including `decks()`, `matchup()`, `fx()`, `freezeFx()`, `opponent()`, `llmDecisions()`, `llmPrompt()`, `idle()`, `setAutoPass()`, `audio.*`, `expedition.*`), URL parameters (`deck`, `aiDeck`, `fx`, `ai`, `model`, `autoPass`, `music`, `sfx`, `lang`), `data-testid`, `data-fx`, `data-llm` and `data-audio` hooks | `tests/app/controller.test.ts` › test API, animation cues · `tests/app/llm.test.ts` · `e2e/game.spec.ts` · `e2e/animations.spec.ts` · `e2e/llm.spec.ts` |
+| `docs/CARDS.md` and `docs/CARDS.en.md` match the card definitions | `tests/docs.test.ts` · `npm run cards -- --check` |
+| Languages: Spanish and English for every text the player reads; the language picker in the settings, remembered, `?lang=es\|en`, the browser's language at first and Spanish otherwise, `html[lang]` and the title; refusals as codes worded in the current language; every card, token, relic and deck with its English name, subtypes and flavor, served by `getCardDef` and `getDeck`; rules text on the English templates of Magic, the log, the state for developers and the LLM prompt in English, through whole games of every deck without a Spanish word; every screen in English, Spanish only where a player chose it before (their deck names); English card names fit two lines in hand; a seeded game plays the same in both languages | `tests/engine/i18n.test.ts` · `tests/llm/i18n.test.ts` · `tests/ui/i18n.start.test.tsx` · `tests/ui/i18n.game.test.tsx` · `tests/ui/i18n.decks.test.tsx` · `tests/ui/i18n.modes.test.tsx` · `tests/app/i18n.game.test.ts` · `tests/app/i18n.decks.test.ts` · `tests/app/i18n.modes.test.ts` · `e2e/i18n.spec.ts` |
 | Card art: every card has `public/cards/<id>.svg`, shown in hand, on the battlefield and in the card sheet; each deck's featured card on its box | `tests/ui/art.test.ts` · `tests/ui/game.test.tsx` › card art · `e2e/game.spec.ts` › every card shows art, every deck box shows its featured art |
 | Card faces: the art fills the card; on the battlefield, icons for its keywords (those granted until end of turn included) and for a trigger that can still happen, a pill with the cost and effect of each activated or mana ability (one rainbow symbol for mana of any color), lit while you can activate it and dimmed once a mana creature is tapped or summoning sick; in hand, the name over the art, printed keywords as icons before the rest of the text; names fit two lines and pills fit their cards on both phones; in a crowded hand each card lies whole over the one before it, frame and caption included, playable or not; mana symbols sit centred on the lowercase letters of the text around them, in hand and in the card sheet | `tests/ui/game.test.tsx` › card faces · `tests/ui/cardInfo.test.ts` · `e2e/game.spec.ts` › every card name fits two lines in hand, each card in a crowded hand lies over the one before it, mana symbols sit centred |
 
@@ -178,7 +179,8 @@ How the music and the sound effects work is in `docs/AUDIO.md`. Unit tests run a
 
 For a human-eyes check on a phone-sized viewport (for example Playwright at 390×844):
 
-Every text the game shows is in Spanish, so the steps quote it; cards and decks also give their ids.
+The steps quote the game in Spanish (`?lang=es` keeps it there in an English browser); cards and decks also give their
+ids.
 
 1. Open `/`, tap your deck box and pick Albamar (`dawntide`), tap the AI's and pick Fangoscuro (`duskmire`), open
    **Cartas** and tap a card, close it, then **Jugar contra la IA**: both player bars name their deck.

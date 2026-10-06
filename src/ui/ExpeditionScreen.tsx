@@ -3,6 +3,7 @@ import {
   DUELS,
   RELIC_EVERY,
   RIVAL_RELICS,
+  baseName,
   changesLabel,
   copiesOf,
   currentRival,
@@ -15,7 +16,7 @@ import {
 } from '../app/expedition';
 import type { DuelInfo, ExpeditionController } from '../app/expeditionController';
 import { relicOf, type RelicId } from '../app/relics';
-import { DECK_LIST, OPENING_HAND, getCardDef, getDeck, hasCardDef, hasDeck, type DeckDef } from '../engine';
+import { DECK_LIST, OPENING_HAND, getCardDef, getDeck, hasCardDef, hasDeck, localizeDeck, type DeckDef } from '../engine';
 import { MiniCard } from './components/Card';
 import { DeckBox } from './components/DeckBox';
 import { DeckOption } from './components/DeckSelect';
@@ -23,6 +24,7 @@ import { ColorDots, DeckViewer, deckGroups } from './components/DeckViewer';
 import { CheckIcon, CrownIcon, RelicIcon } from './components/ModeIcons';
 import { CardDefSheet, Sheet } from './components/Overlays';
 import { ScreenBar } from './components/ScreenBar';
+import { expeditionText } from './text/expedition';
 import { useSubscription } from './useController';
 
 interface ExpeditionScreenProps {
@@ -34,54 +36,54 @@ interface ExpeditionScreenProps {
   onHome: () => void;
 }
 
-const COUNT_WORDS = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
-const ORDINAL_WORDS = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto', 'séptimo', 'octavo', 'noveno', 'décimo'];
-const FIRST_ARMED = ORDINAL_WORDS[RIVAL_RELICS.findIndex((count) => count > 0)] ?? 'último';
-
 function countWord(count: number): string {
-  return COUNT_WORDS[count] ?? String(count);
+  return expeditionText().countWords[count] ?? String(count);
+}
+
+function firstArmed(): string {
+  const text = expeditionText();
+  return text.ordinals[RIVAL_RELICS.findIndex((count) => count > 0)] ?? text.lastOrdinal;
 }
 
 function capitalized(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function lives(count: number): string {
-  return `${count} ${count === 1 ? 'vida' : 'vidas'}`;
-}
-
 export function rivalTerms(run: ExpeditionRun, rival: Rival): string {
+  const text = expeditionText();
   const start = rivalStart(run, rival);
-  const hand = start.openingHand === OPENING_HAND ? '' : ` · mano de ${start.openingHand}`;
-  return `${lives(start.life)}${hand}`;
+  const hand = start.openingHand === OPENING_HAND ? '' : text.openingHand(start.openingHand);
+  return `${text.lives(start.life)}${hand}`;
 }
 
 export function duelLabel(number: number, total: number, boss: boolean): string {
-  return boss ? `Jefe · duelo ${number} de ${total}` : `Duelo ${number} de ${total}`;
+  return expeditionText().duelLabel(number, total, boss);
 }
 
 export function duelBadge(number: number, total: number, boss: boolean): string {
-  return boss ? 'Jefe' : `Duelo ${number}/${total}`;
+  return expeditionText().duelBadge(number, total, boss);
 }
 
 export function duelOutcome(duel: DuelInfo): string | null {
+  const text = expeditionText();
   switch (duel.result) {
     case null:
       return null;
     case 'won':
-      return duel.number === duel.total ? '¡Has vencido al jefe! La expedición es tuya.' : `Duelo ${duel.number} de ${duel.total} superado: elige tu recompensa.`;
+      return duel.number === duel.total ? text.bossBeaten : text.duelCleared(duel.number, duel.total);
     case 'lost':
-      return duel.revived ? 'La Pluma de fénix arde: repetirás este duelo.' : 'La expedición termina aquí.';
+      return duel.revived ? text.phoenixBurns : text.runOver;
     case 'draw':
-      return 'Empate: repetirás este duelo.';
+      return text.drawReplay;
   }
 }
 
 export function expeditionStatus(run: ExpeditionRun | null): string {
-  if (!run) return `${capitalized(countWord(DUELS))} duelos seguidos con un mismo mazo`;
-  if (run.stage.kind === 'won') return `Completada con ${run.base.name}`;
-  if (run.stage.kind === 'lost') return `Terminada en el duelo ${run.wins + 1} de ${run.rivals.length}`;
-  return `En curso con ${run.base.name}: ${run.wins} de ${run.rivals.length} victorias`;
+  const text = expeditionText();
+  if (!run) return text.statusNew(capitalized(countWord(DUELS)));
+  if (run.stage.kind === 'won') return text.statusWon(baseName(run));
+  if (run.stage.kind === 'lost') return text.statusLost(run.wins + 1, run.rivals.length);
+  return text.statusOngoing(baseName(run), run.wins, run.rivals.length);
 }
 
 function deckName(id: string): string {
@@ -89,17 +91,13 @@ function deckName(id: string): string {
 }
 
 function resultWord(record: DuelRecord): string {
-  if (record.result === 'won') return 'Victoria';
-  return record.result === 'lost' ? 'Derrota' : 'Empate';
-}
-
-function cardsWord(count: number): string {
-  return `${count} ${count === 1 ? 'carta' : 'cartas'}`;
+  return expeditionText().results[record.result];
 }
 
 function RelicList({ relics, spent = [] }: { relics: readonly RelicId[]; spent?: readonly RelicId[] }) {
+  const text = expeditionText();
   if (relics.length === 0) {
-    return <p class="run-note">Sin reliquias todavía: ganarás una cada {countWord(RELIC_EVERY)} victorias.</p>;
+    return <p class="run-note">{text.noRelics(countWord(RELIC_EVERY))}</p>;
   }
   return (
     <ul class="relic-list">
@@ -112,7 +110,7 @@ function RelicList({ relics, spent = [] }: { relics: readonly RelicId[]; spent?:
             <span>
               <b>
                 {relic.name}
-                {used && <span class="relic-used">Usada</span>}
+                {used && <span class="relic-used">{text.used}</span>}
               </b>
               {relic.text}
             </span>
@@ -139,7 +137,7 @@ function RelicSheet({ relic, holder, onClose }: RelicSheetProps) {
         <div>
           <h3>{name}</h3>
           <p class="relic-holder">{holder}</p>
-          {owner === 'boss' && <p class="relic-boss">Su habilidad especial: solo los jefes llevan esta reliquia.</p>}
+          {owner === 'boss' && <p class="relic-boss">{expeditionText().bossOnly}</p>}
           <p>{text}</p>
           {flavor && <p class="flavor">{flavor}</p>}
         </div>
@@ -176,20 +174,17 @@ interface NewRunProps {
 }
 
 function NewRun({ decks, initialDeck, onStart, onView }: NewRunProps) {
+  const text = expeditionText();
   const [selected, setSelected] = useState(initialDeck);
   const deck = decks.find((candidate) => candidate.id === selected) ?? decks[0] ?? getDeck(DECK_LIST[0]?.id ?? '');
   return (
     <>
       <div class="expedition-body" data-testid="expedition-new">
-        <p class="run-intro">
-          {capitalized(countWord(DUELS))} duelos seguidos con el mismo mazo, cada rival más duro que el anterior: desde el {FIRST_ARMED} llevan
-          reliquias, y el jefe, una reliquia de jefe con su habilidad especial. Tras cada victoria eliges una carta nueva; cada{' '}
-          {countWord(RELIC_EVERY)}, una reliquia. Una derrota termina la expedición.
-        </p>
-        <section class="picker run-picker" aria-label="Tu mazo inicial">
+        <p class="run-intro">{text.intro(capitalized(countWord(DUELS)), firstArmed(), countWord(RELIC_EVERY))}</p>
+        <section class="picker run-picker" aria-label={text.startingDeck}>
           <header class="picker-head">
-            <h2 class="section-label">Tu mazo inicial</h2>
-            <span class="picker-count num">{decks.length} mazos</span>
+            <h2 class="section-label">{text.startingDeck}</h2>
+            <span class="picker-count num">{text.deckCount(decks.length)}</span>
           </header>
           <div class="picker-detail" data-testid="deck-detail">
             <div class="picker-detail-text">
@@ -199,11 +194,11 @@ function NewRun({ decks, initialDeck, onStart, onView }: NewRunProps) {
               </h3>
               <p>{deck.description}</p>
             </div>
-            <button type="button" class="btn secondary" aria-label={`Ver el mazo ${deck.name}`} data-testid={`deck-view-${deck.id}`} onClick={() => onView(deck)}>
-              Cartas
+            <button type="button" class="btn secondary" aria-label={text.viewDeck(deck.name)} data-testid={`deck-view-${deck.id}`} onClick={() => onView(deck)}>
+              {text.cardsButton}
             </button>
           </div>
-          <div class="picker-grid" role="radiogroup" aria-label="Tu mazo inicial">
+          <div class="picker-grid" role="radiogroup" aria-label={text.startingDeck}>
             {decks.map((candidate, index) => (
               <DeckOption
                 key={candidate.id}
@@ -219,7 +214,7 @@ function NewRun({ decks, initialDeck, onStart, onView }: NewRunProps) {
       </div>
       <div class="start-actions">
         <button type="button" class="btn" data-testid="btn-expedition-start" onClick={() => onStart(deck)}>
-          Empezar con {deck.name}
+          {text.startWith(deck.name)}
         </button>
       </div>
     </>
@@ -235,13 +230,14 @@ interface RunMapProps {
 }
 
 function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
+  const text = expeditionText();
   const deck = runDeck(run);
   const rival = currentRival(run);
   const [reading, setReading] = useState<{ relic: RelicId; holder: string } | null>(null);
   return (
     <>
       <div class="expedition-body" data-testid="expedition-map">
-        <ol class="floors" aria-label="Rivales de la expedición">
+        <ol class="floors" aria-label={text.rivals}>
           {run.rivals.map((candidate, index) => {
             const state = index < run.wins ? 'won' : index === run.wins ? 'current' : 'next';
             const rivalDeck = getDeck(candidate.deck);
@@ -263,13 +259,13 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
                 <span class="floor-text">
                   <b>
                     {candidate.boss && <CrownIcon />}
-                    {candidate.boss ? `Jefe: ${rivalDeck.name}` : rivalDeck.name}
+                    {candidate.boss ? text.boss(rivalDeck.name) : rivalDeck.name}
                   </b>
-                  <span>{state === 'won' ? 'Vencido' : rivalTerms(run, candidate)}</span>
+                  <span>{state === 'won' ? text.defeated : rivalTerms(run, candidate)}</span>
                   {state !== 'won' && (
                     <RivalRelics
                       rival={candidate}
-                      onRead={(relic) => setReading({ relic, holder: candidate.boss ? `Reliquia del jefe: ${rivalDeck.name}` : `Reliquia de ${rivalDeck.name}` })}
+                      onRead={(relic) => setReading({ relic, holder: candidate.boss ? text.bossRelicHolder(rivalDeck.name) : text.relicHolder(rivalDeck.name) })}
                     />
                   )}
                 </span>
@@ -278,7 +274,7 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
           })}
         </ol>
 
-        <section class="run-panel" aria-label="Tu mazo y tus reliquias">
+        <section class="run-panel" aria-label={text.deckAndRelics}>
           <div class="run-deck">
             <span class="floor-box">
               <DeckBox deck={deck} open={false} />
@@ -286,14 +282,14 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
             <span class="floor-text">
               <b>{deck.name}</b>
               <span class="num" data-testid="run-deck-size">
-                {cardsWord(deckSizeOf(run))} · {changesLabel(run)}
+                {text.cards(deckSizeOf(run))} · {changesLabel(run)}
               </span>
             </span>
             <button type="button" class="btn secondary" data-testid="btn-expedition-deck" onClick={() => onView(deck)}>
-              Ver mazo
+              {text.viewRunDeck}
             </button>
           </div>
-          <h2 class="section-label">Reliquias</h2>
+          <h2 class="section-label">{text.relics}</h2>
           <RelicList relics={run.relics} spent={run.spent} />
         </section>
         {problem && (
@@ -304,10 +300,10 @@ function RunMap({ run, problem, onFight, onAbandon, onView }: RunMapProps) {
       </div>
       <div class="start-actions">
         <button type="button" class="btn secondary" data-testid="btn-expedition-abandon" onClick={onAbandon}>
-          Abandonar
+          {text.abandon}
         </button>
         <button type="button" class="btn" data-testid="btn-expedition-fight" disabled={!!problem || !rival} onClick={onFight}>
-          {run.duel ? 'Continuar el duelo' : `Luchar: duelo ${run.wins + 1}`}
+          {run.duel ? text.continueDuel : text.fight(run.wins + 1)}
         </button>
       </div>
       {reading && <RelicSheet relic={reading.relic} holder={reading.holder} onClose={() => setReading(null)} />}
@@ -323,6 +319,7 @@ interface CardRewardProps {
 }
 
 function CardReward({ run, offers, onTake, onSkip }: CardRewardProps) {
+  const text = expeditionText();
   const [selected, setSelected] = useState<string | null>(null);
   const [inspected, setInspected] = useState<string | null>(null);
   const copies = inspected ? copiesOf(run, inspected) : 0;
@@ -330,12 +327,10 @@ function CardReward({ run, offers, onTake, onSkip }: CardRewardProps) {
     <>
       <div class="expedition-body" data-testid="expedition-reward">
         <header class="reward-head">
-          <p class="eyebrow num">
-            Duelo {run.wins} de {run.rivals.length} superado
-          </p>
-          <h2>Elige una carta para tu mazo</h2>
+          <p class="eyebrow num">{text.rewardEyebrow(run.wins, run.rivals.length)}</p>
+          <h2>{text.chooseCard}</h2>
         </header>
-        <div class="offers" role="radiogroup" aria-label="Cartas que puedes llevarte">
+        <div class="offers" role="radiogroup" aria-label={text.cardOffers}>
           {offers.map((card) => (
             <MiniCard
               key={card}
@@ -349,20 +344,20 @@ function CardReward({ run, offers, onTake, onSkip }: CardRewardProps) {
             />
           ))}
         </div>
-        <p class="run-note">Mantén pulsada una carta para leerla entera. Después decidirás qué carta de tu mazo le deja sitio.</p>
+        <p class="run-note">{text.rewardNote}</p>
       </div>
       <div class="start-actions">
         <button type="button" class="btn secondary" data-testid="btn-reward-skip" onClick={onSkip}>
-          Saltar
+          {text.skip}
         </button>
         <button type="button" class="btn" data-testid="btn-reward-take" disabled={!selected} onClick={() => selected && onTake(selected)}>
-          Llevármela
+          {text.take}
         </button>
       </div>
       {inspected && (
         <CardDefSheet
           def={getCardDef(inspected)}
-          statuses={[{ text: copies === 0 ? 'Nueva en tu mazo' : `Ya tienes ${copies} en tu mazo` }]}
+          statuses={[{ text: copies === 0 ? text.newInDeck : text.copiesInDeck(copies) }]}
           onClose={() => setInspected(null)}
         />
       )}
@@ -377,6 +372,7 @@ interface SwapCardProps {
 }
 
 function SwapCard({ run, card, onSwap }: SwapCardProps) {
+  const text = expeditionText();
   const [out, setOut] = useState<string | null>(null);
   const [inspected, setInspected] = useState<string | null>(null);
   const incoming = getCardDef(card);
@@ -387,16 +383,16 @@ function SwapCard({ run, card, onSwap }: SwapCardProps) {
         <header class="reward-head swap-head">
           <MiniCard
             def={incoming}
-            label={`Ver ${incoming.name}`}
+            label={text.viewCard(incoming.name)}
             className="incoming"
             testId="swap-incoming"
             onTap={() => setInspected(card)}
             onInspect={() => setInspected(card)}
           />
           <div>
-            <p class="eyebrow">Entra {incoming.name}</p>
-            <h2>¿Qué carta sale de tu mazo?</h2>
-            <p class="run-note">Tócala, o añade la nueva sin quitar ninguna: tu mazo tendrá más cartas. Mantén pulsada una carta para leerla.</p>
+            <p class="eyebrow">{text.incoming(incoming.name)}</p>
+            <h2>{text.whichLeaves}</h2>
+            <p class="run-note">{text.swapNote}</p>
           </div>
         </header>
         {deckGroups(deck).map((group) => (
@@ -422,17 +418,17 @@ function SwapCard({ run, card, onSwap }: SwapCardProps) {
       </div>
       <div class="start-actions">
         <button type="button" class="btn secondary" data-testid="btn-swap-add" onClick={() => onSwap(null)}>
-          Añadir sin quitar
+          {text.addWithoutRemoving}
         </button>
         <button
           type="button"
           class="btn"
           data-testid="btn-swap-confirm"
-          aria-label={out ? `Cambiar ${getCardDef(out).name} por ${incoming.name}` : undefined}
+          aria-label={out ? text.swapLabel(getCardDef(out).name, incoming.name) : undefined}
           disabled={!out}
           onClick={() => out && onSwap(out)}
         >
-          {out ? 'Cambiar' : 'Elige qué sale'}
+          {out ? text.swap : text.chooseOut}
         </button>
       </div>
       {inspected && <CardDefSheet def={getCardDef(inspected)} onClose={() => setInspected(null)} />}
@@ -447,16 +443,17 @@ interface RelicRewardProps {
 }
 
 function RelicReward({ run, offers, onTake }: RelicRewardProps) {
+  const text = expeditionText();
   const [selected, setSelected] = useState<RelicId | null>(null);
   return (
     <>
       <div class="expedition-body" data-testid="expedition-relics">
         <header class="reward-head">
-          <p class="eyebrow num">{run.wins} victorias</p>
-          <h2>Elige una reliquia</h2>
-          <p class="run-note">Te acompaña en cada duelo hasta el final de la expedición.</p>
+          <p class="eyebrow num">{text.winsEyebrow(run.wins)}</p>
+          <h2>{text.chooseRelic}</h2>
+          <p class="run-note">{text.relicNote}</p>
         </header>
-        <div class="relic-options" role="radiogroup" aria-label="Reliquias que puedes llevarte">
+        <div class="relic-options" role="radiogroup" aria-label={text.relicOffers}>
           {offers.map((id) => {
             const relic = relicOf(id);
             return (
@@ -480,14 +477,14 @@ function RelicReward({ run, offers, onTake }: RelicRewardProps) {
         </div>
         {run.relics.length > 0 && (
           <>
-            <h2 class="section-label">Ya tienes</h2>
+            <h2 class="section-label">{text.alreadyHave}</h2>
             <RelicList relics={run.relics} spent={run.spent} />
           </>
         )}
       </div>
       <div class="start-actions">
         <button type="button" class="btn" data-testid="btn-relic-take" disabled={!selected} onClick={() => selected && onTake(selected)}>
-          {selected ? `Llevarme ${relicOf(selected).name}` : 'Elige una reliquia'}
+          {selected ? text.takeRelic(relicOf(selected).name) : text.chooseRelic}
         </button>
       </div>
     </>
@@ -502,17 +499,16 @@ interface RunResultProps {
 }
 
 function RunResult({ run, onNew, onHome, onView }: RunResultProps) {
+  const text = expeditionText();
   const won = run.stage.kind === 'won';
   const fallen = run.history.at(-1);
   return (
     <>
       <div class="expedition-body" data-testid="expedition-result" data-result={won ? 'won' : 'lost'}>
         <header class="reward-head result-head">
-          <h2 data-testid="expedition-result-title">{won ? '¡Expedición completada!' : 'Fin de la expedición'}</h2>
+          <h2 data-testid="expedition-result-title">{won ? text.wonTitle : text.lostTitle}</h2>
           <p class="run-note">
-            {won
-              ? `Has vencido a los ${run.rivals.length} rivales con ${run.base.name}.`
-              : `Caíste en el duelo ${run.wins + 1} de ${run.rivals.length}${fallen ? `, ante ${deckName(fallen.rival)}` : ''}.`}
+            {won ? text.wonNote(run.rivals.length, baseName(run)) : text.lostNote(run.wins + 1, run.rivals.length, fallen ? deckName(fallen.rival) : null)}
           </p>
         </header>
         <div class="run-stats">
@@ -520,38 +516,38 @@ function RunResult({ run, onNew, onHome, onView }: RunResultProps) {
             <b class="num">
               {run.wins}/{run.rivals.length}
             </b>
-            victorias
+            {text.winsStat}
           </span>
           <span>
             <b class="num">{run.relics.length}</b>
-            {run.relics.length === 1 ? 'reliquia' : 'reliquias'}
+            {text.relicsStat(run.relics.length)}
           </span>
           <span>
             <b class="num">{run.added.length}</b>
-            {run.added.length === 1 ? 'carta nueva' : 'cartas nuevas'}
+            {text.newCardsStat(run.added.length)}
           </span>
         </div>
-        <ol class="run-history" aria-label="Duelos">
+        <ol class="run-history" aria-label={text.duels}>
           {run.history.map((record, index) => (
             <li key={`${record.rival}-${index}`} data-result={record.result}>
               <span>{deckName(record.rival)}</span>
               <span class="num">
-                {resultWord(record)} · {record.turns} {record.turns === 1 ? 'turno' : 'turnos'}
+                {resultWord(record)} · {text.turns(record.turns)}
               </span>
             </li>
           ))}
         </ol>
         {run.relics.length > 0 && <RelicList relics={run.relics} spent={run.spent} />}
         <button type="button" class="btn secondary result-deck" data-testid="btn-expedition-deck" onClick={() => onView(runDeck(run))}>
-          Ver el mazo final
+          {text.viewFinalDeck}
         </button>
       </div>
       <div class="start-actions">
         <button type="button" class="btn secondary" data-testid="btn-expedition-home" onClick={onHome}>
-          Menú principal
+          {text.mainMenu}
         </button>
         <button type="button" class="btn" data-testid="btn-expedition-new" onClick={onNew}>
-          Nueva expedición
+          {text.newExpedition}
         </button>
       </div>
     </>
@@ -560,6 +556,7 @@ function RunResult({ run, onNew, onHome, onView }: RunResultProps) {
 
 export function ExpeditionScreen({ expedition, customs = [], initialDeck, problem, onFight, onHome }: ExpeditionScreenProps) {
   useSubscription(expedition);
+  const text = expeditionText();
   const run = expedition.run;
   const [choosing, setChoosing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -571,7 +568,7 @@ export function ExpeditionScreen({ expedition, customs = [], initialDeck, proble
   if (fresh) {
     body = (
       <NewRun
-        decks={[...DECK_LIST, ...customs]}
+        decks={[...DECK_LIST.map(localizeDeck), ...customs]}
         initialDeck={run?.base.id ?? initialDeck}
         onView={setViewing}
         onStart={(deck) => {
@@ -604,16 +601,13 @@ export function ExpeditionScreen({ expedition, customs = [], initialDeck, proble
   const detail = fresh || !run ? undefined : `${run.wins}/${run.rivals.length}`;
   return (
     <main class="expedition" data-testid="expedition" data-stage={stage}>
-      <ScreenBar title="Expedición" detail={detail} backLabel="Volver al menú principal" backTestId="btn-expedition-back" onBack={onHome} />
+      <ScreenBar title={text.title} detail={detail} backLabel={text.backToMenu} backTestId="btn-expedition-back" onBack={onHome} />
       {body}
       {confirming && run && (
         <div class="scrim center-modal" data-testid="expedition-abandon" onClick={() => setConfirming(false)}>
-          <div class="modal" role="dialog" aria-label="Abandonar la expedición" onClick={(event) => event.stopPropagation()}>
-            <h2 class="modal-title">¿Abandonar?</h2>
-            <p>
-              Perderás la expedición con {run.base.name}: {run.wins} {run.wins === 1 ? 'victoria' : 'victorias'}, {cardsWord(run.added.length)} nuevas y{' '}
-              {run.relics.length} {run.relics.length === 1 ? 'reliquia' : 'reliquias'}.
-            </p>
+          <div class="modal" role="dialog" aria-label={text.abandonRun} onClick={(event) => event.stopPropagation()}>
+            <h2 class="modal-title">{text.abandonTitle}</h2>
+            <p>{text.abandonWarning(baseName(run), run.wins, run.added.length, run.relics.length)}</p>
             <div class="sheet-actions">
               <button
                 type="button"
@@ -624,10 +618,10 @@ export function ExpeditionScreen({ expedition, customs = [], initialDeck, proble
                   expedition.abandon();
                 }}
               >
-                Abandonar la expedición
+                {text.abandonRun}
               </button>
               <button type="button" class="btn secondary" data-testid="btn-abandon-no" onClick={() => setConfirming(false)}>
-                Seguir
+                {text.keepGoing}
               </button>
             </div>
           </div>

@@ -2,7 +2,7 @@ import { APICallError, LoadAPIKeyError } from 'ai';
 import { describe, expect, it, vi } from 'vitest';
 import { chooseAction } from '../../src/ai';
 import { applyAction, createGame, forcedAction, getLegalActions, type GameState } from '../../src/engine';
-import { SYSTEM_PROMPT, buildPrompt, createLlmPlayer, decisionFor, eventLines, lazyLlmPlayer } from '../../src/llm';
+import { buildPrompt, createLlmPlayer, decisionFor, eventLines, lazyLlmPlayer, systemPrompt } from '../../src/llm';
 import { attack, passTo, scenario, scrambleHiddenInformation } from '../helpers';
 import { COST_PER_CALL, choose, hangingModel, mockModel, promptText, schemaOf } from './model';
 
@@ -57,7 +57,7 @@ describe('the LLM player', () => {
     const [call] = model.doGenerateCalls;
     if (!call) throw new Error('the model was not called');
     const { system, user } = promptText(call);
-    expect(system).toBe(SYSTEM_PROMPT);
+    expect(system).toBe(systemPrompt());
     expect(user).toContain('## Estado de la partida desde tu asiento');
     expect(user).toContain('"handSize": 1');
     expect(user).not.toContain('Dragón del risco');

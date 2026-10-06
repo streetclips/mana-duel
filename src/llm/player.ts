@@ -3,6 +3,7 @@ import { chooseAction } from '../ai';
 import { forcedAction, tryApplyAction, type Action, type GameState, type PlayerId } from '../engine';
 import { DecisionError, decisionFor } from './decision';
 import { buildPrompt, type PromptContext } from './prompt';
+import { llmText } from './text';
 
 export type DecisionSource = 'model' | 'forced' | 'fallback';
 
@@ -75,14 +76,14 @@ function clip(text: string): string {
 export function describeFailure(error: unknown): string {
   const api = apiErrorOf(error);
   if (api?.statusCode === 404 && /no endpoints found/i.test(api.message)) {
-    return 'OpenRouter 404: ningún proveedor de este modelo acepta el esquema JSON (o el esfuerzo de razonamiento)';
+    return llmText().player.noEndpoint;
   }
   if (api) return clip(`OpenRouter ${api.statusCode ?? 'error'}: ${api.message}`);
   if (NoObjectGeneratedError.isInstance(error)) {
     const cause = error.cause instanceof Error ? `: ${error.cause.message}` : '';
-    return clip(`la respuesta no cumplía el esquema${cause}`);
+    return clip(llmText().player.schemaMismatch(cause));
   }
-  if (error instanceof DecisionError) return clip(`respuesta ilegal: ${error.message}`);
+  if (error instanceof DecisionError) return clip(llmText().player.illegalAnswer(error.message));
   return clip(error instanceof Error ? error.message : String(error));
 }
 
@@ -112,7 +113,7 @@ function deadline(ms: number, parent?: AbortSignal): Deadline {
   let expired = false;
   const timer = setTimeout(() => {
     expired = true;
-    controller.abort(new Error(`sin respuesta en ${durationText(ms)}`));
+    controller.abort(new Error(llmText().player.noAnswer(durationText(ms))));
   }, ms);
   const forward = (): void => controller.abort(parent?.reason);
   if (parent?.aborted) forward();
@@ -130,7 +131,7 @@ function deadline(ms: number, parent?: AbortSignal): Deadline {
 function abortError(signal: AbortSignal): Error {
   const reason: unknown = signal.reason;
   if (reason instanceof Error) return reason;
-  const error = new Error('se canceló la decisión');
+  const error = new Error(llmText().player.cancelled);
   error.name = 'AbortError';
   return error;
 }
@@ -173,7 +174,7 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
               output: Output.object({
                 schema: decision.schema,
                 name: 'decision',
-                description: `Tu respuesta a la decisión "${decision.kind}".`,
+                description: llmText().player.output(decision.kind),
               }),
               system: prompt.system,
               prompt: prompt.prompt + feedback,
@@ -195,7 +196,7 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
           } catch (failure) {
             if (decideOptions.signal?.aborted) throw abortError(decideOptions.signal);
             if (limit.expired()) {
-              error = `sin respuesta en ${durationText(timeoutMs)}`;
+              error = llmText().player.noAnswer(durationText(timeoutMs));
               break;
             }
             error = describeFailure(failure);
@@ -204,7 +205,7 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
               break;
             }
             if (isAnswerFailure(failure)) {
-              feedback = `\n\nTu respuesta anterior fue rechazada (${error}). Responde otra vez y elige solo entre las opciones de la lista.`;
+              feedback = llmText().player.refused(error);
             }
           }
         }

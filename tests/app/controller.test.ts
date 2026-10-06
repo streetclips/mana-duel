@@ -36,10 +36,10 @@ describe('GameController', () => {
 
   it('refuses actions for the AI seat or out of turn', () => {
     const c = controller();
-    expect(c.dispatch({ type: 'keep', player: 1 })).toEqual({ ok: false, error: 'solo puedes actuar por tu propio asiento' });
+    expect(c.dispatch({ type: 'keep', player: 1 })).toEqual({ ok: false, error: 'solo puedes actuar por tu propio asiento', refusal: { code: 'otherSeat' } });
     c.dispatch({ type: 'keep', player: 0 });
     expect(c.state.pending).toEqual({ kind: 'mulligan', player: 1 });
-    expect(c.dispatch({ type: 'pass', player: 0 })).toEqual({ ok: false, error: 'no te toca decidir' });
+    expect(c.dispatch({ type: 'pass', player: 0 })).toEqual({ ok: false, error: 'no te toca decidir', refusal: { code: 'notYourDecision' } });
     expect(c.legalActions()).toEqual([]);
   });
 

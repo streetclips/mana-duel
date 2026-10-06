@@ -16,7 +16,9 @@ import {
   type DeckDraft,
 } from '../../app/deckBuilding';
 import { COLORS, cardColors, getCardDef, getCost, manaValue, type CardDef, type Color, type DeckEntry } from '../../engine';
+import { getLocale } from '../../i18n';
 import { cssVars, manaName } from '../cardInfo';
+import { decksText } from '../text/decks';
 import { MiniCard } from './Card';
 import { DeckBox } from './DeckBox';
 import { ColorDots, DeckStats, ManaCurve, deckGroups } from './DeckViewer';
@@ -27,12 +29,7 @@ import { ScreenBar } from './ScreenBar';
 type Tab = 'deck' | 'pool';
 type Kind = 'all' | 'creature' | 'spell' | 'land';
 
-const KINDS: { kind: Kind; label: string }[] = [
-  { kind: 'all', label: 'Todo' },
-  { kind: 'creature', label: 'Criaturas' },
-  { kind: 'spell', label: 'Hechizos' },
-  { kind: 'land', label: 'Tierras' },
-];
+const KINDS: Kind[] = ['all', 'creature', 'spell', 'land'];
 
 interface DeckBuilderProps {
   initial: DeckDraft;
@@ -53,7 +50,7 @@ function kindOf(def: CardDef): Exclude<Kind, 'all'> {
 function byCostThenName(a: CardDef, b: CardDef): number {
   const lands = Number(a.types.includes('land')) - Number(b.types.includes('land'));
   if (lands !== 0) return lands;
-  return manaValue(getCost(a.id)) - manaValue(getCost(b.id)) || a.name.localeCompare(b.name, 'es');
+  return manaValue(getCost(a.id)) - manaValue(getCost(b.id)) || a.name.localeCompare(b.name, getLocale());
 }
 
 interface TileProps {
@@ -68,18 +65,19 @@ interface TileProps {
 }
 
 function BuilderTile({ def, count, max, addable, testId, onAdd, onRemove, onInspect }: TileProps) {
+  const text = decksText().builder;
   return (
     <div class={`builder-tile${count > 0 ? ' in-deck' : ''}`} data-testid={testId} data-count={count}>
-      <MiniCard def={def} label={`Ver ${def.name}`} onTap={onInspect} onInspect={onInspect} />
+      <MiniCard def={def} label={text.view(def.name)} onTap={onInspect} onInspect={onInspect} />
       <div class="stepper">
-        <button type="button" class="step" aria-label={`Quitar ${def.name}`} data-testid={`remove-${def.id}`} disabled={count === 0} onClick={onRemove}>
+        <button type="button" class="step" aria-label={text.remove(def.name)} data-testid={`remove-${def.id}`} disabled={count === 0} onClick={onRemove}>
           <MinusIcon />
         </button>
-        <span class="num" aria-label={`${count} en el mazo`}>
+        <span class="num" aria-label={text.inDeck(count)}>
           {count}
           {max !== null && <small>/{max}</small>}
         </span>
-        <button type="button" class="step" aria-label={`Añadir ${def.name}`} data-testid={`add-${def.id}`} disabled={!addable} onClick={onAdd}>
+        <button type="button" class="step" aria-label={text.add(def.name)} data-testid={`add-${def.id}`} disabled={!addable} onClick={onAdd}>
           <PlusIcon />
         </button>
       </div>
@@ -87,7 +85,8 @@ function BuilderTile({ def, count, max, addable, testId, onAdd, onRemove, onInsp
   );
 }
 
-export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requireValid = false, suggest, onSave, onClose }: DeckBuilderProps) {
+export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = false, suggest, onSave, onClose }: DeckBuilderProps) {
+  const text = decksText().builder;
   const [draft, setDraft] = useState<DeckDraft>(initial);
   const [tab, setTab] = useState<Tab>(initial.cards.length > 0 ? 'deck' : 'pool');
   const [colors, setColors] = useState<Color[]>([]);
@@ -108,7 +107,8 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
   };
   const remove = (card: string): void => setCount(card, Math.max(0, copiesIn(draft.cards, card) - 1));
 
-  const poolDefs = useMemo(() => pool.map((allowance) => getCardDef(allowance.card)).sort(byCostThenName), [pool]);
+  const locale = getLocale();
+  const poolDefs = useMemo(() => pool.map((allowance) => getCardDef(allowance.card)).sort(byCostThenName), [pool, locale]);
   const shown = poolDefs.filter((def) => {
     if (kind !== 'all' && kindOf(def) !== kind) return false;
     if (colors.length > 0 && !cardColors(def).some((color) => colors.includes(color))) return false;
@@ -141,7 +141,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
             type="text"
             value={draft.name}
             maxLength={MAX_NAME}
-            aria-label="Nombre del mazo"
+            aria-label={text.name}
             data-testid="builder-name"
             spellcheck={false}
             onInput={(event) => {
@@ -150,7 +150,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
             }}
           />
         }
-        backLabel="Volver sin guardar"
+        backLabel={text.back}
         backTestId="btn-builder-back"
         onBack={leave}
       >
@@ -161,11 +161,11 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
           disabled={!draft.name.trim() || (requireValid && problems.length > 0)}
           onClick={() => onSave(draft)}
         >
-          {saveLabel}
+          {saveLabel ?? text.save}
         </button>
       </ScreenBar>
 
-      <section class="builder-summary" aria-label="Resumen del mazo">
+      <section class="builder-summary" aria-label={text.summary}>
         <span class="builder-box">
           <DeckBox deck={deck} open={false} />
         </span>
@@ -174,7 +174,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
             <b class={`num${size < MIN_DECK ? ' short' : ''}`} data-testid="builder-count">
               {size}/{MIN_DECK}
             </b>{' '}
-            cartas {deck.colors.length > 0 && <ColorDots deck={deck} />}
+            {text.cards} {deck.colors.length > 0 && <ColorDots deck={deck} />}
           </p>
           <DeckStats deck={deck} />
         </div>
@@ -194,12 +194,12 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
         </ul>
       )}
 
-      <div class="segmented builder-tabs" role="tablist" aria-label="Partes del constructor">
+      <div class="segmented builder-tabs" role="tablist" aria-label={text.sections}>
         <button type="button" role="tab" aria-selected={tab === 'deck'} class={tab === 'deck' ? 'on' : ''} data-testid="builder-tab-deck" onClick={() => setTab('deck')}>
-          Tu mazo
+          {text.deckTab}
         </button>
         <button type="button" role="tab" aria-selected={tab === 'pool'} class={tab === 'pool' ? 'on' : ''} data-testid="builder-tab-pool" onClick={() => setTab('pool')}>
-          Añadir cartas
+          {text.poolTab}
         </button>
       </div>
 
@@ -213,7 +213,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
                 data-testid="btn-builder-suggest"
                 onClick={() => setDraft((current) => ({ ...current, cards: suggest() }))}
               >
-                Sugerir un mazo
+                {text.suggest}
               </button>
             )}
             {size < MIN_DECK && deck.colors.length > 0 && (
@@ -223,12 +223,12 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
                 data-testid="btn-builder-fill"
                 onClick={() => setDraft((current) => ({ ...current, cards: fillWithBasics(current.cards) }))}
               >
-                Completar con tierras básicas
+                {text.fill}
               </button>
             )}
-            {draft.cards.length === 0 && <p class="run-note">Tu mazo está vacío: añade cartas desde «Añadir cartas».</p>}
+            {draft.cards.length === 0 && <p class="run-note">{text.empty}</p>}
             {deckGroups(deck).map((group) => (
-              <section key={group.title} class="deck-section" aria-label={group.title}>
+              <section key={group.kind} class="deck-section" aria-label={group.title}>
                 <h3>
                   {group.title} <span class="num">{countCards(group.entries)}</span>
                 </h3>
@@ -242,13 +242,13 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
               <input
                 class="builder-search"
                 type="search"
-                placeholder="Buscar por nombre"
+                placeholder={text.search}
                 value={query}
-                aria-label="Buscar por nombre"
+                aria-label={text.search}
                 data-testid="builder-search"
                 onInput={(event) => setQuery(event.currentTarget.value)}
               />
-              <div class="chips" role="group" aria-label="Colores">
+              <div class="chips" role="group" aria-label={text.colors}>
                 {COLORS.map((color) => (
                   <button
                     key={color}
@@ -262,23 +262,23 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
                   />
                 ))}
               </div>
-              <div class="chips" role="group" aria-label="Tipos">
+              <div class="chips" role="group" aria-label={text.types}>
                 {KINDS.map((option) => (
                   <button
-                    key={option.kind}
+                    key={option}
                     type="button"
                     class="chip"
-                    aria-pressed={kind === option.kind}
-                    data-testid={`builder-kind-${option.kind}`}
-                    onClick={() => setKind(option.kind)}
+                    aria-pressed={kind === option}
+                    data-testid={`builder-kind-${option}`}
+                    onClick={() => setKind(option)}
                   >
-                    {option.label}
+                    {text.kinds[option]}
                   </button>
                 ))}
               </div>
             </div>
             <p class="run-note num" data-testid="builder-results">
-              {shown.length === 1 ? '1 carta' : `${shown.length} cartas`}
+              {text.results(shown.length)}
             </p>
             <div class="builder-grid">{shown.map((def) => tile(def, 'builder-pool'))}</div>
           </>
@@ -286,10 +286,10 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
       </div>
 
       {inspectedDef && (
-        <CardDefSheet def={inspectedDef} statuses={[{ text: `${copiesIn(draft.cards, inspectedDef.id)} en el mazo` }]} raised onClose={() => setInspected(null)}>
+        <CardDefSheet def={inspectedDef} statuses={[{ text: text.inDeck(copiesIn(draft.cards, inspectedDef.id)) }]} raised onClose={() => setInspected(null)}>
           <div class="sheet-actions">
             <button type="button" class="btn" data-testid="sheet-add" disabled={!canAdd(draft.cards, pool, inspectedDef.id)} onClick={() => add(inspectedDef.id)}>
-              Añadir una copia
+              {text.addCopy}
             </button>
             <button
               type="button"
@@ -298,7 +298,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
               disabled={copiesIn(draft.cards, inspectedDef.id) === 0}
               onClick={() => remove(inspectedDef.id)}
             >
-              Quitar una copia
+              {text.removeCopy}
             </button>
             {copiesIn(draft.cards, inspectedDef.id) > 0 && !inspectedDef.types.includes('land') && deck.featured !== inspectedDef.id && (
               <button
@@ -307,7 +307,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
                 data-testid="sheet-feature"
                 onClick={() => setDraft((current) => ({ ...current, featured: inspectedDef.id }))}
               >
-                Ponerla en la caja del mazo
+                {text.feature}
               </button>
             )}
           </div>
@@ -316,15 +316,15 @@ export function DeckBuilder({ initial, pool, title, saveLabel = 'Guardar', requi
 
       {leaving && (
         <div class="scrim center-modal raised" data-testid="builder-leave" onClick={() => setLeaving(false)}>
-          <div class="modal" role="dialog" aria-label="Salir sin guardar" onClick={(event) => event.stopPropagation()}>
-            <h2 class="modal-title">¿Salir sin guardar?</h2>
-            <p>Perderás los cambios de {draft.name.trim() || 'este mazo'}.</p>
+          <div class="modal" role="dialog" aria-label={text.leave} onClick={(event) => event.stopPropagation()}>
+            <h2 class="modal-title">{text.leaveQuestion}</h2>
+            <p>{text.leaveWarning(draft.name.trim())}</p>
             <div class="sheet-actions">
               <button type="button" class="btn danger" data-testid="btn-builder-discard" onClick={onClose}>
-                Salir sin guardar
+                {text.leave}
               </button>
               <button type="button" class="btn secondary" data-testid="btn-builder-stay" onClick={() => setLeaving(false)}>
-                Seguir editando
+                {text.stay}
               </button>
             </div>
           </div>

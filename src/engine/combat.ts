@@ -12,6 +12,7 @@ import {
   opponent,
   queueTriggers,
 } from './state';
+import type { Refusal } from './refusals';
 import { isPlayerTarget } from './targets';
 import type { Block, CardId, GameState, PlayerId } from './types';
 
@@ -52,33 +53,33 @@ export function blockOptions(s: GameState): Record<CardId, CardId[]> {
   return options;
 }
 
-export function attackersError(s: GameState, attackers: unknown): string | null {
-  if (!Array.isArray(attackers)) return 'las atacantes deben ser una lista';
+export function attackersError(s: GameState, attackers: unknown): Refusal | null {
+  if (!Array.isArray(attackers)) return { code: 'attackersNotList' };
   const seen = new Set<string>();
   for (const id of attackers) {
-    if (typeof id !== 'string') return 'las atacantes deben ser ids de carta';
-    if (seen.has(id)) return `${id} se declaró dos veces`;
+    if (typeof id !== 'string') return { code: 'attackersNotIds' };
+    if (seen.has(id)) return { code: 'attackerTwice', card: id };
     seen.add(id);
-    if (!canAttack(s, id)) return `${id} no puede atacar`;
+    if (!canAttack(s, id)) return { code: 'cannotAttack', card: id };
   }
   return null;
 }
 
-export function blocksError(s: GameState, blocks: unknown): string | null {
-  if (!Array.isArray(blocks)) return 'los bloqueos deben ser una lista';
+export function blocksError(s: GameState, blocks: unknown): Refusal | null {
+  if (!Array.isArray(blocks)) return { code: 'blocksNotList' };
   const combat = s.combat;
-  if (!combat) return 'no hay combate';
+  if (!combat) return { code: 'noCombat' };
   const blockers = new Set<string>();
   for (const block of blocks as Block[]) {
-    if (!block || typeof block.blocker !== 'string' || typeof block.attacker !== 'string') return 'bloqueo mal formado';
-    if (blockers.has(block.blocker)) return `${block.blocker} solo puede bloquear a una atacante`;
+    if (!block || typeof block.blocker !== 'string' || typeof block.attacker !== 'string') return { code: 'malformedBlock' };
+    if (blockers.has(block.blocker)) return { code: 'blockerTwice', card: block.blocker };
     blockers.add(block.blocker);
-    if (!canBlockAttacker(s, block.blocker, block.attacker)) return `${block.blocker} no puede bloquear a ${block.attacker}`;
+    if (!canBlockAttacker(s, block.blocker, block.attacker)) return { code: 'cannotBlock', blocker: block.blocker, attacker: block.attacker };
   }
   for (const attacker of combat.attackers) {
     if (!hasKeyword(s, attacker, 'menace')) continue;
     const count = (blocks as Block[]).filter((block) => block.attacker === attacker).length;
-    if (count === 1) return `${attacker} tiene la habilidad de amenaza y no puede ser bloqueada excepto por dos o más criaturas`;
+    if (count === 1) return { code: 'menace', attacker };
   }
   return null;
 }

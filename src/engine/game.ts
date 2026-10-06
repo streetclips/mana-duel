@@ -10,9 +10,11 @@ import {
   performDeclareBlockers,
 } from './combat';
 import { DEFAULT_DECK_ID, expandDeck, resolveDeck, type DeckSpec } from './decks';
+import { defaultPlayerNames, refusalText } from './describe';
 import { resolveTopOfStack } from './effects';
 import { parseCost } from './mana';
 import { getCardDef, getCost, hasCardDef } from './registry';
+import type { Refusal } from './refusals';
 import { normalizeSeed, random, shuffleInPlace } from './rng';
 import { activateError, castError, landPlayError } from './rules';
 import {
@@ -55,14 +57,17 @@ import type {
 } from './types';
 
 export class IllegalActionError extends Error {
-  constructor(message: string) {
-    super(message);
+  readonly refusal: Refusal;
+
+  constructor(refusal: Refusal) {
+    super(refusalText(refusal));
     this.name = 'IllegalActionError';
+    this.refusal = refusal;
   }
 }
 
-function illegal(message: string): never {
-  throw new IllegalActionError(message);
+function illegal(refusal: Refusal): never {
+  throw new IllegalActionError(refusal);
 }
 
 export interface PlayerSetup {
@@ -189,7 +194,8 @@ function placeRelic(s: GameState, player: PlayerId, defId: string, id: CardId): 
 }
 
 export function createGame(options: GameOptions = {}): GameState {
-  const names: [string, string] = [options.players?.[0]?.name ?? 'Tú', options.players?.[1]?.name ?? 'IA'];
+  const defaults = defaultPlayerNames();
+  const names: [string, string] = [options.players?.[0]?.name ?? defaults[0], options.players?.[1]?.name ?? defaults[1]];
   const s = emptyState(options.seed ?? 1, names, options.turnLimit);
   for (const setup of options.players ?? []) if (setup) checkSetup(setup);
   let counter = 0;
@@ -252,7 +258,7 @@ export function openingHandSize(s: GameState, player: PlayerId): number {
   return s.players[player].openingHand ?? OPENING_HAND;
 }
 
-export type ActionResult = { ok: true; state: GameState } | { ok: false; error: string };
+export type ActionResult = { ok: true; state: GameState } | { ok: false; error: string; refusal: Refusal };
 
 export function applyAction(state: GameState, action: Action): GameState {
   const s = cloneState(state);
@@ -267,7 +273,7 @@ export function tryApplyAction(state: GameState, action: Action): ActionResult {
   try {
     return { ok: true, state: applyAction(state, action) };
   } catch (error) {
-    if (error instanceof IllegalActionError) return { ok: false, error: error.message };
+    if (error instanceof IllegalActionError) return { ok: false, error: error.message, refusal: error.refusal };
     throw error;
   }
 }
@@ -283,30 +289,30 @@ function expectPending<K extends PendingDecision['kind']>(
   player: PlayerId,
 ): Extract<PendingDecision, { kind: K }> {
   const pending = s.pending as Extract<PendingDecision, { kind: K }> | null;
-  if (!pending || pending.kind !== kind) illegal(`la partida no está esperando la decisión «${kind}»`);
-  if (!('player' in pending) || pending.player !== player) illegal(`no le toca decidir al jugador ${player}`);
+  if (!pending || pending.kind !== kind) illegal({ code: 'notWaitingFor', kind });
+  if (!('player' in pending) || pending.player !== player) illegal({ code: 'notTheirDecision', player });
   return pending;
 }
 
 function validateCardSelection(s: GameState, player: PlayerId, cards: unknown, count: number): CardId[] {
-  if (!Array.isArray(cards)) illegal('las cartas deben ser una lista');
-  if (cards.length !== count) illegal(`elige exactamente ${count} ${count === 1 ? 'carta' : 'cartas'}`);
+  if (!Array.isArray(cards)) illegal({ code: 'cardsNotList' });
+  if (cards.length !== count) illegal({ code: 'chooseExactly', count });
   const hand = s.players[player].hand;
   const unique = new Set<string>();
   for (const id of cards) {
-    if (typeof id !== 'string' || !hand.includes(id)) illegal(`${String(id)} no está en tu mano`);
-    if (unique.has(id)) illegal(`${id} se eligió dos veces`);
+    if (typeof id !== 'string' || !hand.includes(id)) illegal({ code: 'chosenNotInHand', card: String(id) });
+    if (unique.has(id)) illegal({ code: 'chosenTwice', card: id });
     unique.add(id);
   }
   return cards as CardId[];
 }
 
 function performAction(s: GameState, action: Action): void {
-  if (!action || typeof action !== 'object' || typeof action.type !== 'string') illegal('acción mal formada');
-  if (action.player !== 0 && action.player !== 1) illegal('jugador desconocido');
+  if (!action || typeof action !== 'object' || typeof action.type !== 'string') illegal({ code: 'malformedAction' });
+  if (action.player !== 0 && action.player !== 1) illegal({ code: 'unknownPlayer' });
   const pending = s.pending;
-  if (!pending) illegal('la partida no está esperando ninguna decisión');
-  if (pending.kind === 'gameOver') illegal('la partida ha terminado');
+  if (!pending) illegal({ code: 'noDecision' });
+  if (pending.kind === 'gameOver') illegal({ code: 'gameOver' });
   const player = action.player;
   const ps = s.players[player];
 
@@ -328,7 +334,7 @@ function performAction(s: GameState, action: Action): void {
     }
     case 'mulligan': {
       expectPending(s, 'mulligan', player);
-      if (ps.mulligans >= MAX_MULLIGANS) illegal('no se permiten más mulligans');
+      if (ps.mulligans >= MAX_MULLIGANS) illegal({ code: 'noMoreMulligans' });
       for (const id of [...ps.hand]) moveCard(s, id, 'library');
       shuffleInPlace(s, ps.library);
       ps.mulligans += 1;
@@ -385,7 +391,7 @@ function performAction(s: GameState, action: Action): void {
       const payment = findPayment(s, player, getCost(getCard(s, action.card).def), {
         excludeFromDemand: action.card,
       });
-      if (!payment) illegal('no hay suficiente maná');
+      if (!payment) illegal({ code: 'notEnoughMana' });
       tapCards(s, payment);
       moveCard(s, action.card, 'stack');
       s.stack.push({ id: newId(s, 's'), kind: 'spell', controller: player, card: action.card, targets: [...targets] });
@@ -407,11 +413,11 @@ function performAction(s: GameState, action: Action): void {
       const error = activateError(s, player, action.card, action.ability, targets);
       if (error) illegal(error);
       const ability = defOf(s, action.card).activated?.[action.ability];
-      if (!ability) illegal('ese permanente no tiene esa habilidad');
+      if (!ability) illegal({ code: 'noSuchAbility' });
       const payment = findPayment(s, player, parseCost(ability.cost), {
         excludeSource: ability.tap ? action.card : undefined,
       });
-      if (!payment) illegal('no hay suficiente maná');
+      if (!payment) illegal({ code: 'notEnoughMana' });
       tapCards(s, payment);
       if (ability.tap) getCard(s, action.card).tapped = true;
       s.stack.push({
@@ -454,7 +460,7 @@ function performAction(s: GameState, action: Action): void {
     case 'chooseTargets': {
       const decision = expectPending(s, 'chooseTargets', player);
       const trigger = s.triggers.find((candidate) => candidate.id === decision.trigger);
-      if (!trigger) illegal('esa habilidad disparada ya no espera objetivos');
+      if (!trigger) illegal({ code: 'triggerGone' });
       const ability = triggeredAbility(defOf(s, trigger.source), trigger.ability);
       const error = targetsError(s, player, ability?.targets ?? [], action.targets ?? []);
       if (error) illegal(error);
@@ -475,7 +481,7 @@ function performAction(s: GameState, action: Action): void {
       return;
     }
     default:
-      illegal(`tipo de acción desconocido «${(action as { type: string }).type}»`);
+      illegal({ code: 'unknownAction', type: (action as { type: string }).type });
   }
 }
 

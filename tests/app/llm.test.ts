@@ -3,7 +3,7 @@ import { chooseAction } from '../../src/ai';
 import { GameController, type ControllerOptions, type LlmSetup } from '../../src/app/controller';
 import { createTestApi } from '../../src/app/testApi';
 import type { GameState, PlayerId } from '../../src/engine';
-import { SYSTEM_PROMPT } from '../../src/llm';
+import { systemPrompt } from '../../src/llm';
 import { ScriptedLlm } from '../scriptedLlm';
 
 const thinking = (s: GameState, player: PlayerId) => ({ action: chooseAction(s, player), reason: 'Seems right.' });
@@ -203,7 +203,7 @@ describe('an LLM opponent in the controller', () => {
     api.dispatch({ type: 'keep', player: 0 });
     await vi.waitFor(() => expect(llm.calls).toHaveLength(1));
     const prompt = await api.llmPrompt();
-    expect(prompt?.system).toBe(SYSTEM_PROMPT);
+    expect(prompt?.system).toBe(systemPrompt());
     expect(prompt?.prompt).toContain('## Decisión: mulligan');
     expect(prompt?.prompt).toContain('Tu mazo: Fangoscuro');
     const idle = api.idle();

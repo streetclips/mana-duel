@@ -1,15 +1,16 @@
 # Mana Duel
 
-A minimalist, mobile-first card duel built on the rules of Magic: The Gathering, played in Spanish: its screen
-title is *Duelo de Maná*, and every text it writes — cards, decks, buttons, prompts, the log, refusals, and the prompt
-of the LLM opponent — is Spanish. Fourteen decks — **Brasalvaje** (`emberwild`, red and green), **Albamar**
+A minimalist, mobile-first card duel built on the rules of Magic: The Gathering, played in Spanish or English: its
+screen title is *Duelo de Maná* or *Mana Duel*, and every text it writes — cards, decks, buttons, prompts, the log,
+refusals, and the prompt of the LLM opponent — is in the language picked in its settings, at first the browser's. Fourteen decks — **Brasalvaje** (`emberwild`, red and green), **Albamar**
 (`dawntide`, white and blue), **Fangoscuro** (`duskmire`, black), **Cristormenta** (`stormglass`, blue and red),
 **Pradosol** (`sunmeadow`, green and white), **Forjaluz** (`brightforge`, red and white), **Brumafosa** (`mistgrave`,
 blue and black), **Selvumbra** (`gloamwood`, black and green), **Vesperia** (`vesperhall`, white and black),
 **Fauceniza** (`cindermaw`, black and red), **Sotohondo** (`deepgrove`, green and blue), **Crestafuego**
 (`flamecrest`, red), **Tierrabrava** (`wildland`, green) and **Encrucijada** (`crossroads`, all five colors) — and one opponent that
 plays by the same rules and never looks at your hand: the built-in AI, or a language model of your choice through
-OpenRouter. Ids, of decks and cards alike, keep the English names: `?deck=dawntide` picks Albamar.
+OpenRouter. Ids, of decks and cards alike, keep the English names: `?deck=dawntide` picks Albamar, which the game
+calls Dawntide in English.
 
 ## Play
 
@@ -48,7 +49,9 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   one of the fourteen, with a search, filters by color and type, the mana curve, warnings about lands and colors and
   a button that completes the deck with basic lands. A deck of 40 to 60 cards with up to four copies of each card
   (basic lands aside) appears in both seats' pickers and can start an Expedition.
-- **Quién controla la IA**, in the settings behind the gear of the start screen: *Clásica*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
+- **Idioma**, in the settings behind the gear of the start screen: *Español* or *English*, remembered in this browser;
+  `?lang=es|en` picks one for a visit. These notes quote the Spanish screens.
+- **Quién controla la IA**, in the same settings: *Clásica*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
   and your API key (kept in this browser only). The model picks every move among the legal ones, the log shows its
   reasoning and its next prompts recall it; when it fails to answer, the classic AI moves for it. With
   `OPENROUTER_API_KEY` set in the shell or in `.env.local`, `npm run dev` adds the key on the server and no key needs
@@ -95,9 +98,11 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   Crestafuego, 13 each in Cristormenta, Brumafosa and Selvumbra), the five basic lands, which any deck may use, and six
   tokens that cards create (Soldado, Elemental, Saprolín, Espíritu, Monje, Bestia) — each with its own SVG
   illustration in `public/cards/`, listed in [`docs/CARDS.md`](docs/CARDS.md)
-  (generated from the definitions). Their Spanish names, types and rules text follow the official Spanish
-  terminology of Magic (*Vuela*, *Arrolla*, *Resiliencia*, «Crea una ficha de criatura Soldado blanca 1/1»), and each
-  name fits the two lines of a card in hand.
+  (generated from the definitions) and, in English, [`docs/CARDS.en.md`](docs/CARDS.en.md). Their Spanish names,
+  types and rules text follow the official Spanish terminology of Magic (*Vuela*, *Arrolla*, *Resiliencia*, «Crea una
+  ficha de criatura Soldado blanca 1/1»), their English ones its Oracle templates (*Flying*, *Trample*, *Undying*,
+  "Create a 1/1 white Soldier creature token."), and each name fits the two lines of a card in hand in both
+  languages.
 
 ## Testing and verification
 
@@ -119,21 +124,25 @@ the automation API. [`AGENTS.md`](AGENTS.md) is the guide for coding agents.
 index.html · src/main.tsx
 src/
 ├── engine/   types, cards/ (one file per card), relics, registry, decks, mana, state, targets, combat,
-│             effects, rules, game, actions, scenario, describe, invariants
+│             effects, rules, game, actions, scenario, describe, refusals, invariants, text/ (rules text, log and
+│             refusals in Spanish and English; the English names of cards and decks)
 ├── ai/       evaluate, rollout, combat, heuristics, chooseAction
-├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy
+├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy,
+│             text/ (the prompt in Spanish and English)
 ├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks, expedition,
-│             expeditionController, relics, draft, draftController, duelTracker, cardPool, deckBuilding, deckLibrary
+│             expeditionController, relics, draft, draftController, duelTracker, cardPool, deckBuilding, deckLibrary,
+│             text/
+├── i18n/     the current language and messages({ es, en }), the typed catalogs of every text/ folder
 ├── audio/    music (themes and moods), cues (a sound per cue), synth, engine, director, render, sounds, gate
 └── ui/       App, StartScreen (deck and AI selector), Game, ExpeditionScreen, DraftScreen, DecksScreen, model
-              (interaction logic), deckChoice, opponentChoice, autoPassChoice, audioChoice, expeditionStore,
+              (interaction logic), deckChoice, opponentChoice, autoPassChoice, audioChoice, localeChoice, expeditionStore,
               draftStore, deckLibraryStore, fx and motion (animations), components/ (Board, Card, DeckBox, DeckBuilder, DeckSelect, DeckViewer, Fx,
-              ModeIcons, Overlays, ScreenBar, SoundToggles), styles.css
+              ModeIcons, Overlays, ScreenBar, SoundToggles), text/ (the screens' texts), styles.css
 public/cards/ one SVG illustration per card, named <id>.svg
 tests/        engine/ ai/ llm/ app/ ui/ audio/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
 e2e/          Playwright specs
 scripts/      sim.ts, cards.ts, openrouterProxy.ts
-docs/         RULES.md, VERIFICATION.md, CARDS.md, LLM.md, AUDIO.md, MODES.md
+docs/         RULES.md, VERIFICATION.md, CARDS.md, CARDS.en.md, LLM.md, AUDIO.md, MODES.md
 ```
 
 Mana Duel is an independent fan project inspired by Magic: The Gathering, a trademark of Wizards of the Coast. Card

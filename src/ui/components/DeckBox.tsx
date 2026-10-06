@@ -1,5 +1,6 @@
-import { COLORS, type DeckDef } from '../../engine';
+import { COLORS, localizeDeck, type DeckDef } from '../../engine';
 import { cardArtUrl, cssVars } from '../cardInfo';
+import { commonText } from '../text/common';
 
 interface DeckBoxProps {
   deck: DeckDef | null;
@@ -13,7 +14,8 @@ function boxTones(deck: DeckDef): Record<`--${string}`, string> {
 }
 
 export function DeckBox({ deck, open, printed = false }: DeckBoxProps) {
-  const name = deck?.name ?? 'Aleatorio';
+  const common = commonText();
+  const name = deck ? localizeDeck(deck).name : common.random;
   const lit: readonly string[] = deck ? deck.colors : COLORS;
   return (
     <span
@@ -39,7 +41,7 @@ export function DeckBox({ deck, open, printed = false }: DeckBoxProps) {
               <i key={color} class={lit.includes(color) ? 'lit' : undefined} style={cssVars({ '--pip': `var(--mana-${color})` })} />
             ))}
           </span>
-          {printed && <span class="box-brand">Duelo de Maná</span>}
+          {printed && <span class="box-brand">{common.title}</span>}
           <span class="box-art">{deck ? <img src={cardArtUrl(deck.featured)} alt="" draggable={false} /> : <b>?</b>}</span>
           {printed && <span class="box-name">{name}</span>}
         </span>

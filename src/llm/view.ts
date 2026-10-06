@@ -1,6 +1,4 @@
 import {
-  KEYWORD_NAMES,
-  STEP_NAMES,
   activatedText,
   cardSummary,
   describeEvent,
@@ -14,10 +12,13 @@ import {
   hasDeck,
   isCreature,
   isPlayerTarget,
+  keywordName,
+  localizeDeck,
   manaSources,
   opponent,
   rulesText,
   stackItemSource,
+  stepName,
   triggerText,
   type CardId,
   type DeckDef,
@@ -27,6 +28,8 @@ import {
   type StackItem,
   type Target,
 } from '../engine';
+import { getLocale } from '../i18n';
+import { viewText } from './text/view';
 
 export type Side = 'you' | 'opponent';
 
@@ -71,7 +74,7 @@ export interface SideView {
 }
 
 export interface StackEntryView extends CardRefView {
-  kind: 'hechizo' | 'habilidad disparada' | 'habilidad activada';
+  kind: string;
   controller: Side;
   text?: string;
   targets: string[];
@@ -103,16 +106,17 @@ function visibleTo(s: GameState, id: CardId, viewer: PlayerId): boolean {
 }
 
 export function cardLabel(s: GameState, id: CardId, viewer: PlayerId): string {
-  if (!visibleTo(s, id, viewer)) return 'una carta que ya no está en juego';
+  const text = viewText();
+  if (!visibleTo(s, id, viewer)) return text.goneCard;
   const card = getCard(s, id);
   const name = getCardDef(card.def).name;
   const mine = card.controller === viewer;
-  if (card.zone === 'stack') return mine ? `tu hechizo ${name} (${id})` : `el hechizo ${name} (${id}) del rival`;
-  return mine ? `tu ${name} (${id})` : `${name} (${id}) del rival`;
+  if (card.zone === 'stack') return mine ? text.yourSpell(name, id) : text.opponentSpell(name, id);
+  return mine ? text.yours(name, id) : text.opponents(name, id);
 }
 
 export function targetLabel(s: GameState, target: Target, viewer: PlayerId): string {
-  if (isPlayerTarget(target)) return target.player === viewer ? 'tú' : 'el rival';
+  if (isPlayerTarget(target)) return target.player === viewer ? viewText().you : viewText().opponent;
   return cardLabel(s, target.card, viewer);
 }
 
@@ -122,7 +126,7 @@ function creatureView(s: GameState, id: CardId): CreatureView {
   const view: CreatureView = { id, name: def.name, power: getPower(s, id), toughness: getToughness(s, id) };
   if (def.token) view.token = true;
   const keywords = getKeywords(s, id);
-  if (keywords.length > 0) view.keywords = keywords.map((keyword) => KEYWORD_NAMES[keyword]);
+  if (keywords.length > 0) view.keywords = keywords.map((keyword) => keywordName(keyword));
   if (card.counters > 0) view.plusOneCounters = card.counters;
   const pumps = s.effects.filter((effect) => effect.card === id);
   if (pumps.length > 0) {
@@ -174,7 +178,7 @@ function stackEntry(s: GameState, item: StackItem, viewer: PlayerId): StackEntry
   const entry: StackEntryView = {
     id: source,
     name: def.name,
-    kind: item.kind === 'spell' ? 'hechizo' : item.kind === 'trigger' ? 'habilidad disparada' : 'habilidad activada',
+    kind: viewText().stackKinds[item.kind],
     controller: sideOf(viewer, item.controller),
     targets: item.targets.map((target) => targetLabel(s, target, viewer)),
   };
@@ -187,7 +191,7 @@ function stackEntry(s: GameState, item: StackItem, viewer: PlayerId): StackEntry
 export function playerView(s: GameState, viewer: PlayerId): PlayerView {
   return {
     turn: s.turn,
-    step: STEP_NAMES[s.step],
+    step: stepName(s.step),
     activePlayer: sideOf(viewer, s.activePlayer),
     startingPlayer: sideOf(viewer, s.startingPlayer),
     you: sideView(s, viewer, viewer),
@@ -206,11 +210,11 @@ export function visibleCardDefs(s: GameState, viewer: PlayerId): string[] {
 
 export function cardGlossary(defIds: Iterable<string>): string[] {
   const unique = [...new Set(defIds)];
-  return unique.sort((a, b) => getCardDef(a).name.localeCompare(getCardDef(b).name)).map((id) => cardSummary(id));
+  return unique.sort((a, b) => getCardDef(a).name.localeCompare(getCardDef(b).name, getLocale())).map((id) => cardSummary(id));
 }
 
 function deckOf(spec: DeckSpec): DeckDef | null {
-  if (typeof spec !== 'string') return spec;
+  if (typeof spec !== 'string') return localizeDeck(spec);
   return hasDeck(spec) ? getDeck(spec) : null;
 }
 
@@ -226,8 +230,8 @@ export function deckCardDefs(spec: DeckSpec): string[] {
 }
 
 export function thoughtLine(s: GameState, viewer: PlayerId, reason: string): string {
-  if (s.step === 'mulligan') return `${STEP_NAMES.mulligan}: ${reason}`;
-  return `Turno ${s.turn} (${s.activePlayer === viewer ? 'tu turno' : 'turno del rival'}), ${STEP_NAMES[s.step]}: ${reason}`;
+  if (s.step === 'mulligan') return `${stepName('mulligan')}: ${reason}`;
+  return viewText().thought(s.turn, s.activePlayer === viewer, stepName(s.step), reason);
 }
 
 export function eventLines(s: GameState, viewer: PlayerId): string[] {

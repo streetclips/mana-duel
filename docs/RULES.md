@@ -2,8 +2,8 @@
 
 Mana Duel plays by the core rules of Magic: The Gathering, trimmed to what its fourteen decks need. This page is the
 contract of `src/engine`: what is implemented, and where it deliberately differs from Magic. The game shows its cards
-and decks under Spanish names; this page calls them by the English names their ids keep (`docs/CARDS.md` pairs each
-id with its Spanish name).
+and decks under Spanish or English names; this page calls them by the English names their ids keep (`docs/CARDS.md`
+pairs each id with its Spanish name, `docs/CARDS.en.md` with its English one).
 
 ## Game
 

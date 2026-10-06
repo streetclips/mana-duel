@@ -80,7 +80,7 @@ export class DraftController {
     const run = this.require();
     const decks = matchSetup(run);
     this.game.setAutoplay(false);
-    if (run.duel && this.game.loadReplay(run.duel, opponent).ok) {
+    if (run.duel && this.game.loadReplay({ ...run.duel, decks }, opponent).ok) {
       this.follow(run);
       return;
     }

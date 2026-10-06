@@ -28,10 +28,11 @@ classic AI passes 96% of the time.
 
 ## What the model sees
 
-Every call is stateless (one system prompt and one user message, no chat history). The prompt is in Spanish, like
-the rest of the game: rules, section titles, questions, options, answer instructions and schema descriptions. JSON
-keys, the seat values `you` and `opponent`, decision kinds and the `none` of a block stay as identifiers. The system
-prompt asks for the `reason` in Spanish, since the log shows it. The user message has six sections, the constant ones
+Every call is stateless (one system prompt and one user message, no chat history). The prompt is in the game's
+language, Spanish or English (`src/llm/text/`), like the rest of the game: rules, section titles, questions, options,
+answer instructions and schema descriptions. JSON keys, the seat values `you` and `opponent`, decision kinds and the
+`none` of a block stay as identifiers. The system prompt asks for the `reason` in that language, since the log shows
+it. The user message has six sections, the constant ones
 first so providers can cache the prefix:
 
 1. **Cartas de esta partida** (cards in this game): every card of both decks plus any visible card, one

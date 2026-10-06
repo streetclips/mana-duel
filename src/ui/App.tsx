@@ -4,6 +4,7 @@ import { DeckLibrary } from '../app/deckLibrary';
 import { DraftController } from '../app/draftController';
 import { ExpeditionController } from '../app/expeditionController';
 import type { GameAudio } from '../audio';
+import { getLocale, type Locale } from '../i18n';
 import { SUGGESTED_MODELS, type ModelInfo } from '../llm/models';
 import { saveAudioChoice } from './audioChoice';
 import { DeckViewer } from './components/DeckViewer';
@@ -13,6 +14,7 @@ import { DecksScreen, myDecksStatus } from './DecksScreen';
 import { DraftScreen, draftStatus, gameBadge, gameOutcome } from './DraftScreen';
 import { ExpeditionScreen, duelBadge, duelOutcome, expeditionStatus } from './ExpeditionScreen';
 import { Game, type ModeView } from './Game';
+import { applyLocale, saveLocaleChoice } from './localeChoice';
 import {
   llmProblem,
   loadApiKey,
@@ -23,6 +25,7 @@ import {
   type OpponentChoice,
 } from './opponentChoice';
 import { StartScreen } from './StartScreen';
+import { commonText } from './text/common';
 import { useControllerSession, useSubscription } from './useController';
 
 export type Screen = 'start' | 'game' | 'expedition' | 'decks' | 'draft';
@@ -83,6 +86,7 @@ export function App({
   const [apiKey, setApiKey] = useState<string>(loadApiKey);
   const [catalog, setCatalog] = useState<string[] | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
+  const [locale, setLocale] = useState<Locale>(getLocale);
   useSubscription(audio);
   useEffect(() => {
     onReady?.((next) => setScreen(next));
@@ -120,6 +124,12 @@ export function App({
   const changeKey = (key: string): void => {
     setApiKey(key);
     saveApiKey(key);
+  };
+
+  const changeLocale = (next: Locale): void => {
+    applyLocale(next);
+    saveLocaleChoice(next);
+    setLocale(next);
   };
 
   const play = (autoplay: boolean): void => {
@@ -186,6 +196,7 @@ export function App({
           onPlay={() => play(false)}
           onWatch={() => play(true)}
           llm={{ choice: opponent, apiKey, proxy: llmProxy, models, onChoice: changeOpponent, onApiKey: changeKey }}
+          language={{ locale, onChange: changeLocale }}
           audio={toggles}
           customs={customs}
           expedition={{ status: expeditionStatus(expedition.run), onOpen: () => setScreen('expedition') }}
@@ -200,17 +211,18 @@ export function App({
   }
   const duel = expedition.currentDuel;
   const draftGame = draft.currentGame;
+  const common = commonText();
   let mode: ModeView | undefined;
   if (duel) {
     mode = {
       badge: duelBadge(duel.number, duel.total, duel.boss),
       outcome: duelOutcome(duel),
-      continueLabel: 'Continuar la expedición',
-      homeLabel: 'Volver a la expedición',
+      continueLabel: common.continueExpedition,
+      homeLabel: common.backToExpedition,
       onContinue: leaveGame,
     };
   } else if (draftGame) {
-    mode = { badge: gameBadge(draftGame), outcome: gameOutcome(draftGame), continueLabel: 'Continuar el draft', homeLabel: 'Volver al draft', onContinue: leaveGame };
+    mode = { badge: gameBadge(draftGame), outcome: gameOutcome(draftGame), continueLabel: common.continueDraft, homeLabel: common.backToDraft, onContinue: leaveGame };
   }
   return <Game controller={controller} audio={toggles} mode={mode} onHome={leaveGame} />;
 }
