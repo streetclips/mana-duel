@@ -19,6 +19,7 @@ import {
 } from '../engine';
 import { MAX_COPIES, spellPool } from './cardPool';
 import type { Matchup, Perks, Replay, SeatPerks } from './controller';
+import { deckName } from './deckBuilding';
 import type { DuelResult } from './duelTracker';
 import { duelPerks, isRelicId, relicOf, relicsOf, startsEveryDuel, type RelicId, type RelicOwner, type SeatRelics } from './relics';
 import { modesText } from './text/modes';
@@ -163,7 +164,7 @@ export function changesLabel(run: ExpeditionRun): string {
 }
 
 export function baseName(run: ExpeditionRun): string {
-  return hasDeck(run.base.id) ? getDeck(run.base.id).name : run.base.name;
+  return hasDeck(run.base.id) ? getDeck(run.base.id).name : deckName(run.base.name);
 }
 
 export function runDeck(run: ExpeditionRun): DeckDef {

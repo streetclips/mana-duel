@@ -148,13 +148,14 @@ export function fillWithBasics(cards: readonly DeckEntry[], target = MIN_DECK): 
 }
 
 export function checkDraft(draft: DeckDraft): void {
+  if (!deckName(draft.name)) throw new Error('A deck needs a name');
   for (const entry of draft.cards) {
     if (!isPlayableCard(entry.card)) throw new Error(`"${entry.card}" is not a card a deck can hold`);
     if (!Number.isInteger(entry.count) || entry.count < 0) throw new Error(`Invalid count ${entry.count} for "${entry.card}"`);
   }
 }
 
-function deckName(name: string): string {
+export function deckName(name: string): string {
   return name.split(LINE_BREAK_OR_CONTROL).join(' ').trim().slice(0, MAX_NAME);
 }
 
@@ -209,4 +210,9 @@ export function isCustomDeck(value: unknown): value is DeckDef {
     Array.isArray(cards) &&
     cards.every((entry) => isRecord(entry) && isPlayableCard(entry.card) && typeof entry.count === 'number' && Number.isInteger(entry.count) && entry.count > 0)
   );
+}
+
+export function storedDeck(value: unknown, fallbackName: string): DeckDef | null {
+  const deck = isRecord(value) && typeof value.name === 'string' ? { ...value, name: deckName(value.name) || fallbackName } : value;
+  return isCustomDeck(deck) ? deck : null;
 }

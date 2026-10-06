@@ -7,6 +7,7 @@ import { DeckLibrary } from '../../src/app/deckLibrary';
 import { ExpeditionController } from '../../src/app/expeditionController';
 import { DECK_LIST, getDeck, type DeckDef } from '../../src/engine';
 import { App, type Screen } from '../../src/ui/App';
+import { DeckViewer } from '../../src/ui/components/DeckViewer';
 import { localDeckStore } from '../../src/ui/deckLibraryStore';
 
 afterEach(() => {
@@ -65,6 +66,8 @@ describe('my decks', () => {
     click(byTestId('add-crag_dragon'));
     expect(count()).toBe('40/40');
     expect(byTestId('builder-problems').textContent).toBe('Nada en el mazo da maná rojo: tus cartas rojas no podrán pagarse.');
+    type('builder-name', '\u0007');
+    expect((byTestId('btn-builder-save') as HTMLButtonElement).disabled).toBe(true);
     type('builder-name', 'Cielo y fuego');
     click(byTestId('btn-builder-save'));
     expect(screen.queryByTestId('deck-builder')).toBeNull();
@@ -147,7 +150,7 @@ describe('my decks', () => {
   });
 
   it('marks a deck that cannot be played yet, and keeps it out of the pickers', () => {
-    setup('start', [deck([{ card: 'forest', count: 20 }], 'A medias')]);
+    setup('start', [deck([{ card: 'forest', count: 1 }], 'A medias')]);
     expect(byTestId('btn-my-decks-status').textContent).toBe('1 mazo propio');
     click(byTestId('seat-0'));
     expect(screen.queryByTestId('deck-mine-1')).toBeNull();
@@ -155,7 +158,17 @@ describe('my decks', () => {
     click(byTestId('btn-picker-done'));
     click(byTestId('btn-my-decks'));
     expect(byTestId('my-deck-mine-1').dataset.playable).toBe('false');
-    expect(byTestId('my-deck-mine-1').textContent).toContain('incompleto');
+    expect(byTestId('my-deck-mine-1').textContent).toContain('1 carta · incompleto');
+  });
+
+  it('counts a small deck in the singular in the deck viewer', () => {
+    const small = deck([
+      { card: 'canopy_spider', count: 1 },
+      { card: 'ember_snap', count: 1 },
+      { card: 'forest', count: 1 },
+    ]);
+    render(<DeckViewer tabs={[{ key: small.id, label: small.name, deck: small }]} onClose={() => undefined} />);
+    expect(byTestId('deck-stats').textContent).toBe('3 cartas · 1 criatura · 1 hechizo · 1 tierra');
   });
 });
 

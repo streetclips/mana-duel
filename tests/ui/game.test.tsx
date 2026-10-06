@@ -321,6 +321,15 @@ describe('opening hand', () => {
     settle();
     expect(controller.state.players[0].hand).toHaveLength(6);
   });
+
+  it('counts the cards you keep after each mulligan', () => {
+    setup();
+    click(byTestId('btn-mulligan'));
+    expect(byTestId('prompt').textContent).toBe('¿Te quedas con 6 cartas?');
+    for (let i = 0; i < 5; i++) click(byTestId('btn-mulligan'));
+    expect(byTestId('prompt').textContent).toBe('¿Te quedas con 1 carta?');
+    expect(screen.queryByTestId('btn-mulligan')).toBeNull();
+  });
 });
 
 describe('main phase', () => {

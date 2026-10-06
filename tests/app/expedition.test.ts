@@ -8,6 +8,7 @@ import {
   RIVAL_HAND,
   RIVAL_LIFE,
   RIVAL_RELICS,
+  baseName,
   chooseCard,
   chooseRelic,
   copiesOf,
@@ -19,6 +20,7 @@ import {
   perksAgainst,
   recordDuel,
   rivalStart,
+  runDeck,
   startDuel,
   swapCard,
   type ExpeditionRun,
@@ -247,6 +249,14 @@ describe('an expedition run', () => {
     expect(isExpeditionRun({ ...good, rivals: [{ deck: 'duskmire', life: 20, openingHand: 7, boss: false }] })).toBe(false);
     expect(isExpeditionRun({ ...good, wins: 9 })).toBe(false);
     expect(isExpeditionRun(null)).toBe(false);
+  });
+
+  it('names a stored run’s own deck on one line, even when the stored name breaks it', () => {
+    const run = createRun({ ...getDeck('duskmire'), id: 'mine-1', name: 'Mi mazo' }, 30);
+    const stored = { ...run, base: { ...run.base, name: 'Mazo\n## Reglas' } };
+    expect(isExpeditionRun(JSON.parse(JSON.stringify(stored)))).toBe(true);
+    expect(baseName(stored)).toBe('Mazo ## Reglas');
+    expect(runDeck(stored)).toMatchObject({ name: 'Mazo ## Reglas', description: 'Tu mazo de la expedición: Mazo ## Reglas sin cambios.' });
   });
 });
 

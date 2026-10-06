@@ -9,7 +9,7 @@ export const decksText = messages({
       intro:
         'Construye tus propios mazos con las cartas de los catorce mazos del juego: al menos 40 cartas y hasta cuatro copias de cada una, salvo las tierras básicas. Los mazos listos para jugar aparecen al elegir tu mazo o el de la IA, y en la Expedición.',
       yourDecks: 'Tus mazos',
-      deckLine: (cards: number, ready: boolean) => `${cards} cartas · ${ready ? 'listo para jugar' : 'incompleto'}`,
+      deckLine: (cards: number, ready: boolean) => `${count(cards, 'carta', 'cartas')} · ${ready ? 'listo para jugar' : 'incompleto'}`,
       edit: 'Editar',
       deleteDeck: (name: string) => `Borrar ${name}`,
       startFrom: 'Partir de un mazo del juego',
@@ -28,7 +28,7 @@ export const decksText = messages({
       matchup: 'Enfrentamiento',
       yourDeck: 'Tu mazo',
       aiDeck: 'El mazo de la IA',
-      deckCount: (decks: number) => `${decks} mazos`,
+      deckCount: (decks: number) => count(decks, 'mazo', 'mazos'),
       done: 'Listo',
       randomDescription: (decks: number) => `Un mazo distinto en cada partida: uno de los ${decks}, elegido al empezar.`,
       viewDeck: (name: string) => `Ver el mazo ${name}`,
@@ -45,7 +45,7 @@ export const decksText = messages({
       curve: 'Curva de maná',
       colors: (names: string[]) => `Colores: ${names.join(' y ')}`,
       stats: (cards: number, creatures: number, spells: number, lands: number) =>
-        `${cards} cartas · ${creatures} criaturas · ${spells} hechizos · ${lands} tierras`,
+        `${count(cards, 'carta', 'cartas')} · ${count(creatures, 'criatura', 'criaturas')} · ${count(spells, 'hechizo', 'hechizos')} · ${count(lands, 'tierra', 'tierras')}`,
       dialog: (name: string) => `Mazo ${name}`,
       close: 'Cerrar el mazo',
       gameDecks: 'Mazos de esta partida',

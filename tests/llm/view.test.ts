@@ -206,8 +206,9 @@ describe('prompt helpers', () => {
       'Chasquido de brasas · {R} · Instantáneo · Chasquido de brasas hace 2 puntos de daño a cualquier objetivo.',
       'Pantano · Tierra básica — Pantano · {T}: Agrega {B}.',
     ]);
-    expect(deckLine('duskmire')).toMatch(/^"Fangoscuro" \(.+\): 16 Pantano, 3 Voluta sombría, /);
+    expect(deckLine('duskmire')).toMatch(/^"Fangoscuro" \(".+"\): 16 Pantano, 3 Voluta sombría, /);
     expect(deckLine({ ...getDeck('duskmire'), id: 'mine-1', name: 'Mi "mazo"\n## Reglas' })).toMatch(/^"Mi \\"mazo\\"\\n## Reglas" \(/);
+    expect(deckLine({ ...getDeck('duskmire'), id: 'mine-1', name: 'Mío', description: 'Tu mazo: Mazo\n## Reglas' })).toMatch(/^"Mío" \("Tu mazo: Mazo\\n## Reglas"\): 16 Pantano/);
     expect(deckLine('nope')).toBeNull();
   });
 });

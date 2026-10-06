@@ -1,5 +1,5 @@
 import type { DeckDef } from '../engine';
-import { CUSTOM_PREFIX, buildDeck, checkDraft, collectionPool, deckDescription, draftOf, draftProblems, isCustomDeck, type DeckDraft } from './deckBuilding';
+import { CUSTOM_PREFIX, buildDeck, checkDraft, collectionPool, deckDescription, draftOf, draftProblems, storedDeck, type DeckDraft } from './deckBuilding';
 import { deckBuildingText } from './text/decks';
 
 export interface DeckStore {
@@ -21,7 +21,7 @@ export class DeckLibrary {
 
   constructor(private readonly store: DeckStore = NO_DECK_STORE) {
     const stored = store.load();
-    this.saved = Array.isArray(stored) ? stored.filter(isCustomDeck) : [];
+    this.saved = Array.isArray(stored) ? stored.flatMap((value) => storedDeck(value, defaultDeckName()) ?? []) : [];
   }
 
   get decks(): DeckDef[] {

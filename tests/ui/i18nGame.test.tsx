@@ -202,6 +202,12 @@ describe('the game screen in English', () => {
     expectEnglish(mulligan.view.container);
   });
 
+  it('counts the cards you keep after each mulligan', () => {
+    setup();
+    for (let i = 0; i < 6; i++) click(byTestId('btn-mulligan'));
+    expect(byTestId('prompt').textContent).toBe('Keep 1 card?');
+  });
+
   it('shows relics and their owners', () => {
     const { view } = setup({ players: [{ relics: [{ card: 'urn', id: 'urn' }] }, { relics: [{ card: 'bell', id: 'bell' }] }] });
     expect(byTestId('card-urn').getAttribute('aria-label')).toBe('Your relic: Urn of Souls');

@@ -222,7 +222,7 @@ export function deckLine(spec: DeckSpec): string | null {
   const deck = deckOf(spec);
   if (!deck) return null;
   const cards = deck.cards.map((entry) => `${entry.count} ${getCardDef(entry.card).name}`).join(', ');
-  return `${JSON.stringify(deck.name)} (${deck.description}): ${cards}`;
+  return `${JSON.stringify(deck.name)} (${JSON.stringify(deck.description)}): ${cards}`;
 }
 
 export function deckCardDefs(spec: DeckSpec): string[] {

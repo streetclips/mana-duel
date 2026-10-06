@@ -167,6 +167,18 @@ describe('the deck library', () => {
     expect(new DeckLibrary(memoryStore([stored, { id: 'mine-4', name: 'Roto' }, 'basura'])).decks).toEqual([stored]);
     expect(new DeckLibrary(memoryStore({ not: 'a list' })).decks).toEqual([]);
   });
+
+  it('keeps a stored deck whose name breaks a rule under a clean name, and refuses a deck without one', () => {
+    const store = memoryStore([
+      { ...buildDeck(draft(getDeck('emberwild').cards), 'mine-1'), name: 'Fuego\trojo' },
+      { ...buildDeck(draft(getDeck('duskmire').cards), 'mine-2'), name: '\u0007' },
+    ]);
+    const library = new DeckLibrary(store);
+    expect(library.decks.map((deck) => deck.name)).toEqual(['Fuego rojo', 'Mi mazo']);
+    library.save(draft(getDeck('dawntide').cards, 'Otro'));
+    expect((store.saved as DeckDef[]).map((deck) => deck.name)).toEqual(['Fuego rojo', 'Mi mazo', 'Otro']);
+    expect(() => library.save(draft(getDeck('dawntide').cards, '\u0007 '))).toThrow(/needs a name/);
+  });
 });
 
 describe('your decks in the automation API', () => {

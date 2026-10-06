@@ -36,7 +36,7 @@ describe('the LLM prompt in English', () => {
     const { prompt } = buildPrompt(s, 1, decisionFor(s, 1), { decks: ['emberwild', 'duskmire'], recentEvents: ['Event.'], recentThoughts: ['Thought.'] });
     expect(prompt).toContain('## Cards in this game\n');
     expect(prompt).toContain('- Crag Dragon · {3}{R}{R} · Creature — Dragon · 4/4 · Flying {R}: This creature gets +1/+0 until end of turn.');
-    expect(prompt).toContain('Your deck: "Duskmire" (Black: deathtouch, removal, and life drain; its dead strike back.): 16 Swamp, ');
+    expect(prompt).toContain('Your deck: "Duskmire" ("Black: deathtouch, removal, and life drain; its dead strike back."): 16 Swamp, ');
     expect(prompt).toContain('The opponent\'s deck: "Emberwild"');
     expect(prompt).toContain('## Recent events, oldest first\n- Event.');
     expect(prompt).toContain('## Your recent thoughts, oldest first\n- Thought.');

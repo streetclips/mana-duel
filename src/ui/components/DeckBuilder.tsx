@@ -7,6 +7,7 @@ import {
   canAdd,
   copiesIn,
   countCards,
+  deckName,
   draftNotes,
   draftProblems,
   fillWithBasics,
@@ -158,7 +159,7 @@ export function DeckBuilder({ initial, pool, title, saveLabel, requireValid = fa
           type="button"
           class="btn builder-save"
           data-testid="btn-builder-save"
-          disabled={!draft.name.trim() || (requireValid && problems.length > 0)}
+          disabled={!deckName(draft.name) || (requireValid && problems.length > 0)}
           onClick={() => onSave(draft)}
         >
           {saveLabel ?? text.save}
