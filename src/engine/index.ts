@@ -5,12 +5,9 @@ export {
   BRIGHTFORGE,
   CINDERMAW,
   CROSSROADS,
-  DAWNTIDE,
-  DECKS,
   DECK_LIST,
   DEEPGROVE,
   DEFAULT_DECK_ID,
-  DUSKMIRE,
   EMBERWILD,
   FLAMECREST,
   GLOAMWOOD,
@@ -30,41 +27,15 @@ export {
 } from './decks';
 export type { DeckDef, DeckEntry, DeckSpec } from './decks';
 export { costColors, costSymbols, formatCost, manaValue, parseCost } from './mana';
-export { nextRandom, normalizeSeed, random, randomInt, shuffleInPlace } from './rng';
+export { nextRandom, normalizeSeed, shuffleInPlace } from './rng';
 export type { RngHolder } from './rng';
-export {
-  IllegalActionError,
-  actionError,
-  advance,
-  applyAction,
-  createGame,
-  nextStepOf,
-  openingHandSize,
-  tryApplyAction,
-} from './game';
+export { applyAction, createGame, nextStepOf, tryApplyAction } from './game';
 export type { ActionResult, GameOptions, PlayerSetup } from './game';
-export { blockAssignments, forcedAction, getLegalActions, playableHandCards, priorityActions } from './actions';
+export { forcedAction, getLegalActions, priorityActions } from './actions';
+export { blockOptions, blocksError, canAttack, eligibleAttackers } from './combat';
+export { stackItemSource } from './effects';
+export { activationBlocker, castBlocker, landPlayError } from './rules';
 export {
-  attackersError,
-  blockOptions,
-  blocksError,
-  blockersOf,
-  canAttack,
-  canBlockAttacker,
-  defendingPlayer,
-  eligibleAttackers,
-} from './combat';
-export { stackItemAbility, stackItemSource } from './effects';
-export {
-  activationBlocker,
-  castBlocker,
-  canActAtSorcerySpeed,
-  hasPriority,
-  isMainPhase,
-  landPlayError,
-} from './rules';
-export {
-  MAX_HAND_SIZE,
   OPENING_HAND,
   STARTING_LIFE,
   EVOLVE_TRIGGER,
@@ -73,7 +44,6 @@ export {
   cloneState,
   creaturesOf,
   defOf,
-  findPayment,
   getCard,
   getKeywords,
   getPower,
@@ -83,22 +53,17 @@ export {
   isLand,
   isReadyToTap,
   isRelicDef,
-  isTokenDef,
-  landsOf,
   manaSources,
-  onBattlefield,
   opponent,
-  triggerSources,
   triggeredAbility,
 } from './state';
-export { isLegalTarget, isPlayerTarget, isSpellOnStack, legalTargets, sameTarget, targetCombos, targetKey } from './targets';
+export { isPlayerTarget, sameTarget, targetKey } from './targets';
 export {
   activatedText,
   cardName,
   cardSummary,
   colorName,
   countersLabel,
-  defaultPlayerNames,
   describeEvent,
   describeEventParts,
   describeState,
@@ -116,8 +81,8 @@ export {
   triggerText,
   typeLine,
 } from './describe';
-export type { CardMention, ColorNoun, TextPart } from './describe';
+export type { TextPart } from './describe';
 export type { Refusal } from './refusals';
 export { checkInvariants } from './invariants';
 export { createScenario } from './scenario';
-export type { ScenarioCard, ScenarioEntry, ScenarioPlayer, ScenarioSpec } from './scenario';
+export type { ScenarioSpec } from './scenario';

@@ -20,7 +20,7 @@ import {
 } from '../engine';
 import { isBasicLand, isLandCard, poolCards } from './cardPool';
 import type { Matchup, Replay } from './controller';
-import { buildDeck, countCards, draftProblems, fillWithBasics, type Allowance, type DeckDraft } from './deckBuilding';
+import { buildDeck, draftProblems, fillWithBasics, type Allowance, type DeckDraft } from './deckBuilding';
 import { modesText } from './text/modes';
 
 export const PACK_SIZE = 12;
@@ -310,10 +310,6 @@ export function createDraft(format: DraftFormat, seed: number): DraftRun {
   return run;
 }
 
-export function picksLeft(run: DraftRun): number {
-  return run.stage === 'picking' ? run.packs[0].length : 0;
-}
-
 export function pickNumber(run: DraftRun): number {
   return PACK_SIZE - run.packs[0].length + 1;
 }
@@ -396,10 +392,6 @@ export function recordGame(run: DraftRun, winner: PlayerId | null, turns: number
 export function matchWinner(run: DraftRun): PlayerId | null {
   if (run.wins[0] >= MATCH_WINS) return 0;
   return run.wins[1] >= MATCH_WINS ? 1 : null;
-}
-
-export function deckSize(run: DraftRun): number {
-  return countCards(run.deck ?? []);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

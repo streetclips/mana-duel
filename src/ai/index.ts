@@ -13,7 +13,6 @@ import { chooseCardsToBottom, chooseCardsToDiscard, chooseLand, shouldKeep } fro
 import { actionValue, bestAction, repeatedActionValue } from './rollout';
 
 export { chooseAttackers, chooseBlocks } from './combat';
-export { creatureValue, evaluate, lifeScore } from './evaluate';
 export { rollout } from './rollout';
 
 const MIN_GAIN = 0.5;

@@ -1,5 +1,5 @@
 import type { Refusal } from './refusals';
-import { allCreatures, getCard, hasKeyword, isCreature } from './state';
+import { allCreatures, hasKeyword, isCreature } from './state';
 import type { CardId, GameState, PlayerId, Target, TargetSpec } from './types';
 
 export function isPlayerTarget(target: Target): target is { player: PlayerId } {
@@ -78,8 +78,4 @@ export function targetsError(s: GameState, controller: PlayerId, specs: TargetSp
     }
   }
   return null;
-}
-
-export function describeTargetOwner(s: GameState, target: Target): PlayerId {
-  return isPlayerTarget(target) ? target.player : getCard(s, target.card).controller;
 }

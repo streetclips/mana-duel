@@ -134,12 +134,3 @@ export function blockAssignments(s: GameState, limit = DEFAULT_ENUMERATION_LIMIT
   walk(0);
   return result;
 }
-
-export function playableHandCards(s: GameState, player: PlayerId): Set<CardId> {
-  const playable = new Set<CardId>();
-  if (s.pending?.kind !== 'priority' || s.pending.player !== player) return playable;
-  for (const action of priorityActions(s, player)) {
-    if (action.type === 'playLand' || action.type === 'cast') playable.add(action.card);
-  }
-  return playable;
-}

@@ -10,7 +10,7 @@ import type { ColorNoun, EngineText } from './text/types';
 import type { CardDef, Color, GameEvent, GameState, Keyword, PlayerId, Step, Target, TargetSpec } from './types';
 
 export { cardName, formatModifier, plainText } from './text/parts';
-export type { CardMention, TextPart } from './text/parts';
+export type { TextPart } from './text/parts';
 export type { ColorNoun } from './text/types';
 
 const TEXTS: Record<Locale, EngineText> = { es, en };

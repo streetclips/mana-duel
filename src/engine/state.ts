@@ -151,10 +151,6 @@ export function creaturesOf(s: GameState, player: PlayerId): CardId[] {
   return s.players[player].battlefield.filter((id) => isCreature(s, id));
 }
 
-export function landsOf(s: GameState, player: PlayerId): CardId[] {
-  return s.players[player].battlefield.filter((id) => isLand(s, id));
-}
-
 export function triggerSources(s: GameState, player: PlayerId): CardId[] {
   return [...s.players[player].battlefield, ...s.players[player].command];
 }

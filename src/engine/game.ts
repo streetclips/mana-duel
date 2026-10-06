@@ -278,11 +278,6 @@ export function tryApplyAction(state: GameState, action: Action): ActionResult {
   }
 }
 
-export function actionError(state: GameState, action: Action): string | null {
-  const result = tryApplyAction(state, action);
-  return result.ok ? null : result.error;
-}
-
 function expectPending<K extends PendingDecision['kind']>(
   s: GameState,
   kind: K,

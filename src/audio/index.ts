@@ -7,8 +7,7 @@ import { renderAudio, type RenderResult, type RenderTarget } from './render';
 import { SOUNDS, type SoundId } from './sounds';
 
 export type { Scene } from './director';
-export type { AudioLevel, AudioState, ContextState, PlayedSound } from './engine';
-export type { Mood } from './music';
+export type { AudioLevel, AudioState, PlayedSound } from './engine';
 export type { RenderResult, RenderTarget } from './render';
 export type { SoundId } from './sounds';
 

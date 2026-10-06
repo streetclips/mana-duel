@@ -56,10 +56,6 @@ export function rivalTerms(run: ExpeditionRun, rival: Rival): string {
   return `${text.lives(start.life)}${hand}`;
 }
 
-export function duelLabel(number: number, total: number, boss: boolean): string {
-  return expeditionText().duelLabel(number, total, boss);
-}
-
 export function duelBadge(number: number, total: number, boss: boolean): string {
   return expeditionText().duelBadge(number, total, boss);
 }

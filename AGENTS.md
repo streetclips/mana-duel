@@ -43,7 +43,7 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 ## Verify a change
 
 1. After editing cards or decks, run `npm run cards` to regenerate `docs/CARDS.md` and `docs/CARDS.en.md`.
-2. Run `npm run verify` (lint, typecheck, unit tests, 196 AI-vs-AI games, one per matchup, with invariant checks,
+2. Run `npm run verify` (lint, Knip, typecheck, unit tests, 196 AI-vs-AI games, one per matchup, with invariant checks,
    production build). Done when it exits 0.
 3. After changing cards, decks or the AI, check the balance with `npm run sim -- --games 3000 --quiet` (under a
    minute on ten CPUs: games run in one process per CPU, and `--workers N` changes how many, never the results): every
@@ -191,8 +191,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   errors, the output of `npm run sim`) are English. Code carries no comments: names and tests explain it.
 - `.oxlintrc.json` keeps each layer to the layers it imports today, and `src/engine` and `src/ai` free of clocks,
   `Math.random` and the browser; `npm run lint` fails otherwise. A new import between layers changes the design, so it
-  changes that file in the same commit. An exception to any lint rule is set there for its files, as code carries no
-  comments.
+  changes that file in the same commit. `npm run knip` fails on an export, file or dependency nothing uses: delete it.
+  An exception to either tool is set in `.oxlintrc.json` or `knip.json` for its files, as code carries no comments.
 - Every text the player reads exists in Spanish and English: card and deck names, rules text, the UI, the log, engine
   refusals (they reach toasts and prompts) and the LLM prompt (its reasons reach the log). The engine writes its text
   in `src/engine/text/es.ts` and `en.ts` on the official templates of Magic in each language, and the log and the

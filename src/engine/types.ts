@@ -252,8 +252,6 @@ export type Action =
   | { type: 'discard'; player: PlayerId; cards: CardId[] }
   | { type: 'concede'; player: PlayerId };
 
-export type ActionType = Action['type'];
-
 export type GameEvent =
   | { t: 'start'; startingPlayer: PlayerId }
   | { t: 'mulligan'; player: PlayerId; count: number }
