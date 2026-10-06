@@ -527,7 +527,7 @@ export class GameController {
     this.llmTurn = turn;
     const player = pending.player;
     this.notify();
-    llm
+    void llm
       .decide(s, player, { signal: turn.abort.signal, ...this.llmContext() })
       .catch((error: unknown): LlmDecision | null => {
         if (turn.abort.signal.aborted) return null;

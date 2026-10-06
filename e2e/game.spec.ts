@@ -377,7 +377,7 @@ test('every card name fits two lines in hand, and ability pills fit their cards 
       return { pill: pill.dataset.testid, inside, fits: pill.scrollWidth <= pill.clientWidth + 1 };
     }),
   );
-  expect(pills.map((pill) => pill.pill).sort()).toEqual(
+  expect(pills.map((pill) => pill.pill ?? '').sort()).toEqual(
     [
       'ability-dragon-0',
       'ability-druid-mana',

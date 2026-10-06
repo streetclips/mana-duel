@@ -102,7 +102,7 @@ describe('declaring blockers', () => {
     expect(tryApplyAction(s, { type: 'declareBlockers', player: 1, blocks: [{ blocker: 'viper', attacker: 'marauder' }] }))
       .toEqual({ ok: false, error: 'marauder tiene la habilidad de amenaza y no puede ser bloqueada excepto por dos o más criaturas', refusal: { code: 'menace', attacker: 'marauder' } });
     const legal = getLegalActions(s).map((action) => (action.type === 'declareBlockers' ? action.blocks.length : -1));
-    expect(legal.sort()).toEqual([0, 2]);
+    expect(legal.sort((a, b) => a - b)).toEqual([0, 2]);
     s = block(s, [
       { blocker: 'viper', attacker: 'marauder' },
       { blocker: 'spider', attacker: 'marauder' },

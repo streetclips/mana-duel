@@ -9,7 +9,7 @@ import { ScriptedLlm } from '../scriptedLlm';
 const thinking = (s: GameState, player: PlayerId) => ({ action: chooseAction(s, player), reason: 'Seems right.' });
 
 function setup(llm: ScriptedLlm, options: ControllerOptions = {}) {
-  const factory = vi.fn((_: LlmSetup) => llm);
+  const factory = vi.fn<(setup: LlmSetup) => ScriptedLlm>(() => llm);
   const controller = new GameController({
     seed: 5,
     aiDelayMs: 0,

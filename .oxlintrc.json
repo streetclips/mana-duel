@@ -1,0 +1,155 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import"],
+  "options": {
+    "typeAware": true,
+    "denyWarnings": true
+  },
+  "rules": {
+    "unicorn/no-useless-spread": "off",
+    "import/no-cycle": "error",
+    "typescript/no-deprecated": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/restrict-template-expressions": "error",
+    "typescript/switch-exhaustiveness-check": ["error", { "considerDefaultExhaustiveForUnions": true }]
+  },
+  "overrides": [
+    {
+      "files": ["tests/**"],
+      "rules": {
+        "typescript/no-floating-promises": "off",
+        "typescript/no-base-to-string": "off",
+        "typescript/no-misused-spread": "off"
+      }
+    },
+    {
+      "files": ["src/engine/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              { "regex": "^(\\.\\./)+(ai|app|audio|llm|ui)(/|$)", "message": "src/engine imports only src/i18n." },
+              { "regex": "^[^.]", "message": "src/engine uses no packages." }
+            ]
+          }
+        ],
+        "no-restricted-globals": [
+          "error",
+          { "name": "Date", "message": "The engine has no clock: a seed and its actions replay a game." },
+          { "name": "performance", "message": "The engine has no clock: a seed and its actions replay a game." },
+          { "name": "setTimeout", "message": "The engine is pure functions over GameState." },
+          { "name": "setInterval", "message": "The engine is pure functions over GameState." },
+          { "name": "window", "message": "The engine runs without a browser." },
+          { "name": "document", "message": "The engine runs without a browser." },
+          { "name": "navigator", "message": "The engine runs without a browser." },
+          { "name": "localStorage", "message": "The engine keeps its state in GameState." },
+          { "name": "sessionStorage", "message": "The engine keeps its state in GameState." },
+          { "name": "fetch", "message": "The engine runs without a network." },
+          { "name": "crypto", "message": "Randomness lives in state.rng: a seed and its actions replay a game." }
+        ],
+        "no-restricted-properties": [
+          "error",
+          { "object": "Math", "property": "random", "message": "Randomness lives in state.rng: a seed and its actions replay a game." }
+        ]
+      }
+    },
+    {
+      "files": ["src/ai/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              { "regex": "^(\\.\\./)+(app|audio|i18n|llm|ui)(/|$)", "message": "src/ai reads only src/engine." },
+              { "regex": "^[^.]", "message": "src/ai uses no packages." }
+            ]
+          }
+        ],
+        "no-restricted-globals": [
+          "error",
+          { "name": "Date", "message": "The AI decides from the GameState alone, so a seed replays its games." },
+          { "name": "performance", "message": "The AI decides from the GameState alone, so a seed replays its games." },
+          { "name": "setTimeout", "message": "The controller times the AI, not the AI itself." },
+          { "name": "setInterval", "message": "The controller times the AI, not the AI itself." },
+          { "name": "window", "message": "The AI runs without a browser." },
+          { "name": "document", "message": "The AI runs without a browser." },
+          { "name": "navigator", "message": "The AI runs without a browser." },
+          { "name": "localStorage", "message": "The AI runs without a browser." },
+          { "name": "sessionStorage", "message": "The AI runs without a browser." },
+          { "name": "fetch", "message": "The AI runs without a network." },
+          { "name": "crypto", "message": "Randomness lives in state.rng: a seed and its actions replay a game." }
+        ],
+        "no-restricted-properties": [
+          "error",
+          { "object": "Math", "property": "random", "message": "Randomness lives in state.rng: a seed and its actions replay a game." }
+        ]
+      }
+    },
+    {
+      "files": ["src/i18n/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              { "regex": "^(\\.\\./)+(ai|app|audio|engine|llm|ui)(/|$)", "message": "src/i18n imports nothing: every layer reads it." },
+              { "regex": "^[^.]", "message": "src/i18n uses no packages." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/llm/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              { "regex": "^(\\.\\./)+(app|audio|ui)(/|$)", "message": "src/llm reads only src/engine, src/ai and src/i18n." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/app/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [{ "regex": "^(\\.\\./)+ui(/|$)", "message": "src/ui reads src/app, never the reverse." }]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/audio/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              { "regex": "^(\\.\\./)+(ai|i18n|llm)(/|$)", "message": "src/audio reads only src/engine, src/app and src/ui." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/ui/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [{ "regex": "^(\\.\\./)+ai(/|$)", "message": "src/ui reaches the AI through the controller in src/app." }]
+          }
+        ]
+      }
+    }
+  ]
+}

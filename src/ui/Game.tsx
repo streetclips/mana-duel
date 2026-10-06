@@ -80,7 +80,7 @@ function useHandOverlap(count: number): { ref: { current: HTMLDivElement | null 
   const cardWidth = card?.offsetWidth ?? 80;
   const available = Math.max(0, width - 20);
   const overlap = count <= 1 || width === 0 ? 6 : Math.min(6, (available - count * cardWidth) / (count - 1));
-  return { ref, style: { '--overlap': `${overlap}px` } as CSSProperties };
+  return { ref, style: { '--overlap': `${overlap}px` } };
 }
 
 const ATTACK_OFFSET = 16;

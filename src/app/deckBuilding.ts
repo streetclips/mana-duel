@@ -150,7 +150,7 @@ export function fillWithBasics(cards: readonly DeckEntry[], target = MIN_DECK): 
 export function checkDraft(draft: DeckDraft): void {
   if (!deckName(draft.name)) throw new Error('A deck needs a name');
   for (const entry of draft.cards) {
-    if (!isPlayableCard(entry.card)) throw new Error(`"${entry.card}" is not a card a deck can hold`);
+    if (!isPlayableCard(entry.card)) throw new Error(`"${String(entry.card)}" is not a card a deck can hold`);
     if (!Number.isInteger(entry.count) || entry.count < 0) throw new Error(`Invalid count ${entry.count} for "${entry.card}"`);
   }
 }

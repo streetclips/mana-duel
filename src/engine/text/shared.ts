@@ -48,7 +48,7 @@ export interface RulesGrammar {
   repeatedPhrase(spec: TargetSpec): string;
   effectSentence(effect: Effect, ref: TargetRef, context: SentenceContext): string;
   moreDamage(amount: number, target: string): string;
-  then: string;
+  andThen: string;
 }
 
 export interface StateWords {
@@ -101,7 +101,7 @@ function sentences(grammar: RulesGrammar, effects: Effect[], specs: TargetSpec[]
     }
     const text = capitalize(grammar.effectSentence(effect, ref, context));
     if (effect.kind === 'discard' && effect.who !== 'opponent' && previous?.kind === 'draw' && lines.length > 0) {
-      lines.push(`${withoutPeriod(lines.pop() as string)}${grammar.then}${lowerFirst(text)}`);
+      lines.push(`${withoutPeriod(lines.pop() as string)}${grammar.andThen}${lowerFirst(text)}`);
     } else lines.push(text);
   });
   return lines.join(' ');

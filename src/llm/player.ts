@@ -176,7 +176,7 @@ export function createLlmPlayer(options: LlmPlayerOptions): LlmPlayer {
                 name: 'decision',
                 description: llmText().player.output(decision.kind),
               }),
-              system: prompt.system,
+              instructions: prompt.system,
               prompt: prompt.prompt + feedback,
               abortSignal: limit.signal,
               maxRetries,

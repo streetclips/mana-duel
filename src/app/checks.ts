@@ -1371,7 +1371,7 @@ export const CHECKS: Check[] = [
         }),
       );
       s = toBlockers(play(s, [{ type: 'declareAttackers', player: 0, attackers: ['rhino'] }]));
-      const action = chooseAction(s, 1 as PlayerId);
+      const action = chooseAction(s, 1);
       return expectValue(
         action.type === 'declareBlockers' ? action.blocks : null,
         [

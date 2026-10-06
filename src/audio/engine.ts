@@ -125,7 +125,7 @@ export class AudioEngine {
   }
 
   get context(): ContextState {
-    return this.ctx ? (this.ctx.state as ContextState) : 'none';
+    return this.ctx ? this.ctx.state : 'none';
   }
 
   subscribe(listener: () => void): () => void {

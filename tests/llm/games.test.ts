@@ -43,7 +43,7 @@ describe('an LLM that answers anything its schema allows', () => {
     ];
     for (const [index, decks] of matchups.entries()) {
       const rand = lcg(index + 3);
-      const player = createLlmPlayer({ model: mockModel((call: ModelCall) => anyAnswer(schemaOf(call) as JsonSchema, rand)) });
+      const player = createLlmPlayer({ model: mockModel((call: ModelCall) => anyAnswer(schemaOf(call), rand)) });
       let s: GameState = createGame({ seed: index + 3, players: [{ deck: decks[0] }, { deck: decks[1] }] });
       const events: string[] = [];
       const thoughts: string[] = [];

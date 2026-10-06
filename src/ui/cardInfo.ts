@@ -135,5 +135,5 @@ export function cardArtUrl(defId: string): string {
 }
 
 export function cssVars(vars: Record<`--${string}`, string>): CSSProperties {
-  return vars as CSSProperties;
+  return vars;
 }

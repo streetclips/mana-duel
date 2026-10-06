@@ -19,9 +19,10 @@ afterEach(async () => {
 
 async function start(upstream: typeof fetch): Promise<string> {
   const handle = openRouterProxy({ apiKey: 'sk-secret', upstream: 'https://upstream.test/api/v1', fetch: upstream });
-  server = createServer((req, res) => void handle(req, res));
-  await new Promise<void>((resolve) => server?.listen(0, '127.0.0.1', resolve));
-  return `http://127.0.0.1:${(server?.address() as AddressInfo).port}`;
+  const listening = createServer((req, res) => void handle(req, res));
+  server = listening;
+  await new Promise<void>((resolve) => listening.listen(0, '127.0.0.1', resolve));
+  return `http://127.0.0.1:${(listening.address() as AddressInfo).port}`;
 }
 
 function recorder(): { fetch: typeof fetch; seen: Forwarded[] } {

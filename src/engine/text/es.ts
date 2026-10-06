@@ -604,7 +604,7 @@ const RULES: RulesGrammar = {
   repeatedPhrase,
   effectSentence,
   moreDamage: (amount, target) => `y ${damagePoints(amount)} ${withA(target)}.`,
-  then: ' y luego ',
+  andThen: ' y luego ',
 };
 
 const STATE: StateWords = {

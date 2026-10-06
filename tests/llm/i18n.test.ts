@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { chooseAction } from '../../src/ai';
-import { DECK_LIST, applyAction, createGame, forcedAction, type PlayerId } from '../../src/engine';
+import { DECK_LIST, applyAction, createGame, forcedAction } from '../../src/engine';
 import { setLocale } from '../../src/i18n';
 import { DecisionError, buildPrompt, decisionFor, describeAction, describeFailure, eventLines, systemPrompt, thoughtLine } from '../../src/llm';
 import { spanishIn } from '../i18n';
@@ -67,7 +67,7 @@ describe('the LLM prompt in English', () => {
       let s = createGame({ seed: index + 3, players: [{ deck: matchup[0] }, { deck: matchup[1] }] });
       const events: string[] = [];
       for (let step = 0; s.pending && s.pending.kind !== 'gameOver' && step < 300; step++) {
-        const player = s.pending.player as PlayerId;
+        const player = s.pending.player;
         if (player === 1 && !forcedAction(s)) {
           const decision = decisionFor(s, 1);
           const { system, prompt } = buildPrompt(s, 1, decision, { decks: matchup, recentEvents: events });

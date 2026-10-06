@@ -542,7 +542,7 @@ const RULES: RulesGrammar = {
   repeatedPhrase,
   effectSentence,
   moreDamage: (amount, target) => `and ${damageAmount(amount)} to ${target}.`,
-  then: ', then ',
+  andThen: ', then ',
 };
 
 const STATE: StateWords = {

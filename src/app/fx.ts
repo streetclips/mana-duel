@@ -150,6 +150,20 @@ export function fxCues(before: GameState | null, after: GameState): FxCue[] {
       case 'turn':
         cues.push({ kind: 'turn', player: event.player, turn: event.turn });
         break;
+      case 'start':
+      case 'keep':
+      case 'mulligan':
+      case 'bottom':
+      case 'create':
+      case 'resolve':
+      case 'return':
+      case 'search':
+      case 'extraLands':
+      case 'loseLife':
+      case 'drawEmpty':
+      case 'concede':
+      case 'gameOver':
+        break;
     }
   }
   return cues.filter((cue) => cue.kind !== 'life' || cue.delta !== 0);
