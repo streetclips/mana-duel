@@ -88,9 +88,12 @@ html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--bg);
   color: var(--ink);
   overscroll-behavior: none;
+}
+
+html {
+  background: var(--bg);
 }
 
 body {
@@ -111,6 +114,308 @@ button {
   display: flex;
   flex-direction: column;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  will-change: transform;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 34%, var(--sky-3) 62%);
+  transition:
+    opacity 0s linear 2.4s,
+    visibility 0s linear 2.4s;
+}
+
+.scene.on {
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 2.4s ease-in-out;
+}
+
+.scene-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.8s ease;
+}
+
+.backdrop[data-mode='game'] .scene {
+  transition: none;
+}
+
+.backdrop[data-mode='game'] .scene-layer.sky {
+  opacity: 0.4;
+}
+
+.backdrop[data-mode='game'] .scene-layer.motes {
+  visibility: hidden;
+}
+
+.scene-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 76%, transparent), var(--bg));
+  opacity: 0.12;
+  transition: opacity 0.8s ease;
+}
+
+.backdrop[data-mode='game'] .scene-veil {
+  opacity: 0.84;
+}
+
+.sc-sun {
+  fill: var(--sun);
+}
+
+.sc-moon {
+  fill: var(--moon, transparent);
+}
+
+.sc-glow-stop {
+  stop-color: var(--halo);
+}
+
+.sc-lamp-stop {
+  stop-color: var(--lamp-halo, transparent);
+}
+
+.sc-cloud {
+  fill: var(--cloud);
+}
+
+.sc-star {
+  fill: var(--star);
+}
+
+.sc-bird {
+  fill: none;
+  stroke: var(--bird, transparent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sc-far {
+  fill: var(--far);
+}
+
+.sc-far-2 {
+  fill: var(--far-2);
+}
+
+.sc-snow {
+  fill: var(--snow);
+}
+
+.sc-mid,
+.sc-trunk {
+  fill: var(--mid);
+}
+
+.sc-mid-2 {
+  fill: var(--mid-2);
+}
+
+.sc-near {
+  fill: var(--near);
+}
+
+.sc-near-2 {
+  fill: var(--near-2);
+}
+
+.sc-deep {
+  fill: var(--deep);
+}
+
+.sc-mist {
+  fill: var(--mist);
+  opacity: 0.32;
+}
+
+.sc-water {
+  fill: var(--water);
+}
+
+.sc-water-2 {
+  fill: var(--water-2);
+}
+
+.sc-water-3 {
+  fill: var(--water-3);
+}
+
+.sc-water-4 {
+  fill: var(--water-4);
+}
+
+.sc-rock {
+  fill: var(--rock);
+}
+
+.sc-rock-2 {
+  fill: var(--rock-2);
+}
+
+.sc-tower {
+  fill: var(--tower);
+}
+
+.sc-tower-2 {
+  fill: var(--tower-2);
+}
+
+.sc-lamp {
+  fill: var(--lamp);
+}
+
+.sc-glint,
+.sc-limb,
+.sc-reed,
+.sc-reed-2 {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.sc-glint {
+  stroke: var(--glint);
+  opacity: 0.7;
+}
+
+.sc-limb {
+  stroke: var(--mid);
+}
+
+.sc-reed {
+  stroke: var(--mid-2);
+}
+
+.sc-reed-2 {
+  stroke: var(--near-2);
+}
+
+.sc-mote {
+  fill: var(--mote, transparent);
+}
+
+.sc-mote-glow {
+  fill: var(--mote, transparent);
+  opacity: 0.2;
+}
+
+.scene[data-scene-id='plains'] {
+  --sky-1: light-dark(#f3efe6, #121212);
+  --sky-2: light-dark(#f5e9d2, #1c1a1c);
+  --sky-3: light-dark(#f4dcae, #4a3426);
+  --sun: light-dark(#fffaf0, transparent);
+  --moon: light-dark(transparent, #f1e3bd);
+  --halo: light-dark(#ffdf9e, rgba(226, 204, 150, 0.5));
+  --cloud: light-dark(#fffaf2, transparent);
+  --star: light-dark(transparent, #ece2c8);
+  --bird: light-dark(#b7a07a, transparent);
+  --far: light-dark(#eedcb3, #33281f);
+  --mist: light-dark(#fff8ea, #5a4330);
+  --mid: light-dark(#e5c78a, #2a2119);
+  --mid-2: light-dark(#cfa962, #231b15);
+  --near: light-dark(#d9b06a, #211a14);
+  --near-2: light-dark(#c39a50, #1b1510);
+  --deep: light-dark(#c99a52, #16110d);
+}
+
+.scene[data-scene-id='island'] {
+  --sky-1: light-dark(#eef1ee, #0e1118);
+  --sky-2: light-dark(#e1ecef, #121a27);
+  --sky-3: light-dark(#cfe4ee, #1b2a3e);
+  --sun: light-dark(#ffffff, #e4ecf0);
+  --halo: light-dark(#fff3c4, rgba(185, 207, 223, 0.45));
+  --cloud: light-dark(#fbfdfd, transparent);
+  --star: light-dark(transparent, #dce6ee);
+  --far: light-dark(#b9cfda, #182434);
+  --far-2: light-dark(#92aab8, #223147);
+  --water: light-dark(#a9d0e3, #172639);
+  --water-2: light-dark(#8cbfd9, #132133);
+  --water-3: light-dark(#73afd2, #0f1b2b);
+  --water-4: light-dark(#5e9cc6, #0c1624);
+  --glint: light-dark(#f4fbff, #5f7a93);
+  --rock: light-dark(#c3bcae, #1a2330);
+  --rock-2: light-dark(#a69f91, #141c27);
+  --mid: light-dark(#8db394, #16222b);
+  --mid-2: light-dark(#5f8c6d, #0f1820);
+  --tower: light-dark(#f7f3ec, #222f3f);
+  --tower-2: light-dark(#c86b55, #141e2a);
+  --lamp: light-dark(#f2cf72, #ffd88a);
+  --lamp-halo: light-dark(transparent, rgba(255, 216, 138, 0.9));
+}
+
+.scene[data-scene-id='swamp'] {
+  --sky-1: light-dark(#f0eef0, #100e15);
+  --sky-2: light-dark(#e7e2ea, #16121e);
+  --sky-3: light-dark(#d9d1e1, #2a2238);
+  --sun: light-dark(#fcfbf4, #e3e8c8);
+  --halo: light-dark(#fbf7ea, rgba(199, 211, 158, 0.45));
+  --cloud: light-dark(#f8f6fa, transparent);
+  --star: light-dark(transparent, #e1dfe8);
+  --far: light-dark(#cbc1d4, #221c2c);
+  --mist: light-dark(#fbf9fd, #3d3352);
+  --water: light-dark(#d3cbdd, #1d1828);
+  --water-2: light-dark(#bdb2cb, #2a2238);
+  --glint: light-dark(#f6f2fb, #5d5476);
+  --mid: light-dark(#9c8fab, #191520);
+  --mid-2: light-dark(#8f819f, #17131d);
+  --near: light-dark(#7e6f8f, #110e16);
+  --near-2: light-dark(#6c5e7e, #0e0b12);
+  --mote: light-dark(transparent, #c2e6a6);
+}
+
+.scene[data-scene-id='mountain'] {
+  --sky-1: light-dark(#f4eee8, #130e12);
+  --sky-2: light-dark(#f6e1d3, #1d1116);
+  --sky-3: light-dark(#f3c9ad, #3e1d1f);
+  --sun: light-dark(#f5ab73, #c4583c);
+  --halo: light-dark(#fbb27a, rgba(196, 80, 52, 0.5));
+  --cloud: light-dark(#fff5ee, transparent);
+  --star: light-dark(transparent, #ead9d0);
+  --bird: light-dark(#ae7d69, transparent);
+  --far: light-dark(#ecc3ad, #2f1b22);
+  --far-2: light-dark(#e3b19a, #29171e);
+  --snow: light-dark(#fcf4ee, #4b3035);
+  --mid: light-dark(#dc9a7f, #24141a);
+  --mid-2: light-dark(#cf876b, #1f1116);
+  --near: light-dark(#c3735a, #1b0e13);
+  --near-2: light-dark(#ae614a, #160b0f);
+  --deep: light-dark(#9d543f, #120a0d);
+  --mote: light-dark(transparent, #ff9d57);
+}
+
+.scene[data-scene-id='forest'] {
+  --sky-1: light-dark(#eef1e9, #0d1210);
+  --sky-2: light-dark(#e3ede0, #101915);
+  --sky-3: light-dark(#d2e5d2, #223a2e);
+  --sun: light-dark(#fffdf1, transparent);
+  --moon: light-dark(transparent, #e4eddc);
+  --halo: light-dark(#f7f6cf, rgba(191, 212, 189, 0.45));
+  --cloud: light-dark(#fbfdf8, transparent);
+  --star: light-dark(transparent, #dde8dc);
+  --far: light-dark(#c6ddc4, #17231e);
+  --mist: light-dark(#f6faf2, #2f473b);
+  --mid: light-dark(#a2c8a3, #131e19);
+  --near: light-dark(#78a981, #0f1813);
+  --deep: light-dark(#548e64, #0b120e);
+  --mote: light-dark(transparent, #eee68f);
 }
 
 .num {
@@ -317,6 +622,15 @@ button {
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+.seat-who,
+.seat-deck,
+.modes > .section-label,
+.start-body > .field-hint {
+  text-shadow:
+    0 0 3px var(--bg),
+    0 0 10px var(--bg);
 }
 
 .seat-deck svg {
@@ -1080,6 +1394,12 @@ button {
   flex: 1;
   padding: 13px 16px;
   font-size: 15px;
+}
+
+.start-actions .btn.secondary {
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .rules {

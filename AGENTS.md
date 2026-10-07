@@ -19,7 +19,8 @@ src/app/     GameController (decks per seat, AI timers, async LLM seat, auto-pas
 src/ui/      Preact views of controller.state; every tap becomes an engine Action; start screen with a deck box
              per seat that opens onto the deck picker, a gear for its settings (sound, who plays the AI, how to
              play), deck viewer, the Expedition and Draft screens, your decks and the deck builder; card art from
-             public/cards/; animations of the fx cues (fx.ts, motion.ts)
+             public/cards/; animations of the fx cues (fx.ts, motion.ts); the backdrop, a scene per color of mana
+             (scenery.ts picks it, sceneArt.ts draws it), that changes behind the menus and dims behind a game
 src/audio/   music and sound effects synthesized with Web Audio: a theme per deck whose mood follows the game, a
              sound per fx cue; GameAudio starts on the first tap
 src/i18n/    the current language (es, en) and messages({ es, en }), the typed catalog each layer keeps in its text/
@@ -65,7 +66,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   (the LLM plays the AI seat), `autoPass=off|on` (off: you pass by hand wherever you could act; the menu toggle is
   remembered), `theme=dark|light`, `lang=es|en` (over the remembered choice; without either, the browser's language,
   else Spanish), `fx=off|slow|<speed>` (animations), `music=on|off` and `sfx=on|off` (over the remembered toggles;
-  `off` keeps a browser you drive quiet). Decks default to `emberwild`.
+  `off` keeps a browser you drive quiet), `scene=plains|island|swamp|mountain|forest` (pins the backdrop, which
+  otherwise moves on every 16 s in the menus and with each game). Decks default to `emberwild`.
   Any of `seed`, `first`, `skipMulligan`, `autoplay`, `deck`, `aiDeck`, `ai`, `model`, `effort` skips the start screen.
 - `window.manaDuel` (`manaDuel.help()` prints it): read with `state()`, `describe()`, `pending()`,
   `legalActions()`, `decks()` (yours too, with `custom` and `playable`), `matchup()`; act for player 0 with `dispatch(action)`, `pass()`, `endTurn()`,
@@ -115,7 +117,8 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
   `builder-search`, `builder-color-<W|U|B|R|G>`, `builder-kind-<all|creature|spell|land>`, `btn-builder-fill`; the
   pickers list them after `picker-custom`. Audio: `menu-music`, `menu-sfx` (`aria-checked`), the settings'
   `btn-music`, `btn-sfx` (`aria-pressed`), and `html[data-audio]` (`none` until the first tap, `running`, `suspended`,
-  `unsupported`), `html[data-music]` (theme id or `off`), `html[data-mood]`.
+  `unsupported`), `html[data-music]` (theme id or `off`), `html[data-mood]`. Backdrop: `backdrop` (`data-scene`,
+  `data-mode`: `menu` or `game`), the scene shown being its `.scene.on`.
 - Animations (fx): every animated element carries `data-fx` with the cue kinds it plays (`[data-slot="<cardId>"]` on
   battlefield cards, `player-<p>`, hand cards, land pips, stack items), and `fx-ghost-<cardId>` (a creature fading
   out where it died or bounced), `fx-reveal` (the card the opponent plays), `fx-turn`, `fx-hurt`, `fx-life-<p>`,

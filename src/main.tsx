@@ -18,6 +18,7 @@ import { localRunStore } from './ui/expeditionStore';
 import { applyLocale, loadLocaleChoice, localeFrom } from './ui/localeChoice';
 import { freezeFx } from './ui/motion';
 import { loadApiKey, loadOpponentChoice } from './ui/opponentChoice';
+import { sceneFrom } from './ui/scenery';
 import './ui/styles.css';
 
 declare global {
@@ -134,6 +135,7 @@ render(
     expedition={expedition}
     draft={draft}
     library={library}
+    pinnedScene={sceneFrom(params)}
   />,
   root,
 );

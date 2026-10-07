@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { randomDeckId, type GameController } from '../app/controller';
 import { DeckLibrary } from '../app/deckLibrary';
 import { DraftController } from '../app/draftController';
@@ -7,6 +7,7 @@ import type { GameAudio } from '../audio';
 import { getLocale, type Locale } from '../i18n';
 import { SUGGESTED_MODELS, type ModelInfo } from '../llm/models';
 import { saveAudioChoice } from './audioChoice';
+import { Backdrop } from './components/Backdrop';
 import { DeckViewer } from './components/DeckViewer';
 import type { AudioToggles } from './components/SoundToggles';
 import { chosenDeck, knownChoice, loadDeckChoice, resolveMatchup, saveDeckChoice, type DeckChoice } from './deckChoice';
@@ -15,6 +16,7 @@ import { DraftScreen, draftStatus, gameBadge, gameOutcome } from './DraftScreen'
 import { ExpeditionScreen, duelBadge, duelOutcome, expeditionStatus } from './ExpeditionScreen';
 import { Game, type ModeView } from './Game';
 import { applyLocale, saveLocaleChoice } from './localeChoice';
+import { prefersReducedMotion } from './motion';
 import {
   llmProblem,
   loadApiKey,
@@ -24,6 +26,7 @@ import {
   saveOpponentChoice,
   type OpponentChoice,
 } from './opponentChoice';
+import { SCENE_MS, firstScene, loadScene, nextScene, saveScene, type SceneId } from './scenery';
 import { StartScreen } from './StartScreen';
 import { commonText } from './text/common';
 import { useControllerSession, useSubscription } from './useController';
@@ -40,6 +43,7 @@ interface AppProps {
   expedition?: ExpeditionController;
   draft?: DraftController;
   library?: DeckLibrary;
+  pinnedScene?: SceneId | null;
 }
 
 function audioToggles(audio: GameAudio | undefined): AudioToggles | undefined {
@@ -68,8 +72,11 @@ export function App({
   expedition: expeditionProp,
   draft: draftProp,
   library: libraryProp,
+  pinnedScene = null,
 }: AppProps) {
   const [screen, setScreen] = useState<Screen>(initialScreen);
+  const [scenery, setScenery] = useState<SceneId>(() => firstScene(pinnedScene, loadScene()));
+  const sceneSession = useRef<number | null>(initialScreen === 'game' ? controller.session : null);
   const expedition = useMemo(
     () => expeditionProp ?? new ExpeditionController(controller),
     [expeditionProp, controller],
@@ -79,7 +86,7 @@ export function App({
   const draft = useMemo(() => draftProp ?? new DraftController(controller), [draftProp, controller]);
   useEffect(() => (draftProp ? undefined : () => draft.dispose()), [draft, draftProp]);
   useSubscription(draft);
-  useControllerSession(controller);
+  const session = useControllerSession(controller);
   const library = useMemo(() => libraryProp ?? new DeckLibrary(), [libraryProp]);
   useSubscription(library);
   const customs = library.playable();
@@ -98,6 +105,24 @@ export function App({
   useEffect(() => {
     audio?.setScene(screen === 'game' ? 'game' : 'title');
   }, [audio, screen]);
+
+  const inGame = screen === 'game';
+
+  useEffect(() => {
+    if (!pinnedScene) saveScene(scenery);
+  }, [scenery, pinnedScene]);
+
+  useEffect(() => {
+    if (!inGame || sceneSession.current === session) return;
+    sceneSession.current = session;
+    if (!pinnedScene) setScenery(nextScene);
+  }, [inGame, session, pinnedScene]);
+
+  useEffect(() => {
+    if (inGame || pinnedScene || prefersReducedMotion()) return;
+    const timer = setInterval(() => setScenery(nextScene), SCENE_MS);
+    return () => clearInterval(timer);
+  }, [inGame, pinnedScene]);
 
   useEffect(() => {
     if (opponent.kind !== 'llm' || catalog || !loadModels) return;
@@ -172,30 +197,45 @@ export function App({
     } else setScreen('start');
   };
 
-  if (screen === 'decks') return <DecksScreen library={library} onHome={() => setScreen('start')} />;
+  const backdrop = <Backdrop scene={scenery} mode={inGame ? 'game' : 'menu'} />;
+
+  if (screen === 'decks') {
+    return (
+      <>
+        {backdrop}
+        <DecksScreen library={library} onHome={() => setScreen('start')} />
+      </>
+    );
+  }
 
   if (screen === 'draft') {
     return (
-      <DraftScreen
-        draft={draft}
-        library={library}
-        problem={problem}
-        onPlay={playDraft}
-        onHome={() => setScreen('start')}
-      />
+      <>
+        {backdrop}
+        <DraftScreen
+          draft={draft}
+          library={library}
+          problem={problem}
+          onPlay={playDraft}
+          onHome={() => setScreen('start')}
+        />
+      </>
     );
   }
 
   if (screen === 'expedition') {
     return (
-      <ExpeditionScreen
-        expedition={expedition}
-        customs={customs}
-        initialDeck={choice.deck}
-        problem={problem}
-        onFight={fightExpedition}
-        onHome={() => setScreen('start')}
-      />
+      <>
+        {backdrop}
+        <ExpeditionScreen
+          expedition={expedition}
+          customs={customs}
+          initialDeck={choice.deck}
+          problem={problem}
+          onFight={fightExpedition}
+          onHome={() => setScreen('start')}
+        />
+      </>
     );
   }
 
@@ -204,6 +244,7 @@ export function App({
     const models = [...new Set([...SUGGESTED_MODELS, ...(catalog ?? [])])];
     return (
       <>
+        {backdrop}
         <StartScreen
           choice={choice}
           onChange={change}
@@ -245,5 +286,10 @@ export function App({
       onContinue: leaveGame,
     };
   }
-  return <Game controller={controller} audio={toggles} mode={mode} onHome={leaveGame} />;
+  return (
+    <>
+      {backdrop}
+      <Game controller={controller} audio={toggles} mode={mode} onHome={leaveGame} />
+    </>
+  );
 }

@@ -59,6 +59,9 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
 - Every change is animated: the card the opponent plays is shown with its target, creatures strike each other in
   combat, damage and life changes pop, the dead fade out in their place, drawn cards slide into your hand and each
   turn is announced. `?fx=slow` plays them in slow motion and `?fx=off` turns them off.
+- Five scenes, one per color of mana, behind every screen: golden plains, a coast with a lighthouse, a misty swamp,
+  snowy peaks and a pine forest, by day in the light theme and by night in the dark one. The menus fade from one to
+  the next every 16 seconds; each game takes the next one, faded behind the board. `?scene=<id>` keeps one.
 - Music and sound effects: each deck plays its own theme, in the colors of its cards, that brings in the drums when
   creatures attack and turns tense at low life; every play, hit, death and turn has its sound, timed with its
   animation, and the game ends on a victory or a defeat. All of it is synthesized with the Web Audio API, starts
@@ -88,7 +91,7 @@ docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same
   a game uses it, and the tests run it offline against mocked models.
 - **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, a deck selector of 3D deck boxes that
   open, a deck viewer, light
-  and dark themes, a game log, the Expedition and Draft modes, a deck builder, animations driven by cues that tests
+  and dark themes over five vector scenes, a game log, the Expedition and Draft modes, a deck builder, animations driven by cues that tests
   and agents can read, and an automation API on `window.manaDuel`.
 - **Audio** (`src/audio`): a generative score, one theme per color combination and four moods that follow the game,
   scheduled ahead of the audio clock, and a sound for every animation cue, each built from layers of synthesized
@@ -139,7 +142,8 @@ src/
 ├── audio/    music (themes and moods), cues (a sound per cue), synth, engine, director, render, sounds, gate
 └── ui/       App, StartScreen (deck and AI selector), Game, ExpeditionScreen, DraftScreen, DecksScreen, model
               (interaction logic), deckChoice, opponentChoice, autoPassChoice, audioChoice, localeChoice, expeditionStore,
-              draftStore, deckLibraryStore, fx and motion (animations), components/ (Board, Card, DeckBox, DeckBuilder, DeckSelect, DeckViewer, Fx,
+              draftStore, deckLibraryStore, fx and motion (animations), scenery and sceneArt (the backdrop's scenes),
+              components/ (Backdrop, Board, Card, DeckBox, DeckBuilder, DeckSelect, DeckViewer, Fx,
               ModeIcons, Overlays, ScreenBar, SoundToggles), text/ (the screens' texts), styles.css
 public/cards/ one SVG illustration per card, named <id>.svg
 tests/        engine/ ai/ llm/ app/ ui/ audio/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
