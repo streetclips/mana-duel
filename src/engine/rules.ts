@@ -1,6 +1,6 @@
 import { parseCost } from './mana';
 import { getCardDef, getCost } from './registry';
-import { defOf, findPayment, getCard, hasFlashDef, isInstantDef, isLandDef, isReadyToTap } from './state';
+import { canAfford, defOf, getCard, hasFlashDef, isInstantDef, isLandDef, isReadyToTap } from './state';
 import type { Refusal } from './refusals';
 import { targetsError } from './targets';
 import type { CardId, GameState, PlayerId, Target } from './types';
@@ -38,7 +38,7 @@ export function castBlocker(s: GameState, player: PlayerId, cardId: CardId): Ref
   if (!isInstantDef(def) && !hasFlashDef(def) && !canActAtSorcerySpeed(s, player)) {
     return { code: 'sorceryTiming' };
   }
-  if (!findPayment(s, player, getCost(card.def), { excludeFromDemand: cardId })) return { code: 'notEnoughMana' };
+  if (!canAfford(s, player, getCost(card.def))) return { code: 'notEnoughMana' };
   return null;
 }
 
@@ -63,10 +63,9 @@ export function activationBlocker(
     if (getCard(s, cardId).tapped) return { code: 'tapped' };
     if (!isReadyToTap(s, cardId)) return { code: 'summoningSick' };
   }
-  const payment = findPayment(s, player, parseCost(ability.cost), {
-    excludeSource: ability.tap ? cardId : undefined,
-  });
-  if (!payment) return { code: 'notEnoughMana' };
+  if (!canAfford(s, player, parseCost(ability.cost), ability.tap ? cardId : undefined)) {
+    return { code: 'notEnoughMana' };
+  }
   return null;
 }
 

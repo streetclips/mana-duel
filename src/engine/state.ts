@@ -1,10 +1,9 @@
-import { choosePayment, type ManaSource } from './mana';
+import { canPay, choosePayment, manaValue, parseCost, type ManaSource } from './mana';
 import { getCardDef, getCost } from './registry';
 import type {
   CardDef,
   CardId,
   CardInstance,
-  Color,
   GameState,
   Keyword,
   ManaCost,
@@ -382,16 +381,19 @@ export function manaSources(s: GameState, player: PlayerId, exclude?: CardId): M
   return sources;
 }
 
-export function colorDemand(s: GameState, player: PlayerId, exclude?: CardId): Partial<Record<Color, number>> {
-  const demand: Partial<Record<Color, number>> = {};
+function manaWants(s: GameState, player: PlayerId, exclude?: CardId): ManaCost[] {
+  const wants: ManaCost[] = [];
   for (const id of s.players[player].hand) {
-    if (id === exclude) continue;
-    const cost = getCost(getCard(s, id).def);
-    for (const color of ['W', 'U', 'B', 'R', 'G'] as const) {
-      if (cost[color] > 0) demand[color] = (demand[color] ?? 0) + cost[color];
+    if (id === exclude || isLandDef(defOf(s, id))) continue;
+    wants.push(getCost(getCard(s, id).def));
+  }
+  for (const id of s.players[player].battlefield) {
+    for (const ability of defOf(s, id).activated ?? []) {
+      const cost = parseCost(ability.cost);
+      if (manaValue(cost) > 0) wants.push(cost);
     }
   }
-  return demand;
+  return wants;
 }
 
 export function findPayment(
@@ -403,8 +405,12 @@ export function findPayment(
   return choosePayment(
     manaSources(s, player, options.excludeSource),
     cost,
-    colorDemand(s, player, options.excludeFromDemand),
+    manaWants(s, player, options.excludeFromDemand),
   );
+}
+
+export function canAfford(s: GameState, player: PlayerId, cost: ManaCost, excludeSource?: CardId): boolean {
+  return canPay(manaSources(s, player, excludeSource), cost);
 }
 
 export function tapCards(s: GameState, ids: CardId[]): void {

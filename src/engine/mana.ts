@@ -52,49 +52,94 @@ export interface ManaSource {
   isCreature: boolean;
 }
 
-export function choosePayment(
-  sources: ManaSource[],
-  cost: ManaCost,
-  demand: Partial<Record<Color, number>> = {},
-): CardId[] | null {
+export function choosePayment(sources: ManaSource[], cost: ManaCost, wants: ManaCost[] = []): CardId[] | null {
   const total = manaValue(cost);
   if (total === 0) return [];
   if (sources.length < total) return null;
 
-  const score = (source: ManaSource): number =>
-    (source.isCreature ? 1000 : 0) +
-    source.colors.length * 100 +
-    Math.max(0, ...source.colors.map((color) => demand[color] ?? 0));
-  const ordered = [...sources].sort((a, b) => score(a) - score(b) || compareIds(a.id, b.id));
-
-  const pips: Color[] = [];
-  for (const color of COLORS) {
-    for (let i = 0; i < cost[color]; i++) pips.push(color);
+  const groups = groupSources(sources);
+  let best: { used: ManaSource[]; rank: number[] } | null = null;
+  for (const counts of allocations(
+    groups.map((group) => group.length),
+    total,
+  )) {
+    const used = groups.flatMap((group, i) => group.slice(0, counts[i]));
+    if (!canPay(used, cost)) continue;
+    const left = groups.flatMap((group, i) => group.slice(counts[i]));
+    const rank = rankPayment(used, left, wants);
+    if (!best || isBetterRank(rank, best.rank)) best = { used, rank };
   }
+  if (!best) return null;
+  return best.used.map((source) => source.id).sort(compareIds);
+}
 
-  const used = new Set<CardId>();
-  const assign = (index: number): boolean => {
-    if (index === pips.length) return true;
-    const pip = pips[index] as Color;
-    for (const source of ordered) {
-      if (used.has(source.id) || !source.colors.includes(pip)) continue;
-      used.add(source.id);
-      if (assign(index + 1)) return true;
-      used.delete(source.id);
-    }
-    return false;
-  };
-  if (!assign(0)) return null;
-
-  let generic = cost.generic;
-  for (const source of ordered) {
-    if (generic === 0) break;
-    if (used.has(source.id)) continue;
-    used.add(source.id);
-    generic--;
+export function canPay(sources: ManaSource[], cost: ManaCost): boolean {
+  if (sources.length < manaValue(cost)) return false;
+  const needed = costColors(cost);
+  for (let mask = 1; mask < 1 << needed.length; mask++) {
+    const colors = needed.filter((_, i) => mask & (1 << i));
+    const pips = colors.reduce((sum, color) => sum + cost[color], 0);
+    const supply = sources.filter((source) => source.colors.some((color) => colors.includes(color))).length;
+    if (pips > supply) return false;
   }
-  if (generic > 0) return null;
-  return ordered.filter((source) => used.has(source.id)).map((source) => source.id);
+  return true;
+}
+
+function groupSources(sources: ManaSource[]): ManaSource[][] {
+  const groups = new Map<string, ManaSource[]>();
+  for (const source of [...sources].sort((a, b) => compareIds(a.id, b.id))) {
+    const key = `${source.isCreature ? 'c' : 'l'}:${[...source.colors].sort().join('')}`;
+    const group = groups.get(key);
+    if (group) group.push(source);
+    else groups.set(key, [source]);
+  }
+  return [...groups.values()];
+}
+
+function* allocations(sizes: number[], total: number, from = 0): Generator<number[]> {
+  if (from === sizes.length) {
+    if (total === 0) yield [];
+    return;
+  }
+  const rest = sizes.slice(from + 1).reduce((sum, size) => sum + size, 0);
+  for (let take = Math.min(sizes[from] ?? 0, total); take >= Math.max(0, total - rest); take--) {
+    for (const tail of allocations(sizes, total - take, from + 1)) yield [take, ...tail];
+  }
+}
+
+function rankPayment(used: ManaSource[], left: ManaSource[], wants: ManaCost[]): number[] {
+  const affordable = wants.filter((want) => canPay(left, want));
+  const together = emptyCost();
+  let castable = 0;
+  for (const want of [...affordable].sort((a, b) => manaValue(a) - manaValue(b))) {
+    const next = addCosts(together, want);
+    if (!canPay(left, next)) continue;
+    Object.assign(together, next);
+    castable++;
+  }
+  const colorsLeft = COLORS.filter((color) => left.some((source) => source.colors.includes(color))).length;
+  return [
+    castable,
+    affordable.length,
+    -used.filter((source) => source.isCreature).length,
+    colorsLeft,
+    -used.reduce((sum, source) => sum + source.colors.length, 0),
+  ];
+}
+
+function isBetterRank(rank: number[], than: number[]): boolean {
+  for (let i = 0; i < rank.length; i++) {
+    const a = rank[i] ?? 0;
+    const b = than[i] ?? 0;
+    if (a !== b) return a > b;
+  }
+  return false;
+}
+
+function addCosts(a: ManaCost, b: ManaCost): ManaCost {
+  const sum = { ...a, generic: a.generic + b.generic };
+  for (const color of COLORS) sum[color] = a[color] + b[color];
+  return sum;
 }
 
 export function compareIds(a: string, b: string): number {

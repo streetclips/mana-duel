@@ -66,8 +66,9 @@ pairs each id with its Spanish name, `docs/CARDS.en.md` with its English one).
   summoning-sick creature cannot tap for mana.
 - A land that enters tapped (the tri-lands and the Prismatic Fount) can't pay for anything the turn it arrives; it
   untaps with your other permanents. Entering tapped doesn't stop it from triggering landfall.
-- Paying is automatic: the engine taps lands before creatures and sources of one color before those of several, and
-  keeps untapped the colors your other cards need. There is no mana pool: mana appears exactly when a cost is paid.
+- Paying is automatic: of every way to pay, the engine picks the one that leaves the most of your other cards and
+  mana abilities castable together, then the most castable one at a time, then taps lands before creatures, keeps the
+  most colors untapped and taps sources of one color before those of several. There is no mana pool: mana appears exactly when a cost is paid.
 
 ## Combat
 

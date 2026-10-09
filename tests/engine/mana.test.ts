@@ -43,8 +43,26 @@ describe('choosePayment', () => {
   });
 
   it('keeps the colors that other cards in hand need', () => {
-    expect(choosePayment([forest('f1'), mountain('m1')], parseCost('{1}'), { R: 2 })).toEqual(['f1']);
-    expect(choosePayment([forest('f1'), mountain('m1')], parseCost('{1}'), { G: 2 })).toEqual(['m1']);
+    expect(choosePayment([forest('f1'), mountain('m1')], parseCost('{1}'), [parseCost('{R}')])).toEqual(['f1']);
+    expect(choosePayment([forest('f1'), mountain('m1')], parseCost('{1}'), [parseCost('{G}')])).toEqual(['m1']);
+  });
+
+  it('keeps castable the cards it can, ignoring the ones it cannot pay yet', () => {
+    const plains = (id: string): ManaSource => ({ id, colors: ['W'], isCreature: false });
+    const island: ManaSource = { id: 'i1', colors: ['U'], isCreature: false };
+    const wants = [parseCost('{3}{W}{W}'), parseCost('{U}')];
+    expect(choosePayment([plains('p1'), plains('p2'), island], parseCost('{1}'), wants)).toEqual(['p1']);
+  });
+
+  it('keeps enough mana to cast two more cards together', () => {
+    const sources = [forest('f1'), forest('f2'), mountain('m1'), mountain('m2')];
+    const wants = [parseCost('{G}{G}'), parseCost('{R}')];
+    expect(choosePayment(sources, parseCost('{1}'), wants)).toEqual(['m1']);
+  });
+
+  it('keeps a land of two colors over a basic land', () => {
+    const redGreen: ManaSource = { id: 'd1', colors: ['R', 'G'], isCreature: false };
+    expect(choosePayment([redGreen, forest('f1')], parseCost('{G}'))).toEqual(['f1']);
   });
 
   it('backtracks to use flexible sources correctly', () => {
