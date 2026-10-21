@@ -192,6 +192,9 @@ scripts/     sim.ts (headless AI games in every matchup + invariants, in paralle
 
 - Code, docs, tests, commit messages and developer-facing strings (`manaDuel.help()`, check titles, programmer
   errors, the output of `npm run sim`) are English. Code carries no comments: names and tests explain it.
+  `README.md` is the product page in English and `README.es.md` the same page in Spanish: a change to one goes in
+  both. Their screenshots in `docs/images/` (`<screen>-<en|es>.webp`) are of the deployed game on a Pixel 7 at 2x in
+  the dark theme.
 - `.oxlintrc.json` keeps each layer to the layers it imports today, and `src/engine` and `src/ai` free of clocks,
   `Math.random` and the browser; `npm run lint` fails otherwise. A new import between layers changes the design, so it
   changes that file in the same commit. `npm run knip` fails on an export, file or dependency nothing uses: delete it.

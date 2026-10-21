@@ -1,158 +1,109 @@
+<p align="right"><b>English</b> · <a href="README.es.md">Español</a></p>
+
 # Mana Duel
 
-A minimalist, mobile-first card duel built on the rules of Magic: The Gathering, played in Spanish or English: its
-screen title is *Duelo de Maná* or *Mana Duel*, and every text it writes — cards, decks, buttons, prompts, the log,
-refusals, and the prompt of the LLM opponent — is in the language picked in its settings, at first the browser's. Fourteen decks — **Brasalvaje** (`emberwild`, red and green), **Albamar**
-(`dawntide`, white and blue), **Fangoscuro** (`duskmire`, black), **Cristormenta** (`stormglass`, blue and red),
-**Pradosol** (`sunmeadow`, green and white), **Forjaluz** (`brightforge`, red and white), **Brumafosa** (`mistgrave`,
-blue and black), **Selvumbra** (`gloamwood`, black and green), **Vesperia** (`vesperhall`, white and black),
-**Fauceniza** (`cindermaw`, black and red), **Sotohondo** (`deepgrove`, green and blue), **Crestafuego**
-(`flamecrest`, red), **Tierrabrava** (`wildland`, green) and **Encrucijada** (`crossroads`, all five colors) — and one opponent that
-plays by the same rules and never looks at your hand: the built-in AI, or a language model of your choice through
-OpenRouter. Ids, of decks and cards alike, keep the English names: `?deck=dawntide` picks Albamar, which the game
-calls Dawntide in English.
+**A minimalist card duel on the rules of Magic: The Gathering, made for your phone.** Pick one of fourteen decks and
+face an opponent that plays by the same rules and never looks at your hand. It runs in the browser: nothing to
+install, no account.
 
-## Play
+<p align="center"><a href="https://streetclips.github.io/mana-duel/"><b>▶ Play now at streetclips.github.io/mana-duel</b></a></p>
 
-Play it at https://streetclips.github.io/mana-duel/, deployed by `.github/workflows/pages.yml` on every push to
-`main`, or run it yourself:
+<p align="center">
+  <img src="docs/images/start-en.webp" width="260" alt="Start screen: the Emberwild deck box faces Dawntide's over a pine forest at night">
+  <img src="docs/images/battle-en.webp" width="260" alt="A game: the opponent casts Undertow on your Timberland Rhino and you may answer with an instant">
+  <img src="docs/images/expedition-en.webp" width="260" alt="The Expedition map: seven rivals in a row, their relics and the boss">
+</p>
+
+## What you get
+
+- **Real Magic, without the busywork.** The stack, instants in response, the London mulligan, and combat with flying,
+  trample, deathtouch, first strike, lifelink, menace and a dozen more keywords. Lands pay for your spells on their
+  own, and priority passes by itself while there is nothing to decide.
+- **Fourteen decks, 213 cards.** One deck per pair of colors, black, red and green alone, and one of all five colors,
+  each with its own plan. Every card has its own illustration.
+- **An opponent that plays fair.** The built-in AI weighs each move by playing the game forward and never sees your
+  hand. Or let a language model of your choice play it through [OpenRouter](https://openrouter.ai), with your
+  own key: the log shows its reasoning.
+- **More than one duel.**
+  - **Expedition:** seven duels in a row with one deck, against rivals that grow stronger, carry relics and end in a
+    boss. Each win offers a card for your deck, every third one a relic, and a single defeat ends the run.
+  - **Draft:** pass packs with the AI and pick a card each time, or open six packs in Sealed, then build a deck and
+    play the AI's at the best of three.
+  - **My decks:** build your own decks from every card in the game, with search, filters and the mana curve, and
+    play them in any seat or on an Expedition.
+- **Made for one hand.** Tap a card to play it, long-press to read it. It works on a desktop too.
+- **Alive.** Every play, hit and death is animated; five landscapes, one per color of mana, change behind the menus,
+  by day or by night; each deck plays its own music, synthesized live, that turns tense when life runs low.
+- **In English and Spanish**, every word of it, cards included. Your runs, drafts, decks and settings stay in your
+  browser.
+
+## The decks
+
+| Deck | Colors | Plays with |
+| --- | --- | --- |
+| Emberwild | Red, green | Fast attackers, direct damage, reach, and big creatures that trample |
+| Dawntide | White, blue | Flying creatures, lifelink, and counterspells |
+| Duskmire | Black | Deathtouch, removal, and life drain; its dead strike back |
+| Stormglass | Blue, red | Flash, direct damage, and card draw; every instant and sorcery powers up its creatures |
+| Sunmeadow | Green, white | An army that grows with +1/+1 counters, boosts for all its creatures, and life gain |
+| Brightforge | Red, white | Creature tokens, first strike, and haste; the army grows with every soldier |
+| Mistgrave | Blue, black | Skulking creatures that slip past bigger blockers and empty the opponent's hand |
+| Gloamwood | Black, green | Undying, sacrifice, and deathtouch; every death feeds the jungle |
+| Vesperhall | White, black | Lifelink and life drain; every life it gains strengthens its faithful |
+| Cindermaw | Black, red | Haste, menace, and direct damage; once the opponent bleeds, its creatures arrive bigger |
+| Deepgrove | Green, blue | Creatures that evolve, and hexproof giants that ignore the opponent's spells |
+| Flamecrest | Red | Monks with prowess that strike first and twice |
+| Wildland | Green | Every land that enters awakens its beasts |
+| Crossroads | All five | Lands that tap for three colors or any, and multicolored spells with the best of each |
+
+Every card, in the game's words: [`docs/CARDS.en.md`](docs/CARDS.en.md).
+
+## How to play
+
+1. Tap a deck box to choose your deck or the AI's, or leave either to chance, then **Play against the AI**. You both
+   start at 20 life with 40 cards.
+2. Play one land a turn. Tap a card to see what you can do with it: play it, cast it, activate it.
+3. To attack, tap **To combat**, then your creatures, then **Attack**. To block, tap your creature, then the attacker
+   it should stop.
+4. When a spell needs a target, the targets glow: tap one.
+5. Bring the opponent to 0 life to win. The gear on the start screen holds the language, the sound, who plays the AI
+   and the full rules under **How to play**.
+
+**Watch AI vs AI** lets the AI play both seats. A few links to try: `?theme=light`, `?fx=slow` (animations in slow
+motion), `?deck=gloamwood&aiDeck=crossroads`.
+
+## Run it yourself
 
 ```sh
 npm install
-npm run dev        # http://localhost:5173 — open it on your phone through your LAN address too
-npm run build      # static site in dist/, served by `npm run preview`
+npm run dev     # http://localhost:5173, on your phone too through your LAN address
+npm run build   # the static site in dist/, served by npm run preview
 ```
 
-- On the start screen your deck box faces the AI's. Tap one to open it onto every deck and pick another, or
-  *Aleatorio* for either seat; **Cartas** opens the chosen deck with every card, its mana curve and card details.
-  The in-game menu shows both decks too.
-- Tap a card to read it; the sheet that opens holds its actions (play, cast, activate). Long-press or right-click
-  inspects any card. The game log, in the menu, opens every card it names on a tap.
-- On the battlefield a card is its art, with icons for its keywords and for a trigger still to come, and a pill with
-  the cost and effect of each ability you activate (`T: +G`, `R: +1/+0`, `Sacr.: -2/-2`), lit while you can use it.
-  In hand, its name and text sit over the art.
-- Targets glow when a spell needs one: tap the creature or the player, or the spell in the center strip for a
-  counterspell.
-- Attack by tapping your creatures, then **Atacar**. Block by tapping your creature, then the attacker it should
-  stop. Numbered badges pair attackers with their blockers.
-- Priority passes by itself while there is nothing to decide; **Terminar turno** skips straight to the opponent.
-  Turn **Pase automático** off in the menu to stop wherever you could act, the opponent's turn included, as the AI
-  does.
-- **Ver IA contra IA** on the start screen lets the AI play both seats.
-- **Expedición**, under *Más modos*: seven duels in a row with one deck, against rivals that start weak, carry relics
-  from the third duel on and end in a boss whose boss relic is its special ability. Each win lets you take one of
-  three cards into your deck, every third win one of twelve relics that lasts the whole run, and a single defeat ends
-  it. The run and the duel in progress are saved in the browser, so a reload picks the duel
-  up where it was. Details in [`docs/MODES.md`](docs/MODES.md).
-- **Draft**, under *Más modos*: a draft against the AI, three rounds of passing packs of twelve and picking a card
-  each time, or a sealed pool of six packs. Build a deck from your cards and the basic lands, starting from a
-  suggested one, and play the AI's own deck at the best of three; then save yours into your decks.
-- **Mis mazos**, under *Más modos*: build your own decks from every card of the game, from nothing or from a copy of
-  one of the fourteen, with a search, filters by color and type, the mana curve, warnings about lands and colors and
-  a button that completes the deck with basic lands. A deck of 40 to 60 cards with up to four copies of each card
-  (basic lands aside) appears in both seats' pickers and can start an Expedition.
-- **Idioma**, in the settings behind the gear of the start screen: *Español* or *English*, remembered in this browser;
-  `?lang=es|en` picks one for a visit. These notes quote the Spanish screens.
-- **Quién controla la IA**, in the same settings: *Clásica*, or *LLM* with an [OpenRouter](https://openrouter.ai) model id, a thinking effort
-  and your API key (kept in this browser only). The model picks every move among the legal ones, the log shows its
-  reasoning and its next prompts recall it; when it fails to answer, the classic AI moves for it. With
-  `OPENROUTER_API_KEY` set in the shell or in `.env.local`, `npm run dev` adds the key on the server and no key needs
-  typing. `?ai=llm&model=<id>` starts a game against it directly. Details in [`docs/LLM.md`](docs/LLM.md).
-- Every change is animated: the card the opponent plays is shown with its target, creatures strike each other in
-  combat, damage and life changes pop, the dead fade out in their place, drawn cards slide into your hand and each
-  turn is announced. `?fx=slow` plays them in slow motion and `?fx=off` turns them off.
-- Five scenes, one per color of mana, behind every screen: golden plains, a coast with a lighthouse, a misty swamp,
-  snowy peaks and a pine forest, by day in the light theme and by night in the dark one. The menus fade from one to
-  the next every 16 seconds; each game takes the next one, faded behind the board. `?scene=<id>` keeps one.
-- Music and sound effects: each deck plays its own theme, in the colors of its cards, that brings in the drums when
-  creatures attack and turns tense at low life; every play, hit, death and turn has its sound, timed with its
-  animation, and the game ends on a victory or a defeat. All of it is synthesized with the Web Audio API, starts
-  with your first tap and turns off from the menu or the start screen's settings (`?music=off`, `?sfx=off`). Details in
-  [`docs/AUDIO.md`](docs/AUDIO.md).
+Every push to `main` deploys the site to GitHub Pages through `.github/workflows/pages.yml`. To play the LLM opponent
+in development without typing a key, set `OPENROUTER_API_KEY` in `.env.local`: the dev server adds it to each call.
 
-## What is inside
+## Under the hood
 
-- **Rules engine** (`src/engine`): turn structure, priority and the stack, instants in response, London mulligan,
-  one land per turn, automatic mana payment, summoning sickness, combat with first strike, double strike,
-  trample, deathtouch, lifelink, flying and reach, menace, skulk, vigilance, haste, defender, flash, undying, hexproof,
-  evolve and prowess, triggered and activated abilities (including "whenever you cast an instant or sorcery spell",
-  "whenever another creature you control enters" or "dies", "whenever this creature deals combat damage to a
-  player", "whenever you gain life", landfall and bloodthirst, "if an opponent was dealt damage this turn"), lands
-  that enter tapped or tap for three or five colors, land searches and extra land plays, sacrifice costs,
-  creature tokens, counterspells, returning creatures to hand, fights and bites, `-N/-N`, +1/+1 counters, pumps and
-  keywords granted until end of turn, for one creature or every creature you control, discards the player chooses,
-  paying life, fizzling, cleanup and hand size, every way to win or lose. Pure, deterministic and seeded, so any game
-  can be replayed. Details in [`docs/RULES.md`](docs/RULES.md).
-- **AI** (`src/ai`): evaluates each option by playing the engine forward, predicts blocks with its own blocking
-  logic, keeps combat tricks for combat, answers burn with pumps, counters what is worth countering and only
-  chump-blocks against lethal damage, with as many blockers as it takes. A test proves hidden cards never change its
-  decisions. It plays all fourteen decks, and simulated games between them stay close to even.
-- **LLM opponent** (`src/llm`): the AI seat's view of the game as JSON (its own hand, the opponent's card counts),
-  every legal move as a zod schema, and one AI SDK `generateText` call with `Output.object` per decision, through
-  the OpenRouter provider. Answers the engine refuses are retried, then left to the classic AI. It loads only when
-  a game uses it, and the tests run it offline against mocked models.
-- **App** (`src/app`, `src/ui`): Preact UI tuned for one-handed phone play, a deck selector of 3D deck boxes that
-  open, a deck viewer, light
-  and dark themes over five vector scenes, a game log, the Expedition and Draft modes, a deck builder, animations driven by cues that tests
-  and agents can read, and an automation API on `window.manaDuel`.
-- **Audio** (`src/audio`): a generative score, one theme per color combination and four moods that follow the game,
-  scheduled ahead of the audio clock, and a sound for every animation cue, each built from layers of synthesized
-  tones and noise. Tests read what plays and render every sound offline.
-- **Cards**: 213 cards — 202 that belong to a single deck (19 in Encrucijada, six of them lands, 16 in Brasalvaje, 15
-  each in Vesperia and Tierrabrava, 14 each in Albamar, Fangoscuro, Pradosol, Forjaluz, Fauceniza, Sotohondo and
-  Crestafuego, 13 each in Cristormenta, Brumafosa and Selvumbra), the five basic lands, which any deck may use, and six
-  tokens that cards create (Soldado, Elemental, Saprolín, Espíritu, Monje, Bestia) — each with its own SVG
-  illustration in `public/cards/`, listed in [`docs/CARDS.md`](docs/CARDS.md)
-  (generated from the definitions) and, in English, [`docs/CARDS.en.md`](docs/CARDS.en.md). Their Spanish names,
-  types and rules text follow the official Spanish terminology of Magic (*Vuela*, *Arrolla*, *Resiliencia*, «Crea una
-  ficha de criatura Soldado blanca 1/1»), their English ones its Oracle templates (*Flying*, *Trample*, *Undying*,
-  "Create a 1/1 white Soldier creature token."), and each name fits the two lines of a card in hand in both
-  languages.
+TypeScript, Preact and Vite, tested with Vitest and Playwright. The rules engine is pure functions over a seeded,
+serializable game state, so any game replays exactly from its seed and its actions. The AI reads only public state, and
+a test proves your hidden cards never change its decisions. The music and sounds are synthesized with the Web Audio
+API. With the game open, `manaDuel.help()` in the console lists an API to drive it, and `manaDuel.runChecks()` runs
+its built-in feature checks.
 
-## Testing and verification
-
-| Command | What it proves |
+| Command | What it does |
 | --- | --- |
-| `npm test` | Engine, AI, controller, UI and audio tests (Vitest, happy-dom, a fake `AudioContext`), including 62 feature checks |
-| `npm run sim -- --games 3000` | Headless AI games in all 196 deck matchups, one process per CPU, with invariant checks after every action and per-deck win rates (`--decks dawntide,duskmire` for one matchup; `--duel 5` for an Expedition rival, `--relics1 bell` for a relic) |
-| `npm run test:e2e` | Playwright on the production build, two phone viewports and a desktop browser |
-| `npm run test:live` | Real OpenRouter calls, one per decision kind (needs `OPENROUTER_API_KEY`, spends credits; `OPENROUTER_MODEL` picks the model). `npm run sim -- --p1 llm --model <id> --log 1` plays a whole game against it |
-| `npm run format:check` | The code keeps oxfmt's layout (`.oxfmtrc.json`); `npm run format` applies it |
-| `npm run lint` | oxlint with type information: likely bugs, and the imports each layer may make (`.oxlintrc.json`); `npm run lint:fix` fixes what it can |
-| `npm run knip` | Knip: no export, file or dependency that nothing uses |
-| `npm run verify` | Format check, lint, Knip, typecheck, tests, 196 simulated games (one per matchup) and the build, in one go |
+| `npm run verify` | Format check, lint, Knip, typecheck, unit tests, 196 AI-vs-AI games and the build, in one go |
+| `npm test` | Unit tests of the engine, AI, LLM player, controller, UI and audio |
+| `npm run test:e2e` | Playwright on the production build, on two phones and a desktop |
+| `npm run sim -- --games 3000` | AI-vs-AI games in all 196 matchups, with invariant checks and win rates per deck |
+| `npm run test:live` | Real OpenRouter calls (needs `OPENROUTER_API_KEY` and spends credits) |
 
-[`docs/VERIFICATION.md`](docs/VERIFICATION.md) maps every feature to its tests. With the game open,
-`manaDuel.runChecks()` runs the same feature checks inside the browser, and `manaDuel.help()` lists the rest of
-the automation API. [`AGENTS.md`](AGENTS.md) is the guide for coding agents.
+Read on in [`AGENTS.md`](AGENTS.md), the guide to the code for people and coding agents, and in `docs/`:
+[rules](docs/RULES.md), [game modes](docs/MODES.md), [LLM opponent](docs/LLM.md), [audio](docs/AUDIO.md) and
+[verification](docs/VERIFICATION.md).
 
-## Project structure
-
-```
-index.html · src/main.tsx
-src/
-├── engine/   types, cards/ (one file per card), relics, registry, decks, mana, state, targets, combat,
-│             effects, rules, game, actions, scenario, describe, refusals, invariants, text/ (rules text, log and
-│             refusals in Spanish and English; the English names of cards and decks)
-├── ai/       evaluate, rollout, combat, heuristics, chooseAction
-├── llm/      view (the seat's view), decision (options and schemas), prompt, player, openrouter, models, lazy,
-│             text/ (the prompt in Spanish and English)
-├── app/      controller, autopass, fx (animation cues), llmFactory, testApi, checks, expedition,
-│             expeditionController, relics, draft, draftController, duelTracker, cardPool, deckBuilding, deckLibrary,
-│             text/
-├── i18n/     the current language and messages({ es, en }), the typed catalogs of every text/ folder
-├── audio/    music (themes and moods), cues (a sound per cue), synth, engine, director, render, sounds, gate
-└── ui/       App, StartScreen (deck and AI selector), Game, ExpeditionScreen, DraftScreen, DecksScreen, model
-              (interaction logic), deckChoice, opponentChoice, autoPassChoice, audioChoice, localeChoice, expeditionStore,
-              draftStore, deckLibraryStore, fx and motion (animations), scenery and sceneArt (the backdrop's scenes),
-              components/ (Backdrop, Board, Card, DeckBox, DeckBuilder, DeckSelect, DeckViewer, Fx,
-              ModeIcons, Overlays, ScreenBar, SoundToggles), text/ (the screens' texts), styles.css
-public/cards/ one SVG illustration per card, named <id>.svg
-tests/        engine/ ai/ llm/ app/ ui/ audio/ + helpers.ts, scriptedLlm.ts, proxy.test.ts
-e2e/          Playwright specs
-scripts/      sim.ts, cards.ts, openrouterProxy.ts
-docs/         RULES.md, VERIFICATION.md, CARDS.md, CARDS.en.md, LLM.md, AUDIO.md, MODES.md
-```
+---
 
 Mana Duel is an independent fan project inspired by Magic: The Gathering, a trademark of Wizards of the Coast. Card
 names and texts are original.
