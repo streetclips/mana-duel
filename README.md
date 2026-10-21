@@ -14,11 +14,14 @@ calls Dawntide in English.
 
 ## Play
 
+Play it at https://streetclips.github.io/mana-duel/, deployed by `.github/workflows/pages.yml` on every push to
+`main`, or run it yourself:
+
 ```sh
 npm install
 npm run dev        # http://localhost:5173 — open it on your phone through your LAN address too
 npm run build      # static site in dist/, served by `npm run preview`
-docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same site served by nginx, as deployed
+docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same site served by nginx
 ```
 
 - On the start screen your deck box faces the AI's. Tap one to open it onto every deck and pick another, or
