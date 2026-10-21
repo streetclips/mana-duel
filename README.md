@@ -21,7 +21,6 @@ Play it at https://streetclips.github.io/mana-duel/, deployed by `.github/workfl
 npm install
 npm run dev        # http://localhost:5173 — open it on your phone through your LAN address too
 npm run build      # static site in dist/, served by `npm run preview`
-docker build -t mana-duel . && docker run --rm -p 8080:80 mana-duel   # the same site served by nginx
 ```
 
 - On the start screen your deck box faces the AI's. Tap one to open it onto every deck and pick another, or
