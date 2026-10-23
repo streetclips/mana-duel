@@ -1,6 +1,7 @@
 import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { PROXY_PATH, openRouterProxyPlugin } from './scripts/openrouterProxy.ts';
+import { serviceWorkerPlugin } from './scripts/serviceWorker.ts';
 
 export default defineConfig(({ mode, isPreview }) => {
   const env = loadEnv(mode, process.cwd(), ['OPENROUTER_', 'LLM_']);
@@ -13,7 +14,7 @@ export default defineConfig(({ mode, isPreview }) => {
         importSource: 'preact',
       },
     },
-    plugins: proxyKey ? [openRouterProxyPlugin(proxyKey)] : [],
+    plugins: [serviceWorkerPlugin(), ...(proxyKey ? [openRouterProxyPlugin(proxyKey)] : [])],
     define: proxyKey ? { 'import.meta.env.VITE_OPENROUTER_PROXY': JSON.stringify(PROXY_PATH) } : {},
     server: {
       host: true,

@@ -120,6 +120,10 @@ window.manaDuel = createTestApi(controller, () => show('game'), {
   library,
 });
 
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => undefined);
+}
+
 const root = document.getElementById('app');
 if (!root) throw new Error('Missing #app element');
 render(

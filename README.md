@@ -3,8 +3,8 @@
 # Mana Duel
 
 **A minimalist card duel on the rules of Magic: The Gathering, made for your phone.** Pick one of fourteen decks and
-face an opponent that plays by the same rules and never looks at your hand. It runs in the browser: nothing to
-install, no account.
+face an opponent that plays by the same rules and never looks at your hand. It runs in the browser, with no account,
+and installs on your home screen as an app that also plays offline.
 
 <p align="center"><a href="https://streetclips.github.io/mana-duel/"><b>▶ Play now at streetclips.github.io/mana-duel</b></a></p>
 
