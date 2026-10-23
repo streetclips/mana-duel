@@ -32,4 +32,6 @@ export function applyLocale(locale: Locale, doc: Document = document): void {
   doc.documentElement.lang = locale;
   doc.title = text.title;
   doc.querySelector('meta[name="description"]')?.setAttribute('content', text.description);
+  doc.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', text.title);
+  doc.querySelector('link[rel="manifest"]')?.setAttribute('href', `manifest.${locale}.webmanifest`);
 }

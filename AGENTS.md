@@ -27,7 +27,9 @@ src/i18n/    the current language (es, en) and messages({ es, en }), the typed c
 tests/       Vitest: engine, ai, llm, app, ui (happy-dom), audio (fake AudioContext) e2e/  Playwright on the
              production build
 scripts/     sim.ts (headless AI games in every matchup + invariants, in parallel), cards.ts (writes docs/CARDS.md and
-             CARDS.en.md), openrouterProxy.ts (dev server proxy that adds OPENROUTER_API_KEY)
+             CARDS.en.md), openrouterProxy.ts (dev server proxy that adds OPENROUTER_API_KEY), icons.ts (npm run icons:
+             the favicon and app icons in public/icons/), serviceWorker.ts (the build's sw.js, which caches every file
+             for offline play; registered only in production)
 ```
 
 ## Engine model

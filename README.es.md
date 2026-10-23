@@ -3,8 +3,8 @@
 # Duelo de Maná
 
 **Un duelo de cartas minimalista con las reglas de Magic: The Gathering, hecho para el móvil.** Elige uno de catorce
-mazos y enfréntate a un rival que juega con las mismas reglas y nunca mira tu mano. Se juega en el navegador: no hay
-nada que instalar ni cuentas que crear.
+mazos y enfréntate a un rival que juega con las mismas reglas y nunca mira tu mano. Se juega en el navegador, sin
+cuentas que crear, y se instala en tu pantalla de inicio como una app que también funciona sin conexión.
 
 <p align="center"><a href="https://streetclips.github.io/mana-duel/?lang=es"><b>▶ Juega ya en streetclips.github.io/mana-duel</b></a></p>
 

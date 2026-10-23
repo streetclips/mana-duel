@@ -42,8 +42,12 @@ describe('choosing the language', () => {
     expect(getLocale()).toBe('es');
   });
 
-  it('marks the document with the language, its title and its description', () => {
-    document.head.innerHTML = '<meta name="description" content="">';
+  it('marks the document with the language, its title, its description and its manifest', () => {
+    document.head.innerHTML = [
+      '<meta name="description" content="">',
+      '<meta name="apple-mobile-web-app-title" content="">',
+      '<link rel="manifest" href="/manifest.es.webmanifest">',
+    ].join('');
     applyLocale('en');
     expect(getLocale()).toBe('en');
     expect(document.documentElement.lang).toBe('en');
@@ -51,9 +55,14 @@ describe('choosing the language', () => {
     expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(
       'Mana Duel: a minimalist card duel against an AI.',
     );
+    expect(document.querySelector('meta[name="apple-mobile-web-app-title"]')?.getAttribute('content')).toBe(
+      'Mana Duel',
+    );
+    expect(document.querySelector('link[rel="manifest"]')?.getAttribute('href')).toBe('manifest.en.webmanifest');
     applyLocale('es');
     expect(document.documentElement.lang).toBe('es');
     expect(document.title).toBe('Duelo de Maná');
+    expect(document.querySelector('link[rel="manifest"]')?.getAttribute('href')).toBe('manifest.es.webmanifest');
   });
 });
 
